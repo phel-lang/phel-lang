@@ -1,9 +1,12 @@
 ---
-description: Evaluate Phel expressions to verify behavior. Use when you need to test Phel code interactively.
+description: Evaluate a Phel expression with ./bin/phel eval.
 argument-hint: "<phel expression>"
 disable-model-invocation: true
 x-claude:
   allowed-tools: "Bash(./bin/phel *), Bash(echo *), Bash(printf *)"
+x-codex:
+  interface:
+    display_name: Phel REPL
 ---
 
 # Phel REPL

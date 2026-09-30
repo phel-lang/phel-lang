@@ -1,18 +1,20 @@
 ---
 name: fixture-reviewer
-description: Audits .test integration fixtures under tests/php/Integration/Fixtures for drift against the current compiler output. Use after lexer, parser, analyzer, or emitter changes.
+description: Checks .test fixtures for drift after a compiler change.
 model:
   claude: sonnet
   codex: gpt-5.5
-maxTurns: 15
-tools: [Read, Glob, Grep, Bash]
+effort: medium
+# Claude-only fields: Codex has no tool allowlist, memory or turn cap; it gets sandbox_mode instead.
+x-claude:
+  tools: [Read, Glob, Grep, Bash]
+  maxTurns: 15
 x-codex:
-    model_reasoning_effort: medium
-    name: fixture_reviewer
-    nickname_candidates:
-        - Fixture
-        - Snapshot
-        - Drift
+  name: fixture_reviewer
+  nickname_candidates:
+    - Fixture
+    - Snapshot
+    - Drift
 ---
 
 # Fixture Reviewer
@@ -46,6 +48,5 @@ Specialized reviewer for `.test` fixtures in `tests/php/Integration/Fixtures/`. 
 
 ## Constraints
 
-- Never hand-edit expected PHP to "match" a failure: the point of fixtures is to catch unintended emitter changes.
 - Do not run `composer fix` or format fixture files.
-- Source locations (line/column) are part of the contract: report them explicitly when they shift.
+- Report shifted source locations (line/column) explicitly: they are part of the contract.

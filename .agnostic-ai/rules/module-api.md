@@ -1,3 +1,9 @@
+---
+name: module-api
+description: 'Api module: REPL autocompletion, function introspection/docs, and user-code semantic analysis (diagnostics, project index, jump-to-def, find-references, completion at point, PHP-interop tooling).'
+scope: src/php/Api
+---
+
 # Api Module
 
 REPL autocompletion, function introspection/docs, and user-code semantic analysis (diagnostics, project index, jump-to-def, find-references, completion at point, PHP-interop tooling).
@@ -28,9 +34,9 @@ Every transfer the contract names lives in `Phel\Shared\Api`: `ProjectIndex`, `D
 
 ## Dependencies
 
-- Run (namespace resolution, directory listing) — provided as `RunFacadeInterface::class`.
-- Compiler (lex, parse, read, analyze phases) — provided as `CompilerFacadeInterface::class`.
-- `ApiConfig::allNamespaces()` lists the 26 documented Phel namespaces; `ApiConfig::githubRef()` returns `VersionFinder::LATEST_VERSION`.
+- Run (namespace resolution, directory listing): provided as `RunFacadeInterface::class`.
+- Compiler (lex, parse, read, analyze phases): provided as `CompilerFacadeInterface::class`.
+- `ApiConfig::allNamespaces()` lists the 27 documented Phel namespaces; `ApiConfig::githubRef()` returns `VersionFinder::LATEST_VERSION`.
 
 `Api <-> Run` is the codebase's only mutual Gacela provider pair, and the cycle is a wiring detail rather than a structural one: both sides consume each other through `Phel\Shared\Facade\*Interface`, and the concrete facades appear only in `ApiProvider` / `RunProvider`, because Gacela's locator has to name a class. `ModuleDependencyCycleTest` pins exactly those two files.
 
@@ -52,7 +58,7 @@ All collaborators degrade to empty/null on unknown types or reflection failure.
 
 - `SourceAnalyzer` runs a pipeline of `list<AnalysisStageInterface>` (`Application/Analysis/`: Preload → LexAndParse → ReadAndAnalyze); add/remove stages in `ApiFactory::createSourceAnalyzer()`.
 - `ReadAndAnalyzeStage` wraps its pass in `GlobalEnvironment::enterAnalysisMode()`/`leaveAnalysisMode()`. `PreloadDependenciesStage` really evaluates the bundled `phel.*` modules and the file's dependencies, so the namespace under analysis is usually already bound; without that guard every top-level `def` raises `DuplicateDefinitionException` and kills the run. Any new stage that re-analyzes loaded sources needs the same guard.
-- Analysis routes through `CompilerFacade` phases only — never bypass.
+- Analysis routes through `CompilerFacade` phases only; never bypass.
 - Signatures come from the docstring first and the `arglists` metadata second. `defn` renders its arities into a fenced ```phel block at the top of the docstring, which `DocstringSignatureParser` reads; a bare `def` over an `fn` has no such block, so `PhelFnNormalizer` falls back to `ArglistSignatureParser` over the `arglists` string the analyzer writes for both (#3012). Without that fallback every `def`-over-`fn` (`defn`, `defmacro`, `declare`, `first`, `meta`, `next`, `queue`, ...) published no signature at all.
 - A `NativeSymbolCatalog` entry's `signatures` **override** the runtime ones, so an entry for a symbol that has a real definition freezes its signature at whatever was hardcoded. `list`, `vector` and `hash-map` were stale that way. Omit `signatures` from an entry whose symbol has a runtime definition and let the metadata answer.
 - `Infrastructure/NativeSymbolCatalog`: static doc table for special forms / built-ins with no `.phel` source. Special forms (`load`, `in-ns`, `use`) need an entry here to appear in `phel doc`. `PhelFnLoader` merges it with runtime metadata.

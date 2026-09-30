@@ -34,6 +34,7 @@ final class ErrorCodeTest extends TestCase
     public function test_reader_error_codes_start_with_200_299(): void
     {
         self::assertSame('PHEL202', ErrorCode::INVALID_SPLICE->value);
+        self::assertSame('PHEL203', ErrorCode::DUPLICATE_KEY->value);
         self::assertSame('PHEL210', ErrorCode::READER_ERROR->value);
     }
 

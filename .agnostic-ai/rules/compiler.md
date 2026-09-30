@@ -1,11 +1,12 @@
 ---
+name: compiler
 description: Compiler-specific conventions for lexer, parser, reader, analyzer, and emitter code
-globs: src/php/Compiler/**,tests/php/Unit/Compiler/**,tests/php/Integration/**
+scope: src/php/Compiler
 ---
 
 # Compiler Conventions
 
-Read `src/php/Compiler/CLAUDE.md` first. It holds the pipeline, the public API and the non-obvious constraints.
+Read `.agnostic-ai/rules/module-compiler.md` first. It holds the pipeline, the public API and the non-obvious constraints.
 
 Lexer (`TokenStream`) → Parser (`FileNode` parse tree) → Reader (Phel data) → Analyzer (`AbstractNode` AST) → Simplifier → Emitter (PHP code). Each phase consumes only the previous phase's output. Never skip one.
 

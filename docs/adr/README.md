@@ -75,7 +75,7 @@ Three edits an accepted record takes, and nothing else:
 1. The `Superseded by` / `Amended by` line above.
 2. A fact about the code it asserts and the code no longer honours: a test that
    was renamed or moved, a count, a path. Fix it in place and say what it is now.
-   The decision and its reasoning stay untouched — if those are what changed, it
+   The decision and its reasoning stay untouched; if those are what changed, it
    is a new record.
 3. A broken link.
 
@@ -85,4 +85,4 @@ decision did not have at the time is not an edit. That is a new record.
 ## See also
 
 [Stability policy](../stability.md) · [Spec](../spec/README.md) ·
-[Internals](../internals/README.md) · `src/php/<Module>/CLAUDE.md`
+[Internals](../internals/README.md) · `.agnostic-ai/rules/module-<name>.md`

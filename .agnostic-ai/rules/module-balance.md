@@ -1,3 +1,9 @@
+---
+name: module-balance
+description: 'Balance module: delimiter repair for `phel balance`.'
+scope: src/php/Balance
+---
+
 # Balance Module
 
 Delimiter repair: reports, and on request appends, the `()`, `[]` and `{}` a

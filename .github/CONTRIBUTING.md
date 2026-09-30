@@ -8,7 +8,7 @@ For bigger changes, open an issue first so we can discuss.
 
 ## Understanding the Codebase
 
-Two-language project — compiler/runtime in PHP, standard library in Phel:
+Two-language project (compiler/runtime in PHP, standard library in Phel):
 
 ```
 src/php/      → Compiler, runtime, CLI tools (PHP, Gacela modules)
@@ -124,6 +124,8 @@ For user-facing changes (`feat:`, `fix:`), update `CHANGELOG.md` under `## Unrel
 
 [.agnostic-ai/](../.agnostic-ai/) is the single source for the agent config used on this repository. [agnostic-ai](https://github.com/Chemaclass/agnostic-ai) generates Claude Code (`.claude/`, `CLAUDE.md`) and Codex (`.codex/`, `.agents/`, `AGENTS.md`) from it. The generated files are gitignored, so run `sync` after cloning and after every spec change.
 
+Each PHP module is documented by a rule scoped to its directory, `.agnostic-ai/rules/module-<name>.md`. Sync emits it as `src/php/<Module>/AGENTS.md` for Codex and as a path-scoped rule under `.claude/rules/src/php/` for Claude Code. Edit the rule, not the output.
+
 ```bash
 brew install Chemaclass/tap/agnostic-ai   # or: go install github.com/chemaclass/agnostic-ai/cmd/agnostic-ai@latest
 agnostic-ai sync
@@ -147,7 +149,7 @@ Issues labeled [`good first issue`](https://github.com/phel-lang/phel-lang/issue
 
 **`composer test` fails after fresh clone?** Check PHP 8.5+ (`php -v`) and run `composer install` again.
 
-**Tests pass locally but CI fails?** CI runs the full suite — make sure you ran `composer test`, not a subset.
+**Tests pass locally but CI fails?** CI runs the full suite; make sure you ran `composer test`, not a subset.
 
 **Code style errors?** Run `composer fix`.
 

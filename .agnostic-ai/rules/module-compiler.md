@@ -1,3 +1,9 @@
+---
+name: module-compiler
+description: 'Compiler module: lexer, parser, reader, analyzer, simplifier and emitter pipeline.'
+scope: src/php/Compiler
+---
+
 # Compiler Module
 
 Core compilation pipeline: Phel source → tokens → AST → analyzed nodes → PHP code.
@@ -19,10 +25,10 @@ Core compilation pipeline: Phel source → tokens → AST → analyzed nodes →
 
 ## Dependencies
 
-- **Filesystem** — file I/O (`FilesystemFacadeInterface::class`, the module's only Provider entry).
-- **Config** — `PhelConfig` data model, wrapped by `CompilerConfig` (`assertsEnabled()`, `warnDeprecationsEnabled()`, `isIntermediateCacheEnabled()`, `getCacheDir()`).
-- **Lang** — the compiler's widest edge by far (~200 files): every phase after the lexer reads and produces `Phel\Lang` values, and the emitter writes their FQNs into generated PHP.
-- **Shared** — `Munge`, `Printer`, exceptions, `SourceMap\VLQ`. Shared points back through `Facade/CompilerFacadeInterface`; see the "Compiler Back-Edge" section of `Shared/CLAUDE.md`.
+- **Filesystem**: file I/O (`FilesystemFacadeInterface::class`, the module's only Provider entry).
+- **Config**: `PhelConfig` data model, wrapped by `CompilerConfig` (`assertsEnabled()`, `warnDeprecationsEnabled()`, `isIntermediateCacheEnabled()`, `getCacheDir()`).
+- **Lang**: the compiler's widest edge by far (~200 files): every phase after the lexer reads and produces `Phel\Lang` values, and the emitter writes their FQNs into generated PHP.
+- **Shared**: `Munge`, `Printer`, exceptions, `SourceMap\VLQ`. Shared points back through `Facade/CompilerFacadeInterface`; see the "Compiler Back-Edge" section of `.agnostic-ai/rules/module-shared.md`.
 
 The source map is split across the boundary on purpose: the writer (`Domain/Emitter/OutputEmitter/SourceMap/SourceMapGenerator`, `SourceMapState`) is emitter state and stays here, while the reader (`Shared\SourceMap\SourceMapConsumer`) lives in Shared because Command decodes maps too and must not `new` a compiler-internal class.
 
@@ -37,14 +43,14 @@ Lexer (source → `TokenStream`) → Parser (→ `FileNode` parse tree) → Read
 
 `Application/Parser` stacks the delimiter of every form it is currently inside. A closer or an end-of-file token reaches `readExpression` only when the innermost open form did not consume it, and `Domain/Parser/OpenForm` turns that stacked opener into the message, the `ErrorCode` (`UNTERMINATED_LIST` / `_VECTOR` / `_MAP` / `_TABLE`, the last one for `#{}`) and the location the caret sits on: the opening delimiter, never the position where the stream ran out. `ListParser` keeps its own throw for a stream that ends without the lexer's `T_EOF`.
 
-An unclosed `"` never fails to lex, because the atom rule swallows it (`Balance` counts on that, see `src/php/Balance/CLAUDE.md`), so `Parser::parseAtomNode` reads the leading quote and raises `UNTERMINATED_STRING` from there rather than from the lexer.
+An unclosed `"` never fails to lex, because the atom rule swallows it (`Balance` counts on that, see `.agnostic-ai/rules/module-balance.md`), so `Parser::parseAtomNode` reads the leading quote and raises `UNTERMINATED_STRING` from there rather than from the lexer.
 
 ### Interop shorthand expansion
 
 Clojure-style interop spellings are sugar, expanded to `php/*` forms before analysis, never registered as special forms (`LanguageSurfaceSpecTest` fails on a spec table row with no dispatch entry):
 
-- Call position — `AnalyzePersistentList`: `(.m obj …)`, `(.-field obj)`, `(\C/m …)`, `(\C. …)`.
-- Value position — `Domain/Analyzer/TypeAnalyzer/QualifiedMemberExpander`, reached from `AnalyzeSymbol` when global resolution finds nothing: `\C/CONST` → `php/::`, `\C/$prop` → `php/::` (static property, no reflection: the sigil decides), `\C/m` → `php/callable`, `\C/.m` → an `fn` of the receiver.
+- Call position (`AnalyzePersistentList`): `(.m obj …)`, `(.-field obj)`, `(\C/m …)`, `(\C. …)`.
+- Value position: `Domain/Analyzer/TypeAnalyzer/QualifiedMemberExpander`, reached from `AnalyzeSymbol` when global resolution finds nothing: `\C/CONST` → `php/::`, `\C/$prop` → `php/::` (static property, no reflection: the sigil decides), `\C/m` → `php/callable`, `\C/.m` → an `fn` of the receiver.
 
 `NodeEmitter/PhpObjectSetEmitter` shares `PhpObjectCallDispatchResolver` with the read path, so a class-name target is static however it was written, and it prefixes a bare static member name with `$`: a class constant is not assignable, so an assignment can only mean the property (#2907).
 
@@ -72,7 +78,7 @@ Opt-in, off by default (`CompilerConfig::isIntermediateCacheEnabled()`). Wired o
 - `CodeCompiler` persists each source's read results via `Domain/Cache/ReaderResultCacheInterface`.
 - Enabled → `Infrastructure/Cache/FileSystemReaderResultCache` (gzip'd `serialize` under `<cacheDir>/read-result/`, key = `md5(version|optLevel|source)`); else `NullReaderResultCache`.
 - Warm hit skips lex/parse/read and replays each form's recorded read-phase gensym delta (`Domain/Cache/CachedReaderResult` = `ReaderResult` + delta) before analysis, so the shared `Symbol::gen()` counter follows the cold-compile trajectory.
-- GOTCHA: replayed forms are deserialized Phel values, so anything used as a map key must compare by value, not identity (`Keyword::equals`/`Symbol::equals`) — else a cached keyword-keyed lookup silently misses on replay.
+- GOTCHA: replayed forms are deserialized Phel values, so anything used as a map key must compare by value, not identity (`Keyword::equals`/`Symbol::equals`), or else a cached keyword-keyed lookup silently misses on replay.
 - Emitted PHP is stable for a given counter trajectory, but gensym names are process-global; a build mixing fresh compiles with compiled-code-cache hits can renumber them (pre-existing, independent of this cache).
 
 ### Call-site arity shortcut
@@ -92,8 +98,8 @@ In build mode a call to a multi-arity global at a count with a fixed arity emits
 - Emitter must handle every node type; missing cases throw, not silently skip.
 - Special forms registered centrally; no ad-hoc handling in analyzer loop.
 - Source locations must propagate through all phases for error reporting.
-- Do NOT rename `GlobalEnvironmentSingleton` — its FQN is baked into cached `.phel` files.
-- Do NOT rename `LoadEmitter`'s `Phel\Lang\LoadClasspath::class` (the `(load ...)` classpath store) — `LoadEmitter` bakes its FQN into generated PHP. It lives in `Lang` because its state is the `*load-classpath*` slot in `Lang\Registry`.
+- Do NOT rename `GlobalEnvironmentSingleton`; its FQN is baked into cached `.phel` files.
+- Do NOT rename `LoadEmitter`'s `Phel\Lang\LoadClasspath::class` (the `(load ...)` classpath store); `LoadEmitter` bakes its FQN into generated PHP. It lives in `Lang` because its state is the `*load-classpath*` slot in `Lang\Registry`.
 
 ## Type-Specialized Emission
 
@@ -105,14 +111,14 @@ Inferred tags replace AST symbols with metadata-bearing copies. `NodeEnvironment
 
 Two halves, by family:
 
-- **Eligibility** — `*Specialization` classes in `Domain/Emitter/OutputEmitter/`: `NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `GetInSpecialization`, `AssocInSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`, `ReduceSpecialization`, `ConstructorSpecialization`. `CallSpecialization` aggregates them.
-- **Emission** — one `Specialized/*CallEmitter implements SpecializedCallEmitterInterface` per family under `NodeEmitter/Specialized/`. `CallEmitter` builds them once and dispatches by looping `tryEmit()` before the generic call path.
+- **Eligibility**: `*Specialization` classes in `Domain/Emitter/OutputEmitter/`: `NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `GetInSpecialization`, `AssocInSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`, `ReduceSpecialization`, `ConstructorSpecialization`. `CallSpecialization` aggregates them.
+- **Emission**: one `Specialized/*CallEmitter implements SpecializedCallEmitterInterface` per family under `NodeEmitter/Specialized/`. `CallEmitter` builds them once and dispatches by looping `tryEmit()` before the generic call path.
 
 Family predicates are disjoint, so chain order between families is not significant.
 
 To add a family: write a `*Specialization` eligibility class, register it in `CallSpecialization::isSpecialized()`, and add the matching `Specialized/*CallEmitter` to `CallEmitter`'s ordered list.
 
-`ConstructorSpecialization` is the one family gated on the **callee alone**, with no analyser tag and no arity constraint: `(list …)`, `(vector …)`, `(queue …)`, `(hash-map …)`, `(array-map …)` become `\Phel::list([…])` and friends, which is where the runtime fn was heading anyway. Odd argument counts are lowered too, deliberately — `\Phel::map([1])` raises the same "even number of elements" error the runtime fn reaches, so filtering on parity would only move the error. `apply` and higher-order uses do not put the constructor in call-head position and keep the runtime fn; a local shadow is a `LocalVarNode`, so `PhelCoreCall::nameOf()` already declines it.
+`ConstructorSpecialization` is the one family gated on the **callee alone**, with no analyser tag and no arity constraint: `(list …)`, `(vector …)`, `(queue …)`, `(hash-map …)`, `(array-map …)` become `\Phel::list([…])` and friends, which is where the runtime fn was heading anyway. Odd argument counts are lowered too, deliberately: `\Phel::map([1])` raises the same "even number of elements" error the runtime fn reaches, so filtering on parity would only move the error. `apply` and higher-order uses do not put the constructor in call-head position and keep the runtime fn; a local shadow is a `LocalVarNode`, so `PhelCoreCall::nameOf()` already declines it.
 
 A literal multi-key `(assoc m k1 v1 k2 v2 …)` is split in two. On a typed map or vector target `AssocConjSpecialization::typedAssocPairs()` is a specialisation like any other (`->put()` / `->update()` chain). On any other target the nested three-argument steps are emitted by `CallEmitter` itself, not by a `Specialized/*` family: the steps still call `phel.core/assoc`, so the call keeps its `$__phel_call_N` slot, and registering it in `isSpecialized()` would drop that slot. Arguments stay evaluated once and left to right, but each step runs before the next pair is evaluated (#3317). A literal multi-key `(assoc! t k1 v1 …)` takes the same untyped steps (#3318) but never the typed chain: `assoc!` on a persistent target throws, which a `->put()` chain would not.
 
@@ -124,7 +130,7 @@ A two-argument `<` `<=` `>` `>=` `=` `not=`, or a one-argument `zero?` `pos?` `n
 
 A sequential pattern `[a b & r]` is expanded by `VectorBindingDeconstructor` with an indexed path for vectors (#3356): one `iv (php/instanceof v PersistentVectorInterface)` binding per pattern, then each position reads `(php/aget v i)` under `(php/=== iv true)` and keeps the exact `first`/`next` walk otherwise, the trailing `next` included, so a lazy seq realizes the same cells and a scalar still throws where it did. A vector's `& r` is `(.cdr v)` after one position, `Destructure::nthNext(v, i)` after more: the value that many `next` calls return. The test is `(php/=== iv true)` rather than a bare `iv` so the emitter skips the truthiness adapter, which would cost the list walk more than the fast path saves. Every binding the expansion adds except `v` carries `ReturnTypeInferrer::SYNTHETIC_BINDING`: that inferrer publishes a return type once it sees any operator in a fn body, and a pattern must not flip that for the user (`(fn [[x y]] 1)` stays unannotated). `[]` and `[& r]` expand as before, with no test.
 
-GOTCHA: only eager core fns can be lowered to a native loop. `reduce` (3-arity) qualifies. `map`/`filter` do NOT — they return a `LazySeq` over a `Seq::map`/`Seq::filter` generator and `copy-meta` the source; an eager `foreach` lowering would change the return type, break infinite/expensive seqs, and shift side-effect timing. They also gain little: `f` is handed to the generator once, so there is no per-element registry dispatch to remove.
+GOTCHA: only eager core fns can be lowered to a native loop. `reduce` (3-arity) qualifies. `map`/`filter` do NOT; they return a `LazySeq` over a `Seq::map`/`Seq::filter` generator and `copy-meta` the source; an eager `foreach` lowering would change the return type, break infinite/expensive seqs, and shift side-effect timing. They also gain little: `f` is handed to the generator once, so there is no per-element registry dispatch to remove.
 
 ## Generated-Class Attributes & Typed Signatures
 
@@ -160,7 +166,7 @@ GOTCHA: only eager core fns can be lowered to a native loop. `reduce` (3-arity) 
 - `PhpBlockAnalyzer::analyze` takes an `enforceInvokeArity` flag (true only for structs, whose map `__invoke` constrains arity).
 - `^{:php/doc <str|[str...]>}` on any name/field/method → PHPDoc block (one-line string or multi-line list/vector) above the construct, so phpstan/psalm see generated classes as typed.
 - `^:php/override` on a method (defstruct/defenum interface impls, definterface methods) → `#[\Override]` (PHP 8.3); `PhpAttributeEmitterTrait::phpAttributeLines` renders it ahead of explicit `:php/attr` lines. Struct/enum inline method impls emit method-level `:php/attr`/`:php/doc`/`^:php/override` too.
-- Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (see `src/php/Interop/CLAUDE.md`).
+- Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (see `.agnostic-ai/rules/module-interop.md`).
 
 ## Compiler Diagnostics
 
@@ -184,7 +190,7 @@ Not to be confused with `Phel\Lsp\Application\Diagnostics` (LSP publishing) or `
 
 `Domain/Deprecation/DeprecationWarnings` is the single process-wide switch for every `E_USER_DEPRECATED` notice the compiler raises, syntax and definition alike. Off by default; turned on by `--warn-deprecations` (`Console\Application\WarnDeprecationsFlag`), `PHEL_WARN_DEPRECATIONS`, or the `warn-deprecations` config key (`CompilerFactory::createAnalyzer()`). It owns six things so no detector re-implements them: the enabled flag, the bundled-stdlib suppression, the `(file, subject)` dedup, the macro-expansion attribution, the syntax message shape, and the per-compile recording (`startRecording()`/`stopRecording()`, wrapped around `CodeCompiler::compileString()`, surfaced as `EmitterResult::getDeprecations()`) that the compiled-code cache stores and `replayDeprecations()` raises again on a hit (#3222). Detectors gate on `isDetecting()`, not `isEnabled()`: a notice is *found* whenever the flag is on or a compile is being recorded, and only *raised* when the flag is on (announced ones always), so a plain run leaves the cache able to answer a later `--warn-deprecations` run.
 
-Detectors detect and nothing else — they hold no flag, no dedup table, and no emitter, so there is exactly one gate and one place to enable:
+Detectors detect and nothing else; they hold no flag, no dedup table, and no emitter, so there is exactly one gate and one place to enable:
 
 | Detector | Catches |
 |---|---|
@@ -197,8 +203,8 @@ Detectors detect and nothing else — they hold no flag, no dedup table, and no 
 - `Domain/Deprecation/SupersededFormRejector` is not on this table: `php/new`, `php/->`, `php/::` and `set-var` are rejected outright rather than warned about (ADR 0018, #2877, #2888). `CodeCompiler` and `EvalCompiler` call it on each form the reader returns; the former does so on the cold path only. The reader is the seam because everything it produces was typed by somebody, while macro output is built during analysis and never passes through it. A quasiquote is lowered by then, so a template reads as `(apply list (concat (list (quote php/new)) …))` and the name is quoted data rather than a head; a plain `quote` is skipped outright.
 - Never suppress a notice with `@`: that hides it unconditionally, so a `--warn-deprecations` run prints nothing. Call `warn()` / `warnForSource()` / `warnOnceForSource()` / `warnSyntax()` instead.
 - They route through `Domain/Diagnostic/ErrorNotice::raise()`, which writes the notice to stderr itself: PHP's own renderer printed it twice (once per output channel) and stamped `in .../ErrorNotice.php on line NN` onto each line, naming an `@internal` class instead of the user's source (#3262, ADR 0017). It delegates to `trigger_error()` only when a userland error handler is installed, and that path pins `display_errors` to `stderr` for the call (skipped when display is already off or already on stderr, so the redirect never *enables* a silenced notice). The case that forced the redirect was `MethodEmitter`'s `^:reference` check, which ran during emission inside the emitter's `ob_start()`: under PHP CLI's default `display_errors=1` the notice text landed in that buffer and was spliced into the generated PHP, failing the compile with `syntax error, unexpected token ":"` (#2827). That alias is removed and nothing detects during emission today, but keep new notices on `raise()`: a diagnostic must never be able to corrupt captured output.
-- `syntaxMessage()` is the only way to phrase a syntax notice. It has nowhere to put a concrete removal version, which is the point: a named release ships and the message goes stale (#2783). `LexerTest::VERSION_REFERENCE` still guards it.
-- `warnOnceForSource()` dedups per `(file, subject)`, keyed on the `realpath`-normalized file — used where one subject recurs across a file (a deprecated definition, a `\`-separated symbol). One file reaches the analyzer under two spellings, from the namespace scan and from the compile, and an uncanonicalised key reported it once per spelling (#3262). Syntax notices deliberately do not dedup: each occurrence is a separate edit.
+- `syntaxMessage()` is the only way to phrase a syntax notice. It has nowhere to put a concrete removal version, which is the point: a named release ships and the message goes stale (#2783). `DeprecationWarningsTest::test_syntax_message_has_one_shape_and_no_room_for_a_version` guards it.
+- `warnOnceForSource()` dedups per `(file, subject)`, keyed on the `realpath`-normalized file; used where one subject recurs across a file (a deprecated definition, a `\`-separated symbol). One file reaches the analyzer under two spellings, from the namespace scan and from the compile, and an uncanonicalised key reported it once per spelling (#3262). Syntax notices deliberately do not dedup: each occurrence is a separate edit.
 - Dedup suppresses the *raise*, never the *recording*: each recording frame carries its own dedup table, so a notice the process has already shown is still stored for the compile that found it and a cache-replayed warm run reports it (#3222).
 - `isEnabledForSource()` / `isBundledStdlibSource()` drop notices whose source is phel's own `src/phel` or has no file, so only code the user can edit is flagged. The Lexer resolves it once per source, not per token. Paths are `realpath`-normalized (memoized, and only once warnings are on) so a stdlib file reached through a relative prefix still matches.
 - `InvokeSymbol::enrichLocation()` stamps the call site onto forms a macro/inline expansion produced, and records the definition's own location as `SourceLocation::getExpansionOrigin()`. Detectors must never report against the call site: the `\` in `(delay ...)`'s expansion lives in `src/phel/core/lazy.phel`, not in the file that called it (#2827). Only location-less forms are stamped, so macro arguments keep the reader's positions and a `\` the user typed still reports against their file.
@@ -210,7 +216,7 @@ Detectors detect and nothing else — they hold no flag, no dedup table, and no 
 Process-wide singleton in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry`.
 
 - `GlobalEnvironmentManager` (Application) and `GlobalEnvironmentSingleton` (Infrastructure) both read/write the same slot.
-- `GlobalEnvironmentSingleton` is retained as ABI shim; emitter writes literal `\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()` calls into generated PHP (baked into cached `.phel` files — see rename constraint above).
+- `GlobalEnvironmentSingleton` is retained as ABI shim; emitter writes literal `\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()` calls into generated PHP (baked into cached `.phel` files, see rename constraint above).
 
 ### Duplicate-definition reporting
 
@@ -218,9 +224,9 @@ Process-wide singleton in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry
 
 ## Namespace Encoding
 
-Owned by `Phel\Shared\Munge` (see `src/php/Shared/CLAUDE.md`). Two encoders at different boundaries:
+Owned by `Phel\Shared\Munge` (see `.agnostic-ai/rules/module-shared.md`). Two encoders at different boundaries:
 
-- `encodePhpNs` — backslash form, for PHP `namespace` declarations and class FQNs.
-- `encodeRegistryKey` — dot form, for Phel registry lookups.
+- `encodePhpNs`: backslash form, for PHP `namespace` declarations and class FQNs.
+- `encodeRegistryKey`: dot form, for Phel registry lookups.
 
 Analyzer uses dot-separated namespace internally; emission routes through `encodePhpNs` for PHP output.

@@ -1,3 +1,9 @@
+---
+name: module-lint
+description: 'Lint module: Read-only semantic linter.'
+scope: src/php/Lint
+---
+
 # Lint Module
 
 Read-only semantic linter: emits diagnostics on Phel sources, never rewrites them.
@@ -17,7 +23,7 @@ Read-only semantic linter: emits diagnostics on Phel sources, never rewrites the
 | Facade | Injected as | Used for |
 |--------|-------------|----------|
 | Api | `ApiFacadeInterface` | `analyzeSource` (semantic diagnostics), `indexProject` |
-| Compiler | `CompilerFacadeInterface` | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `DuplicateKeyRule` — both need the failures reported, not swallowed) |
+| Compiler | `CompilerFacadeInterface` | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `DuplicateKeyRule`, both need the failures reported, not swallowed) |
 | Command | `CommandFacadeInterface` | default source directories |
 | Run | `RunFacadeInterface` | `loadPhelNamespaces()` to ensure symbols resolve |
 
@@ -36,7 +42,7 @@ Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`
 
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
 
-Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code constant to `RuleRegistry`, register it in `LintFactory::createRules()`, and give it a default severity in `LintConfig::defaultSeverities()`. Do not edit existing rules.
+Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code constant to `Shared\LintRuleCodes`, register it in `LintFactory::createRules()`, and give it a default severity in `LintConfig::defaultSeverities()`. Do not edit existing rules.
 
 ### `phel/internal-error` (not a rule)
 
@@ -48,7 +54,7 @@ from the thirteen above:
   severity grades a finding about the linted code; a crash is a finding about
   the linter. Honouring a `:warning` there would exit 0 with the rule's real
   findings missing, which is exactly the silent pass it exists to prevent.
-- **Not in `RuleRegistry::allCodes()` and not in `defaultSeverities()`**, so it
+- **Not in `LintRuleCodes::allCodes()` and not in `defaultSeverities()`**, so it
   has nothing to configure, contributes nothing to the cache fingerprint, and
   cannot be switched off from `phel-lint.phel`.
 - **Anchored at line 1, col 1** of the file being analysed: a crash has no
@@ -67,7 +73,7 @@ crashing rule to `:off`, which skips it before `apply()` is ever reached.
 
 - `SymbolAlias`: the implicit alias of a `(:use ...)` / `(:require ...)` entry with no `:as`. Splits on both `.` and `\`, because Phel accepts both separators and the analyzer treats them alike.
 
-`Phel\Shared\Binding\IterationHead` parses the `for`/`dofor`/`foreach` heads for the binding rules. It lives in Shared because Api's `PointCompleter` reads the same heads; see `src/php/Shared/CLAUDE.md`.
+`Phel\Shared\Binding\IterationHead` parses the `for`/`dofor`/`foreach` heads for the binding rules. It lives in Shared because Api's `PointCompleter` reads the same heads; see `.agnostic-ai/rules/module-shared.md`.
 
 ### `phel/duplicate-def`
 
@@ -98,9 +104,9 @@ signatures.
 
 ### `phel/comment-style`
 
-Enforces the positional comment convention (`.claude/rules/phel.md`, shared with Clojure): `;` trails code on the same line, `;;` (or more) owns the whole line. Flags only a comment that starts a line and opens with exactly one `;`.
+Enforces the positional comment convention (`.agnostic-ai/rules/phel.md`, shared with Clojure): `;` trails code on the same line, `;;` (or more) owns the whole line. Flags only a comment that starts a line and opens with exactly one `;`.
 
-- `;;;`+ is clean — the rule asks that a whole-line comment is not written with the inline marker, and Clojure-style `;;;` section headers stay legal.
+- `;;;`+ is clean; the rule asks that a whole-line comment is not written with the inline marker, and Clojure-style `;;;` section headers stay legal.
 - Scans the **token stream**, not the source text: only the lexer knows which `;` opens a comment, so a `;` in a string literal, a regex literal, or a `#| ... |#` block can never be flagged.
 - Bare `#` line comments are out of scope; the lexer already emits a deprecation for them.
 
@@ -128,8 +134,8 @@ deprecating something does not flag its declaration.
 
 - Severities: `:error`, `:warning`, `:info`, `:hint`, `:off`
 - Exclude patterns match file path (when they contain `/` or `.phel`) or namespace name, via `fnmatch`
-- A missing config file means defaults. A file that exists but is unreadable, unparseable, or not a map raises `Domain\Exception\LintConfigException` and `phel lint` exits 2 — never silently falls back to defaults
-- A collected `.phel` file that cannot be read raises `Domain\Exception\LintSourceException` — never skipped, which would report it as clean and exit 0. A listed **directory** that cannot be walked raises the same exception (`cannotWalkDirectory`, chaining the iterator's `UnexpectedValueException`): yielding zero files there is the identical silent pass
+- A missing config file means defaults. A file that exists but is unreadable, unparseable, or not a map raises `Domain\Exception\LintConfigException` and `phel lint` exits 2; never silently falls back to defaults
+- A collected `.phel` file that cannot be read raises `Domain\Exception\LintSourceException`; never skipped, which would report it as clean and exit 0. A listed **directory** that cannot be walked raises the same exception (`cannotWalkDirectory`, chaining the iterator's `UnexpectedValueException`): yielding zero files there is the identical silent pass
 
 ## Output Formats
 

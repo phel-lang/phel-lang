@@ -8,6 +8,7 @@ The reader turns forms into the values the analyzer sees, and expands quoting. A
 | Code | Error |
 |---|---|
 | [PHEL202](#phel202-unquote-splicing-outside-a-collection) | Unquote-splicing outside a collection |
+| [PHEL203](#phel203-duplicate-key-in-a-literal) | Duplicate key in a literal |
 | [PHEL210](#phel210-reader-error) | Reader error |
 
 ## PHEL202: Unquote-splicing outside a collection
@@ -21,6 +22,18 @@ The reader found `~@` in a quasiquote with no collection to splice into. Splicin
 ```
 
 **Fix:** Wrap the splice in a collection, or use `~` to unquote a single value.
+
+## PHEL203: Duplicate key in a literal
+
+Enum case: `ErrorCode::DUPLICATE_KEY`
+
+A map or set literal holds the same constant key twice, so one entry would be lost. Keywords, strings, numbers (ratios and big numbers included), booleans and `nil` count as constants. Numbers compare by value, so `{1/2 :a 2/4 :b}` repeats a key. A symbol or a call keeps the last value, as `hash-map` and `hash-set` do.
+
+```phel
+{:a 1 :a 2}
+```
+
+**Fix:** Remove the repeated key, or rename the one you meant to be different.
 
 ## PHEL210: Reader error
 

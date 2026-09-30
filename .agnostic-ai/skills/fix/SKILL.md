@@ -1,32 +1,16 @@
 ---
-description: Auto-fix all code quality issues with rector, cs-fixer, and phpstan
+description: Auto-fix PHP style, then run PHPStan and compiler tests.
 argument-hint: "[file-path]"
 disable-model-invocation: true
 x-claude:
   allowed-tools: "Read, Edit, Bash(composer *), Bash(./vendor/bin/*)"
+x-codex:
+  interface:
+    display_name: Fix
 ---
 
-# Fix All Code Quality Issues
+# Fix Code Quality
 
-## Instructions
-
-1. Run rector + cs-fixer:
-   ```bash
-   composer fix
-   ```
-   Or for a specific file:
-   ```bash
-   ./vendor/bin/php-cs-fixer fix "$ARGUMENTS"
-   ```
-
-2. Run static analysis to check for remaining issues:
-   ```bash
-   composer phpstan
-   ```
-
-3. Run tests to verify nothing broke:
-   ```bash
-   composer test-compiler
-   ```
-
-4. Summarize what was fixed and any remaining issues.
+1. Fix: `composer fix` for the project, or `./vendor/bin/php-cs-fixer fix "$ARGUMENTS"` for one file.
+2. Check: `composer phpstan`, then `composer test-compiler`.
+3. Summarize what changed and what is still failing.

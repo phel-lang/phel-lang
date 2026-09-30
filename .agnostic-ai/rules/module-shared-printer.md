@@ -1,6 +1,12 @@
+---
+name: module-shared-printer
+description: 'Shared Printer: Converts Phel/PHP values into string representations.'
+scope: src/php/Shared/Printer
+---
+
 # Printer
 
-Converts Phel/PHP values into string representations. Stateless strategy pattern, no I/O, no Gacela boundary — consumers instantiate via factories.
+Converts Phel/PHP values into string representations. Stateless strategy pattern, no I/O, no Gacela boundary; consumers instantiate via factories.
 
 ## Public API (`Printer`, `final readonly`)
 
@@ -13,9 +19,9 @@ Converts Phel/PHP values into string representations. Stateless strategy pattern
 
 ## Structure
 
-- `TypePrinter/` — 27 strategy classes, each implements `TypePrinterInterface<T>`. Dispatch in `Printer::createObjectTypePrinter()` (`instanceof` match) and `createScalarTypePrinter()` (`gettype()` match).
-- `PrinterInterface` — contract for `Printer`.
-- `WithColorTrait` — `__construct(private bool $withColor)` + `color()` helper; mixed into color-aware printers.
+- `TypePrinter/`: 27 strategy classes, each implements `TypePrinterInterface<T>`. Dispatch in `Printer::createObjectTypePrinter()` (`instanceof` match) and `createScalarTypePrinter()` (`gettype()` match).
+- `PrinterInterface`: contract for `Printer`.
+- `WithColorTrait`: `__construct(private bool $withColor)` + `color()` helper; mixed into color-aware printers.
 
 ## Dependencies
 
@@ -28,8 +34,8 @@ Converts Phel/PHP values into string representations. Stateless strategy pattern
 
 ## Key Constraints
 
-- Recursive printers (collections, struct, atom, array) receive `$this` Printer and re-enter dispatch for children — never construct a fresh `Printer`.
+- Recursive printers (collections, struct, atom, array) receive `$this` Printer and re-enter dispatch for children; never construct a fresh `Printer`.
 - `createScalarTypePrinter` throws `RuntimeException` for an unprintable type in readable mode; missing object cases fall through `match` to `NonPrintableClassPrinter`.
 - Each printer owns its own color output (gated by `$withColor`); there is no central color pass.
 - `NonPrintableClassPrinter` renders one whitespace-free token on purpose: `ExceptionArgsPrinter` joins the arguments of a stack-trace frame with spaces, so a multi-word rendering reads as several arguments (#3265).
-- Extend only by adding a `TypePrinter` strategy + a branch in `Printer`; `Printer` is `final readonly` — do not subclass.
+- Extend only by adding a `TypePrinter` strategy + a branch in `Printer`; `Printer` is `final readonly`, so do not subclass.

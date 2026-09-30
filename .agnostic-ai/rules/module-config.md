@@ -1,3 +1,9 @@
+---
+name: module-config
+description: 'Config module: Pure data/model layer defining configuration structure for Phel projects.'
+scope: src/php/Config
+---
+
 # Config Module
 
 Pure data/model layer defining configuration structure for Phel projects. Leaf module, **no Gacela pattern**: these classes are consumed directly by other modules' `*Config` classes via Gacela's `AbstractConfig`.
@@ -6,7 +12,7 @@ Pure data/model layer defining configuration structure for Phel projects. Leaf m
 
 | File | Role |
 |------|------|
-| `PhelConfig.php` | Immutable `final readonly` config model (~640 LOC); `with*()` builder API |
+| `PhelConfig.php` | Immutable `final readonly` config model (~760 LOC); `with*()` builder API |
 | `PhelBuildConfig.php` | Value object for build settings (key `out`) |
 | `PhelExportConfig.php` | Value object for export settings (key `export`) |
 | `ProjectLayout.php` | Backed enum: `Flat` / `Nested` / `Root` |
@@ -16,12 +22,12 @@ Pure data/model layer defining configuration structure for Phel projects. Leaf m
 
 ## PhelConfig API
 
-- `forProject(ProjectLayout = Flat, string $mainNamespace = '')` — convenience constructor; sets layout, optionally main phel namespace.
-- `with*()` setters — directory, layout, build, export, cache, flag mutations. Each returns a NEW instance.
-- `withOptimizationLevel(int)` — key `optimization-level`, clamped `>= 0`; consumed by Build/Run (REPL/nREPL ignore it).
-- `withPhelDir(string)` — state directory (`.phel/` default); honors `PHEL_DIR` env var as override.
-- `withAppModulePaths(list<string>)` — key `app-module-paths`; scopes Gacela's module discovery, which otherwise `class_exists()`-walks the whole project root and fatals on any file that cannot load standalone (e.g. under `tests/`). Default `[]` keeps Gacela's whole-root walk. Read by `Phel::bootstrap()` *before* the merged config exists, so it is parsed straight from `phel-config.php`, not via `AbstractConfig::get()`.
-- `validate(): list<string>` — empty list if valid.
+- `forProject(ProjectLayout = Flat, string $mainNamespace = '')`: convenience constructor; sets layout, optionally main phel namespace.
+- `with*()` setters: directory, layout, build, export, cache, flag mutations. Each returns a NEW instance.
+- `withOptimizationLevel(int)`: key `optimization-level`, clamped `>= 0`; consumed by Build/Run (REPL/nREPL ignore it).
+- `withPhelDir(string)`: state directory (`.phel/` default); honors `PHEL_DIR` env var as override.
+- `withAppModulePaths(list<string>)`: key `app-module-paths`; scopes Gacela's module discovery, which otherwise `class_exists()`-walks the whole project root and fatals on any file that cannot load standalone (e.g. under `tests/`). Default `[]` keeps Gacela's whole-root walk. Read by `Phel::bootstrap()` *before* the merged config exists, so it is parsed straight from `phel-config.php`, not via `AbstractConfig::get()`.
+- `validate(): list<string>`: empty list if valid.
 - `jsonSerialize(): array`.
 
 PhelBuildConfig: `withMainPhelNamespace` / `withMainPhpPath` / `withDestDir`.
@@ -39,7 +45,7 @@ PhelExportConfig: `withFromDirectories` / `withNamespacePrefix` / `withTargetDir
 
 ## Key Constraints
 
-- Config constants (e.g. `PhelConfig::SRC_DIRS = 'src-dirs'`) are Gacela config keys — never rename.
-- `jsonSerialize()` wire keys/casing (all three classes) are Gacela's `AbstractConfig::get()` contract — never change.
+- Config constants (e.g. `PhelConfig::SRC_DIRS = 'src-dirs'`) are Gacela config keys; never rename.
+- `jsonSerialize()` wire keys/casing (all three classes) are Gacela's `AbstractConfig::get()` contract; never change.
 - `with*()` returns a new instance; callers MUST capture: `$config = $config->withX(...)`.
 - **Removed (breaking, deprecated since 0.37):** `setX()` setters, `useLayout()`/`useNestedLayout()`/`useFlatLayout()` aliases, and the `PhelConfigDeprecations` trait. Use `with*()` instead.

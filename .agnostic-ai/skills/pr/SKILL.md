@@ -1,8 +1,12 @@
 ---
-description: Push branch and create a PR with concise description and labels
+description: Push the branch and open a PR from the template.
 argument-hint: "[issue-number]"
 x-claude:
   allowed-tools: "Read, Edit, Bash(git *), Bash(gh *)"
+# Model-invocable on purpose: /gh-issue calls /pr, and /gh-issues calls /gh-issue.
+x-codex:
+  interface:
+    display_name: Pull Request
 ---
 
 # Create Pull Request
