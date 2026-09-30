@@ -83,11 +83,11 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
   ([name-or-ns name & ignored] (symbol name-or-ns name)))
 
 (defn gensym
-  "Generates a new unique symbol."
-  {:example "(gensym) ; => __phel_1"
+  "Generates a new unique symbol. With `prefix`, the name is `prefix` followed by a unique number; without it, the prefix is `__phel_`."
+  {:example "(gensym \"tmp\") ; => tmp1"
    :see-also ["symbol"]}
-  []
-  (Symbol/gen))
+  ([] (Symbol/gen))
+  ([prefix] (Symbol/gen (php/. "" (to-symbol-part prefix)))))
 
 (defn- float-to-str
   "Renders a float so integer-valued floats keep the trailing `.0`, while `NaN` and ±Infinity stringify readably."
