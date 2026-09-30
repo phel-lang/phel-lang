@@ -197,19 +197,7 @@ final readonly class SpliceableBody
             return $fn->getValue() instanceof Keyword;
         }
 
-        return $fn instanceof GlobalVarNode && !$this->isRebindable($fn) && !$this->takesAReference($fn);
-    }
-
-    /**
-     * A `^:dynamic` or `^:redef` global may be a different fn by the time
-     * the call runs (`binding`, `with-redefs`), so the one reflected here
-     * proves nothing about it.
-     */
-    private function isRebindable(GlobalVarNode $fn): bool
-    {
-        $meta = $fn->getMeta();
-
-        return (bool) $meta[Keyword::create('dynamic')] || (bool) $meta[Keyword::create('redef')];
+        return $fn instanceof GlobalVarNode && !$fn->isRebindable() && !$this->takesAReference($fn);
     }
 
     /**

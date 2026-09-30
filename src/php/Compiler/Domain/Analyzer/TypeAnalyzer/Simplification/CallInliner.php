@@ -93,7 +93,11 @@ final readonly class CallInliner
             return null;
         }
 
-        if ($this->isMemoisedOrAsync($f->getMeta()) || $this->isRedefinable($f->getMeta())) {
+        // A rebindable call site keeps reading the global, so `with-redefs`,
+        // `phel.mock` and `binding` are still observed after the optimiser
+        // has run (#3367). Splicing leaves no read to intercept, as in
+        // Clojure's direct linking (#3126).
+        if ($this->isMemoisedOrAsync($f->getMeta()) || $f->isRebindable()) {
             return null;
         }
 
@@ -462,26 +466,6 @@ final readonly class CallInliner
         }
 
         return $count;
-    }
-
-    /**
-     * A definition that asks to stay interceptable: `^:redef`, or `^:dynamic`,
-     * which `binding` rebinds per frame.
-     *
-     * The call site keeps reading the global, so rebinding its root with
-     * `with-redefs` or `phel.mock`, or binding it with `binding`, is still
-     * observed after the optimiser has run (#3367). It costs the inlining,
-     * which is the point.
-     *
-     * Splicing a body leaves no global read to intercept, which is inherent to
-     * direct linking rather than a defect in it; Clojure answers the same
-     * tension the same way (#3126).
-     *
-     * @param PersistentMapInterface<mixed, mixed> $meta
-     */
-    private function isRedefinable(PersistentMapInterface $meta): bool
-    {
-        return (bool) $meta[Keyword::create('redef')] || (bool) $meta[Keyword::create('dynamic')];
     }
 
     /**

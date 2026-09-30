@@ -15,7 +15,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
-use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\TagResolver;
@@ -90,11 +89,7 @@ final readonly class UpdateLiteralFnLowering
         // `phel.mock` to intercept, so it is direct linking and takes the
         // same gates as {@see CallInliner}: level 2, and never on `:redef` or
         // `:dynamic`.
-        $meta = $f->getMeta();
-        if ($analyzer->getOptimizationLevel() < 2
-            || (bool) $meta[Keyword::create('redef')]
-            || (bool) $meta[Keyword::create('dynamic')]
-        ) {
+        if ($analyzer->getOptimizationLevel() < 2 || $f->isRebindable()) {
             return null;
         }
 
