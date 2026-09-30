@@ -41,7 +41,7 @@ final class SymbolBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, self::EXAMPLE_VALUE);
 
         self::assertEquals([
-            [Symbol::create('__phel_1'), self::EXAMPLE_VALUE],
+            [Symbol::createGenerated('__phel_1'), self::EXAMPLE_VALUE],
         ], $bindings);
     }
 }

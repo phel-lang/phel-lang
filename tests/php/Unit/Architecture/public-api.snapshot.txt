@@ -1444,10 +1444,12 @@ final class Phel\Lang\Symbol extends Phel\Lang\AbstractType implements Phel\Lang
   public function getNamespace(): ?string
   public function hash(): int
   public function identical(mixed $other): bool
+  public function isGenerated(): bool
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
   public static function advanceGenCounter(int $by): void
   public static function create(string $name): Phel\Lang\Symbol
   public static function createForNamespace(?string $namespace, string $name): Phel\Lang\Symbol
+  public static function createGenerated(string $name): Phel\Lang\Symbol
   public static function gen(string $prefix = '__phel_'): Phel\Lang\Symbol
   public static function genCounter(): int
   public static function resetGen(): void

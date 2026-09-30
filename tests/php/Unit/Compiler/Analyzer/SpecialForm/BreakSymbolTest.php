@@ -82,10 +82,10 @@ final class BreakSymbolTest extends TestCase
         );
     }
 
-    public function test_break_skips_internal_gensym_locals(): void
+    public function test_break_skips_generated_locals(): void
     {
         $env = new NodeEnvironment(
-            [Symbol::create('x'), Symbol::create('__phel_1')],
+            [Symbol::create('x'), Symbol::gen(), Symbol::gen('tmp'), Symbol::createGenerated('a__3')],
             NodeEnvironment::CONTEXT_STATEMENT,
             [],
             [],
@@ -102,10 +102,10 @@ final class BreakSymbolTest extends TestCase
         );
     }
 
-    public function test_break_skips_prefixed_gensym_and_auto_gensym_locals(): void
+    public function test_break_keeps_user_locals_that_look_generated(): void
     {
         $env = new NodeEnvironment(
-            [Symbol::create('x'), Symbol::create('res__12'), Symbol::create('temp__3'), Symbol::create('a__b')],
+            [Symbol::create('result__2'), Symbol::create('__phel_1')],
             NodeEnvironment::CONTEXT_STATEMENT,
             [],
             [],
@@ -117,7 +117,7 @@ final class BreakSymbolTest extends TestCase
         );
 
         self::assertSame(
-            $this->expectedBreakpointCall("\n  \"x\", \$x,\n  \"a__b\", \$a__b\n"),
+            $this->expectedBreakpointCall("\n  \"result__2\", \$result__2,\n  \"__phel_1\", \$__phel_1\n"),
             $this->emit($node),
         );
     }

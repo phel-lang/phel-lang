@@ -123,7 +123,7 @@ final class LoopSymbolTest extends TestCase
                     new BindingNode(
                         $env->withDisallowRecurFrame(),
                         $this->intTagged('a'),
-                        $this->intTagged('a_1'),
+                        $this->withIntTag(Symbol::createGenerated('a_1')),
                         new LiteralNode(
                             $env->withExpressionContext()->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
                             1,
@@ -131,14 +131,14 @@ final class LoopSymbolTest extends TestCase
                     ),
                 ],
                 new DoNode(
-                    $env->withAddedRecurFrame(new RecurFrame([Symbol::create('a')], [Symbol::create('a_1')]))
+                    $env->withAddedRecurFrame(new RecurFrame([Symbol::create('a')], [Symbol::createGenerated('a_1')]))
                         ->withLocals([Symbol::create('a')])
-                        ->withShadowedLocal(Symbol::create('a'), Symbol::create('a_1')),
+                        ->withShadowedLocal(Symbol::create('a'), Symbol::createGenerated('a_1')),
                     [],
                     new LiteralNode(
-                        $env->withAddedRecurFrame(new RecurFrame([Symbol::create('a')], [Symbol::create('a_1')]))
+                        $env->withAddedRecurFrame(new RecurFrame([Symbol::create('a')], [Symbol::createGenerated('a_1')]))
                             ->withLocals([Symbol::create('a')])
-                            ->withShadowedLocal(Symbol::create('a'), Symbol::create('a_1')),
+                            ->withShadowedLocal(Symbol::create('a'), Symbol::createGenerated('a_1')),
                         null,
                     ),
                 ),
@@ -184,7 +184,11 @@ final class LoopSymbolTest extends TestCase
      */
     private function intTagged(string $name): Symbol
     {
-        return Symbol::create($name)
-            ->withMeta(Phel::map(Keyword::create('tag'), Symbol::create('int')));
+        return $this->withIntTag(Symbol::create($name));
+    }
+
+    private function withIntTag(Symbol $symbol): Symbol
+    {
+        return $symbol->withMeta(Phel::map(Keyword::create('tag'), Symbol::create('int')));
     }
 }

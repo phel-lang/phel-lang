@@ -54,7 +54,7 @@ final readonly class ListFnReader
 
         for ($i = 1, $maxParams = max(array_keys($fnArgs)); $i <= $maxParams; ++$i) {
             if (isset($fnArgs[$i])) {
-                $params[] = Symbol::create($fnArgs[$i]->getName());
+                $params[] = Symbol::createGenerated($fnArgs[$i]->getName());
             } else {
                 $params[] = Symbol::gen('__short_fn_undefined_');
             }
@@ -62,7 +62,7 @@ final readonly class ListFnReader
 
         if (isset($fnArgs[0])) {
             $params[] = Symbol::create('&');
-            $params[] = Symbol::create($fnArgs[0]->getName());
+            $params[] = Symbol::createGenerated($fnArgs[0]->getName());
         }
 
         return $params;

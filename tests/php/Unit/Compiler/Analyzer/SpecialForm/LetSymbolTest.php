@@ -118,11 +118,11 @@ final class LetSymbolTest extends TestCase
                 [],
                 new DoNode(
                     $env->withLocals([$this->intTagged('a')])
-                        ->withShadowedLocal($this->intTagged('a'), $this->intTagged('a_1')),
+                        ->withShadowedLocal($this->intTagged('a'), $this->withIntTag(Symbol::createGenerated('a_1'))),
                     [],
                     new LiteralNode(
                         $env->withLocals([$this->intTagged('a')])
-                            ->withShadowedLocal($this->intTagged('a'), $this->intTagged('a_1')),
+                            ->withShadowedLocal($this->intTagged('a'), $this->withIntTag(Symbol::createGenerated('a_1'))),
                         null,
                     ),
                 ),
@@ -189,7 +189,11 @@ final class LetSymbolTest extends TestCase
      */
     private function intTagged(string $name): Symbol
     {
-        return Symbol::create($name)
-            ->withMeta(Phel::map(Keyword::create('tag'), Symbol::create('int')));
+        return $this->withIntTag(Symbol::create($name));
+    }
+
+    private function withIntTag(Symbol $symbol): Symbol
+    {
+        return $symbol->withMeta(Phel::map(Keyword::create('tag'), Symbol::create('int')));
     }
 }

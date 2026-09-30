@@ -205,8 +205,9 @@ final readonly class LiteralEmitter
 
     private function emitSymbol(Symbol $x): void
     {
+        $factory = $x->isGenerated() ? 'createGenerated' : 'create';
         $this->outputEmitter->emitStr(
-            '(\Phel\Lang\Symbol::create("' . PhpStringEscape::doubleQuoted($x->getFullName()) . '"))',
+            '(\Phel\Lang\Symbol::' . $factory . '("' . PhpStringEscape::doubleQuoted($x->getFullName()) . '"))',
             $x->getStartLocation(),
         );
     }

@@ -100,6 +100,7 @@ final class ReaderResultCacheByteIdenticalTest extends AbstractCompilerRuntimeTe
         $warm = $compiler->compileString(self::SOURCE, $options)->getCodeWithSourceMap();
 
         self::assertSame($cold, $warm, 'disk-backed warm hit must emit byte-identical PHP');
+        self::assertStringContainsString('Symbol::createGenerated("v__', $warm, 'v# must stay a generated symbol');
     }
 
     public function test_source_consumes_reader_phase_gensym(): void

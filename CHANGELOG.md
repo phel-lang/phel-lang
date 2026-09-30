@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - `format` and `printf` convert a ratio, bigint or bigdec before formatting: `(format "%.2f" (/ 250 100))` returns `"2.50"`. It used to print `"1.00"` with a PHP warning. `%d` and the other integer directives throw for a ratio, a bigdec, or a bigint outside the PHP int range. (#3386)
 - `(gensym "tmp")` returns a symbol named `tmp` plus a unique number, such as `tmp42`, as in Clojure. `(gensym)` keeps the `__phel_` prefix. It used to ignore the prefix and always return `__phel_<N>`. `(break)` no longer lists macro-generated locals, including `x#` names. (#3385)
 - `phel mutate` compiles the project and its tests at optimization level 0 whatever the config says, so a mutant is reached at every level. At level 2 a test namespace used to inline the fn under test, and every mutant survived with an MSI of 0%. `Phel\Shared\OptimizationLevel` is public PHP API. (#3396)
+- `(break)` hides the locals that `gensym`, `x#` and `#(...)` params create, and lists every local you bind yourself. It used to go by the name: it hid any local starting with `__phel_`, even one you bound, and listed `x#` locals and `%` params. (#3385)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 

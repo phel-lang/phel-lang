@@ -59,7 +59,7 @@ final class DeconstructorTest extends TestCase
 
         self::assertEquals([
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 Phel::vector([10]),
             ],
             [
@@ -79,7 +79,7 @@ final class DeconstructorTest extends TestCase
                 SequentialBindingForms::synthetic('__phel_3'),
             ],
             [
-                Symbol::create('__phel_5'),
+                Symbol::createGenerated('__phel_5'),
                 Phel::vector([20]),
             ],
             [
@@ -117,20 +117,20 @@ final class DeconstructorTest extends TestCase
 
         self::assertEquals([
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 Symbol::create('x'),
             ],
             [
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
+                    Symbol::createGenerated('__phel_1'),
                     Keyword::create('key'),
                 ]),
             ],
             [
                 Symbol::create('a'),
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
             ],
         ], $bindings);
     }

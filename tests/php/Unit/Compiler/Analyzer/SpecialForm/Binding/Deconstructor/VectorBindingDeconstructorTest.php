@@ -45,7 +45,7 @@ final class VectorBindingDeconstructorTest extends TestCase
 
         self::assertEquals([
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 $value,
             ],
         ], $bindings);
@@ -70,7 +70,7 @@ final class VectorBindingDeconstructorTest extends TestCase
 
         self::assertEquals([
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 $value,
             ],
             [
@@ -115,7 +115,7 @@ final class VectorBindingDeconstructorTest extends TestCase
 
         self::assertEquals([
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 $value,
             ],
             [
@@ -175,7 +175,7 @@ final class VectorBindingDeconstructorTest extends TestCase
 
         self::assertEquals([
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 $value,
             ],
             [
@@ -216,9 +216,9 @@ final class VectorBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
-            [Symbol::create('__phel_1'), $value],
-            [Symbol::create('__phel_2'), Symbol::create('__phel_1')],
-            [$bindTo, Symbol::create('__phel_2')],
+            [Symbol::createGenerated('__phel_1'), $value],
+            [Symbol::createGenerated('__phel_2'), Symbol::createGenerated('__phel_1')],
+            [$bindTo, Symbol::createGenerated('__phel_2')],
         ], $bindings);
     }
 

@@ -124,6 +124,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
 
     private readonly int $hash;
 
+    private bool $generated = false;
+
     public function __construct(
         private readonly ?string $namespace,
         private readonly string $name,
@@ -197,7 +199,28 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
 
     public static function gen(string $prefix = '__phel_'): self
     {
-        return self::create($prefix . (self::$symGenCounter++));
+        return self::createGenerated($prefix . (self::$symGenCounter++));
+    }
+
+    /**
+     * Recreates a `gen` symbol from its name, so compiled code that quotes an
+     * auto-gensym `x#` still yields a generated symbol at expansion time.
+     */
+    public static function createGenerated(string $name): self
+    {
+        $symbol = self::create($name);
+        $symbol->generated = true;
+
+        return $symbol;
+    }
+
+    /**
+     * True for a symbol made by `gen` (`gensym`, auto-gensym `x#`, short-fn
+     * params), whatever its name. Equality and hashing ignore it.
+     */
+    public function isGenerated(): bool
+    {
+        return $this->generated;
     }
 
     public static function resetGen(): void
