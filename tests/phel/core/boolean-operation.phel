@@ -26,8 +26,8 @@
 (deftest test-=
   (is (true? (= false)) "(= false)")
   (is (true? (false? false)) "(false? false)")
-  (is (true? (false? false false)) "(false? false false)")
-  (is (false? (false? true false)) "(false? true false)")
+  (is (true? (= false false false)) "(= false false false)")
+  (is (false? (= false true false)) "(= false true false)")
   (is (true? (= 10 10)) "(= 10 10)")
   (is (false? (= 10 10.0)) "(= 10 10.0)")
   (is (true? (= :test :test)) "keywords are always equal")

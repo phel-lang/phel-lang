@@ -541,7 +541,8 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         $rest = $list->rest();
         $gotCount = count($rest);
         $isVariadic = (bool) $data->find('is-variadic');
-        $maxArityValue = $data->find('max-arity');
+        // Only a multi-arity def stamps `max-arity`; a single fixed arity is its own maximum.
+        $maxArityValue = $data->contains('max-arity') ? $data->find('max-arity') : $minArity;
         $maxArity = is_int($maxArityValue) ? $maxArityValue : null;
 
         if ($gotCount < $minArity) {

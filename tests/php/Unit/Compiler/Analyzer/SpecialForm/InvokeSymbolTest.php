@@ -152,6 +152,35 @@ final class InvokeSymbolTest extends TestCase
         new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
+    public function test_too_many_args_to_single_arity_fn_then_error(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-global-fn". Got: 3. Expected: 2');
+
+        $list = Phel::list([
+            Symbol::createForNamespace('user', 'my-global-fn'),
+            '1arg',
+            '2arg',
+            '3arg',
+        ]);
+
+        new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_variadic_fn_accepts_any_count_above_min_arity(): void
+    {
+        $list = Phel::list([
+            Symbol::createForNamespace('user', 'my-variadic-fn'),
+            '1arg',
+            '2arg',
+            '3arg',
+        ]);
+
+        new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        $this->expectNotToPerformAssertions();
+    }
+
     public function test_variadic_function_error_message(): void
     {
         $this->expectException(AnalyzerException::class);
