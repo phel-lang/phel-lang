@@ -1,5 +1,5 @@
 (ns phel-test.core.multimethods
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is thrown-with-msg?]))
 
 ;; --------
 ;; defmulti
@@ -168,3 +168,116 @@
     (is (not (= false err)) "preferring value to itself throws")
     (is (php/str_contains err "cannot prefer dispatch value to itself")
         "error explains self-preference")))
+
+;; --------------------------
+;; defmulti option :default
+;; --------------------------
+
+(defmulti opt-default-area :shape :default :unknown)
+(defmethod opt-default-area :square [{:side s}] (* s s))
+(defmethod opt-default-area :unknown [{:shape s}] (str "no area for " s))
+
+(deftest test-defmulti-custom-default-value
+  (is (= 4 (opt-default-area {:shape :square, :side 2})) "exact match still wins")
+  (is (= "no area for :blob" (opt-default-area {:shape :blob}))
+      "falls back to the method registered under the custom default value"))
+
+(defmulti opt-default-ignored :shape :default :unknown)
+(defmethod opt-default-ignored :default [_] "plain default")
+
+(deftest test-defmulti-custom-default-ignores-plain-default-key
+  (is (= "plain default" (opt-default-ignored {:shape :default}))
+      ":default is an ordinary dispatch value once another default is set")
+  (is (thrown-with-msg? InvalidArgumentException "No method for dispatch value: :blob"
+                        (opt-default-ignored {:shape :blob}))
+      "the plain :default method is not the fallback"))
+
+(defmulti opt-doc-attr "Area with options." {:added "0.53"} :shape :default ::none)
+(defmethod opt-doc-attr ::none [_] "none")
+(defmethod opt-doc-attr :circle [_] "circle")
+
+(deftest test-defmulti-docstring-attr-map-and-options
+  (is (= "circle" (opt-doc-attr {:shape :circle})))
+  (is (= "none" (opt-doc-attr {:shape :triangle})))
+  (is (php/str_contains (get (meta #'opt-doc-attr) :doc) "Area with options."))
+  (is (= "0.53" (get (meta #'opt-doc-attr) :added))))
+
+(defmulti opt-attr-only {:added "0.53"} :shape)
+(defmethod opt-attr-only :default [_] "default")
+
+(deftest test-defmulti-attr-map-without-docstring
+  (is (= "default" (opt-attr-only {:shape :x})))
+  (is (= "0.53" (get (meta #'opt-attr-only) :added))))
+
+;; ----------------------------
+;; defmulti option :hierarchy
+;; ----------------------------
+
+(def opt-local-h
+  (atom (-> (make-hierarchy)
+            (derive :opt-rect :opt-shape)
+            (derive :opt-rect :opt-drawable)
+            (derive :opt-circle :opt-shape))))
+
+(defmulti opt-describe identity :hierarchy opt-local-h)
+(defmethod opt-describe :opt-shape [_] "shape")
+(defmethod opt-describe :opt-drawable [_] "drawable")
+
+(deftest test-defmulti-local-hierarchy-drives-dispatch
+  (is (= "shape" (opt-describe :opt-circle)) "isa? match through the local hierarchy")
+  (is (not (isa? :opt-circle :opt-shape)) "the global hierarchy is untouched"))
+
+(deftest test-defmulti-local-hierarchy-sees-later-derive
+  (swap! opt-local-h derive :opt-oval :opt-circle)
+  (is (= "shape" (opt-describe :opt-oval)) "dispatch reads the hierarchy at call time"))
+
+(deftest test-defmulti-local-hierarchy-prefer-method
+  (let [err (try (opt-describe :opt-rect) false
+                 (catch InvalidArgumentException e (.getMessage e)))]
+    (is (php/str_contains err "Multiple methods match dispatch value: :opt-rect")
+        "two local parents make the dispatch ambiguous"))
+  (prefer-method opt-describe :opt-drawable :opt-shape)
+  (is (= "drawable" (opt-describe :opt-rect))
+      "prefer-method resolves ambiguity found through the local hierarchy"))
+
+(derive ::opt-global-child ::opt-global-parent)
+
+(defmulti opt-ignores-global identity :hierarchy opt-local-h :default ::opt-none)
+(defmethod opt-ignores-global ::opt-global-parent [_] "global parent")
+(defmethod opt-ignores-global ::opt-none [_] "none")
+
+(deftest test-defmulti-local-hierarchy-ignores-global
+  (is (= "none" (opt-ignores-global ::opt-global-child))
+      "a global derive does not leak into a multimethod with its own hierarchy"))
+
+(def opt-var-h (derive (make-hierarchy) :opt-dog :opt-animal))
+
+(defmulti opt-sound identity :hierarchy #'opt-var-h :default :opt-silent)
+(defmethod opt-sound :opt-animal [_] "noise")
+(defmethod opt-sound :opt-silent [_] "...")
+
+(deftest test-defmulti-var-hierarchy-with-custom-default
+  (is (= "noise" (opt-sound :opt-dog)) "a var holding a hierarchy works as :hierarchy")
+  (is (= "..." (opt-sound :opt-rock)) "custom default still applies"))
+
+;; ----------------------------
+;; defmulti option validation
+;; ----------------------------
+
+(deftest test-defmulti-unknown-option-rejected
+  (is (thrown-with-msg? InvalidArgumentException
+                        "defmulti 'bad-opt' got unknown option :dispatch. Supported options: :default, :hierarchy"
+                        (macroexpand-1 '(defmulti bad-opt :k :dispatch :x)))))
+
+(deftest test-defmulti-dangling-option-rejected
+  (is (thrown-with-msg? InvalidArgumentException
+                        "defmulti 'bad-opt' expects options as key/value pairs, got a dangling :default"
+                        (macroexpand-1 '(defmulti bad-opt :k :default)))))
+
+(deftest test-defmulti-hierarchy-must-be-a-reference
+  (let [err (try
+              (eval '(defmulti bad-h identity :hierarchy (make-hierarchy)))
+              false
+              (catch Throwable e (.getMessage e)))]
+    (is (php/str_contains err "defmulti 'bad-h' expects :hierarchy to be an atom or var holding a hierarchy")
+        "a plain hierarchy map is rejected")))
