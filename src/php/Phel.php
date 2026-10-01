@@ -366,8 +366,7 @@ class Phel
             $config->getCacheDir(),
             $appRootDir,
             [
-                $appRootDir . '/' . self::PHEL_CONFIG_FILE_NAME,
-                $appRootDir . '/' . self::PHEL_CONFIG_LOCAL_FILE_NAME,
+                ...MergedConfigCacheInvalidator::projectConfigFiles($appRootDir, self::PHEL_CONFIG_FILE_NAME),
                 __DIR__ . '/Config/PhelConfig.php',
                 __DIR__ . '/Config/PhelBuildConfig.php',
                 __DIR__ . '/Config/PhelExportConfig.php',
