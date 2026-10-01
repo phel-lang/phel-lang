@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
 use function count;
@@ -20,7 +21,7 @@ use function count;
  * Analyzes a method spec of the form (method-name [this args...] body...).
  *
  * The first argument is bound to PHP's $this via a let binding.
- * Shared by DefStructSymbol (for interface methods) and ReifySymbol (for protocol methods).
+ * Shared by DefStructSymbol and ReifySymbol.
  *
  * @internal
  */
@@ -32,12 +33,14 @@ final readonly class MethodBodyAnalyzer
 
     /**
      * @param PersistentListInterface<mixed> $list
+     * @param string|null                    $returnType the type the implemented
+     *                                                   interface method declares
      */
-    public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefStructMethod
+    public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env, ?string $returnType = null): DefStructMethod
     {
         $methodName = $this->extractMethodName($list);
         $arguments = $this->extractArguments($list);
-        $fnNode = $this->analyzeBody($list, $arguments, $env);
+        $fnNode = $this->analyzeBody($list, $arguments, $env, $returnType);
 
         return new DefStructMethod($methodName, $fnNode);
     }
@@ -85,9 +88,14 @@ final readonly class MethodBodyAnalyzer
         PersistentListInterface $list,
         PersistentVectorInterface $arguments,
         NodeEnvironmentInterface $env,
+        ?string $returnType,
     ): FnNode {
         /** @var PersistentVectorInterface<mixed> $argumentsRest */
         $argumentsRest = $arguments->rest();
+        if ($returnType !== null) {
+            $argumentsRest = $argumentsRest->withMeta(Phel::map(Keyword::create('tag'), $returnType));
+        }
+
         /** @var PersistentListInterface<mixed> $listRest1 */
         $listRest1 = $list->rest();
         /** @var PersistentListInterface<mixed> $listRest2 */

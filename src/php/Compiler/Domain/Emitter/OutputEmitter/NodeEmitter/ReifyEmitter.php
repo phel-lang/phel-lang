@@ -10,11 +10,12 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 
 use function assert;
+use function implode;
 
 /**
  * Emits a PHP anonymous class for reify* expressions.
  *
- * Generates: new class($captured...) { properties; constructor; methods; }
+ * Generates: new class($captured...) implements \A { properties; constructor; methods; }
  * Each method has access to captured locals via $this->property.
  *
  * @internal
@@ -39,7 +40,12 @@ final readonly class ReifyEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('new class(', $loc);
 
         $this->closureHelper->emitConstructorArguments($uses, $env, $loc);
-        $this->outputEmitter->emitLine(') {', $loc);
+        $this->outputEmitter->emitStr(')', $loc);
+        if ($node->getInterfaceNames() !== []) {
+            $this->outputEmitter->emitStr(' implements ' . implode(', ', $node->getInterfaceNames()), $loc);
+        }
+
+        $this->outputEmitter->emitLine(' {', $loc);
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->enterClassScope();
 

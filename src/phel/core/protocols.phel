@@ -587,30 +587,50 @@ Equivalent to multiple `extend-type` calls."
                        `(extend-type ~type-spec ~protocol-name ~@methods))]
     `(do ~@extend-calls)))
 
+(defn- reify-protocol-header?
+  "Whether a `reify` header names a Phel protocol. A header that resolves to
+  no Phel definition is handed to `reify*` as a PHP interface, which reports
+  a name that is neither."
+  [header]
+  (let [resolved (.resolveAsSymbol (GlobalEnvironmentSingleton/getInstance) header (NodeEnvironment/empty))]
+    (when resolved
+      (let [value (Phel/getDefinition (.encodeRegistryKey (new Munge) (.getNamespace resolved))
+                                      (.getName resolved))]
+        (when-not (or (nil? value) (and (map? value) (contains? value :dispatch)))
+          (throw (new InvalidArgumentException
+                      (str "reify: " header " is neither a protocol nor a PHP interface"))))
+        true))))
+
 (defmacro reify
-  "Creates an anonymous object implementing one or more protocols.
+  "Creates an anonymous object implementing protocols and PHP interfaces.
   Method bodies close over local bindings. Each instance carries its
   own captured state, so reify works correctly inside loops.
+
+  A PHP interface lists every method it declares, and each method takes
+  the interface's return type.
 
   Syntax:
     (reify
       ProtocolName
       (method-name [this arg1] body)
-      AnotherProtocol
-      (another-method [this] body))"
+      \\JsonSerializable
+      (jsonSerialize [this] body))"
   {:example "(reify Speakable (speak [this] \"hello\"))"
    :see-also ["defprotocol" "extend-type" "satisfies?"]}
   [& specs]
   (let [munge                  (new Munge)
         instance-sym           (gensym "reify__")
         class-name-sym         (gensym "class__")
-        ;; Group specs into [[ProtocolSym [method1 method2 ...]] ...]
+        ;; Group specs into [[HeaderSym [method1 method2 ...]] ...]
         ;; Same parsing pattern as extend-type: symbols start a new group,
-        ;; lists are methods belonging to the current protocol.
-        proto-groups           (group-protocol-specs specs #(php/instanceof % Symbol))
-        ;; Flatten all methods for the reify* special form (it only needs
-        ;; method specs, protocol grouping is handled here for dispatch).
-        all-methods            (reduce (fn [acc group] (concat acc (second group))) [] proto-groups)
+        ;; lists are methods belonging to the current header.
+        groups                 (group-protocol-specs specs #(php/instanceof % Symbol))
+        proto-groups           (filter #(reify-protocol-header? (first %)) groups)
+        interface-groups       (remove #(reify-protocol-header? (first %)) groups)
+        ;; Protocol methods lead, then each interface followed by its methods,
+        ;; which is the order reify* reads them in.
+        proto-methods          (reduce (fn [acc group] (concat acc (second group))) [] proto-groups)
+        interface-specs        (reduce (fn [acc group] (concat acc [(first group)] (second group))) [] interface-groups)
         ;; For each protocol method, register a dispatch entry that delegates
         ;; to the PHP method on the object. This way each instance's closed-over
         ;; state is accessed via $this->property inside the PHP method.
@@ -635,7 +655,7 @@ Equivalent to multiple `extend-type` calls."
               methods)))
          []
          proto-groups)]
-    `(let [~instance-sym   (reify* ~@all-methods)
+    `(let [~instance-sym   (reify* ~@proto-methods ~@interface-specs)
            ~class-name-sym (php/get_class ~instance-sym)]
        ~@dispatch-registrations
        ~instance-sym)))

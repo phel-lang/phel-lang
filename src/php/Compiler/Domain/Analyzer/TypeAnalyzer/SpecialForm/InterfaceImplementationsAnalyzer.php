@@ -15,6 +15,7 @@ use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\MungeInterface;
 
+use function array_key_exists;
 use function class_exists;
 use function count;
 use function interface_exists;
@@ -110,7 +111,8 @@ final readonly class InterfaceImplementationsAnalyzer
     }
 
     /**
-     * The munged method names the interface expects, as a set.
+     * The munged method names the interface expects, each mapped to the
+     * return type its implementation must declare (null when there is none).
      *
      * Reflection is the source of truth, but it only works once the PHP
      * interface exists — which for a `definterface` in the very same file
@@ -120,7 +122,7 @@ final readonly class InterfaceImplementationsAnalyzer
      *
      * @param PersistentListInterface<mixed> $list
      *
-     * @return array<string, true>
+     * @return array<string, ?string>
      */
     private function expectedMethodIndex(
         PhpClassNameNode $classNode,
@@ -147,7 +149,7 @@ final readonly class InterfaceImplementationsAnalyzer
 
             $index = [];
             foreach ($declared as $methodName) {
-                $index[$this->munge->encode($methodName)] = true;
+                $index[$this->munge->encode($methodName)] = null;
             }
 
             return $index;
@@ -160,7 +162,7 @@ final readonly class InterfaceImplementationsAnalyzer
 
         $index = [];
         foreach ($reflectionClass->getMethods() as $method) {
-            $index[$method->getName()] = true;
+            $index[$method->getName()] = InterfaceMethodReturnType::of($method);
         }
 
         return $index;
@@ -168,7 +170,7 @@ final readonly class InterfaceImplementationsAnalyzer
 
     /**
      * @param PersistentListInterface<mixed> $list
-     * @param array<string, true>            $expectedMethodIndex
+     * @param array<string, ?string>         $expectedMethodIndex
      */
     private function analyzeInterfaceMethod(
         PersistentListInterface $list,
@@ -182,10 +184,10 @@ final readonly class InterfaceImplementationsAnalyzer
 
         $mungedMethodName = $this->munge->encode($methodName->getName());
 
-        if (!isset($expectedMethodIndex[$mungedMethodName])) {
+        if (!array_key_exists($mungedMethodName, $expectedMethodIndex)) {
             throw AnalyzerException::withLocation("The interface doesn't support this method: " . $methodName->getName(), $list, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
-        return $this->methodBodyAnalyzer->analyze($list, $env);
+        return $this->methodBodyAnalyzer->analyze($list, $env, $expectedMethodIndex[$mungedMethodName]);
     }
 }

@@ -7,14 +7,20 @@ namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\Ast\DefStructMethod;
 use Phel\Compiler\Domain\Analyzer\Ast\ReifyNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InterfaceImplementationsAnalyzer;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\MethodBodyAnalyzer;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpBlockAnalyzer;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReifySymbol;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Munge;
 use PHPUnit\Framework\TestCase;
+
+use function array_map;
 
 final class ReifySymbolTest extends TestCase
 {
@@ -175,10 +181,52 @@ final class ReifySymbolTest extends TestCase
         self::assertCount(1, $node->getUses(), 'shared variable should appear only once');
     }
 
+    public function test_interface_methods_follow_the_interface_name(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_REIFY),
+            Phel::list([Symbol::create('own'), Phel::vector([Symbol::create('this')]), 1]),
+            Symbol::create('\\Countable'),
+            Phel::list([Symbol::create('count'), Phel::vector([Symbol::create('this')]), 2]),
+        ]);
+
+        $node = $this->createSymbol()->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame(['\\Countable'], $node->getInterfaceNames());
+        self::assertSame(['own', 'count'], array_map(
+            static fn(DefStructMethod $method): string => $method->getName()->getName(),
+            $node->getMethods(),
+        ));
+        self::assertNull($node->getMethods()[0]->getFnNode()->getReturnType());
+        self::assertSame('int', $node->getMethods()[1]->getFnNode()->getReturnType());
+    }
+
+    public function test_unknown_interface_names_the_symbol(): void
+    {
+        $this->expectException(AbstractLocatedException::class);
+        $this->expectExceptionMessage('Can not resolve interface NoSuchInterface');
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_REIFY),
+            Symbol::create('NoSuchInterface'),
+            Phel::list([Symbol::create('m'), Phel::vector([Symbol::create('this')]), 1]),
+        ]);
+
+        $this->createSymbol()->analyze($list, NodeEnvironment::empty());
+    }
+
     private function createSymbol(): ReifySymbol
     {
+        $munge = new Munge();
+
         return new ReifySymbol(
             new MethodBodyAnalyzer($this->analyzer),
+            new InterfaceImplementationsAnalyzer(
+                $this->analyzer,
+                $munge,
+                new MethodBodyAnalyzer($this->analyzer),
+                new PhpBlockAnalyzer($munge, new MethodBodyAnalyzer($this->analyzer)),
+            ),
         );
     }
 }

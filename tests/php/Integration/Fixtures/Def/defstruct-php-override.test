@@ -15,7 +15,7 @@ final class Foo extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct i
   }
 
   #[\Override]
-  public function __toString() {
+  public function __toString(): string {
     $x = $this->x;
     $this_1 = $this;
     return "foo";
