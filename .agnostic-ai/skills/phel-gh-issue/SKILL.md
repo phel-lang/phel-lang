@@ -1,17 +1,14 @@
 ---
-description: Take one GitHub issue from branch to merged PR.
-argument-hint: "[issue-number]"
-# Model-invocable on purpose: /gh-issue calls /pr, and /gh-issues calls /gh-issue.
+description: phel-lang rules read by /gh-issue.
+disable-model-invocation: true
 x-codex:
   interface:
-    display_name: GitHub Issue
+    display_name: phel-lang issue rules
 ---
 
 # GitHub Issue: phel-lang specifics
 
-Only what this repository adds to the generic issue workflow (read the issue and every comment, assign, branch, test first, verify each criterion, open the PR). Where they differ, this file wins.
-
-!`gh issue view ${ARGUMENTS#\#} --json number,url,title,body,labels,assignees,state,comments 2>/dev/null || echo "Provide an issue number"`
+The `gh-issue` skill reads this file. It holds only what this repository adds to the generic issue workflow (read the issue and every comment, assign, branch, test first, verify each criterion, open the PR). Where they differ, this file wins.
 
 ## Branch
 

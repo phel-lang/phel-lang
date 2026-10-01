@@ -15,21 +15,21 @@ Evaluate Phel expressions to verify behavior without writing test files.
 
 ## Instructions
 
-1. Take the expression from `$ARGUMENTS` (or ask for one if empty).
+1. Take the expression from the argument (or ask for one if empty).
 
 2. Evaluate it using the Phel CLI `eval` command:
    ```bash
-   ./bin/phel eval '$ARGUMENTS'
+   ./bin/phel eval '<expression>'
    ```
 
    Or read the expression from stdin with `-`:
    ```bash
-   echo '$ARGUMENTS' | ./bin/phel eval -
+   echo '<expression>' | ./bin/phel eval -
    ```
 
    For multi-form snippets that need a namespace, write a temp file:
    ```bash
-   printf '%s\n' '(ns repl-test)' '$ARGUMENTS' > "${TMPDIR:-/tmp}/phel-repl-test.phel"
+   printf '%s\n' '(ns repl-test)' '<expression>' > "${TMPDIR:-/tmp}/phel-repl-test.phel"
    ./bin/phel run "${TMPDIR:-/tmp}/phel-repl-test.phel"
    ```
 

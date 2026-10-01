@@ -47,7 +47,6 @@ agnostic-ai.local.yaml
 /CLAUDE.md
 /AGENTS.md
 # Codex copies of directory-scoped rules (`scope:` in .agnostic-ai/rules/).
-/src/php/**/AGENTS.md
-/src/phel/AGENTS.md
-/tests/php/Integration/AGENTS.md
+/src/**/AGENTS.md
+/tests/**/AGENTS.md
 /.nrepl-port

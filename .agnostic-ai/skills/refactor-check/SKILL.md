@@ -12,7 +12,7 @@ x-codex:
 
 # Refactor Check
 
-Read and analyze the specified file(s) from `$ARGUMENTS`.
+Read and analyze the specified file(s) from the argument.
 
 ## SOLID Violations
 

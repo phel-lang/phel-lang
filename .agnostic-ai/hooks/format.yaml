@@ -1,0 +1,8 @@
+name: format
+description: Format PHP and Phel files after an edit, in Claude Code and Codex.
+event: PostToolUse
+# Codex treats Edit and Write as aliases for apply_patch.
+matcher: Edit|MultiEdit|Write
+command: 'f="$CLAUDE_PROJECT_DIR/.agnostic-ai/scripts/format.sh"; [ -x "$f" ] || exit 0; exec "$f"'
+timeout: 30
+statusMessage: Formatting touched files

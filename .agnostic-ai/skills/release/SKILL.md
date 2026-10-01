@@ -11,9 +11,14 @@ x-codex:
 
 ## Context
 
+::target claude
 !`git branch --show-current`
 !`git status --porcelain`
 !`grep "LATEST_VERSION = " src/php/Shared/VersionFinder.php`
+::end
+::target codex
+Run first: `git branch --show-current`, `git status --porcelain`, `grep "LATEST_VERSION = " src/php/Shared/VersionFinder.php`.
+::end
 
 ## Instructions
 
@@ -21,7 +26,7 @@ Follow `.agnostic-ai/rules/releases.md`. Never hand-edit the version, changelog 
 
 1. **Pre-flight**: on `main`, clean tree, in sync with `origin/main`, and `## Unreleased` in `CHANGELOG.md` has content (see context above).
 
-2. **Version**: use `$ARGUMENTS` when it holds one (`X.Y.Z` or a pre-release like `1.0.0-rc1`). Otherwise propose the next minor.
+2. **Version**: use the argument when it holds one (`X.Y.Z` or a pre-release like `1.0.0-rc1`). Otherwise propose the next minor.
 
 3. **Dry run first**:
    ```bash

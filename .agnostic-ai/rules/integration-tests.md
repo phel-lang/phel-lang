@@ -6,8 +6,6 @@ scope: tests/php/Integration
 
 # Integration Test Fixtures
 
-Compiler conventions (phases, special forms): `.agnostic-ai/rules/compiler.md`.
-
 ## `.test` File Format
 
 Integration test fixtures use a two-section format separated by markers:

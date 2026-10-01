@@ -11,6 +11,6 @@ x-codex:
 
 # Fix Code Quality
 
-1. Fix: `composer fix` for the project, or `./vendor/bin/php-cs-fixer fix "$ARGUMENTS"` for one file.
+1. Fix: `composer fix` for the project, or `./vendor/bin/php-cs-fixer fix "<argument>"` for one file.
 2. Check: `composer phpstan`, then `composer test-compiler`.
 3. Summarize what changed and what is still failing.

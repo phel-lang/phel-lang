@@ -13,9 +13,14 @@ x-codex:
 
 ## Context
 
+::target claude
 !`git diff --stat`
 !`git diff --cached --stat`
 !`git status --short`
+::end
+::target codex
+Run first: `git diff --stat`, `git diff --cached --stat`, `git status --short`.
+::end
 
 ## Instructions
 
@@ -23,7 +28,7 @@ x-codex:
 
 2. **Stage** the changed files by name, never `git add -A`.
 
-3. **Message**: use `$ARGUMENTS` when given; otherwise write one from the staged diff, per `.agnostic-ai/rules/workflow.md`. Add `(<scope>)` when the change stays in one module. No emojis.
+3. **Message**: use the argument when given; otherwise write one from the staged diff, per `.agnostic-ai/rules/workflow.md`. Add `(<scope>)` when the change stays in one module. No emojis.
 
 4. **Changelog**: a user-facing change needs its `CHANGELOG.md` entry, per `.agnostic-ai/rules/workflow.md`. Add it before committing.
 

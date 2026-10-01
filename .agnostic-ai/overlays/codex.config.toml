@@ -9,7 +9,7 @@ Use .codex/ for Codex-native mechanics only. Do not move Claude Code settings in
 The resources/agents/ tree is the downstream Phel user package installed into user projects as .agents/.
 Never add a Co-authored-by trailer or a "Generated with" line to commits or pull requests.
 
-Directory-scoped rules are emitted as nested AGENTS.md files (src/php/<Module>/AGENTS.md, tests/php/Integration/AGENTS.md,
+Directory-scoped rules are emitted as nested AGENTS.md files under src/ and tests/ (src/php/<Module>/AGENTS.md, tests/php/AGENTS.md,
 src/phel/AGENTS.md). Before editing a file, read every AGENTS.md on the path from the repository root to it.
 """
 

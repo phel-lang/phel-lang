@@ -29,28 +29,28 @@ Every command is described in `.agnostic-ai/rules/build-test-and-development-com
 
 ## Instructions
 
-1. If `$ARGUMENTS` is empty or `all`:
+1. If the argument is empty or `all`:
    ```bash
    COMPOSER_PROCESS_TIMEOUT=0 composer test
    ```
 
-2. If `$ARGUMENTS` is a known scope:
+2. If the argument is a known scope:
    - `quality` → `composer test-quality`
    - `compiler` → `composer test-compiler`
    - `core` → `composer test-core`
    - `quick` → `composer test-compiler && composer test-core` (skip static analysis)
    - `bench` → `composer phpbench`
 
-3. If `$ARGUMENTS` looks like a test class or method name:
+3. If the argument looks like a test class or method name:
    ```bash
-   ./vendor/bin/phpunit --filter "$ARGUMENTS"
+   ./vendor/bin/phpunit --filter "<argument>"
    ```
 
-4. If `$ARGUMENTS` looks like a file path:
+4. If the argument looks like a file path:
    ```bash
-   ./vendor/bin/phpunit "$ARGUMENTS"
+   ./vendor/bin/phpunit "<argument>"
    # or for Phel tests:
-   ./bin/phel test "$ARGUMENTS"
+   ./bin/phel test "<argument>"
    ```
 
 5. Report results clearly with pass/fail count.

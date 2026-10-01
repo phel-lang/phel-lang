@@ -2,6 +2,9 @@
 name: compiler
 description: Compiler-specific conventions for lexer, parser, reader, analyzer, and emitter code
 scope: src/php/Compiler
+globs:
+  - tests/php/Unit/Compiler/**
+  - tests/php/Integration/**
 ---
 
 # Compiler Conventions

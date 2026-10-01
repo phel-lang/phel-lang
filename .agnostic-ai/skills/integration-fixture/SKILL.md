@@ -15,11 +15,16 @@ Scaffolds a new `.test` fixture in the two-section `--PHEL--` / `--PHP--` format
 
 ## Context
 
+::target claude
 !`ls tests/php/Integration/Fixtures/`
+::end
+::target codex
+Run first: `ls tests/php/Integration/Fixtures/`.
+::end
 
 ## Instructions
 
-1. **Parse `$ARGUMENTS`** as `<category> <name>`.
+1. **Parse the argument** as `<category> <name>`.
    - Category must match an existing dir under `tests/php/Integration/Fixtures/` (e.g. `Def`, `Fn`, `Let`, `Try`, `Call`, `If`, `Apply`, `Foreach`, `Keyword`, `Do`, `Inline`).
    - If no match, list available categories and ask before creating a new one.
    - `name` is the file stem (kebab or descriptive): `fn-variadic`, `try-one-catch`.

@@ -3,7 +3,7 @@ description: Push the branch and open a PR from the template.
 argument-hint: "[issue-number]"
 x-claude:
   allowed-tools: "Read, Edit, Bash(git *), Bash(gh *)"
-# Model-invocable on purpose: /gh-issue calls /pr, and /gh-issues calls /gh-issue.
+# Model-invocable on purpose: the gh-issue workflow opens its PR through /pr.
 x-codex:
   interface:
     display_name: Pull Request
@@ -13,9 +13,14 @@ x-codex:
 
 ## Context
 
+::target claude
 !`git branch --show-current`
 !`git log main..HEAD --oneline`
 !`git diff main..HEAD --stat`
+::end
+::target codex
+Run first: `git branch --show-current`, `git log main..HEAD --oneline`, `git diff main..HEAD --stat`.
+::end
 
 ## Instructions
 
@@ -30,7 +35,7 @@ x-codex:
    ```
 
 3. **Generate PR title**:
-   - If `$ARGUMENTS` contains an issue number, fetch the issue title:
+   - If the argument contains an issue number, fetch the issue title:
      ```bash
      gh issue view <number> --json title -q '.title'
      ```
