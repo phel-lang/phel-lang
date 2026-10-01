@@ -14,7 +14,7 @@ muscle memory transfers between commands. New commands MUST follow these.
 | Config file path | `--config` | — | Path to a command-specific config. |
 | Preview without writing | `--dry-run` | — | Boolean; print intended actions only. |
 | Overwrite existing files | `--force` | — | Boolean. |
-| Optimization level | `--optimization-level` | `-O` | `build` only; `compile` reads the configured level and has no override flag. |
+| Optimization level | `--optimization-level` | `-O` | `build` only; every other command reads the configured level, which `PHEL_OPTIMIZATION_LEVEL` overrides ([CLI reference](../cli-reference.md#optimization-level)). |
 | Expand a collapsed trace | `--stack-trace` | — | Boolean. Declared once in `StackTraceOption`; `run`, `eval`, `repl` and `test` all reuse its name and description. |
 
 Global flags (`--help/-h`, `--quiet/-q`, `--verbose/-v`, `--version/-V`,

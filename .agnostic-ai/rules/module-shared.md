@@ -88,6 +88,7 @@ Stateless strategy-pattern printer (see `.agnostic-ai/rules/module-shared-printe
 | `ColorStyle` | ANSI colors; static factories `withStyles()`, `noStyles()`; `green/yellow/blue/red/color()` |
 | `ByteSize` | static `format(int)` -> `1.50 KB` / `2.00 MB`; one size format across `phel build --report` and `phel doctor` |
 | `ScalarCoercion` | coerce config `mixed`→scalar with default: static `toString()`, `toInt()`, `toFloat()`, `toStringList()` |
+| `OptimizationLevel` | the level a process compiles at: `resolve()` the configured one (Build and Run config) unless `PHEL_OPTIMIZATION_LEVEL` is set (a documented user override; `pin()` sets it, subprocesses inherit it, a non-integer value throws); `phel mutate` pins 0 (#3396) |
 | `FrameworkNamespaces` | static `matches(string)` → is this the `phel.*`/`clojure.*` space Phel itself provides, plus the two prefix consts. A require of one resolves at runtime even when a source scan cannot see it (precompiled+lazily-loaded stdlib, or a `clojure.*` compat shim with no Phel counterpart at all, like `clojure.set`), so both Build's dependency walk and the emitted `ns` form must tolerate one instead of reporting it missing. Shared so those two cannot drift on which namespaces are exempt |
 | `ExistingPaths` | static `filter(list<string>)` → drops paths that are neither a file nor a dir. Shared by the `lint` / `watch` commands and `WatchRunner` so a user-supplied path list narrows identically everywhere |
 | `ResourceUsageFormatter` | `resourceUsageSinceStartOfRequest()` → "Time: HH:MM:SS.mmm, Memory: X.XX MB" |

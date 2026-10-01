@@ -263,6 +263,46 @@ final class MutateCommandTest extends TestCase
         }
     }
 
+    public function test_the_optimization_level_in_the_config_does_not_change_the_verdicts(): void
+    {
+        $this->writeSource(<<<'PHEL'
+        (ns app.price)
+
+        (defn shipping [total]
+          (if (> total 100) 0 5))
+        PHEL);
+        $this->writeTests(<<<'PHEL'
+        (ns app.price-test
+          (:require app.price :refer [shipping])
+          (:require phel.test :refer [deftest is]))
+
+        (deftest big-orders-ship-free
+          (is (= 0 (shipping 200)))
+          (is (= 5 (shipping 20))))
+        PHEL);
+
+        $verdicts = [];
+        foreach ([0, 2] as $level) {
+            file_put_contents(
+                $this->projectDir . '/phel-config.php',
+                "<?php\nreturn new \\Phel\\Config\\PhelConfig()\n"
+                . "    ->withSrcDirs(['src'])->withTestDirs(['tests'])->withVendorDir('')\n"
+                . sprintf("    ->withOptimizationLevel(%d);\n", $level),
+            );
+            $json = sprintf('%s/level-%d.json', $this->projectDir, $level);
+
+            [$exitCode, $output] = $this->runPhelMutate(['--reporter=json', '-o', $json]);
+
+            self::assertSame(0, $exitCode, $output);
+            $verdicts[$level] = $this->verdictsOf($json);
+        }
+
+        // At level 2 the test namespace used to inline `shipping`, so no
+        // mutant of it was ever called and every one survived (#3396).
+        self::assertContains('killed', $verdicts[2]);
+        self::assertSame($verdicts[0], $verdicts[2]);
+    }
+
     /**
      * @return array<string, string> mutant id => verdict
      */

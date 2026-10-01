@@ -16,6 +16,7 @@ use Phel\Mutate\Domain\MutationReport;
 use Phel\Mutate\MutateConfig;
 use Phel\Mutate\MutateFacade;
 use Phel\Mutate\MutateFactory;
+use Phel\Shared\OptimizationLevel;
 use Phel\Shared\Process\GitUnavailableException;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
@@ -124,6 +125,9 @@ HELP);
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        // Before anything compiles; the workers inherit it.
+        OptimizationLevel::pin(0);
+
         try {
             $options = $this->parseOptions($input);
         } catch (InvalidArgumentException $invalidArgumentException) {

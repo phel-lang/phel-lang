@@ -68,6 +68,22 @@ Pick by what you want back:
 `eval` is a developer tool with full host access, not a sandbox. On using it as a
 playground primitive, and why that needs isolation: [playground.md](playground.md).
 
+## Optimization level
+
+`withOptimizationLevel()` in `phel-config.php` sets the level `compile`, `run`,
+`eval`, `test`, `repl` and `build` compile at (0 by default). Two things beat it:
+
+- `PHEL_OPTIMIZATION_LEVEL` in the environment, for every command of that
+  process and the processes it starts: `PHEL_OPTIMIZATION_LEVEL=0 phel test`.
+  The value is a non-negative integer (`0`, `1`, `2`; anything above 2 acts as
+  2). Any other value, such as `-1` or `fast`, stops the command with an error
+  naming the variable. An empty value counts as unset.
+- `phel build -O <level>`, for that build only. It beats the environment too.
+
+`phel mutate` always runs at 0: it sets `PHEL_OPTIMIZATION_LEVEL=0` for itself
+and its workers, because from level 1 up a caller inlines the body of the fn it
+calls, and a mutant of that fn would never run.
+
 ## Error codes
 
 A compile or runtime failure prints a `[PHELxxx]` code in front of its message.
