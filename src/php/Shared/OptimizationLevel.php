@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Phel\Shared;
 
+use InvalidArgumentException;
+
 use function getenv;
 use function max;
+use function preg_match;
 use function putenv;
+use function sprintf;
 
 /**
- * The optimization level a process compiles at: the project config's, unless
- * the process pinned one.
+ * The optimization level a process compiles at: `PHEL_OPTIMIZATION_LEVEL` when
+ * set, the project config's otherwise.
  *
  * A pin is an environment variable rather than static state, so it holds for
  * every compile in the process, the dependencies a compiled file loads on its
@@ -27,11 +31,25 @@ final class OptimizationLevel
         putenv(self::PIN_ENV . '=' . max(0, $level));
     }
 
+    /**
+     * @throws InvalidArgumentException when the pin is not a non-negative integer
+     */
     public static function resolve(mixed $configured): int
     {
         $pinned = getenv(self::PIN_ENV);
-        $level = $pinned === false || $pinned === '' ? $configured : $pinned;
+        if ($pinned === false || $pinned === '') {
+            return max(0, ScalarCoercion::toInt($configured, CompileOptions::DEFAULT_OPTIMIZATION_LEVEL));
+        }
 
-        return max(0, ScalarCoercion::toInt($level, CompileOptions::DEFAULT_OPTIMIZATION_LEVEL));
+        // A typo must not quietly compile at another level than the one asked for.
+        if (preg_match('/^\d+$/', $pinned) !== 1) {
+            throw new InvalidArgumentException(sprintf(
+                '%s must be a non-negative integer such as 0 or 2, got "%s".',
+                self::PIN_ENV,
+                $pinned,
+            ));
+        }
+
+        return (int) $pinned;
     }
 }

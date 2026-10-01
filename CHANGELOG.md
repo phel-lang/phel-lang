@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- `PHEL_OPTIMIZATION_LEVEL` sets the optimization level for every command of a process, over `phel-config.php`: `PHEL_OPTIMIZATION_LEVEL=0 phel test`. A value that is not a non-negative integer stops the command with an error. `phel build -O` still wins for its build. (#3396)
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::withoutDeprecations()` runs a callable with deprecation notices held back, for tools that read a source without compiling it. (#3381)
 - A file whose first form is not `(ns ...)` fails with the hint `'src/app.phel' does not start with an (ns ...) form`, instead of the `Check the spelling, or add (:require ...)` hint for `Cannot resolve symbol 'defn-'`. `Phel\Shared\Exceptions\MissingNsFormException` and `Phel\Shared\Exceptions\Hint\MissingNsFormHint` are public PHP API. (#3373)
 - Lint rule `phel/shadowed-core-fn` warns when a `let`, `loop` or `fn` parameter binding is named after a public `phel.core` function, as in `(let [inc (fn [x] 99)] (inc 1))`, where the local wins. Turn it off with `{:rules {:phel/shadowed-core-fn :off}}` in `phel-lint.phel`. (#3374)
