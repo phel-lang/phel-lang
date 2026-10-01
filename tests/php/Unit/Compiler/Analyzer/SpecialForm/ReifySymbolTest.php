@@ -201,6 +201,37 @@ final class ReifySymbolTest extends TestCase
         self::assertSame('int', $node->getMethods()[1]->getFnNode()->getReturnType());
     }
 
+    public function test_a_method_listed_under_two_interfaces_is_rejected(): void
+    {
+        $this->expectException(AbstractLocatedException::class);
+        $this->expectExceptionMessage('reify defines method count more than once');
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_REIFY),
+            Symbol::create('\\Countable'),
+            Phel::list([Symbol::create('count'), Phel::vector([Symbol::create('this')]), 1]),
+            Symbol::create('\\Countable'),
+            Phel::list([Symbol::create('count'), Phel::vector([Symbol::create('this')]), 2]),
+        ]);
+
+        $this->createSymbol()->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_a_protocol_method_clashing_with_an_interface_method_is_rejected(): void
+    {
+        $this->expectException(AbstractLocatedException::class);
+        $this->expectExceptionMessage('reify defines method count more than once');
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_REIFY),
+            Phel::list([Symbol::create('Count'), Phel::vector([Symbol::create('this')]), 1]),
+            Symbol::create('\\Countable'),
+            Phel::list([Symbol::create('count'), Phel::vector([Symbol::create('this')]), 2]),
+        ]);
+
+        $this->createSymbol()->analyze($list, NodeEnvironment::empty());
+    }
+
     public function test_unknown_interface_names_the_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);

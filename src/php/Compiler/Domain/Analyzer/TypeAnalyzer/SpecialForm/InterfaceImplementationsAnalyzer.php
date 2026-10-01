@@ -16,10 +16,13 @@ use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\MungeInterface;
 
 use function array_key_exists;
+use function array_map;
+use function array_merge;
 use function class_exists;
 use function count;
 use function interface_exists;
 use function sprintf;
+use function strtolower;
 
 /**
  * Parses the inline-implementation tail shared by `defstruct` and `defenum`:
@@ -107,7 +110,43 @@ final readonly class InterfaceImplementationsAnalyzer
             );
         }
 
+        $this->assertDistinctMethods(
+            array_merge(...array_map(static fn(DefStructInterface $interface): array => $interface->getMethods(), $interfaces)),
+            $list,
+            $context,
+        );
+
         return $interfaces;
+    }
+
+    /**
+     * PHP rejects a class that declares a method twice, and the error only
+     * surfaces when the generated class loads. A method shared by two listed
+     * interfaces (a repeated interface, or a parent next to its child) has to
+     * be written once, under the most specific interface.
+     *
+     * @param list<DefStructMethod>          $methods
+     * @param PersistentListInterface<mixed> $list
+     */
+    public function assertDistinctMethods(array $methods, PersistentListInterface $list, string $context): void
+    {
+        $seen = [];
+        foreach ($methods as $method) {
+            $name = strtolower($method->getName()->getName());
+            if (isset($seen[$name])) {
+                throw AnalyzerException::withLocation(
+                    sprintf(
+                        '%s defines method %s more than once. List each method once, under the most specific interface or protocol.',
+                        $context,
+                        $method->getName()->getName(),
+                    ),
+                    $list,
+                    errorCode: ErrorCode::INTERFACE_ERROR,
+                );
+            }
+
+            $seen[$name] = true;
+        }
     }
 
     /**

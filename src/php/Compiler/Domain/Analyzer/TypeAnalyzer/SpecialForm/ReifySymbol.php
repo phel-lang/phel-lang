@@ -61,6 +61,8 @@ final readonly class ReifySymbol implements SpecialFormAnalyzerInterface
             }
         }
 
+        $this->implementationsAnalyzer->assertDistinctMethods($methods, $list, 'reify');
+
         return new ReifyNode(
             $env,
             $methods,
