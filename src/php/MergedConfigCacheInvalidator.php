@@ -10,12 +10,14 @@ use Gacela\Framework\Config\MergedConfigCache;
 
 use function basename;
 use function dirname;
+use function glob;
 use function implode;
 use function is_dir;
 use function is_file;
 use function md5;
 use function md5_file;
 use function preg_replace;
+use function sort;
 
 /**
  * Keeps Gacela's persisted merged-config cache (1.15+) in sync with its inputs.
@@ -50,6 +52,23 @@ final readonly class MergedConfigCacheInvalidator
         private array $fingerprintInputs,
         private Closure $reloadConfig,
     ) {}
+
+    /**
+     * Every `phel-config*.php` in the project root. Gacela reads not only
+     * `phel-config.php` and `phel-config-local.php` but a `phel-config-<suffix>.php`
+     * per `APP_ENV` and config dimension, so a fixed list misses an edit there.
+     * A file appearing or disappearing changes the list, and with it the
+     * fingerprint.
+     *
+     * @return list<string>
+     */
+    public static function projectConfigFiles(string $appRootDir, string $baseName): array
+    {
+        $files = glob($appRootDir . '/' . basename($baseName, '.php') . '*.php') ?: [];
+        sort($files);
+
+        return $files;
+    }
 
     public function refreshIfStale(): void
     {

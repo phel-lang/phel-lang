@@ -39,6 +39,34 @@ final class MergedConfigCacheInvalidatorTest extends TestCase
         }
     }
 
+    public function test_project_config_files_include_env_and_dimension_variants(): void
+    {
+        foreach (['phel-config.php', 'phel-config-local.php', 'phel-config-prod.php', 'other.php'] as $file) {
+            file_put_contents($this->dir . '/' . $file, '<?php return [];');
+        }
+
+        self::assertSame(
+            [
+                $this->dir . '/phel-config-local.php',
+                $this->dir . '/phel-config-prod.php',
+                $this->dir . '/phel-config.php',
+            ],
+            MergedConfigCacheInvalidator::projectConfigFiles($this->dir, 'phel-config.php'),
+        );
+    }
+
+    public function test_an_edit_to_an_env_config_flips_the_fingerprint(): void
+    {
+        file_put_contents($this->dir . '/phel-config.php', '<?php return [];');
+        file_put_contents($this->dir . '/phel-config-prod.php', "<?php return ['src-dirs' => ['prod1']];");
+        $before = $this->invalidator(MergedConfigCacheInvalidator::projectConfigFiles($this->dir, 'phel-config.php'))->fingerprint();
+
+        file_put_contents($this->dir . '/phel-config-prod.php', "<?php return ['src-dirs' => ['prod2']];");
+        $after = $this->invalidator(MergedConfigCacheInvalidator::projectConfigFiles($this->dir, 'phel-config.php'))->fingerprint();
+
+        self::assertNotSame($before, $after);
+    }
+
     public function test_fingerprint_changes_when_an_input_file_changes(): void
     {
         $input = $this->dir . '/phel-config.php';
