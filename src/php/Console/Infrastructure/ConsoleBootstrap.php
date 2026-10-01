@@ -30,6 +30,18 @@ final class ConsoleBootstrap extends Application
 {
     use ServiceResolverAwareTrait;
 
+    private ?string $resolvedVersion = null;
+
+    /**
+     * Resolved on first use: reading it costs two git processes, and only
+     * `--version`, `list` and help print it.
+     */
+    #[Override]
+    public function getVersion(): string
+    {
+        return $this->resolvedVersion ??= $this->getFactory()->createVersionResolver()->resolve();
+    }
+
     /**
      * Sanitizes argv, strips deprecation flags, rewrites a bare --help/-h into the
      * `list` command, then runs the Symfony application with auto-exit disabled.
