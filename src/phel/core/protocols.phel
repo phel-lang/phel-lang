@@ -1,5 +1,6 @@
 (in-ns phel.core)
 
+(use ArrayObject)
 (use InvalidArgumentException)
 (use Phel)
 (use Phel.Shared.Munge)
@@ -7,6 +8,8 @@
 (use Phel.Compiler.Domain.Analyzer.Environment.NodeEnvironment)
 (use Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton)
 (use Phel.Lang.Symbol)
+(use ReflectionClass)
+(use WeakMap)
 
 ;; Three loosely-related but late-loading pieces:
 ;;   1. Interfaces via `definterface` (compiles to a PHP interface).
@@ -367,19 +370,23 @@ Maintained in parallel with `derive`'s class -> proto-class-string entry so hier
       (prefers? prefers-map x y)))
 
 (defn find-hierarchy-method
-  "Finds the best matching method for dispatch-val using the global hierarchy.
-  Returns the method function or nil. Used internally by defmulti. When
-  multiple methods match and none is more specific, consults `prefers-map`
-  (built by `prefer-method`); if still ambiguous, throws."
+  "Finds the best matching method for dispatch-val using `hierarchy`, or the
+  global hierarchy when it is nil. Returns the method function or nil. Used
+  internally by defmulti. The method registered under `default-val` (`:default`
+  unless given) is never a candidate. When multiple methods match and none is
+  more specific, consults `prefers-map` (built by `prefer-method`); if still
+  ambiguous, throws."
   ([methods dispatch-val]
    (find-hierarchy-method methods dispatch-val {}))
   ([methods dispatch-val prefers-map]
-   (let [parents-map (get @*hierarchy* :parents)
+   (find-hierarchy-method methods dispatch-val prefers-map nil :default))
+  ([methods dispatch-val prefers-map hierarchy default-val]
+   (let [parents-map (get (if (nil? hierarchy) @*hierarchy* hierarchy) :parents)
          method-keys (keys methods)
          candidates  (persistent
                       (reduce
                        (fn [acc k]
-                         (if (and (not= k :default)
+                         (if (and (not= k default-val)
                                   (not= k dispatch-val)
                                   (isa-in? parents-map dispatch-val k))
                            (conj acc k)
@@ -429,12 +436,80 @@ Maintained in parallel with `derive`'s class -> proto-class-string entry so hier
                            t))
     :unknown))
 
+(defn- php-class-like? [class-name]
+  (or (php/class_exists class-name) (php/interface_exists class-name)))
+
+(defn- canonical-class-key
+  "A PHP class or interface name as `get_class` spells it, without the leading
+  `\\`. PHP names are case-insensitive but dispatch keys are not, so
+  `\\arrayobject` must register as `ArrayObject`. Other strings pass through."
+  [class-name]
+  (let [name (php/ltrim class-name "\\")]
+    (if (php-class-like? name)
+      (.getName (new ReflectionClass name))
+      name)))
+
+(defn- most-specific-interfaces
+  "Drops each interface that another one in `interfaces` extends."
+  [interfaces]
+  (filter (fn [a] (not (some? (fn [b] (and (not= a b) (php/is_subclass_of b a))) interfaces)))
+          interfaces))
+
+(defn- find-protocol-class-impl [dispatch-table class-name]
+  (when (php-class-like? class-name)
+    (or (get dispatch-table class-name)
+        (some #(get dispatch-table %) (php/array_values (php/class_parents class-name)))
+        (let [matches (most-specific-interfaces
+                       (filter #(get dispatch-table %)
+                               (php/array_values (php/class_implements class-name))))]
+          (case (count matches)
+            0 nil
+            1 (get dispatch-table (first matches))
+            (let [names (sort matches)]
+              (throw (new InvalidArgumentException
+                          (str "Type " class-name " matches protocol implementations for both "
+                               (first names) " and " (second names)
+                               ", and neither is more specific")))))))))
+
+;; Keyed by the dispatch table value, so every write to a dispatch atom
+;; (`extend-type`, `reify`) starts from an empty memo.
+(def- protocol-class-impl-memo (new WeakMap))
+
+(defn protocol-class-impl
+  "Returns the implementation `dispatch-table` holds for the PHP class or
+  interface `class-name`: its own entry, then its parent classes nearest
+  first, then its interfaces, or nil. When several interfaces match, the one
+  that extends the others wins; otherwise it throws. Memoized per table."
+  {:example "(= count (protocol-class-impl {\"Countable\" count} \"ArrayObject\")) ; => true"
+   :see-also ["protocol-type-key" "extend-type" "satisfies?"]}
+  [dispatch-table class-name]
+  (let [memo (or (php/aget protocol-class-impl-memo dispatch-table)
+                 (let [m (new ArrayObject)]
+                   (php/aset protocol-class-impl-memo dispatch-table m)
+                   m))]
+    (if (.offsetExists memo class-name)
+      (.offsetGet memo class-name)
+      (let [impl (find-protocol-class-impl dispatch-table class-name)]
+        (.offsetSet memo class-name impl)
+        impl))))
+
+(defn protocol-fallback-impl
+  "Returns the implementation protocol dispatch uses for x when
+  `dispatch-table` has no entry for its type key: one found through x's PHP
+  class, parents or interfaces, then `:default`, or nil."
+  {:example "(= identity (protocol-fallback-impl {:default identity} 1)) ; => true"
+   :see-also ["protocol-class-impl" "defprotocol"]}
+  [dispatch-table x]
+  (or (when (php/is_object x)
+        (protocol-class-impl dispatch-table (php/get_class x)))
+      (get dispatch-table :default)))
+
 (defmacro defprotocol
   "Defines a protocol with the given method signatures. Each method signature is a list of (method-name [args]).
 
 Creates a dispatching function for each method that dispatches on the type of the first argument. Use `extend-type` to add implementations.
 
-A `:default` type can be registered via `extend-type` as a fallback when no specific type implementation is found."
+When x is an object with no implementation for its exact type, dispatch looks for one registered for a parent class of x, nearest first, then for an interface x implements. A `:default` type can be registered via `extend-type` as the last fallback."
   {:example "(defprotocol Stringable (to-string [this]))"
    :see-also ["extend-type" "satisfies?" "extends?" "protocol-type-key"]}
   [protocol-name & method-specs]
@@ -464,9 +539,9 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
                           impl           (get dispatch-table dk)]
                       (if impl
                         (impl ~@margs)
-                        (let [default-impl (get dispatch-table :default)]
-                          (if default-impl
-                            (default-impl ~@margs)
+                        (let [fallback-impl (protocol-fallback-impl dispatch-table ~(first margs))]
+                          (if fallback-impl
+                            (fallback-impl ~@margs)
                             (throw (new InvalidArgumentException
                                         (str "No implementation of '" ~mname-str
                                              "' for type: " dk))))))))))))))
@@ -496,6 +571,24 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
                  (conj current-methods item)
                  result))))))
 
+(defn- protocol-symbol-type-key
+  "The dispatch key `extend-type` registers for a symbol: a struct of the
+  current namespace, or a PHP class or interface named with a leading `\\`,
+  with `.` separators, through `:use`, or by its global name."
+  [sym]
+  (let [name-str     (.getName sym)
+        munge        (new Munge)
+        struct-class (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))
+        env          (GlobalEnvironmentSingleton/getInstance)
+        use-alias    (php/aget (.getUseAliases env (.getNs env)) name-str)
+        php-fqn?     (or (php/str_contains name-str "\\") (php/str_contains name-str "."))]
+    (cond
+      php-fqn?                        (canonical-class-key (php/str_replace "." "\\" name-str))
+      (php/class_exists struct-class) struct-class
+      use-alias                       (canonical-class-key (.getName use-alias))
+      (php-class-like? name-str)      (canonical-class-key name-str)
+      :else                           struct-class)))
+
 (defmacro extend-type
   "Extends a type with protocol method implementations.
 
@@ -505,7 +598,14 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
     `:boolean`, `:keyword`, `:symbol`, `:vector`, `:list`, `:hash-map`, `:set`,
     `:atom`, `:var`, `:function`, `:php/array`
   - a symbol for struct names (resolved in current namespace)
+  - a PHP class or interface symbol: `\\ArrayObject`, `\\Countable`, a name
+    imported with `(:use ArrayObject)`, or one that names an existing class
   - a string for explicit PHP class names (cross-namespace structs)
+
+  A PHP class or interface registers under its name without the leading `\\`,
+  so `\\ArrayObject`, `ArrayObject` and `\"ArrayObject\"` are the same key.
+  An implementation for a parent class or an interface applies to every
+  class that extends or implements it. See `defprotocol` for the order.
 
   Note: `:struct` and `:php/object` cannot be used as type-specs because
   protocol dispatch resolves these to their specific PHP class names.
@@ -522,11 +622,8 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
   (let [type-key (cond
                    (nil? type-spec)                  :nil
                    (keyword? type-spec)              type-spec
-                   (php/is_string type-spec)         type-spec
-                   (php/instanceof type-spec Symbol)
-                   (let [munge    (new Munge)
-                         name-str (.getName type-spec)]
-                     (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))))
+                   (php/is_string type-spec)         (canonical-class-key type-spec)
+                   (php/instanceof type-spec Symbol) (protocol-symbol-type-key type-spec))
         groups   (group-protocol-specs specs #(php/instanceof % Symbol))
         swaps    (reduce
                   (fn [acc group]
@@ -553,7 +650,7 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
     `(do ~@swaps)))
 
 (defn satisfies?
-  "Returns true if x's type implements all methods of the given protocol."
+  "Returns true if x's type implements all methods of the given protocol, directly or through a parent class or interface of x."
   {:example "(satisfies? Stringable \"hello\")"
    :see-also ["extends?" "defprotocol" "extend-type"]}
   [protocol x]
@@ -561,17 +658,28 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
         dvars (get protocol :dispatch)]
     (if (or (nil? dvars) (empty? dvars))
       false
-      (every? (fn [dv] (not (nil? (get (deref dv) key)))) dvars))))
+      (every? (fn [dv]
+                (let [table (deref dv)]
+                  (not (nil? (or (get table key)
+                                 (when (php/is_object x)
+                                   (protocol-class-impl table (php/get_class x))))))))
+              dvars))))
 
 (defn extends?
-  "Returns true if the given type-key has implementations for all methods of the protocol. type-key should match what protocol-type-key returns."
+  "Returns true if the given type-key has implementations for all methods of the protocol. type-key should match what protocol-type-key returns. A PHP class name also counts implementations for its parent classes and interfaces."
   {:example "(extends? Stringable :string)"
    :see-also ["satisfies?" "defprotocol" "extend-type"]}
   [protocol type-key]
-  (let [dvars (get protocol :dispatch)]
+  (let [dvars (get protocol :dispatch)
+        key   (if (php/is_string type-key) (canonical-class-key type-key) type-key)]
     (if (or (nil? dvars) (empty? dvars))
       false
-      (every? (fn [dv] (not (nil? (get (deref dv) type-key)))) dvars))))
+      (every? (fn [dv]
+                (let [table (deref dv)]
+                  (not (nil? (or (get table key)
+                                 (when (php/is_string key)
+                                   (protocol-class-impl table key)))))))
+              dvars))))
 
 (defmacro extend-protocol
   "Convenience macro that extends a single protocol to multiple types. Alternates type-specs and method implementations.
@@ -587,30 +695,51 @@ Equivalent to multiple `extend-type` calls."
                        `(extend-type ~type-spec ~protocol-name ~@methods))]
     `(do ~@extend-calls)))
 
+(defn- reify-protocol-header?
+  "Whether a `reify` header names a Phel protocol. A header that resolves to
+  no Phel definition is handed to `reify*` as a PHP interface, which reports
+  a name that is neither."
+  [header]
+  (let [resolved (.resolveAsSymbol (GlobalEnvironmentSingleton/getInstance) header (NodeEnvironment/empty))]
+    (when resolved
+      (let [value (Phel/getDefinition (.encodeRegistryKey (new Munge) (.getNamespace resolved))
+                                      (.getName resolved))]
+        (when-not (or (nil? value) (and (map? value) (contains? value :dispatch)))
+          (throw (new InvalidArgumentException
+                      (str "reify: " header " is neither a protocol nor a PHP interface"))))
+        true))))
+
 (defmacro reify
-  "Creates an anonymous object implementing one or more protocols.
+  "Creates an anonymous object implementing protocols and PHP interfaces.
   Method bodies close over local bindings. Each instance carries its
   own captured state, so reify works correctly inside loops.
+
+  A PHP interface lists every method it declares, and each method takes
+  the interface's return type.
 
   Syntax:
     (reify
       ProtocolName
       (method-name [this arg1] body)
-      AnotherProtocol
-      (another-method [this] body))"
+      \\JsonSerializable
+      (jsonSerialize [this] body))"
   {:example "(reify Speakable (speak [this] \"hello\"))"
    :see-also ["defprotocol" "extend-type" "satisfies?"]}
   [& specs]
   (let [munge                  (new Munge)
         instance-sym           (gensym "reify__")
         class-name-sym         (gensym "class__")
-        ;; Group specs into [[ProtocolSym [method1 method2 ...]] ...]
+        ;; Group specs into [[HeaderSym [method1 method2 ...]] ...]
         ;; Same parsing pattern as extend-type: symbols start a new group,
-        ;; lists are methods belonging to the current protocol.
-        proto-groups           (group-protocol-specs specs #(php/instanceof % Symbol))
-        ;; Flatten all methods for the reify* special form (it only needs
-        ;; method specs, protocol grouping is handled here for dispatch).
-        all-methods            (reduce (fn [acc group] (concat acc (second group))) [] proto-groups)
+        ;; lists are methods belonging to the current header.
+        groups                 (group-protocol-specs specs #(php/instanceof % Symbol))
+        by-kind                (group-by #(if (reify-protocol-header? (first %)) :protocol :interface) groups)
+        proto-groups           (get by-kind :protocol [])
+        interface-groups       (get by-kind :interface [])
+        ;; Protocol methods lead, then each interface followed by its methods,
+        ;; which is the order reify* reads them in.
+        proto-methods          (reduce (fn [acc group] (concat acc (second group))) [] proto-groups)
+        interface-specs        (reduce (fn [acc group] (concat acc [(first group)] (second group))) [] interface-groups)
         ;; For each protocol method, register a dispatch entry that delegates
         ;; to the PHP method on the object. This way each instance's closed-over
         ;; state is accessed via $this->property inside the PHP method.
@@ -635,7 +764,7 @@ Equivalent to multiple `extend-type` calls."
               methods)))
          []
          proto-groups)]
-    `(let [~instance-sym   (reify* ~@all-methods)
+    `(let [~instance-sym   (reify* ~@proto-methods ~@interface-specs)
            ~class-name-sym (php/get_class ~instance-sym)]
        ~@dispatch-registrations
        ~instance-sym)))
@@ -708,45 +837,80 @@ Equivalent to multiple `extend-type` calls."
   produce a dispatch value, which is then used to select the appropriate
   method registered via `defmethod`.
 
-  An optional docstring may be provided between `name` and `dispatch-fn`.
+  Signature: `(defmulti name docstring? attr-map? dispatch-fn & options)`.
+  A docstring and an attribute map may come before `dispatch-fn`.
 
-  If no method matches the dispatch value, the `:default` method is used
+  Options, given as key/value pairs after `dispatch-fn`:
+  - `:default` sets the dispatch value of the fallback method. It defaults
+    to `:default`.
+  - `:hierarchy` takes an atom or var holding a hierarchy (see
+    `make-hierarchy`). Dispatch reads it on every call, for both `isa?`
+    matching and `prefer-method`, instead of the global hierarchy.
+
+  If no method matches the dispatch value, the fallback method is used
   (if defined), otherwise an error is thrown."
-  {:example "(defmulti area \"Area of shape.\" :shape)"}
+  {:example "(defmulti area \"Area of shape.\" :shape :default :unknown)\n(defmethod area :unknown [_] 0)\n(area {:shape :blob}) ; => 0"
+   :see-also ["defmethod" "prefer-method" "make-hierarchy" "derive"]}
   [name & args]
-  (let [arg-count   (count args)
-        has-doc?    (and (= 2 arg-count) (string? (first args)))
+  (let [name-str    (.getName name)
+        arg-count   (count args)
+        has-doc?    (and (string? (first args)) (next args))
         docstring   (when has-doc? (first args))
-        dispatch-fn (if has-doc? (second args) (first args))]
-    (when-not (or (= 1 arg-count) has-doc?)
+        args        (if has-doc? (next args) args)
+        has-attrs?  (and (map? (first args)) (next args))
+        attr-map    (when has-attrs? (first args))
+        args        (if has-attrs? (next args) args)
+        dispatch-fn (first args)
+        options     (rest args)]
+    (when (empty? args)
       (throw (new InvalidArgumentException
-                  (str "defmulti '" (.getName name)
-                       "' expects (defmulti name docstring? dispatch-fn), got "
+                  (str "defmulti '" name-str
+                       "' expects (defmulti name docstring? attr-map? dispatch-fn & options), got "
                        (inc arg-count) " arguments."))))
-    (let [methods-name  (Symbol/create (php/. (.getName name) "-methods"))
-          prefers-name  (Symbol/create (php/. (.getName name) "-prefers"))
-          dispatch-name (Symbol/create (php/. (.getName name) "-dispatch"))
-          name-str      (.getName name)
-          df-sym        (gensym)
+    (when (odd? (count options))
+      (throw (new InvalidArgumentException
+                  (str "defmulti '" name-str
+                       "' expects options as key/value pairs, got a dangling " (last options)))))
+    (doseq [option-key :in (take-nth 2 options)]
+      (when-not (contains? #{:default :hierarchy} option-key)
+        (throw (new InvalidArgumentException
+                    (str "defmulti '" name-str "' got unknown option " option-key
+                         ". Supported options: :default, :hierarchy")))))
+    (let [option-map     (apply hash-map options)
+          has-default?   (contains? option-map :default)
+          has-hierarchy? (contains? option-map :hierarchy)
+          methods-name   (Symbol/create (php/. name-str "-methods"))
+          prefers-name   (Symbol/create (php/. name-str "-prefers"))
+          dispatch-name  (Symbol/create (php/. name-str "-dispatch"))
+          default-name   (Symbol/create (php/. name-str "-default"))
+          hierarchy-name (Symbol/create (php/. name-str "-hierarchy"))
+          df-sym         (gensym)
+          h-sym          (gensym)
+          fn-meta        (cond-> (or attr-map {})
+                                 docstring (assoc :doc docstring))
+          default-form   (if has-default? default-name :default)
+          hierarchy-form (when has-hierarchy? `(deref ~hierarchy-name))
           ;; A stable name, not a gensym: this one is the multimethod's own
           ;; parameter list, so it shows up in `phel doc` and in the API
           ;; snapshot. A gensym made every rendering read `(name & __phel_3167)`
           ;; and change on every run. Nothing user-supplied is spliced into the
-          ;; body below, so there is nothing here for it to capture.
-          args-sym      'args
-          body          `(let [dispatch-val# (apply ~dispatch-name ~args-sym)
-                               methods#      (deref ~methods-name)
-                               method#       (get methods# dispatch-val#)]
-                           (if method#
-                             (apply method# ~args-sym)
-                             (let [hierarchy-method# (find-hierarchy-method methods# dispatch-val# (deref ~prefers-name))]
-                               (if hierarchy-method#
-                                 (apply hierarchy-method# ~args-sym)
-                                 (let [default-method# (get methods# :default)]
-                                   (if default-method#
-                                     (apply default-method# ~args-sym)
-                                     (throw (new InvalidArgumentException
-                                                 (str "No method for dispatch value: " dispatch-val#)))))))))]
+          ;; body below (option values go through their own defs), so there is
+          ;; nothing here for it to capture.
+          args-sym       'args
+          body           `(let [dispatch-val# (apply ~dispatch-name ~args-sym)
+                                methods#      (deref ~methods-name)
+                                method#       (get methods# dispatch-val#)]
+                            (if method#
+                              (apply method# ~args-sym)
+                              (let [hierarchy-method# (find-hierarchy-method methods# dispatch-val# (deref ~prefers-name)
+                                                                             ~hierarchy-form ~default-form)]
+                                (if hierarchy-method#
+                                  (apply hierarchy-method# ~args-sym)
+                                  (let [default-method# (get methods# ~default-form)]
+                                    (if default-method#
+                                      (apply default-method# ~args-sym)
+                                      (throw (new InvalidArgumentException
+                                                  (str "No method for dispatch value: " dispatch-val#)))))))))]
       `(do
          ;; Both tables stay public: `defmethod` and `prefer-method` resolve them
          ;; in the multimethod's home namespace, so extending from another
@@ -768,9 +932,20 @@ Equivalent to multiple `extend-type` calls."
                                 "' requires a callable dispatch-fn, got a string: "
                                 (php/substr ~df-sym 0 60) "..."))))
              ~df-sym))
-         ~(if docstring
-            `(defn ~name {:doc ~docstring} [& ~args-sym] ~body)
-            `(defn ~name [& ~args-sym] ~body))))))
+         ~@(when has-default?
+             [`(def ~default-name {:private true} ~(get option-map :default))])
+         ~@(when has-hierarchy?
+             [`(def ~hierarchy-name {:private true}
+                 (let [~h-sym ~(get option-map :hierarchy)]
+                   (when-not (or (atom? ~h-sym) (var? ~h-sym))
+                     (throw (new InvalidArgumentException
+                                 (str "defmulti '" ~name-str
+                                      "' expects :hierarchy to be an atom or var holding a hierarchy, got: "
+                                      (type ~h-sym)))))
+                   ~h-sym))])
+         ~(if (empty? fn-meta)
+            `(defn ~name [& ~args-sym] ~body)
+            `(defn ~name ~fn-meta [& ~args-sym] ~body))))))
 
 (defmacro defmethod
   "Registers a method implementation for a multimethod.

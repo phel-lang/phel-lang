@@ -379,7 +379,7 @@ final class AnalyzePersistentList
             Symbol::NAME_PHP_OBJECT_SET => fn(): SpecialFormAnalyzerInterface => new PhpOSetSymbol($this->analyzer),
             Symbol::NAME_SET_VAR => fn(): SpecialFormAnalyzerInterface => new SetVarSymbol($this->analyzer),
             Symbol::NAME_DEF_INTERFACE => fn(): SpecialFormAnalyzerInterface => new DefInterfaceSymbol($this->analyzer),
-            Symbol::NAME_REIFY => fn(): SpecialFormAnalyzerInterface => new ReifySymbol(new MethodBodyAnalyzer($this->analyzer)),
+            Symbol::NAME_REIFY => fn(): SpecialFormAnalyzerInterface => new ReifySymbol(new MethodBodyAnalyzer($this->analyzer), $this->createImplementationsAnalyzer()),
         ];
     }
 

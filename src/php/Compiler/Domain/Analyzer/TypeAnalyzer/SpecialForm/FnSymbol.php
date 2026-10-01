@@ -171,7 +171,10 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         $body = $this->analyzeBody($fnSymbolTuple, $recurFrame, $env, $declaredReturnType === 'void', $effectiveName);
         if ($declaredReturnType !== null) {
             $tailType = TagCompatibility::tailLiteralType($body);
-            if ($tailType !== null && !TagCompatibility::accepts($declaredReturnType, $tailType)) {
+            // A `void` call answers nil, so a nil tail (an empty body included)
+            // contradicts nothing; a no-op interface method is written that way.
+            $isVoidAnsweringNil = $declaredReturnType === 'void' && $tailType === 'nil';
+            if ($tailType !== null && !$isVoidAnsweringNil && !TagCompatibility::accepts($declaredReturnType, $tailType)) {
                 throw AnalyzerException::withLocation(
                     sprintf("Fn return type '%s' is incompatible with tail expression of type '%s'", $declaredReturnType, $tailType),
                     $list,

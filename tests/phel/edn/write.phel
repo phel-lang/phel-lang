@@ -65,6 +65,13 @@
   (let [micros (edn/read-string "#inst \"2026-06-17T08:30:15.123456Z\"")]
     (is (php/== micros (edn/read-string (edn/write-string micros))))))
 
+(deftest test-write-partial-inst-round-trip
+  (let [i             (edn/read-string "#inst \"2026-03\"")
+        written       (edn/write-string i)
+        round-tripped (edn/read-string written)]
+    (is (= "#inst \"2026-03-01T00:00:00+00:00\"" written) "partial inst writes the full form")
+    (is (php/== i round-tripped) "partial inst round-trips to an equal instant")))
+
 (deftest test-write-string-all
   (is (= "1 2 3" (edn/write-string-all [1 2 3])))
   (is (= ""      (edn/write-string-all [])))

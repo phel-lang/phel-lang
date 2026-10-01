@@ -1,0 +1,23 @@
+--PHEL--
+(defstruct* box [n] \JsonSerializable (jsonSerialize [this] n))
+--PHP--
+if (!class_exists('user\box')) {
+final class box extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \JsonSerializable {
+
+  protected const array ALLOWED_KEYS = ['n'];
+
+  protected $n;
+
+  public function __construct($n, $meta = null) {
+    parent::__construct();
+    $this->n = $n;
+    $this->meta = $meta;
+  }
+
+  public function jsonSerialize(): mixed {
+    $n = $this->n;
+    $this_1 = $this;
+    return $n;
+  }
+}
+}

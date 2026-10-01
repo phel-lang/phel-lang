@@ -1,5 +1,6 @@
 (ns phel-test.core.reify
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is])
+  (:use Countable))
 
 ;; --- Protocol definitions ---
 
@@ -111,3 +112,33 @@
     (is (= "INFO" (tag obj)) "tag method")
     (is (= "[INFO] hello" (tagged-message obj "hello"))
         "method dispatches through protocol on this")))
+
+;; --- PHP interfaces ---
+
+(deftest test-reify-php-interface
+  (let [obj (reify \JsonSerializable (jsonSerialize [this] 5))]
+    (is (php/instanceof obj \JsonSerializable) "the object implements the interface")
+    (is (= "5" (php/json_encode obj)) "the interface method runs")))
+
+(deftest test-reify-php-interface-mixed-with-protocol
+  (let [obj (reify
+              \Countable (count [this] 3)
+              Speakable (speak [this] :x))]
+    (is (php/instanceof obj \Countable) "the object implements the interface")
+    (is (= 3 (php/count obj)) "the interface method runs")
+    (is (= :x (speak obj)) "the protocol method dispatches")))
+
+(deftest test-reify-php-interface-imported-with-use
+  (let [obj (reify Countable (count [this] 7))]
+    (is (php/instanceof obj \Countable) "a :use import resolves like its rooted form")
+    (is (= 7 (php/count obj)) "the interface method runs")))
+
+(deftest test-reify-php-interface-closes-over-locals
+  (let [n   9
+        obj (reify \JsonSerializable (jsonSerialize [this] (+ n 1)))]
+    (is (= "10" (php/json_encode obj)) "the interface method sees the local")))
+
+(deftest test-reify-php-interface-declares-return-type
+  (let [obj (reify \Countable (count [this] 2))
+        rt  (.getReturnType (new \ReflectionMethod obj "count"))]
+    (is (= "int" (.getName rt)) "the method declares the interface's tentative return type")))

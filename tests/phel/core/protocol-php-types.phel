@@ -1,0 +1,159 @@
+(ns phel-test.core.protocol-php-types
+  (:require phel.test :refer [deftest is thrown-with-msg?])
+  (:use ArrayIterator)
+  (:use ArrayObject)
+  (:use DomainException)
+  (:use Error)
+  (:use LogicException)
+  (:use RuntimeException)
+  (:use SplObjectStorage))
+
+;; --- The three spellings of a PHP class register the same key ---
+
+(defprotocol BackslashSpelling (backslash-spelling [x]))
+(defprotocol UseSpelling (use-spelling [x]))
+(defprotocol StringSpelling (string-spelling [x]))
+(defprotocol ProtocolSpelling (protocol-spelling [x]))
+
+(extend-type \ArrayObject BackslashSpelling (backslash-spelling [_] :backslash))
+(extend-type ArrayObject UseSpelling (use-spelling [_] :use))
+(extend-type "ArrayObject" StringSpelling (string-spelling [_] :string))
+
+(extend-protocol ProtocolSpelling
+  \ArrayIterator (protocol-spelling [_] :backslash)
+  ArrayObject (protocol-spelling [_] :use)
+  "SplObjectStorage" (protocol-spelling [_] :string))
+
+(deftest test-backslash-symbol-registers-class-name
+  (is (= ["ArrayObject"] (keys (deref BackslashSpelling--backslash-spelling--dispatch))))
+  (is (= :backslash (backslash-spelling (new ArrayObject)))))
+
+(deftest test-used-symbol-registers-class-name
+  (is (= ["ArrayObject"] (keys (deref UseSpelling--use-spelling--dispatch))))
+  (is (= :use (use-spelling (new ArrayObject)))))
+
+(deftest test-string-registers-class-name
+  (is (= ["ArrayObject"] (keys (deref StringSpelling--string-spelling--dispatch))))
+  (is (= :string (string-spelling (new ArrayObject)))))
+
+(deftest test-extend-protocol-registers-class-names
+  (is (= #{"ArrayIterator" "ArrayObject" "SplObjectStorage"}
+         (set (keys (deref ProtocolSpelling--protocol-spelling--dispatch)))))
+  (is (= :backslash (protocol-spelling (new ArrayIterator))))
+  (is (= :use (protocol-spelling (new ArrayObject))))
+  (is (= :string (protocol-spelling (new SplObjectStorage)))))
+
+;; --- Interface and parent class dispatch ---
+
+(defprotocol Sized (size-of [x]))
+
+(extend-type \Countable Sized (size-of [x] (php/count x)))
+
+(deftest test-interface-dispatch
+  (is (= 0 (size-of (new SplObjectStorage))) "SplObjectStorage implements Countable")
+  (is (= 2 (size-of (new ArrayObject (php/array 1 2))))))
+
+(defprotocol Failure (failure-kind [e]))
+
+(extend-type \LogicException Failure (failure-kind [_] :logic))
+
+(deftest test-parent-class-dispatch
+  (is (= :logic (failure-kind (new DomainException "x"))) "DomainException extends LogicException")
+  (is (= :logic (failure-kind (new InvalidArgumentException "x")))))
+
+;; --- Precedence: exact class, parent class, interface, :default ---
+
+(defprotocol Ranked (rank [x]))
+
+(extend-protocol Ranked
+  :default (rank [_] :default)
+  \Throwable (rank [_] :interface)
+  \Exception (rank [_] :grandparent)
+  \LogicException (rank [_] :parent)
+  \InvalidArgumentException (rank [_] :exact))
+
+(deftest test-exact-class-wins
+  (is (= :exact (rank (new InvalidArgumentException "x")))))
+
+(deftest test-nearest-parent-wins
+  (is (= :parent (rank (new DomainException "x"))))
+  (is (= :grandparent (rank (new RuntimeException "x")))))
+
+(deftest test-parent-wins-over-interface
+  (is (= :grandparent (rank (new RuntimeException "x"))) "RuntimeException implements Throwable too"))
+
+(deftest test-interface-wins-over-default
+  (is (= :interface (rank (new Error "x")))))
+
+(deftest test-default-comes-last
+  (is (= :default (rank (new ArrayObject))))
+  (is (= :default (rank "not an object"))))
+
+;; --- Two matching interfaces ---
+
+(defprotocol Ambiguous (ambiguous [x]))
+
+(extend-protocol Ambiguous
+  \Countable (ambiguous [_] :countable)
+  \ArrayAccess (ambiguous [_] :array-access))
+
+(deftest test-two-matching-interfaces-throw
+  (is (thrown-with-msg?
+       InvalidArgumentException
+       "Type ArrayObject matches protocol implementations for both ArrayAccess and Countable, and neither is more specific"
+       (ambiguous (new ArrayObject)))))
+
+(defprotocol Walkable (walk-kind [x]))
+
+(extend-protocol Walkable
+  \Traversable (walk-kind [_] :traversable)
+  \Iterator (walk-kind [_] :iterator))
+
+(deftest test-more-specific-interface-wins
+  (is (= :iterator (walk-kind (new ArrayIterator))) "Iterator extends Traversable"))
+
+;; --- satisfies? and extends? ---
+
+(deftest test-satisfies-through-interface
+  (is (satisfies? Sized (new SplObjectStorage)))
+  (is (not (satisfies? Sized (new LogicException "x")))))
+
+(deftest test-satisfies-through-parent
+  (is (satisfies? Failure (new DomainException "x")))
+  (is (not (satisfies? Failure (new RuntimeException "x")))))
+
+(deftest test-extends-through-ancestors
+  (is (extends? Sized "SplObjectStorage"))
+  (is (extends? Failure "DomainException"))
+  (is (not (extends? Failure "RuntimeException")))
+  (is (not (extends? Failure "No\\Such\\Class"))))
+
+;; --- A later extend-type replaces a memoized lookup ---
+
+(defprotocol Memoized (memoized [x]))
+
+(extend-protocol Memoized
+  :default (memoized [_] :default)
+  \Countable (memoized [_] :countable))
+
+(deftest test-later-extend-type-overrides-memoized-hit
+  (is (= :countable (memoized (new SplObjectStorage))))
+  (extend-type \SplObjectStorage Memoized (memoized [_] :exact))
+  (is (= :exact (memoized (new SplObjectStorage)))))
+
+(deftest test-later-extend-type-overrides-memoized-miss
+  (is (= :default (memoized (new LogicException "x"))))
+  (extend-type \Throwable Memoized (memoized [_] :throwable))
+  (is (= :throwable (memoized (new LogicException "x")))))
+
+;; --- PHP class names are case-insensitive ---
+
+(defprotocol Cased (cased [x]))
+
+(extend-type \arrayobject Cased (cased [_] :symbol))
+(extend-type "SPLOBJECTSTORAGE" Cased (cased [_] :string))
+
+(deftest test-a-differently-cased-class-registers-its-declared-name
+  (is (= :symbol (cased (new ArrayObject))))
+  (is (= :string (cased (new SplObjectStorage))))
+  (is (extends? Cased "arrayobject")))
