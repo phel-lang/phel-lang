@@ -32,10 +32,7 @@ final class ConsoleFactory extends AbstractFactory
 
     public function createConsoleBootstrap(): ConsoleBootstrap
     {
-        $bootstrap = new ConsoleBootstrap(
-            self::CONSOLE_NAME,
-            $this->createVersionResolver()->resolve(),
-        );
+        $bootstrap = new ConsoleBootstrap(self::CONSOLE_NAME);
         $bootstrap->setCommandLoader($this->createCommandLoader());
 
         return $bootstrap;

@@ -7,6 +7,8 @@ namespace Phel\Shared;
 use Composer\InstalledVersions;
 
 use function class_exists;
+use function dirname;
+use function escapeshellarg;
 use function exec;
 use function file_exists;
 use function getenv;
@@ -15,15 +17,22 @@ use function strtolower;
 use function trim;
 
 /**
- * Resolves the running Phel version string from the ambient environment: the
- * git working copy, then Composer's installed metadata, then the build-time
+ * Resolves the running Phel version string from the ambient environment: Phel's
+ * own git checkout, then Composer's installed metadata, then the build-time
  * official-release marker. Self-contained (no module state) so any module can
  * instantiate it directly — this is what lets Run report its version without
  * depending on the Console module.
  */
-final class VersionResolver
+final readonly class VersionResolver
 {
     private const string PACKAGE_NAME = 'phel-lang/phel-lang';
+
+    private string $phelRoot;
+
+    public function __construct(?string $phelRoot = null)
+    {
+        $this->phelRoot = $phelRoot ?? dirname(__DIR__, 3);
+    }
 
     public function resolve(): string
     {
@@ -36,7 +45,7 @@ final class VersionResolver
 
     private function tagCommitHash(): string
     {
-        $hash = $this->execGitCommand('git rev-list -n 1 ' . VersionFinder::LATEST_VERSION);
+        $hash = $this->execGitCommand('rev-list -n 1 ' . VersionFinder::LATEST_VERSION);
         if ($hash !== '') {
             return $hash;
         }
@@ -54,7 +63,7 @@ final class VersionResolver
 
     private function currentCommit(): string
     {
-        $hash = $this->execGitCommand('git rev-parse --verify HEAD');
+        $hash = $this->execGitCommand('rev-parse --verify HEAD');
         if ($hash !== '') {
             return $hash;
         }
@@ -69,7 +78,7 @@ final class VersionResolver
     private function isOfficialRelease(): bool
     {
         // Build-time marker written when packaging the PHAR.
-        $configFile = __DIR__ . '/../../../.phel-release.php';
+        $configFile = $this->phelRoot . '/.phel-release.php';
         if (file_exists($configFile)) {
             return (bool) require $configFile;
         }
@@ -84,14 +93,21 @@ final class VersionResolver
     }
 
     /**
-     * Runs a git command and returns its first output line trimmed, or an empty
-     * string when git is unavailable or the command fails. Callers treat the
-     * empty result as the signal to fall back to Composer's InstalledVersions.
+     * Runs a git command in Phel's own checkout and returns its first output
+     * line trimmed, or an empty string when Phel is not a git checkout (a
+     * Composer install or the PHAR), git is unavailable, or the command fails.
+     * Callers treat the empty result as the signal to fall back to Composer's
+     * InstalledVersions. Never the current directory: that is the user's
+     * project, whose commit is not Phel's version.
      */
     private function execGitCommand(string $command): string
     {
+        if (!file_exists($this->phelRoot . '/.git')) {
+            return '';
+        }
+
         $output = [];
-        @exec($command . ' 2>/dev/null', $output);
+        @exec('git -C ' . escapeshellarg($this->phelRoot) . ' ' . $command . ' 2>/dev/null', $output);
 
         return trim($output[0] ?? '');
     }
