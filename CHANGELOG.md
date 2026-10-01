@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - A protocol extended to a PHP interface or parent class applies to every class that implements or extends it: after `(extend-type \Countable Sized (size-of [x] (count x)))`, `(size-of (new \SplObjectStorage))` dispatches, and `satisfies?` and `extends?` agree. The exact class wins over a parent class, the nearest parent over an interface, and an interface over `:default`. Two matching interfaces where neither extends the other throw an error naming both. (#3413)
 - Public PHP API, since compiled code calls it: `Phel\Lang\Destructure`, `\Phel::fnSlot()` and `Phel\Lang\ForeignFn`. (#3354 #3356)
 - `phel.core` has `with-out-str`, `subs`, `list*`, `qualified-keyword?`, `qualified-symbol?`, `hash`, `comparator`, `load-string`, `pcalls`, `pvalues` and `inst?`, with their Clojure behaviour. `hash` agrees with `=`: `(hash [1 2])` equals `(hash '(1 2))`. `phel.string/subs` stays and gives the same result as core `subs`. (#3417)
+- `defmulti` takes Clojure's signature, `(defmulti name docstring? attr-map? dispatch-fn & options)`. `:default :unknown` makes `(defmethod area :unknown ...)` the fallback. `:hierarchy h`, with `h` an atom or var holding a `(make-hierarchy)`, drives `isa?` matching and `prefer-method` instead of the global hierarchy. Any other option fails with a message that lists the supported ones. (#3415)
 
 ### Performance
 

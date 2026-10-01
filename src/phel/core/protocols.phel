@@ -370,19 +370,23 @@ Maintained in parallel with `derive`'s class -> proto-class-string entry so hier
       (prefers? prefers-map x y)))
 
 (defn find-hierarchy-method
-  "Finds the best matching method for dispatch-val using the global hierarchy.
-  Returns the method function or nil. Used internally by defmulti. When
-  multiple methods match and none is more specific, consults `prefers-map`
-  (built by `prefer-method`); if still ambiguous, throws."
+  "Finds the best matching method for dispatch-val using `hierarchy`, or the
+  global hierarchy when it is nil. Returns the method function or nil. Used
+  internally by defmulti. The method registered under `default-val` (`:default`
+  unless given) is never a candidate. When multiple methods match and none is
+  more specific, consults `prefers-map` (built by `prefer-method`); if still
+  ambiguous, throws."
   ([methods dispatch-val]
    (find-hierarchy-method methods dispatch-val {}))
   ([methods dispatch-val prefers-map]
-   (let [parents-map (get @*hierarchy* :parents)
+   (find-hierarchy-method methods dispatch-val prefers-map nil :default))
+  ([methods dispatch-val prefers-map hierarchy default-val]
+   (let [parents-map (get (if (nil? hierarchy) @*hierarchy* hierarchy) :parents)
          method-keys (keys methods)
          candidates  (persistent
                       (reduce
                        (fn [acc k]
-                         (if (and (not= k :default)
+                         (if (and (not= k default-val)
                                   (not= k dispatch-val)
                                   (isa-in? parents-map dispatch-val k))
                            (conj acc k)
@@ -833,45 +837,80 @@ Equivalent to multiple `extend-type` calls."
   produce a dispatch value, which is then used to select the appropriate
   method registered via `defmethod`.
 
-  An optional docstring may be provided between `name` and `dispatch-fn`.
+  Signature: `(defmulti name docstring? attr-map? dispatch-fn & options)`.
+  A docstring and an attribute map may come before `dispatch-fn`.
 
-  If no method matches the dispatch value, the `:default` method is used
+  Options, given as key/value pairs after `dispatch-fn`:
+  - `:default` sets the dispatch value of the fallback method. It defaults
+    to `:default`.
+  - `:hierarchy` takes an atom or var holding a hierarchy (see
+    `make-hierarchy`). Dispatch reads it on every call, for both `isa?`
+    matching and `prefer-method`, instead of the global hierarchy.
+
+  If no method matches the dispatch value, the fallback method is used
   (if defined), otherwise an error is thrown."
-  {:example "(defmulti area \"Area of shape.\" :shape)"}
+  {:example "(defmulti area \"Area of shape.\" :shape :default :unknown)\n(defmethod area :unknown [_] 0)\n(area {:shape :blob}) ; => 0"
+   :see-also ["defmethod" "prefer-method" "make-hierarchy" "derive"]}
   [name & args]
-  (let [arg-count   (count args)
-        has-doc?    (and (= 2 arg-count) (string? (first args)))
+  (let [name-str    (.getName name)
+        arg-count   (count args)
+        has-doc?    (and (string? (first args)) (next args))
         docstring   (when has-doc? (first args))
-        dispatch-fn (if has-doc? (second args) (first args))]
-    (when-not (or (= 1 arg-count) has-doc?)
+        args        (if has-doc? (next args) args)
+        has-attrs?  (and (map? (first args)) (next args))
+        attr-map    (when has-attrs? (first args))
+        args        (if has-attrs? (next args) args)
+        dispatch-fn (first args)
+        options     (rest args)]
+    (when (empty? args)
       (throw (new InvalidArgumentException
-                  (str "defmulti '" (.getName name)
-                       "' expects (defmulti name docstring? dispatch-fn), got "
+                  (str "defmulti '" name-str
+                       "' expects (defmulti name docstring? attr-map? dispatch-fn & options), got "
                        (inc arg-count) " arguments."))))
-    (let [methods-name  (Symbol/create (php/. (.getName name) "-methods"))
-          prefers-name  (Symbol/create (php/. (.getName name) "-prefers"))
-          dispatch-name (Symbol/create (php/. (.getName name) "-dispatch"))
-          name-str      (.getName name)
-          df-sym        (gensym)
+    (when (odd? (count options))
+      (throw (new InvalidArgumentException
+                  (str "defmulti '" name-str
+                       "' expects options as key/value pairs, got a dangling " (last options)))))
+    (doseq [option-key :in (take-nth 2 options)]
+      (when-not (contains? #{:default :hierarchy} option-key)
+        (throw (new InvalidArgumentException
+                    (str "defmulti '" name-str "' got unknown option " option-key
+                         ". Supported options: :default, :hierarchy")))))
+    (let [option-map     (apply hash-map options)
+          has-default?   (contains? option-map :default)
+          has-hierarchy? (contains? option-map :hierarchy)
+          methods-name   (Symbol/create (php/. name-str "-methods"))
+          prefers-name   (Symbol/create (php/. name-str "-prefers"))
+          dispatch-name  (Symbol/create (php/. name-str "-dispatch"))
+          default-name   (Symbol/create (php/. name-str "-default"))
+          hierarchy-name (Symbol/create (php/. name-str "-hierarchy"))
+          df-sym         (gensym)
+          h-sym          (gensym)
+          fn-meta        (cond-> (or attr-map {})
+                                 docstring (assoc :doc docstring))
+          default-form   (if has-default? default-name :default)
+          hierarchy-form (when has-hierarchy? `(deref ~hierarchy-name))
           ;; A stable name, not a gensym: this one is the multimethod's own
           ;; parameter list, so it shows up in `phel doc` and in the API
           ;; snapshot. A gensym made every rendering read `(name & __phel_3167)`
           ;; and change on every run. Nothing user-supplied is spliced into the
-          ;; body below, so there is nothing here for it to capture.
-          args-sym      'args
-          body          `(let [dispatch-val# (apply ~dispatch-name ~args-sym)
-                               methods#      (deref ~methods-name)
-                               method#       (get methods# dispatch-val#)]
-                           (if method#
-                             (apply method# ~args-sym)
-                             (let [hierarchy-method# (find-hierarchy-method methods# dispatch-val# (deref ~prefers-name))]
-                               (if hierarchy-method#
-                                 (apply hierarchy-method# ~args-sym)
-                                 (let [default-method# (get methods# :default)]
-                                   (if default-method#
-                                     (apply default-method# ~args-sym)
-                                     (throw (new InvalidArgumentException
-                                                 (str "No method for dispatch value: " dispatch-val#)))))))))]
+          ;; body below (option values go through their own defs), so there is
+          ;; nothing here for it to capture.
+          args-sym       'args
+          body           `(let [dispatch-val# (apply ~dispatch-name ~args-sym)
+                                methods#      (deref ~methods-name)
+                                method#       (get methods# dispatch-val#)]
+                            (if method#
+                              (apply method# ~args-sym)
+                              (let [hierarchy-method# (find-hierarchy-method methods# dispatch-val# (deref ~prefers-name)
+                                                                             ~hierarchy-form ~default-form)]
+                                (if hierarchy-method#
+                                  (apply hierarchy-method# ~args-sym)
+                                  (let [default-method# (get methods# ~default-form)]
+                                    (if default-method#
+                                      (apply default-method# ~args-sym)
+                                      (throw (new InvalidArgumentException
+                                                  (str "No method for dispatch value: " dispatch-val#)))))))))]
       `(do
          ;; Both tables stay public: `defmethod` and `prefer-method` resolve them
          ;; in the multimethod's home namespace, so extending from another
@@ -893,9 +932,20 @@ Equivalent to multiple `extend-type` calls."
                                 "' requires a callable dispatch-fn, got a string: "
                                 (php/substr ~df-sym 0 60) "..."))))
              ~df-sym))
-         ~(if docstring
-            `(defn ~name {:doc ~docstring} [& ~args-sym] ~body)
-            `(defn ~name [& ~args-sym] ~body))))))
+         ~@(when has-default?
+             [`(def ~default-name {:private true} ~(get option-map :default))])
+         ~@(when has-hierarchy?
+             [`(def ~hierarchy-name {:private true}
+                 (let [~h-sym ~(get option-map :hierarchy)]
+                   (when-not (or (atom? ~h-sym) (var? ~h-sym))
+                     (throw (new InvalidArgumentException
+                                 (str "defmulti '" ~name-str
+                                      "' expects :hierarchy to be an atom or var holding a hierarchy, got: "
+                                      (type ~h-sym)))))
+                   ~h-sym))])
+         ~(if (empty? fn-meta)
+            `(defn ~name [& ~args-sym] ~body)
+            `(defn ~name ~fn-meta [& ~args-sym] ~body))))))
 
 (defmacro defmethod
   "Registers a method implementation for a multimethod.
