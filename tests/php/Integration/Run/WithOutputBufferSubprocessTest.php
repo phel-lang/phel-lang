@@ -18,18 +18,22 @@ use const PHP_BINARY;
  */
 final class WithOutputBufferSubprocessTest extends TestCase
 {
-    public function test_a_buffer_php_refuses_to_close_does_not_hang_with_out_str(): void
+    public function test_a_buffer_php_refuses_to_close_fails_with_out_str_instead_of_hanging(): void
     {
         $root = dirname(__DIR__, 4);
 
         // max_execution_time turns a regression (an endless cleanup loop) into a
-        // failing exit code instead of a hung test run.
+        // failure without the expected message instead of a hung test run.
         $process = Subprocess::run(
             [PHP_BINARY, '-d', 'max_execution_time=30', $root . '/bin/phel', 'eval', '(count (with-out-str (php/ob_start nil 0 0) (print "x")))'],
             $root,
             env: ['PHEL_NO_OPCACHE_REEXEC' => '1', 'PATH' => (string) getenv('PATH'), 'HOME' => (string) getenv('HOME'), 'TMPDIR' => (string) (getenv('TMPDIR') ?: '/tmp')],
         );
 
-        self::assertSame(0, $process->exitCode, $process->stdout . $process->stderr);
+        self::assertNotSame(0, $process->exitCode);
+        self::assertStringContainsString(
+            'left an output buffer open that PHP cannot close',
+            $process->stdout . $process->stderr,
+        );
     }
 }

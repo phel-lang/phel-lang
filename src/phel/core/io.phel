@@ -94,6 +94,9 @@
        (loop []
          (if (php/> (php/ob_get_level) (php/+ level# 1))
            (if (php/ob_end_flush) (recur))))
+       (if (php/> (php/ob_get_level) (php/+ level# 1))
+         (throw (new \RuntimeException
+                     "with-output-buffer: the body left an output buffer open that PHP cannot close, so its output cannot be read")))
        (if (php/> (php/ob_get_level) level#) (php/ob_get_contents) "")
        (finally
          (loop []
