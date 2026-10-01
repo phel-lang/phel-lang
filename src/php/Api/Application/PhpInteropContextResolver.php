@@ -7,8 +7,10 @@ namespace Phel\Api\Application;
 use Phel\Api\Transfer\PhpInteropContext;
 
 use function array_map;
+use function array_pop;
 use function array_reverse;
 use function array_slice;
+use function count;
 use function in_array;
 use function ltrim;
 use function preg_match;
@@ -17,6 +19,7 @@ use function preg_quote;
 use function str_replace;
 use function str_starts_with;
 use function strlen;
+use function strpos;
 use function substr;
 use function trim;
 
@@ -319,7 +322,7 @@ final readonly class PhpInteropContextResolver
         }
 
         // [symbol (new Type ...)] / [symbol (Type/make ...)]
-        $m = $this->bindingInScope('/' . $sym . '\s+(?<form>\([^()]*)/', $source);
+        $m = $this->bindingInScope('/' . $sym . '\s+(?<form>\([^()]*)/', $source, namePosition: true);
         if ($m !== null) {
             $class = $this->formClass($m['form'], $aliases);
             if ($class !== '') {
@@ -328,7 +331,7 @@ final readonly class PhpInteropContextResolver
         }
 
         // [symbol other-symbol]  indirect binding → follow the alias.
-        $m = $this->bindingInScope('/' . $sym . '\s+(?<other>[A-Za-z_][A-Za-z0-9_\-]*)\b/', $source);
+        $m = $this->bindingInScope('/' . $sym . '\s+(?<other>[A-Za-z_][A-Za-z0-9_\-]*)\b/', $source, namePosition: true);
         if ($m !== null) {
             return $this->resolveSymbolTag($m['other'], $source, $aliases, [...$seen, $symbol]);
         }
@@ -337,13 +340,16 @@ final readonly class PhpInteropContextResolver
     }
 
     /**
-     * The nearest match of `$pattern` whose `sym` group sits in a form that is
-     * still open at the end of `$source` (the cursor), so a same-name binding
-     * in a closed sibling scope never types the receiver. Null when none is.
+     * The nearest match of `$pattern` whose `sym` group is a binding visible at
+     * the end of `$source` (the cursor): it sits directly in a `[...]` vector,
+     * the form around that vector is still open, and with `$namePosition` it
+     * is a name slot of a `[name value ...]` pair vector. So a call argument
+     * (`(f d (new Foo))`) or a binding in a closed sibling scope never types
+     * the receiver. Null when no match qualifies.
      *
      * @return array<int|string, string>|null
      */
-    private function bindingInScope(string $pattern, string $source): ?array
+    private function bindingInScope(string $pattern, string $source, bool $namePosition = false): ?array
     {
         if (preg_match_all($pattern, $source, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
             return null;
@@ -351,13 +357,57 @@ final readonly class PhpInteropContextResolver
 
         $openAtCursor = CursorText::openParenPositions($source);
         foreach (array_reverse($matches) as $match) {
-            $enclosing = CursorText::openParenPositions(substr($source, 0, $match['sym'][1]));
-            if ($enclosing === [] || in_array(array_last($enclosing), $openAtCursor, true)) {
-                return array_map(static fn(array $group): string => $group[0], $match);
+            $offset = $match['sym'][1];
+            $vector = $this->innermostOpenVector(substr($source, 0, $offset));
+            if ($vector === null) {
+                continue;
             }
+
+            $enclosing = CursorText::openParenPositions(substr($source, 0, $vector));
+            if ($enclosing === [] || !in_array(array_last($enclosing), $openAtCursor, true)) {
+                continue;
+            }
+
+            [$before] = $this->tokenizer->topLevel(substr($source, $vector + 1, $offset - $vector - 1), true);
+            if ($namePosition && count($before) % 2 !== 0) {
+                continue;
+            }
+
+            return array_map(static fn(array $group): string => $group[0], $match);
         }
 
         return null;
+    }
+
+    /**
+     * Offset of the innermost delimiter still open at the end of `$prefix` when
+     * it is a `[`, else null. Strings and `;` comments are skipped.
+     */
+    private function innermostOpenVector(string $prefix): ?int
+    {
+        $stack = [];
+        $length = strlen($prefix);
+        for ($i = 0; $i < $length; ++$i) {
+            $char = $prefix[$i];
+            if ($char === '"') {
+                for (++$i; $i < $length && $prefix[$i] !== '"'; ++$i) {
+                    if ($prefix[$i] === '\\') {
+                        ++$i;
+                    }
+                }
+            } elseif ($char === ';') {
+                $newline = strpos($prefix, "\n", $i);
+                $i = $newline === false ? $length : $newline;
+            } elseif (in_array($char, ['(', '[', '{'], true)) {
+                $stack[] = $i;
+            } elseif (in_array($char, [')', ']', '}'], true)) {
+                array_pop($stack);
+            }
+        }
+
+        $innermost = array_last($stack);
+
+        return $innermost !== null && $prefix[$innermost] === '[' ? $innermost : null;
     }
 
     /**

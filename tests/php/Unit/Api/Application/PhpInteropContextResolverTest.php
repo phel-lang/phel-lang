@@ -510,6 +510,29 @@ final class PhpInteropContextResolverTest extends TestCase
         self::assertTrue($context->isNone());
     }
 
+    public function test_a_call_argument_is_not_a_binding(): void
+    {
+        $context = $this->resolveAtEnd("(let [] (consume value (new DateTimeImmutable))\n  (php/-> value get");
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_a_value_slot_is_not_a_binding(): void
+    {
+        $source = '(let [a d b (new DateTimeImmutable)] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_a_tagged_fn_param_types_the_receiver(): void
+    {
+        $source = '(defn f [x ^DateTimeImmutable d] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
+
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
     public function test_a_binding_after_the_cursor_does_not_type_the_receiver(): void
     {
         $source = '(.for';
