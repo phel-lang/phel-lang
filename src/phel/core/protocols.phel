@@ -1,5 +1,6 @@
 (in-ns phel.core)
 
+(use ArrayObject)
 (use InvalidArgumentException)
 (use Phel)
 (use Phel.Shared.Munge)
@@ -7,6 +8,8 @@
 (use Phel.Compiler.Domain.Analyzer.Environment.NodeEnvironment)
 (use Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton)
 (use Phel.Lang.Symbol)
+(use ReflectionClass)
+(use WeakMap)
 
 ;; Three loosely-related but late-loading pieces:
 ;;   1. Interfaces via `definterface` (compiles to a PHP interface).
@@ -429,12 +432,80 @@ Maintained in parallel with `derive`'s class -> proto-class-string entry so hier
                            t))
     :unknown))
 
+(defn- php-class-like? [class-name]
+  (or (php/class_exists class-name) (php/interface_exists class-name)))
+
+(defn- canonical-class-key
+  "A PHP class or interface name as `get_class` spells it, without the leading
+  `\\`. PHP names are case-insensitive but dispatch keys are not, so
+  `\\arrayobject` must register as `ArrayObject`. Other strings pass through."
+  [class-name]
+  (let [name (php/ltrim class-name "\\")]
+    (if (php-class-like? name)
+      (.getName (new ReflectionClass name))
+      name)))
+
+(defn- most-specific-interfaces
+  "Drops each interface that another one in `interfaces` extends."
+  [interfaces]
+  (filter (fn [a] (not (some? (fn [b] (and (not= a b) (php/is_subclass_of b a))) interfaces)))
+          interfaces))
+
+(defn- find-protocol-class-impl [dispatch-table class-name]
+  (when (php-class-like? class-name)
+    (or (get dispatch-table class-name)
+        (some #(get dispatch-table %) (php/array_values (php/class_parents class-name)))
+        (let [matches (most-specific-interfaces
+                       (filter #(get dispatch-table %)
+                               (php/array_values (php/class_implements class-name))))]
+          (case (count matches)
+            0 nil
+            1 (get dispatch-table (first matches))
+            (let [names (sort matches)]
+              (throw (new InvalidArgumentException
+                          (str "Type " class-name " matches protocol implementations for both "
+                               (first names) " and " (second names)
+                               ", and neither is more specific")))))))))
+
+;; Keyed by the dispatch table value, so every write to a dispatch atom
+;; (`extend-type`, `reify`) starts from an empty memo.
+(def- protocol-class-impl-memo (new WeakMap))
+
+(defn protocol-class-impl
+  "Returns the implementation `dispatch-table` holds for the PHP class or
+  interface `class-name`: its own entry, then its parent classes nearest
+  first, then its interfaces, or nil. When several interfaces match, the one
+  that extends the others wins; otherwise it throws. Memoized per table."
+  {:example "(= count (protocol-class-impl {\"Countable\" count} \"ArrayObject\")) ; => true"
+   :see-also ["protocol-type-key" "extend-type" "satisfies?"]}
+  [dispatch-table class-name]
+  (let [memo (or (php/aget protocol-class-impl-memo dispatch-table)
+                 (let [m (new ArrayObject)]
+                   (php/aset protocol-class-impl-memo dispatch-table m)
+                   m))]
+    (if (.offsetExists memo class-name)
+      (.offsetGet memo class-name)
+      (let [impl (find-protocol-class-impl dispatch-table class-name)]
+        (.offsetSet memo class-name impl)
+        impl))))
+
+(defn protocol-fallback-impl
+  "Returns the implementation protocol dispatch uses for x when
+  `dispatch-table` has no entry for its type key: one found through x's PHP
+  class, parents or interfaces, then `:default`, or nil."
+  {:example "(= identity (protocol-fallback-impl {:default identity} 1)) ; => true"
+   :see-also ["protocol-class-impl" "defprotocol"]}
+  [dispatch-table x]
+  (or (when (php/is_object x)
+        (protocol-class-impl dispatch-table (php/get_class x)))
+      (get dispatch-table :default)))
+
 (defmacro defprotocol
   "Defines a protocol with the given method signatures. Each method signature is a list of (method-name [args]).
 
 Creates a dispatching function for each method that dispatches on the type of the first argument. Use `extend-type` to add implementations.
 
-A `:default` type can be registered via `extend-type` as a fallback when no specific type implementation is found."
+When x is an object with no implementation for its exact type, dispatch looks for one registered for a parent class of x, nearest first, then for an interface x implements. A `:default` type can be registered via `extend-type` as the last fallback."
   {:example "(defprotocol Stringable (to-string [this]))"
    :see-also ["extend-type" "satisfies?" "extends?" "protocol-type-key"]}
   [protocol-name & method-specs]
@@ -464,9 +535,9 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
                           impl           (get dispatch-table dk)]
                       (if impl
                         (impl ~@margs)
-                        (let [default-impl (get dispatch-table :default)]
-                          (if default-impl
-                            (default-impl ~@margs)
+                        (let [fallback-impl (protocol-fallback-impl dispatch-table ~(first margs))]
+                          (if fallback-impl
+                            (fallback-impl ~@margs)
                             (throw (new InvalidArgumentException
                                         (str "No implementation of '" ~mname-str
                                              "' for type: " dk))))))))))))))
@@ -496,6 +567,24 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
                  (conj current-methods item)
                  result))))))
 
+(defn- protocol-symbol-type-key
+  "The dispatch key `extend-type` registers for a symbol: a struct of the
+  current namespace, or a PHP class or interface named with a leading `\\`,
+  with `.` separators, through `:use`, or by its global name."
+  [sym]
+  (let [name-str     (.getName sym)
+        munge        (new Munge)
+        struct-class (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))
+        env          (GlobalEnvironmentSingleton/getInstance)
+        use-alias    (php/aget (.getUseAliases env (.getNs env)) name-str)
+        php-fqn?     (or (php/str_contains name-str "\\") (php/str_contains name-str "."))]
+    (cond
+      php-fqn?                        (canonical-class-key (php/str_replace "." "\\" name-str))
+      (php/class_exists struct-class) struct-class
+      use-alias                       (canonical-class-key (.getName use-alias))
+      (php-class-like? name-str)      (canonical-class-key name-str)
+      :else                           struct-class)))
+
 (defmacro extend-type
   "Extends a type with protocol method implementations.
 
@@ -505,7 +594,14 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
     `:boolean`, `:keyword`, `:symbol`, `:vector`, `:list`, `:hash-map`, `:set`,
     `:atom`, `:var`, `:function`, `:php/array`
   - a symbol for struct names (resolved in current namespace)
+  - a PHP class or interface symbol: `\\ArrayObject`, `\\Countable`, a name
+    imported with `(:use ArrayObject)`, or one that names an existing class
   - a string for explicit PHP class names (cross-namespace structs)
+
+  A PHP class or interface registers under its name without the leading `\\`,
+  so `\\ArrayObject`, `ArrayObject` and `\"ArrayObject\"` are the same key.
+  An implementation for a parent class or an interface applies to every
+  class that extends or implements it. See `defprotocol` for the order.
 
   Note: `:struct` and `:php/object` cannot be used as type-specs because
   protocol dispatch resolves these to their specific PHP class names.
@@ -522,11 +618,8 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
   (let [type-key (cond
                    (nil? type-spec)                  :nil
                    (keyword? type-spec)              type-spec
-                   (php/is_string type-spec)         type-spec
-                   (php/instanceof type-spec Symbol)
-                   (let [munge    (new Munge)
-                         name-str (.getName type-spec)]
-                     (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))))
+                   (php/is_string type-spec)         (canonical-class-key type-spec)
+                   (php/instanceof type-spec Symbol) (protocol-symbol-type-key type-spec))
         groups   (group-protocol-specs specs #(php/instanceof % Symbol))
         swaps    (reduce
                   (fn [acc group]
@@ -553,7 +646,7 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
     `(do ~@swaps)))
 
 (defn satisfies?
-  "Returns true if x's type implements all methods of the given protocol."
+  "Returns true if x's type implements all methods of the given protocol, directly or through a parent class or interface of x."
   {:example "(satisfies? Stringable \"hello\")"
    :see-also ["extends?" "defprotocol" "extend-type"]}
   [protocol x]
@@ -561,17 +654,28 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
         dvars (get protocol :dispatch)]
     (if (or (nil? dvars) (empty? dvars))
       false
-      (every? (fn [dv] (not (nil? (get (deref dv) key)))) dvars))))
+      (every? (fn [dv]
+                (let [table (deref dv)]
+                  (not (nil? (or (get table key)
+                                 (when (php/is_object x)
+                                   (protocol-class-impl table (php/get_class x))))))))
+              dvars))))
 
 (defn extends?
-  "Returns true if the given type-key has implementations for all methods of the protocol. type-key should match what protocol-type-key returns."
+  "Returns true if the given type-key has implementations for all methods of the protocol. type-key should match what protocol-type-key returns. A PHP class name also counts implementations for its parent classes and interfaces."
   {:example "(extends? Stringable :string)"
    :see-also ["satisfies?" "defprotocol" "extend-type"]}
   [protocol type-key]
-  (let [dvars (get protocol :dispatch)]
+  (let [dvars (get protocol :dispatch)
+        key   (if (php/is_string type-key) (canonical-class-key type-key) type-key)]
     (if (or (nil? dvars) (empty? dvars))
       false
-      (every? (fn [dv] (not (nil? (get (deref dv) type-key)))) dvars))))
+      (every? (fn [dv]
+                (let [table (deref dv)]
+                  (not (nil? (or (get table key)
+                                 (when (php/is_string key)
+                                   (protocol-class-impl table key)))))))
+              dvars))))
 
 (defmacro extend-protocol
   "Convenience macro that extends a single protocol to multiple types. Alternates type-specs and method implementations.
