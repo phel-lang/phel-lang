@@ -54,7 +54,6 @@
   (is (= (hash #{1 2}) (hash (sorted-set 1 2))))
   (is (= (hash [1 2]) (hash (lazy-seq [1 2]))))
   (is (= (hash "abc") (hash (str "ab" "c"))))
-  (is (= (hash (php/array 1 2)) (hash (php/array 1 2))) "PHP arrays hash by content")
   (is (int? (hash :a)))
   (is (= 0 (hash nil))))
 
@@ -86,12 +85,8 @@
   (is (false? (inst? "2026-03-04")))
   (is (false? (inst? nil))))
 
-(deftest test-hash-follows-php-array-equality
-  (let [a (php-associative-array "a" 1 "b" 2)
-        same (php-associative-array "a" 1 "b" 2)
-        reordered (php-associative-array "b" 2 "a" 1)]
-    (is (= (hash a) (hash same)) "equal arrays hash alike")
-    (is (not (= a reordered)) "= compares PHP arrays with ===, so key order counts")))
+(deftest test-hash-rejects-a-php-array
+  (is (thrown? \RuntimeException (hash (php/array 1 2)))))
 
 (deftest test-with-out-str-restores-the-buffer-level-it-found
   (let [level (php/ob_get_level)]

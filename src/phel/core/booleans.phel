@@ -1,7 +1,6 @@
 (in-ns phel.core)
 
 (use InvalidArgumentException)
-(use Phel)
 (use Phel.Lang.BigDecimal)
 (use Phel.Lang.BigInt)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
@@ -141,19 +140,11 @@
 (def ^:private value-hasher (new Hasher))
 
 (defn hash
-  "Returns the hash code of `x` as an int. Values that are `=` have the same hash: `(hash [1 2])` equals `(hash '(1 2))`. Other objects hash by identity."
+  "Returns the hash code of `x` as an int. Values that are `=` have the same hash: `(hash [1 2])` equals `(hash '(1 2))`. Other objects hash by identity. A PHP array is not hashable and throws."
   {:example "(hash nil) ; => 0\n(= (hash [1 2]) (hash '(1 2))) ; => true"
    :see-also ["=" "identical?"]}
   ^int [x]
-  (if (php/is_array x)
-    ;; `=` compares PHP arrays with `===`, key by key in order, which the
-    ;; hasher has no branch for.
-    (let [parts (php-indexed-array)]
-      (foreach [k v x]
-        (php/apush parts (hash k))
-        (php/apush parts (hash v)))
-      (.hash value-hasher (Phel/vector parts)))
-    (.hash value-hasher x)))
+  (.hash value-hasher x))
 
 (defn- num? [x]
   (or (php/is_int x)
