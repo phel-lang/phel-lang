@@ -1,7 +1,9 @@
 ---
 name: docs-placement
 description: Which Markdown file owns which kind of content.
-# Codex has no path activation for globs; it inlines this rule in the root AGENTS.md (Chemaclass/agnostic-ai#1435).
+# Codex cannot nest root filename filters such as *.md, so it loads this rule from the root AGENTS.md on purpose.
+x-codex:
+  alwaysApply: true
 globs:
   - '*.md'
   - docs/**

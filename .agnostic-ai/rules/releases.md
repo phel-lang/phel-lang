@@ -1,7 +1,7 @@
 ---
 name: releases
 description: How a Phel release is cut, and what needs a human go.
-# Codex gets no copy: it has no path-scoped rules for root files. workflow.md points it here.
+# Claude only: these root files cannot be nested for Codex, which would load this in every session. workflow.md points Codex here.
 targets: [claude]
 globs:
   - CHANGELOG.md

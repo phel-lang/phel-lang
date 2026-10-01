@@ -1,17 +1,40 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Chemaclass/agnostic-ai/main/docs/schemas/config.schema.json
 version: 1
 
+requires: ">=0.76.0"
+
 sources:
   agents: .agnostic-ai/agents
   skills: .agnostic-ai/skills
   rules: .agnostic-ai/rules
   hooks: .agnostic-ai/hooks
+  settings: .agnostic-ai/settings
 
 targets:
   - claude
   - codex
 
 on-unsupported: error
+
+models:
+  strong: {claude: opus, codex: gpt-5.6-sol, effort: high}
+  balanced: {claude: sonnet, codex: gpt-5.5, effort: medium}
+  fast: {claude: haiku, codex: gpt-5.4-mini, effort: low}
+
+coverage:
+  accept:
+    - target: codex
+      kind: skills
+      field: argument-hint
+      reason: Only Claude Code shows the hint; Codex skills read the request text.
+    - target: codex
+      kind: skills
+      field: context
+      reason: refactor-check forks into Claude's Explore agent; in Codex it runs inline, read-only by its instructions.
+    - target: codex
+      kind: skills
+      field: agent
+      reason: Same as context; Codex has no skill-level agent.
 
 sync:
   collision-policy: fail

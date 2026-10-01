@@ -1,7 +1,7 @@
 ---
 name: changelog
 description: Style and grouping for CHANGELOG.md release notes.
-# Codex gets no copy: it has no path-scoped rules for root files. workflow.md points it here.
+# Claude only: Codex cannot scope a root file such as CHANGELOG.md and would load this in every session. workflow.md points Codex here.
 targets: [claude]
 globs:
   - CHANGELOG.md

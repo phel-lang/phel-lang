@@ -1,11 +1,8 @@
 ---
 name: phel-debugger
 description: Finds the root cause of a failing Phel command or test.
-model:
-  claude: opus
-  codex: gpt-5.6-sol
-effort: high
-# Claude-only fields: Codex has no tool allowlist, memory or turn cap; it gets sandbox_mode instead.
+model: strong
+# Claude-only fields: Codex has no tool allowlist, memory or turn cap, and its subagents keep the session sandbox.
 x-claude:
   tools: [Read, Glob, Grep, Bash]
 x-codex:

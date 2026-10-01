@@ -1,11 +1,8 @@
 ---
 name: phel-benchmark
 description: Measures a change with PHPBench or phel bench.
-model:
-  claude: sonnet
-  codex: gpt-5.5
-effort: medium
-# Claude-only fields: Codex has no tool allowlist, memory or turn cap; it gets sandbox_mode instead.
+model: balanced
+# Claude-only fields: Codex has no tool allowlist, memory or turn cap, and its subagents keep the session sandbox.
 x-claude:
   tools: [Read, Glob, Grep, Bash]
 x-codex:

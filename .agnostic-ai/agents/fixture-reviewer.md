@@ -1,11 +1,8 @@
 ---
 name: fixture-reviewer
 description: Checks .test fixtures for drift after a compiler change.
-model:
-  claude: sonnet
-  codex: gpt-5.5
-effort: medium
-# Claude-only fields: Codex has no tool allowlist, memory or turn cap; it gets sandbox_mode instead.
+model: balanced
+# Claude-only fields: Codex has no tool allowlist, memory or turn cap, and its subagents keep the session sandbox.
 x-claude:
   tools: [Read, Glob, Grep, Bash]
   maxTurns: 15
