@@ -15,6 +15,7 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PhelTest\Support\CapturesDeprecationsTrait;
 use PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding\SequentialBindingForms;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class MapBindingDeconstructorTest extends TestCase
@@ -734,6 +735,91 @@ final class MapBindingDeconstructorTest extends TestCase
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+    }
+
+    public function test_namespaced_directive_names_itself_in_the_shape_error(): void
+    {
+        $binding = Phel::map(
+            Keyword::create('keys', 'my'),
+            Symbol::create('foo'),
+        );
+
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('`{:my/keys [...]}` expects a vector of symbols');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+    }
+
+    #[DataProvider('provideNamespacedDirectiveEntries')]
+    public function test_namespaced_directive_binds_the_name_part_to_the_qualified_key(
+        Keyword $directive,
+        Keyword|Symbol $entry,
+        mixed $expectedLookupKey,
+    ): void {
+        $binding = Phel::map($directive, Phel::vector([$entry]));
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+
+        self::assertEquals([
+            [Symbol::createGenerated('__phel_1'), Symbol::create('x')],
+            [
+                Symbol::createGenerated('__phel_2'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::createGenerated('__phel_1'),
+                    $expectedLookupKey,
+                ]),
+            ],
+            [Symbol::create('a'), Symbol::createGenerated('__phel_2')],
+        ], $bindings);
+    }
+
+    /**
+     * @return iterable<string, array{Keyword, Keyword|Symbol, mixed}>
+     */
+    public static function provideNamespacedDirectiveEntries(): iterable
+    {
+        $quoted = static fn(?string $ns): mixed => Phel::list([
+            Symbol::create(Symbol::NAME_QUOTE),
+            Symbol::createForNamespace($ns, 'a'),
+        ]);
+
+        yield '{:my/keys [a]} reads :my/a' => [Keyword::create('keys', 'my'), Symbol::create('a'), Keyword::create('a', 'my')];
+        yield '{::keys [a]} reads the reader-qualified key' => [Keyword::create('keys', 'user'), Symbol::create('a'), Keyword::create('a', 'user')];
+        yield '{:keys [my/a]} reads :my/a' => [Keyword::create('keys'), Symbol::create('my/a'), Keyword::create('a', 'my')];
+        yield '{:keys [:my/a]} reads :my/a' => [Keyword::create('keys'), Keyword::create('a', 'my'), Keyword::create('a', 'my')];
+        yield '{:keys [:a]} reads :a' => [Keyword::create('keys'), Keyword::create('a'), Keyword::create('a')];
+        yield '{:other/keys [my/a]} lets the directive win' => [Keyword::create('keys', 'other'), Symbol::create('my/a'), Keyword::create('a', 'other')];
+        yield "{:my/syms [a]} reads 'my/a" => [Keyword::create('syms', 'my'), Symbol::create('a'), $quoted('my')];
+        yield "{:syms [my/a]} reads 'my/a" => [Keyword::create('syms'), Symbol::create('my/a'), $quoted('my')];
+        yield '{:my/strs [a]} reads "a"' => [Keyword::create('strs', 'my'), Symbol::create('a'), 'a'];
+    }
+
+    public function test_or_default_is_keyed_on_the_local_name_of_a_namespaced_key(): void
+    {
+        // (let [{:my/keys [a] :or {a 1}} x])
+        $binding = Phel::map(
+            Keyword::create('keys', 'my'),
+            Phel::vector([Symbol::create('a')]),
+            Keyword::create('or'),
+            Phel::map(Symbol::create('a'), 1),
+        );
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+
+        $key = Keyword::create('a', 'my');
+        self::assertEquals([
+            Symbol::createGenerated('__phel_2'),
+            Phel::list([
+                Symbol::create(Symbol::NAME_IF),
+                Phel::list([Symbol::create('contains?'), Symbol::createGenerated('__phel_1'), $key]),
+                Phel::list([Symbol::create(Symbol::NAME_PHP_ARRAY_GET), Symbol::createGenerated('__phel_1'), $key]),
+                1,
+            ]),
+        ], $bindings[1]);
     }
 
     /**
