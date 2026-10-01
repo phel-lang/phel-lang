@@ -10,8 +10,10 @@ use function array_slice;
 use function in_array;
 use function ltrim;
 use function preg_match;
+use function preg_match_all;
 use function preg_quote;
 use function str_replace;
+use function str_starts_with;
 use function trim;
 
 /**
@@ -84,8 +86,8 @@ final readonly class PhpInteropContextResolver
             return $this->dotMemberContext($m[2], $source, $line, $col);
         }
 
-        // (php/new \Foo|
-        if (preg_match('/\(\s*php\/new\s+\\\\?([A-Za-z0-9_\\\\]*)$/', $before, $m) === 1) {
+        // (new Foo| , (new \Foo| and the macro-output spelling (php/new \Foo|
+        if (preg_match('/\(\s*(?:php\/)?new\s+\\\\?([A-Za-z0-9_\\\\]*)$/', $before, $m) === 1) {
             return new PhpInteropContext(PhpInteropContext::KIND_CLASS_NAME, $m[1]);
         }
 
@@ -201,9 +203,10 @@ final readonly class PhpInteropContextResolver
 
     /**
      * Resolves a receiver expression to a class name. Handles a class literal
-     * (`\Foo`, `Foo\Bar`), an inline `(php/new \Foo ...)`, an imported short
-     * name (`(:use Foo\Bar)` → `Bar`), or a bare symbol whose `:tag` /
-     * reader-tag / `(php/new ...)` binding is found in the source. Returns ''
+     * (`\Foo`, `Foo\Bar`, `Foo.Bar`), an inline construction or factory call
+     * (see {@see formClass()}), an imported short name (`(:use Foo\Bar)` →
+     * `Bar`), a bare symbol whose `:tag` / reader-tag / binding is found in the
+     * source, or else a capitalised bare name as a global class. Returns ''
      * when the type is unknown.
      *
      * @param array<string, string> $aliases
@@ -212,17 +215,16 @@ final readonly class PhpInteropContextResolver
     {
         $receiver = trim($receiver);
 
-        // Inline construction: (php/-> (php/new \Foo ...) ...)
-        if (preg_match('/\(\s*php\/new\s+\\\\?([A-Za-z0-9_\\\\.]+)/', $receiver, $m) === 1) {
-            return $this->mapAlias($m[1], $aliases);
+        if (str_starts_with($receiver, '(')) {
+            return $this->formClass($receiver, $aliases);
         }
 
         // Class literal kept separate from the bare-symbol branch below so a
         // single unqualified name (e.g. `Widget`) is NOT treated as a literal
         // and can instead resolve through the import-alias table.
-        // Multi-segment literal: \Foo\Bar or Foo\Bar.
-        if (preg_match('/^\\\\?([A-Za-z_]\w*(?:\\\\[A-Za-z_]\w*)+)$/', $receiver, $m) === 1) {
-            return ltrim($m[1], '\\');
+        // Multi-segment literal: \Foo\Bar, Foo\Bar or Foo.Bar.
+        if (preg_match('/^\\\\?([A-Za-z_]\w*(?:[\\\\.][A-Za-z_]\w*)+)$/', $receiver, $m) === 1) {
+            return str_replace('.', '\\', $m[1]);
         }
 
         // Single segment with a leading backslash: \Foo.
@@ -230,21 +232,58 @@ final readonly class PhpInteropContextResolver
             return $m[1];
         }
 
-        // Bare symbol: an imported short name first, else a typed local binding.
+        // Bare symbol: an imported short name first, then a typed local
+        // binding, then a capitalised name as a global class (`DateTimeImmutable`
+        // needs no `:use`).
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_\-]*$/', $receiver) === 1) {
-            return $aliases[$receiver] ?? $this->resolveSymbolTag($receiver, $source, $aliases);
+            $class = $aliases[$receiver] ?? $this->resolveSymbolTag($receiver, $source, $aliases);
+
+            return $class === '' && preg_match('/^[A-Z]\w*$/', $receiver) === 1 ? $receiver : $class;
         }
 
         return '';
     }
 
     /**
+     * The class a form evaluates to, read from its head: a construction
+     * (`(new Foo`, `(Foo.`, and `(php/new \Foo` from macro output) or a static
+     * factory call (`(Foo/make`, `(php/:: Foo make`) typed by the method's
+     * reflected return type. Returns '' for any other form.
+     *
+     * @param array<string, string> $aliases
+     */
+    private function formClass(string $form, array $aliases): string
+    {
+        $class = '\\\\?[A-Za-z_][A-Za-z0-9_\\\\.]*';
+
+        if (preg_match('/^\(\s*(?:php\/)?new\s+(' . $class . ')/', $form, $m) === 1) {
+            return $this->mapAlias($m[1], $aliases);
+        }
+
+        if (preg_match('/^\(\s*(' . $class . ')\.(?:[\s)]|$)/', $form, $m) === 1
+            && $this->isClassReference($m[1])
+        ) {
+            return $this->mapAlias($m[1], $aliases);
+        }
+
+        if (preg_match('/^\(\s*php\/::\s+(' . $class . ')\s+\(?([A-Za-z_]\w*)/', $form, $m) !== 1
+            && (preg_match('/^\(\s*(' . $class . ')\/([A-Za-z_]\w*)/', $form, $m) !== 1 || !$this->isClassReference($m[1]))
+        ) {
+            return '';
+        }
+
+        $owner = $this->mapAlias($m[1], $aliases);
+
+        return $owner === '' ? '' : $this->reflector->methodReturnType($owner, $m[2]);
+    }
+
+    /**
      * Searches the source for the type of a local binding named `$symbol`:
      *
      * - a `^{:tag \Type}` map or `^\Type` reader tag,
-     * - a `[symbol (php/new \Type ...)]` binding,
-     * - a `[symbol (php/:: \Type make ...)]` factory binding (the static
-     *   method's reflected return type),
+     * - a `[symbol (new Type ...)]` or `[symbol (Type. ...)]` binding,
+     * - a `[symbol (Type/make ...)]` factory binding (the static method's
+     *   reflected return type),
      * - a `[symbol other]` indirect binding (the type of `other`).
      *
      * Resolved class literals are mapped through the import-alias table so a
@@ -272,16 +311,14 @@ final readonly class PhpInteropContextResolver
             return $this->mapAlias($m[1], $aliases);
         }
 
-        // [symbol (php/new \Type ...)]  binding
-        if (preg_match('/\b' . $quoted . '\s+\(\s*php\/new\s+\\\\?([A-Za-z0-9_\\\\.]+)/', $source, $m) === 1) {
-            return $this->mapAlias($m[1], $aliases);
-        }
-
-        // [symbol (php/:: \Type make ...)]  factory binding → static return type
-        if (preg_match('/\b' . $quoted . '\s+\(\s*php\/::\s+\\\\?([A-Za-z0-9_\\\\.]+)\s+\(?([A-Za-z_]\w*)/', $source, $m) === 1) {
-            $class = $this->mapAlias($m[1], $aliases);
-
-            return $class === '' ? '' : $this->reflector->methodReturnType($class, $m[2]);
+        // [symbol (new Type ...)] / [symbol (Type/make ...)]: the first such
+        // form that types, so an earlier untyped call does not hide it.
+        preg_match_all('/\b' . $quoted . '\s+(\([^()]*)/', $source, $forms);
+        foreach ($forms[1] as $form) {
+            $class = $this->formClass($form, $aliases);
+            if ($class !== '') {
+                return $class;
+            }
         }
 
         // [symbol other-symbol]  indirect binding → follow the alias.

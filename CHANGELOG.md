@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::withoutDeprecations()` runs a callable with deprecation notices held back, for tools that read a source without compiling it. (#3381)
 - A file whose first form is not `(ns ...)` fails with the hint `'src/app.phel' does not start with an (ns ...) form`, instead of the `Check the spelling, or add (:require ...)` hint for `Cannot resolve symbol 'defn-'`. `Phel\Shared\Exceptions\MissingNsFormException` and `Phel\Shared\Exceptions\Hint\MissingNsFormHint` are public PHP API. (#3373)
 - Lint rule `phel/shadowed-core-fn` warns when a `let`, `loop` or `fn` parameter binding is named after a public `phel.core` function, as in `(let [inc (fn [x] 99)] (inc 1))`, where the local wins. Turn it off with `{:rules {:phel/shadowed-core-fn :off}}` in `phel-lint.phel`. (#3374)
+- Editor completion after `(.method` and `(.-field` knows a receiver built with `(new Foo)`, `(new \Foo)`, `(Foo.)` or a static factory such as `(Foo/make)`, bound in a `let` or written inline. `(new Fo` completes class names without the leading `\`, and `(DateTimeImmutable/` and `(Foo.Bar/` complete static members without a `:use`. Before, only the `php/new` spelling, an error since 0.52, typed a receiver. (#3398)
 - Public PHP API, since compiled code calls it: `Phel\Lang\Destructure`, `\Phel::fnSlot()` and `Phel\Lang\ForeignFn`. (#3354 #3356)
 
 ### Performance
