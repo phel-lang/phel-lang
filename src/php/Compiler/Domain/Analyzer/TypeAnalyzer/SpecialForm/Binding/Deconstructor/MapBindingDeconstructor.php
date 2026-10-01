@@ -376,9 +376,10 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
     }
 
     /**
-     * `:keys`, `:strs`, `:syms` each take a vector of symbols. Anything
-     * else is rejected here with a one-line shape error rather than
-     * being silently dropped further down the deconstructor.
+     * `:keys`, `:strs`, `:syms` (namespaced or not) each take a vector of
+     * symbols; `:keys` and `:syms` also take keywords. Anything else is
+     * rejected here with a one-line shape error rather than being silently
+     * dropped further down the deconstructor.
      *
      * @param PersistentMapInterface<mixed, mixed> $binding
      *
