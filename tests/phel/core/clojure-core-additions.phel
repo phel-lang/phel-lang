@@ -93,3 +93,13 @@
         reordered (php-associative-array "b" 2 "a" 1)]
     (is (= (hash a) (hash same)) "equal arrays hash alike")
     (is (not (= a reordered)) "= compares PHP arrays with ===, so key order counts")))
+
+(deftest test-with-out-str-restores-the-buffer-level-it-found
+  (let [level (php/ob_get_level)]
+    (is (= "ab" (with-out-str (print "a") (php/ob_start) (print "b"))) "a nested buffer left open is folded in")
+    (is (= level (php/ob_get_level)) "every buffer the body opened is closed")
+    (php/ob_start)
+    (let [outer (php/ob_get_level)]
+      (is (= "" (with-out-str (php/ob_end_clean))) "the body closed the macro's own buffer")
+      (is (= outer (php/ob_get_level)) "the caller's buffer survives")
+      (php/ob_end_clean))))

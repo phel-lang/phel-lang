@@ -84,13 +84,20 @@
   {:example "(with-output-buffer (print \"hello\")) ; => \"hello\""
    :see-also ["with-out-str" "print-str"]}
   [& body]
-  `(do
+  ;; Restores the buffer level it found rather than closing the top buffer,
+  ;; which is not ours when the body opened or closed one of its own.
+  `(let [level# (php/ob_get_level)]
      (php/ob_start)
      (try
        ~@body
-       (php/ob_get_contents)
+       (loop []
+         (if (php/> (php/ob_get_level) (php/+ level# 1))
+           (do (php/ob_end_flush) (recur))))
+       (if (php/> (php/ob_get_level) level#) (php/ob_get_contents) "")
        (finally
-         (php/ob_end_clean)))))
+         (loop []
+           (if (php/> (php/ob_get_level) level#)
+             (do (php/ob_end_clean) (recur))))))))
 
 (defmacro with-out-str
   "Evaluates `body` and returns everything it printed as a string. The buffer is closed even when `body` throws."
