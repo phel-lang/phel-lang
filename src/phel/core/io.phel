@@ -85,19 +85,20 @@
    :see-also ["with-out-str" "print-str"]}
   [& body]
   ;; Restores the buffer level it found rather than closing the top buffer,
-  ;; which is not ours when the body opened or closed one of its own.
+  ;; which is not ours when the body opened or closed one of its own. Stops
+  ;; at a buffer PHP refuses to close, which would otherwise loop forever.
   `(let [level# (php/ob_get_level)]
      (php/ob_start)
      (try
        ~@body
        (loop []
          (if (php/> (php/ob_get_level) (php/+ level# 1))
-           (do (php/ob_end_flush) (recur))))
+           (if (php/ob_end_flush) (recur))))
        (if (php/> (php/ob_get_level) level#) (php/ob_get_contents) "")
        (finally
          (loop []
            (if (php/> (php/ob_get_level) level#)
-             (do (php/ob_end_clean) (recur))))))))
+             (if (php/ob_end_clean) (recur))))))))
 
 (defmacro with-out-str
   "Evaluates `body` and returns everything it printed as a string. The buffer is closed even when `body` throws."
