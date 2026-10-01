@@ -1,0 +1,7 @@
+protected:
+  paths:
+    - tools/release.sh
+    - composer.lock
+    - .github/**
+  decision: deny
+  reason: The release script, the lock file and CI change only on purpose. Ask the user to make this edit.

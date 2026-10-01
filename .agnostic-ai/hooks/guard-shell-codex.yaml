@@ -1,8 +1,9 @@
-name: protect-codex
-description: Block Codex patches to protected repository files.
+name: guard-shell-codex
+description: Block destructive shell commands in Codex.
 event: PreToolUse
-matcher: Bash|apply_patch|Edit|MultiEdit|Write
+matcher: Bash
+# Claude Code blocks these through permissions.deny in overlays/claude.settings.json.
 target: codex
-command: 'sh -c ''r=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || exit 0; s="$(dirname "$r")/.codex/hooks/protect-files-codex.sh"; [ -x "$s" ] || exit 0; exec "$s"'''
+command: 'f="$CLAUDE_PROJECT_DIR/.agnostic-ai/scripts/guard-shell.sh"; [ -x "$f" ] || exit 0; exec "$f"'
 timeout: 5
-statusMessage: Checking protected files
+statusMessage: Checking shell command
