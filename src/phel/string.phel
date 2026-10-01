@@ -82,23 +82,15 @@ This is a convenience function for converting strings to character sequences. Pr
   ([separator coll] (php/implode separator (to-array coll))))
 
 (defn subs
-  "Returns the substring of s from start (inclusive) to end (exclusive)."
-  {:example "(subs \"hello world\" 0 5) ; => \"hello\""}
-  ;; Not `(subs s start (php/mb_strlen s))`: delegating would scan the string
-  ;; once here and again for the bounds check, where the single-argument form
-  ;; used to scan once. `mb_substr` with no length already runs to the end.
+  "Returns the substring of s from start (inclusive) to end (exclusive). Like core `subs`, except that a nil `start` reads as 0 and a nil or false `end` as the end of s."
+  {:example "(subs \"hello world\" 0 5) ; => \"hello\""
+   :see-also ["core/subs"]}
   ([s start]
    (assert-string s)
-   (when (or (php/< start 0) (php/> start (php/mb_strlen s)))
-     (throw (new InvalidArgumentException "Invalid start or end index for subs")))
-   (php/mb_substr s start))
+   (phel.core/subs s (or start 0)))
   ([s start end]
    (assert-string s)
-   (let [len (php/mb_strlen s)
-         end (or end len)]
-     (when (or (php/< start 0) (php/< end start) (php/> end len))
-       (throw (new InvalidArgumentException "Invalid start or end index for subs")))
-     (php/mb_substr s start (- end start)))))
+   (phel.core/subs s (or start 0) (or end (php/mb_strlen s)))))
 
 (defn reverse
   "Returns s with its characters reversed."

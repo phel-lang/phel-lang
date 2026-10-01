@@ -1,6 +1,7 @@
 (in-ns phel.core)
 
 (use Countable)
+(use DateTimeInterface)
 (use Traversable)
 (use Phel)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
@@ -274,6 +275,27 @@
    :see-also ["simple-symbol?" "simple-keyword?" "ident?"]}
   [x]
   (or (simple-symbol? x) (simple-keyword? x)))
+
+(defn qualified-symbol?
+  "Returns true if `x` is a symbol with a namespace."
+  {:example "(qualified-symbol? 'foo/bar) ; => true\n(qualified-symbol? 'a) ; => false"
+   :see-also ["simple-symbol?" "qualified-keyword?" "namespace"]}
+  [x]
+  (and (symbol? x) (some? (.getNamespace x))))
+
+(defn qualified-keyword?
+  "Returns true if `x` is a keyword with a namespace."
+  {:example "(qualified-keyword? :foo/bar) ; => true\n(qualified-keyword? :a) ; => false"
+   :see-also ["simple-keyword?" "qualified-symbol?" "namespace"]}
+  [x]
+  (and (keyword? x) (some? (.getNamespace x))))
+
+(defn inst?
+  "Returns true if `x` is a date-time instant, the value an `#inst` literal reads to. Any PHP `DateTimeInterface` counts."
+  {:example "(inst? #inst \"2026-03-04\") ; => true\n(inst? \"2026-03-04\") ; => false"
+   :see-also ["uuid?" "string?"]}
+  [x]
+  (php/instanceof x DateTimeInterface))
 
 (def ^:private special-symbols
   "The set of symbols that name Phel special forms, including the

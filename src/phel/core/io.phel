@@ -13,7 +13,7 @@
 
 ;; I/O: stdout/formatting (`print`, `println`, `pr`, `prn`, `print-str`,
 ;; `println-str`, `pr-str`, `prn-str`, `format`, `printf`,
-;; `with-output-buffer`); stderr debugging (`dbg`,
+;; `with-output-buffer`, `with-out-str`); stderr debugging (`dbg`,
 ;; `dbg-write`); and file helpers (`slurp`, `spit`,
 ;; `line-seq`, `file-seq`, `read-file-lazy`, `csv-seq`, `with-open`).
 ;; Everything below the regex helpers touches the outside world.
@@ -80,15 +80,37 @@
 ;; ---------------
 
 (defmacro with-output-buffer
-  "Everything that is printed inside the body will be stored in a buffer. The result of the buffer is returned."
+  "Evaluates `body` and returns everything it printed as a string. The buffer is closed even when `body` throws. `with-out-str` is the Clojure name for it.
+
+  A body that opens an output buffer without PHP's removable flag cannot be captured: PHP refuses to close that buffer, so it and the one opened here stay active and keep capturing later output. This throws a `RuntimeException` in that case instead of returning the wrong output."
+  {:example "(with-output-buffer (print \"hello\")) ; => \"hello\""
+   :see-also ["with-out-str" "print-str"]}
   [& body]
-  (let [res (gensym)]
-    `(do
-       (php/ob_start)
+  ;; Restores the buffer level it found rather than closing the top buffer,
+  ;; which is not ours when the body opened or closed one of its own. Stops
+  ;; at a buffer PHP refuses to close, which would otherwise loop forever.
+  `(let [level# (php/ob_get_level)]
+     (php/ob_start)
+     (try
        ~@body
-       (let [~res (php/ob_get_contents)]
-         (php/ob_end_clean)
-         ~res))))
+       (loop []
+         (if (php/> (php/ob_get_level) (php/+ level# 1))
+           (if (php/ob_end_flush) (recur))))
+       (if (php/> (php/ob_get_level) (php/+ level# 1))
+         (throw (new \RuntimeException
+                     "with-output-buffer: the body left an output buffer open that PHP cannot close, so its output cannot be read. That buffer and the one with-output-buffer opened stay active and keep capturing output.")))
+       (if (php/> (php/ob_get_level) level#) (php/ob_get_contents) "")
+       (finally
+         (loop []
+           (if (php/> (php/ob_get_level) level#)
+             (if (php/ob_end_clean) (recur))))))))
+
+(defmacro with-out-str
+  "Evaluates `body` and returns everything it printed as a string. The buffer is closed even when `body` throws."
+  {:example "(with-out-str (print \"a\") (print 1)) ; => \"a1\""
+   :see-also ["with-output-buffer" "print-str" "pr-str"]}
+  [& body]
+  `(with-output-buffer ~@body))
 
 (defn- print-joined
   "Space-joins `xs`, stringifying each element with `printer`."

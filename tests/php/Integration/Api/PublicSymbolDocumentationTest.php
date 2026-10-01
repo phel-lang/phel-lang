@@ -58,7 +58,7 @@ final class PublicSymbolDocumentationTest extends TestCase
      * to make a red build green. Adding a public definition without an example
      * fails here, which is the point at which writing one is cheapest.
      */
-    private const int MAX_DEFINITIONS_WITHOUT_AN_EXAMPLE = 128;
+    private const int MAX_DEFINITIONS_WITHOUT_AN_EXAMPLE = 127;
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]

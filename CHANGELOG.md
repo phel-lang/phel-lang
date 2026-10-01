@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Editor completion after `(.method` and `(.-field` knows a receiver built with `(new Foo)`, `(new \Foo)`, `(Foo.)` or a static factory such as `(Foo/make)`, bound in a `let` or written inline. `(new Fo` completes class names without the leading `\`, and `(DateTimeImmutable/` and `(Foo.Bar/` complete static members without a `:use`. Before, only the `php/new` spelling, an error since 0.52, typed a receiver. (#3398)
 - A protocol extended to a PHP interface or parent class applies to every class that implements or extends it: after `(extend-type \Countable Sized (size-of [x] (count x)))`, `(size-of (new \SplObjectStorage))` dispatches, and `satisfies?` and `extends?` agree. The exact class wins over a parent class, the nearest parent over an interface, and an interface over `:default`. Two matching interfaces where neither extends the other throw an error naming both. (#3413)
 - Public PHP API, since compiled code calls it: `Phel\Lang\Destructure`, `\Phel::fnSlot()` and `Phel\Lang\ForeignFn`. (#3354 #3356)
+- `phel.core` has `with-out-str`, `subs`, `list*`, `qualified-keyword?`, `qualified-symbol?`, `hash`, `comparator`, `load-string`, `pcalls`, `pvalues` and `inst?`, with their Clojure behaviour. `hash` agrees with `=`: `(hash [1 2])` equals `(hash '(1 2))`. Core `subs` throws on a nil index, as Clojure does. `phel.string/subs` stays, and still reads a nil `start` as 0 and a nil `end` as the end of the string. (#3417)
 - `defmulti` takes Clojure's signature, `(defmulti name docstring? attr-map? dispatch-fn & options)`. `:default :unknown` makes `(defmethod area :unknown ...)` the fallback. `:hierarchy h`, with `h` an atom or var holding a `(make-hierarchy)`, drives `isa?` matching and `prefer-method` instead of the global hierarchy. Any other option fails with a message that lists the supported ones. (#3415)
 
 ### Performance
@@ -26,6 +27,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `with-output-buffer` closes its output buffer when the body throws. It used to leave the buffer open, so later output collected in it instead of reaching stdout. (#3417)
 - An edit to `phel-config-<env>.php`, or to any other `phel-config-<suffix>.php` Gacela reads for `APP_ENV` or a config dimension, takes effect on the next run. It used to be ignored until `phel cache:clear`, because only `phel-config.php` and `phel-config-local.php` were checked against the cached merged config. (#3426)
 - `build/preload.php` preloads the facade, factory, config and provider of every module under `src/php/`, found at startup. The hand-kept list was missing Lint, Lsp, Nrepl, Watch, Profile, Fiber, Mutate and Balance, and named three files that no longer exist, so `opcache.preload` skipped them without a message. (#3410)
 

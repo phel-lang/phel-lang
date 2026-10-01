@@ -1185,6 +1185,14 @@ bindings is a vector of function specs: (letfn [(f [params] body) (g [params] bo
   (let [cf (new CompilerFacade)]
     (.evalForm cf form)))
 
+(defn load-string
+  "Reads and evaluates every form in the string `s`, in order, and returns the value of the last one. Returns nil when `s` holds no form."
+  {:example "(load-string \"(def x 2) (* x 3)\") ; => 6"
+   :see-also ["read-string" "eval"]}
+  [s]
+  ;; One form at a time, so a form can use what an earlier one defined.
+  (.eval (new CompilerFacade) s))
+
 (defn compile
   "Returns the compiled PHP code string for the given form."
   [form]
