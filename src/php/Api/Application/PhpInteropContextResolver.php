@@ -266,15 +266,13 @@ final readonly class PhpInteropContextResolver
             return $this->mapAlias($m[1], $aliases);
         }
 
-        if (preg_match('/^\(\s*php\/::\s+(' . $class . ')\s+\(?([A-Za-z_]\w*)/', $form, $m) !== 1
-            && (preg_match('/^\(\s*(' . $class . ')\/([A-Za-z_]\w*)/', $form, $m) !== 1 || !$this->isClassReference($m[1]))
+        if (preg_match('/^\(\s*php\/::\s+(' . $class . ')\s+\(?([A-Za-z_]\w*)/', $form, $m) === 1
+            || (preg_match('/^\(\s*(' . $class . ')\/([A-Za-z_]\w*)/', $form, $m) === 1 && $this->isClassReference($m[1]))
         ) {
-            return '';
+            return $this->reflector->methodReturnType($this->mapAlias($m[1], $aliases), $m[2]);
         }
 
-        $owner = $this->mapAlias($m[1], $aliases);
-
-        return $owner === '' ? '' : $this->reflector->methodReturnType($owner, $m[2]);
+        return '';
     }
 
     /**
