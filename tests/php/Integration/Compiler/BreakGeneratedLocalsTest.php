@@ -38,6 +38,18 @@ final class BreakGeneratedLocalsTest extends AbstractCompilerRuntimeTestCase
         self::assertSame(['outer'], $this->breakpointLocalNames('(fn [outer] #(do (break) [%1 %2 %&]))'));
     }
 
+    public function test_break_hides_locals_of_a_macro_defined_through_eval(): void
+    {
+        // `eval` is the path the REPL and nREPL take; the macro body is
+        // emitted and run there, then expanded by a later compile.
+        $this->compilerFacade->eval(
+            '(defmacro with-eval-auto [& body] `(let [from-eval# 1] ~@body))',
+            new CompileOptions(),
+        );
+
+        self::assertSame(['outer'], $this->breakpointLocalNames('(fn [outer] (with-eval-auto (break)))'));
+    }
+
     /**
      * @return list<string>
      */
