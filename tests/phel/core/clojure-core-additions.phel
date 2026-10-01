@@ -108,4 +108,8 @@
   (is (= 2 (/ 2 1)) "a whole ratio normalizes to an int")
   (is (= (hash 2) (hash (/ 2 1))))
   (is (= 1 1N))
-  (is (= (hash 1) (hash 1N))))
+  (is (= (hash 1) (hash 1N)))
+  (testing "= keeps these apart, as Clojure does, so their hashes may differ"
+    (is (not (= 0.5 (/ 1 2))))
+    (is (not (= 2M 2)))
+    (is (not (= 1.0 1M)))))
