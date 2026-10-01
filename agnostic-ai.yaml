@@ -17,9 +17,9 @@ targets:
 on-unsupported: error
 
 models:
-  strong: {claude: opus, codex: gpt-5.6-sol, effort: high}
-  balanced: {claude: sonnet, codex: gpt-5.5, effort: medium}
-  fast: {claude: haiku, codex: gpt-5.4-mini, effort: low}
+  strong: {claude: opus, codex: gpt-6.1-sol, effort: high}
+  balanced: {claude: sonnet, codex: gpt-6.1-sol, effort: medium}
+  fast: {claude: haiku, codex: gpt-6-luna, effort: low}
 
 coverage:
   accept:
