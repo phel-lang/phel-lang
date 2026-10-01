@@ -315,10 +315,13 @@ final class PhpInteropReflector
         }
 
         try {
-            $type = $reflection->getMethod($method)->getReturnType();
+            $reflectedMethod = $reflection->getMethod($method);
         } catch (ReflectionException) {
             return '';
         }
+
+        // Built-in classes declare most returns only as tentative types.
+        $type = $reflectedMethod->getReturnType() ?? $reflectedMethod->getTentativeReturnType();
 
         return $this->returnClass($type, $reflection);
     }

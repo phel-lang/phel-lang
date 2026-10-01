@@ -7,7 +7,10 @@ namespace PhelTest\Unit\Api\Application;
 use Phel\Api\Application\PhpInteropContextResolver;
 use Phel\Api\Transfer\PhpInteropContext;
 use PhelTest\Support\Fixtures\PhpInterop\ChainFixture;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Random\Randomizer;
+use Symfony\Component\Console\Command\Command;
 
 use function strlen;
 
@@ -389,6 +392,199 @@ final class PhpInteropContextResolverTest extends TestCase
     public function test_dot_member_without_a_receiver_is_none(): void
     {
         $context = $this->resolveAtEnd('(.for');
+
+        self::assertTrue($context->isNone());
+    }
+
+    #[DataProvider('sourceSpellingBindings')]
+    public function test_dot_method_types_a_local_bound_with_a_source_spelling(string $binding, string $expectedClass): void
+    {
+        $source = "(ns app (:use Random.Randomizer))\n(let [d " . $binding . '] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 2, strlen('(let [d ' . $binding . '] (.for') + 1);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame($expectedClass, $context->class);
+        self::assertSame('for', $context->prefix);
+    }
+
+    public static function sourceSpellingBindings(): iterable
+    {
+        yield 'new, bare' => ['(new DateTimeImmutable)', 'DateTimeImmutable'];
+        yield 'new, qualified' => ['(new \\DateTimeImmutable)', 'DateTimeImmutable'];
+        yield 'constructor shorthand' => ['(DateTimeImmutable. "2026")', 'DateTimeImmutable'];
+        yield 'new through :use' => ['(new Randomizer)', Randomizer::class];
+        yield 'new, dotted' => ['(new Random.Randomizer)', Randomizer::class];
+        yield 'static factory' => ['(DateTimeImmutable/createFromFormat "Y" "2026")', 'DateTimeImmutable'];
+        yield 'php/new from macro output' => ['(php/new \\DateTimeImmutable)', 'DateTimeImmutable'];
+    }
+
+    public function test_static_factory_binding_types_by_return_type(): void
+    {
+        $source = '(let [x (\\' . ChainFixture::class . "/make)]\n  (.siz";
+        $context = $this->resolver->resolve($source . ' x))', 2, strlen('  (.siz') + 1);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame(ChainFixture::class, $context->class);
+    }
+
+    public function test_an_untyped_earlier_form_does_not_hide_the_binding(): void
+    {
+        $source = '(println d (str 1)) (let [d (new DateTimeImmutable)] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
+
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
+    #[DataProvider('inlineReceivers')]
+    public function test_dot_method_types_an_inline_receiver(string $receiver): void
+    {
+        $source = '(.for';
+        $context = $this->resolver->resolve($source . ' ' . $receiver . ')', 1, strlen($source) + 1);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
+    public static function inlineReceivers(): iterable
+    {
+        yield 'new' => ['(new DateTimeImmutable)'];
+        yield 'constructor shorthand' => ['(DateTimeImmutable.)'];
+        yield 'php/new' => ['(php/new \\DateTimeImmutable)'];
+    }
+
+    public function test_class_name_after_new_without_a_backslash(): void
+    {
+        $context = $this->resolveAtEnd('(new DateTi');
+
+        self::assertSame(PhpInteropContext::KIND_CLASS_NAME, $context->kind);
+        self::assertSame('DateTi', $context->prefix);
+    }
+
+    public function test_bare_global_class_is_a_static_member_position(): void
+    {
+        $context = $this->resolveAtEnd('(DateTimeImmutable/cre');
+
+        self::assertSame(PhpInteropContext::KIND_STATIC_MEMBER, $context->kind);
+        self::assertSame('DateTimeImmutable', $context->class);
+        self::assertSame('cre', $context->prefix);
+    }
+
+    public function test_dotted_class_is_a_static_member_position(): void
+    {
+        $context = $this->resolveAtEnd('(Symfony.Component.Console.Command.Command/SU');
+
+        self::assertSame(PhpInteropContext::KIND_STATIC_MEMBER, $context->kind);
+        self::assertSame(Command::class, $context->class);
+        self::assertSame('SU', $context->prefix);
+    }
+
+    public function test_a_same_name_binding_in_another_scope_does_not_type_the_receiver(): void
+    {
+        $source = "(let [d (new DateTimeImmutable)] d)\n(let [d (make)] (.for";
+        $context = $this->resolver->resolve($source . ' d))', 2, strlen('(let [d (make)] (.for') + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_an_unbound_use_in_another_scope_is_not_typed(): void
+    {
+        $source = "(let [d (new DateTimeImmutable)] d)\n(defn f [] (.for";
+        $context = $this->resolver->resolve($source . ' d))', 2, strlen('(defn f [] (.for') + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_an_outer_binding_still_open_types_the_receiver(): void
+    {
+        $source = "(let [d (new DateTimeImmutable)]\n  (let [e (str 1)] e)\n  (.for";
+        $context = $this->resolver->resolve($source . ' d))', 3, strlen('  (.for') + 1);
+
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
+    public function test_a_hyphenated_name_is_not_a_binding_of_its_suffix(): void
+    {
+        $source = '(let [my-d (new DateTimeImmutable)] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_a_call_argument_is_not_a_binding(): void
+    {
+        $context = $this->resolveAtEnd("(let [] (consume value (new DateTimeImmutable))\n  (php/-> value get");
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_a_value_slot_is_not_a_binding(): void
+    {
+        $source = '(let [a d b (new DateTimeImmutable)] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_a_tagged_fn_param_types_the_receiver(): void
+    {
+        $source = '(defn f [x ^DateTimeImmutable d] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
+
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
+    public function test_a_vector_passed_as_data_is_not_a_binding(): void
+    {
+        $source = '(consume [d (new DateTimeImmutable)] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_a_tagged_param_of_a_multi_arity_fn_types_the_receiver(): void
+    {
+        $source = '(defn f ([^DateTimeImmutable d] (.for';
+        $context = $this->resolver->resolve($source . ' d)))', 1, strlen($source) + 1);
+
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
+    public function test_a_tag_in_a_value_slot_is_not_a_binding(): void
+    {
+        $source = '(let [x ^DateTimeImmutable d] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_a_tagged_name_after_a_tagged_pair_types_the_receiver(): void
+    {
+        $source = '(let [^DateTimeZone z (x) ^DateTimeImmutable d (y)] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
+
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
+    public function test_a_binding_after_the_cursor_does_not_type_the_receiver(): void
+    {
+        $source = '(.for';
+        $context = $this->resolver->resolve($source . " d)\n(let [d (new DateTimeImmutable)] d)", 1, strlen($source) + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_php_arrow_receiver_with_a_paren_hop_reads_its_binding(): void
+    {
+        $context = $this->resolveAtEnd("(let [dt (new DateTimeImmutable)]\n  (php/-> dt (for");
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
+    public function test_lowercase_namespace_call_does_not_type_a_binding(): void
+    {
+        $source = '(let [d (str/join "a")] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
 
         self::assertTrue($context->isNone());
     }

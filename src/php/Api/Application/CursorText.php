@@ -111,10 +111,11 @@ final class CursorText
 
     /**
      * The first whitespace-delimited token after the word the cursor sits on,
-     * stopping at the end of the enclosing form. The dot shorthands are the one
-     * position where the receiver follows the member (`(.method receiver)`), so
-     * resolving them needs to look forward; every other interop form has what
-     * it needs in the prefix.
+     * stopping at the end of the enclosing form, or the head of a form that
+     * opens there (`(new Foo`, up to its first nested paren). The dot shorthands
+     * are the one position where the receiver follows the member
+     * (`(.method receiver)`), so resolving them needs to look forward; every
+     * other interop form has what it needs in the prefix.
      */
     public static function firstTokenAfter(string $source, int $line, int $col): string
     {
@@ -128,7 +129,7 @@ final class CursorText
             ...array_slice($lines, $line),
         ]);
 
-        if (preg_match('/^[\s]*([^\s()\[\]{}]+)/', $rest, $m) === 1) {
+        if (preg_match('/^\s*(\([^()]*|[^\s()\[\]{}]+)/', $rest, $m) === 1) {
             return $m[1];
         }
 

@@ -6,12 +6,22 @@ namespace Phel\Api\Application;
 
 use Phel\Api\Transfer\PhpInteropContext;
 
+use function array_filter;
+use function array_map;
+use function array_pop;
+use function array_reverse;
 use function array_slice;
+use function count;
 use function in_array;
 use function ltrim;
 use function preg_match;
+use function preg_match_all;
 use function preg_quote;
 use function str_replace;
+use function str_starts_with;
+use function strlen;
+use function strpos;
+use function substr;
 use function trim;
 
 /**
@@ -39,6 +49,18 @@ final readonly class PhpInteropContextResolver
         'new', 'aget', 'aset', 'apush', 'aunset', 'ref', 'callable', 'oset',
     ];
 
+    /** Forms whose vector holds `[name value ...]` pairs. */
+    private const array PAIR_BINDERS = [
+        'let', 'loop', 'binding', 'for', 'dofor', 'doseq', 'dotimes', 'if-let', 'when-let',
+        'if-some', 'when-some', 'when-first', 'with-open', 'with-redefs',
+    ];
+
+    /**
+     * Forms whose vector holds parameters. An arity list `([x] ...)` has no
+     * head at all.
+     */
+    private const array PARAM_BINDERS = ['', 'fn', 'defn', 'defn-', 'defmacro', 'defmacro-', 'defmethod'];
+
     public function __construct(
         private PhpImportAliasExtractor $aliasExtractor = new PhpImportAliasExtractor(),
         private PhpInteropReflector $reflector = new PhpInteropReflector(),
@@ -61,12 +83,12 @@ final readonly class PhpInteropContextResolver
 
         // (php/-> receiver method|)  or  (php/-> receiver (method|))
         if (preg_match('/\(\s*php\/->\s+(.+?)\s+\(?([A-Za-z0-9_]*)$/s', $before, $m) === 1) {
-            return $this->memberContext(PhpInteropContext::KIND_INSTANCE_MEMBER, $m, $source);
+            return $this->memberContext(PhpInteropContext::KIND_INSTANCE_MEMBER, $m, $source, $before);
         }
 
         // (php/:: Class method|)  or  (php/:: Class (method|))
         if (preg_match('/\(\s*php\/::\s+(.+?)\s+\(?([A-Za-z0-9_]*)$/s', $before, $m) === 1) {
-            return $this->memberContext(PhpInteropContext::KIND_STATIC_MEMBER, $m, $source);
+            return $this->memberContext(PhpInteropContext::KIND_STATIC_MEMBER, $m, $source, $before);
         }
 
         // \Foo/member| and (\Foo/member| , the source spelling of `php/::`
@@ -75,17 +97,17 @@ final readonly class PhpInteropContextResolver
         if (preg_match('/(?:^|[\s(\[{])(\\\\?[A-Za-z_][A-Za-z0-9_\\\\.]*)\/(\$?\w*)$/', $before, $m) === 1
             && $this->isClassReference($m[1])
         ) {
-            return $this->memberContext(PhpInteropContext::KIND_STATIC_MEMBER, $m, $source);
+            return $this->memberContext(PhpInteropContext::KIND_STATIC_MEMBER, $m, $source, $before);
         }
 
         // (.method receiver| and (.-field receiver| , where the receiver
         // follows the cursor rather than preceding it.
         if (preg_match('/\(\s*\.(-?)(\w*)$/', $before, $m) === 1) {
-            return $this->dotMemberContext($m[2], $source, $line, $col);
+            return $this->dotMemberContext($m[2], $source, $before, $line, $col);
         }
 
-        // (php/new \Foo|
-        if (preg_match('/\(\s*php\/new\s+\\\\?([A-Za-z0-9_\\\\]*)$/', $before, $m) === 1) {
+        // (new Foo| , (new \Foo| and the macro-output spelling (php/new \Foo|
+        if (preg_match('/\(\s*(?:php\/)?new\s+\\\\?([A-Za-z0-9_\\\\]*)$/', $before, $m) === 1) {
             return new PhpInteropContext(PhpInteropContext::KIND_CLASS_NAME, $m[1]);
         }
 
@@ -131,14 +153,14 @@ final readonly class PhpInteropContextResolver
      * to come from the text *after* the cursor: the first token of what is
      * already typed there.
      */
-    private function dotMemberContext(string $prefix, string $source, int $line, int $col): PhpInteropContext
+    private function dotMemberContext(string $prefix, string $source, string $before, int $line, int $col): PhpInteropContext
     {
         $receiver = CursorText::firstTokenAfter($source, $line, $col);
         if ($receiver === '') {
             return PhpInteropContext::none();
         }
 
-        $class = $this->resolveReceiver($receiver, $source, $this->aliasExtractor->extract($source));
+        $class = $this->resolveReceiver($receiver, $before, $this->aliasExtractor->extract($source));
         if ($class === '') {
             return PhpInteropContext::none();
         }
@@ -153,10 +175,12 @@ final readonly class PhpInteropContextResolver
      *
      * @param array{0: string, 1: string, 2: string} $m
      */
-    private function memberContext(string $kind, array $m, string $source): PhpInteropContext
+    private function memberContext(string $kind, array $m, string $source, string $before): PhpInteropContext
     {
-        $aliases = $this->aliasExtractor->extract($source);
-        $class = $this->resolveReceiver($m[1], $source, $aliases);
+        // Bindings are looked up before the form, so the receiver itself
+        // (`dt` in `(php/-> dt (get`) is not mistaken for one.
+        $scope = substr($before, 0, strlen($before) - strlen($m[0]));
+        $class = $this->resolveReceiver($m[1], $scope, $this->aliasExtractor->extract($source));
 
         if ($class === '') {
             return PhpInteropContext::none();
@@ -201,9 +225,10 @@ final readonly class PhpInteropContextResolver
 
     /**
      * Resolves a receiver expression to a class name. Handles a class literal
-     * (`\Foo`, `Foo\Bar`), an inline `(php/new \Foo ...)`, an imported short
-     * name (`(:use Foo\Bar)` → `Bar`), or a bare symbol whose `:tag` /
-     * reader-tag / `(php/new ...)` binding is found in the source. Returns ''
+     * (`\Foo`, `Foo\Bar`, `Foo.Bar`), an inline construction or factory call
+     * (see {@see formClass()}), an imported short name (`(:use Foo\Bar)` →
+     * `Bar`), a bare symbol whose `:tag` / reader-tag / binding is found in the
+     * source, or else a capitalised bare name as a global class. Returns ''
      * when the type is unknown.
      *
      * @param array<string, string> $aliases
@@ -212,17 +237,16 @@ final readonly class PhpInteropContextResolver
     {
         $receiver = trim($receiver);
 
-        // Inline construction: (php/-> (php/new \Foo ...) ...)
-        if (preg_match('/\(\s*php\/new\s+\\\\?([A-Za-z0-9_\\\\.]+)/', $receiver, $m) === 1) {
-            return $this->mapAlias($m[1], $aliases);
+        if (str_starts_with($receiver, '(')) {
+            return $this->formClass($receiver, $aliases);
         }
 
         // Class literal kept separate from the bare-symbol branch below so a
         // single unqualified name (e.g. `Widget`) is NOT treated as a literal
         // and can instead resolve through the import-alias table.
-        // Multi-segment literal: \Foo\Bar or Foo\Bar.
-        if (preg_match('/^\\\\?([A-Za-z_]\w*(?:\\\\[A-Za-z_]\w*)+)$/', $receiver, $m) === 1) {
-            return ltrim($m[1], '\\');
+        // Multi-segment literal: \Foo\Bar, Foo\Bar or Foo.Bar.
+        if (preg_match('/^\\\\?([A-Za-z_]\w*(?:[\\\\.][A-Za-z_]\w*)+)$/', $receiver, $m) === 1) {
+            return str_replace('.', '\\', $m[1]);
         }
 
         // Single segment with a leading backslash: \Foo.
@@ -230,21 +254,57 @@ final readonly class PhpInteropContextResolver
             return $m[1];
         }
 
-        // Bare symbol: an imported short name first, else a typed local binding.
+        // Bare symbol: an imported short name first, then a typed local
+        // binding, then a capitalised name as a global class (`DateTimeImmutable`
+        // needs no `:use`).
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_\-]*$/', $receiver) === 1) {
-            return $aliases[$receiver] ?? $this->resolveSymbolTag($receiver, $source, $aliases);
+            $class = $aliases[$receiver] ?? $this->resolveSymbolTag($receiver, $source, $aliases);
+
+            return $class === '' && preg_match('/^[A-Z]\w*$/', $receiver) === 1 ? $receiver : $class;
         }
 
         return '';
     }
 
     /**
-     * Searches the source for the type of a local binding named `$symbol`:
+     * The class a form evaluates to, read from its head: a construction
+     * (`(new Foo`, `(Foo.`, and `(php/new \Foo` from macro output) or a static
+     * factory call (`(Foo/make`, `(php/:: Foo make`) typed by the method's
+     * reflected return type. Returns '' for any other form.
+     *
+     * @param array<string, string> $aliases
+     */
+    private function formClass(string $form, array $aliases): string
+    {
+        $class = '\\\\?[A-Za-z_][A-Za-z0-9_\\\\.]*';
+
+        if (preg_match('/^\(\s*(?:php\/)?new\s+(' . $class . ')/', $form, $m) === 1) {
+            return $this->mapAlias($m[1], $aliases);
+        }
+
+        if (preg_match('/^\(\s*(' . $class . ')\.(?:[\s)]|$)/', $form, $m) === 1
+            && $this->isClassReference($m[1])
+        ) {
+            return $this->mapAlias($m[1], $aliases);
+        }
+
+        if (preg_match('/^\(\s*php\/::\s+(' . $class . ')\s+\(?([A-Za-z_]\w*)/', $form, $m) === 1
+            || (preg_match('/^\(\s*(' . $class . ')\/([A-Za-z_]\w*)/', $form, $m) === 1 && $this->isClassReference($m[1]))
+        ) {
+            return $this->reflector->methodReturnType($this->mapAlias($m[1], $aliases), $m[2]);
+        }
+
+        return '';
+    }
+
+    /**
+     * Searches the source before the cursor for the type of a local binding
+     * named `$symbol`:
      *
      * - a `^{:tag \Type}` map or `^\Type` reader tag,
-     * - a `[symbol (php/new \Type ...)]` binding,
-     * - a `[symbol (php/:: \Type make ...)]` factory binding (the static
-     *   method's reflected return type),
+     * - a `[symbol (new Type ...)]` or `[symbol (Type. ...)]` binding,
+     * - a `[symbol (Type/make ...)]` factory binding (the static method's
+     *   reflected return type),
      * - a `[symbol other]` indirect binding (the type of `other`).
      *
      * Resolved class literals are mapped through the import-alias table so a
@@ -260,36 +320,117 @@ final readonly class PhpInteropContextResolver
             return '';
         }
 
-        $quoted = preg_quote($symbol, '/');
+        $sym = '(?<![\w\-])(?<sym>' . preg_quote($symbol, '/') . ')(?![\w\-])';
 
         // ^{:tag \Type} symbol  /  ^{:tag Type} symbol
-        if (preg_match('/\^\{[^}]*:tag\s+\\\\?([A-Za-z0-9_\\\\.]+)[^}]*\}\s+' . $quoted . '\b/', $source, $m) === 1) {
-            return $this->mapAlias($m[1], $aliases);
+        $m = $this->bindingInScope('/\^\{[^}]*:tag\s+\\\\?(?<type>[A-Za-z0-9_\\\\.]+)[^}]*\}\s+' . $sym . '/', $source);
+        if ($m !== null) {
+            return $this->mapAlias($m['type'], $aliases);
         }
 
         // ^\Type symbol  /  ^Type symbol
-        if (preg_match('/\^\\\\?([A-Za-z_][A-Za-z0-9_\\\\.]*)\s+' . $quoted . '\b/', $source, $m) === 1) {
-            return $this->mapAlias($m[1], $aliases);
+        $m = $this->bindingInScope('/\^\\\\?(?<type>[A-Za-z_][A-Za-z0-9_\\\\.]*)\s+' . $sym . '/', $source);
+        if ($m !== null) {
+            return $this->mapAlias($m['type'], $aliases);
         }
 
-        // [symbol (php/new \Type ...)]  binding
-        if (preg_match('/\b' . $quoted . '\s+\(\s*php\/new\s+\\\\?([A-Za-z0-9_\\\\.]+)/', $source, $m) === 1) {
-            return $this->mapAlias($m[1], $aliases);
-        }
-
-        // [symbol (php/:: \Type make ...)]  factory binding → static return type
-        if (preg_match('/\b' . $quoted . '\s+\(\s*php\/::\s+\\\\?([A-Za-z0-9_\\\\.]+)\s+\(?([A-Za-z_]\w*)/', $source, $m) === 1) {
-            $class = $this->mapAlias($m[1], $aliases);
-
-            return $class === '' ? '' : $this->reflector->methodReturnType($class, $m[2]);
+        // [symbol (new Type ...)] / [symbol (Type/make ...)]
+        $m = $this->bindingInScope('/' . $sym . '\s+(?<form>\([^()]*)/', $source, pairOnly: true);
+        if ($m !== null) {
+            $class = $this->formClass($m['form'], $aliases);
+            if ($class !== '') {
+                return $class;
+            }
         }
 
         // [symbol other-symbol]  indirect binding → follow the alias.
-        if (preg_match('/\b' . $quoted . '\s+([A-Za-z_][A-Za-z0-9_\-]*)\b/', $source, $m) === 1) {
-            return $this->resolveSymbolTag($m[1], $source, $aliases, [...$seen, $symbol]);
+        $m = $this->bindingInScope('/' . $sym . '\s+(?<other>[A-Za-z_][A-Za-z0-9_\-]*)\b/', $source, pairOnly: true);
+        if ($m !== null) {
+            return $this->resolveSymbolTag($m['other'], $source, $aliases, [...$seen, $symbol]);
         }
 
         return '';
+    }
+
+    /**
+     * The nearest match of `$pattern` whose `sym` group is a binding visible at
+     * the end of `$source` (the cursor): it sits directly in the vector of a
+     * binding form (`let`, `loop`, `fn` params, ...) that is still open there,
+     * in a name slot when the form takes `[name value ...]` pairs.
+     * With `$pairOnly` (a name followed by its value) only a pair form
+     * qualifies. So a call argument (`(f d (new Foo))`), a
+     * vector passed as data, or a binding in a closed sibling scope never types
+     * the receiver. Null when no match qualifies.
+     *
+     * @return array<int|string, string>|null
+     */
+    private function bindingInScope(string $pattern, string $source, bool $pairOnly = false): ?array
+    {
+        if (preg_match_all($pattern, $source, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
+            return null;
+        }
+
+        $openAtCursor = CursorText::openParenPositions($source);
+        foreach (array_reverse($matches) as $match) {
+            $offset = $match['sym'][1];
+            $vector = $this->innermostOpenVector(substr($source, 0, $offset));
+            if ($vector === null) {
+                continue;
+            }
+
+            $form = array_last(CursorText::openParenPositions(substr($source, 0, $vector)));
+            if ($form === null || !in_array($form, $openAtCursor, true)) {
+                continue;
+            }
+
+            [$headTokens] = $this->tokenizer->topLevel(substr($source, $form + 1, $vector - $form - 1), true);
+            $head = $headTokens[0] ?? '';
+            [$slots] = $this->tokenizer->topLevel(substr($source, $vector + 1, $offset - $vector - 1), true);
+            $pairs = in_array($head, self::PAIR_BINDERS, true);
+
+            // A `^Tag` token belongs to the slot it annotates.
+            $filled = count(array_filter($slots, static fn(string $slot): bool => !str_starts_with($slot, '^')));
+            $isBinding = $pairs
+                ? $filled % 2 === 0
+                : !$pairOnly && in_array($head, self::PARAM_BINDERS, true);
+
+            if ($isBinding) {
+                return array_map(static fn(array $group): string => $group[0], $match);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Offset of the innermost delimiter still open at the end of `$prefix` when
+     * it is a `[`, else null. Strings and `;` comments are skipped.
+     */
+    private function innermostOpenVector(string $prefix): ?int
+    {
+        $stack = [];
+        $length = strlen($prefix);
+        for ($i = 0; $i < $length; ++$i) {
+            $char = $prefix[$i];
+            if ($char === '"') {
+                for (++$i; $i < $length && $prefix[$i] !== '"'; ++$i) {
+                    if ($prefix[$i] === '\\') {
+                        ++$i;
+                    }
+                }
+            } elseif ($char === ';') {
+                $newline = strpos($prefix, "\n", $i);
+                $i = $newline === false ? $length : $newline;
+            } elseif (in_array($char, ['(', '[', '{'], true)) {
+                $stack[] = $i;
+            } elseif (in_array($char, [')', ']', '}'], true)) {
+                array_pop($stack);
+            }
+        }
+
+        $innermost = array_last($stack);
+
+        return $innermost !== null && $prefix[$innermost] === '[' ? $innermost : null;
     }
 
     /**
