@@ -1,0 +1,25 @@
+--PHEL--
+(ns test)
+
+(let [{:my/keys [a]} {:my/a 5}]
+  a)
+--PHP--
+namespace test;
+require_once __DIR__ . '/phel/core.php';
+\Phel::addDefinition(
+  "phel.core",
+  "*file*",
+  "Let/let-destructure-map-namespaced-keys.test"
+);
+\Phel::addDefinition(
+  "phel.core",
+  "*ns*",
+  "test"
+);
+/** @var \Phel\Lang\Collections\Map\PersistentMapInterface $__phel_1_3 */
+$__phel_1_3 = \Phel::map(
+  \Phel\Lang\Keyword::create("a", "my"), 5
+);
+$__phel_2_4 = (($__phel_1_3)[(\Phel\Lang\Keyword::create("a", "my"))] ?? null);
+$a_5 = $__phel_2_4;
+$a_5;

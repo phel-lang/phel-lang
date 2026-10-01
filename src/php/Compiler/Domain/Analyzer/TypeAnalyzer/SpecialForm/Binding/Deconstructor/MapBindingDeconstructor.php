@@ -28,6 +28,8 @@ use function sprintf;
  */
 final class MapBindingDeconstructor implements BindingDeconstructorInterface
 {
+    private const array LOOKUP_DIRECTIVES = ['keys' => true, 'strs' => true, 'syms' => true];
+
     /** @psalm-suppress PropertyNotSetInConstructor */
     private Symbol $mapSymbol;
 
@@ -45,29 +47,14 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
      */
     public function deconstruct(array &$bindings, $binding, $value): void
     {
-        $keys = null;
-        $strs = null;
-        $syms = null;
+        $directives = [];
         $asSymbol = null;
         $orMap = null;
         $normalBindings = [];
 
         foreach ($binding as $key => $bindTo) {
-            if ($key instanceof Keyword && $key->getName() === 'keys') {
-                $this->assertVectorOfSymbols($binding, $bindTo, ':keys');
-                $keys = $bindTo;
-                continue;
-            }
-
-            if ($key instanceof Keyword && $key->getName() === 'strs') {
-                $this->assertVectorOfSymbols($binding, $bindTo, ':strs');
-                $strs = $bindTo;
-                continue;
-            }
-
-            if ($key instanceof Keyword && $key->getName() === 'syms') {
-                $this->assertVectorOfSymbols($binding, $bindTo, ':syms');
-                $syms = $bindTo;
+            if ($key instanceof Keyword && isset(self::LOOKUP_DIRECTIVES[$key->getName()])) {
+                $directives[] = [$key, $this->assertVectorOfSymbols($binding, $bindTo, (string) $key)];
                 continue;
             }
 
@@ -100,31 +87,11 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
 
         $bindings[] = [$this->mapSymbol, $value];
 
-        if ($keys instanceof PersistentVectorInterface) {
-            foreach ($keys as $sym) {
-                if ($sym instanceof Symbol) {
-                    $keyword = Keyword::create($sym->getName());
-                    $this->bindingIteration($bindings, $binding, $keyword, $sym);
-                }
-            }
-        }
-
-        if ($strs instanceof PersistentVectorInterface) {
-            foreach ($strs as $sym) {
-                if ($sym instanceof Symbol) {
-                    $this->bindingIteration($bindings, $binding, $sym->getName(), $sym);
-                }
-            }
-        }
-
-        if ($syms instanceof PersistentVectorInterface) {
-            foreach ($syms as $sym) {
-                if ($sym instanceof Symbol) {
-                    $quotedSym = Phel::list([
-                        Symbol::create(Symbol::NAME_QUOTE)->copyLocationFrom($binding),
-                        Symbol::create($sym->getName())->copyLocationFrom($binding),
-                    ])->copyLocationFrom($binding);
-                    $this->bindingIteration($bindings, $binding, $quotedSym, $sym);
+        foreach ($directives as [$directive, $entries]) {
+            foreach ($entries as $entry) {
+                if ($entry instanceof Symbol || ($entry instanceof Keyword && $directive->getName() !== 'strs')) {
+                    $lookupKey = $this->directiveLookupKey($binding, $directive, $entry);
+                    $this->bindingIteration($bindings, $binding, $lookupKey, $this->localFor($entry));
                 }
             }
         }
@@ -368,22 +335,67 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
     }
 
     /**
+     * The key one `:keys`, `:syms` or `:strs` entry reads, built as Clojure
+     * does: the directive's namespace wins over the entry's, so
+     * `{:my/keys [a]}` and `{:keys [my/a]}` both read `:my/a`. `::keys`
+     * arrives here already qualified by the reader. `:strs` reads the entry
+     * as written and ignores the directive's namespace.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $binding
+     *
+     * @return Keyword|PersistentListInterface<mixed>|string
+     */
+    private function directiveLookupKey(
+        PersistentMapInterface $binding,
+        Keyword $directive,
+        Keyword|Symbol $entry,
+    ): Keyword|PersistentListInterface|string {
+        $namespace = $directive->getNamespace() ?? $entry->getNamespace();
+
+        return match ($directive->getName()) {
+            'keys' => Keyword::create($entry->getName(), $namespace),
+            'strs' => $entry->getFullName(),
+            default => Phel::list([
+                Symbol::create(Symbol::NAME_QUOTE)->copyLocationFrom($binding),
+                Symbol::createForNamespace($namespace, $entry->getName())->copyLocationFrom($binding),
+            ])->copyLocationFrom($binding),
+        };
+    }
+
+    /**
+     * A directive entry binds a bare local named after its name part, so
+     * `my/a` and `:my/a` both bind `a`.
+     */
+    private function localFor(Keyword|Symbol $entry): Symbol
+    {
+        if ($entry instanceof Symbol && $entry->getNamespace() === null) {
+            return $entry;
+        }
+
+        return Symbol::createForNamespace(null, $entry->getName())->copyLocationFrom($entry);
+    }
+
+    /**
      * `:keys`, `:strs`, `:syms` each take a vector of symbols. Anything
      * else is rejected here with a one-line shape error rather than
      * being silently dropped further down the deconstructor.
      *
      * @param PersistentMapInterface<mixed, mixed> $binding
+     *
+     * @return PersistentVectorInterface<mixed>
      */
     private function assertVectorOfSymbols(
         PersistentMapInterface $binding,
         mixed $bindTo,
         string $directive,
-    ): void {
+    ): PersistentVectorInterface {
         if (!$bindTo instanceof PersistentVectorInterface) {
             throw AnalyzerException::withLocation(
                 sprintf('`{%s [...]}` expects a vector of symbols', $directive),
                 $binding,
             );
         }
+
+        return $bindTo;
     }
 }
