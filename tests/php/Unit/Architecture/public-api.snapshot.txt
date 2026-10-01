@@ -2475,7 +2475,8 @@ final class Phel\Shared\VersionFinder
   public function __construct(string $tagCommitHash, string $currentCommit, bool $isOfficialRelease = false)
   public function getVersion(): string
 
-final class Phel\Shared\VersionResolver
+final readonly class Phel\Shared\VersionResolver
+  public function __construct(?string $phelRoot = null)
   public function resolve(): string
 
 final class Phel\Watch\WatchFacade extends Gacela\Framework\AbstractFacade
