@@ -10,14 +10,16 @@ use Gacela\Framework\Config\MergedConfigCache;
 
 use function basename;
 use function dirname;
-use function glob;
 use function implode;
 use function is_dir;
 use function is_file;
 use function md5;
 use function md5_file;
 use function preg_replace;
+use function scandir;
 use function sort;
+use function str_ends_with;
+use function str_starts_with;
 
 /**
  * Keeps Gacela's persisted merged-config cache (1.15+) in sync with its inputs.
@@ -64,7 +66,16 @@ final readonly class MergedConfigCacheInvalidator
      */
     public static function projectConfigFiles(string $appRootDir, string $baseName): array
     {
-        $files = glob($appRootDir . '/' . basename($baseName, '.php') . '*.php') ?: [];
+        // Not glob(): the root is a path, and `[` or `?` in it would be read
+        // as pattern syntax.
+        $prefix = basename($baseName, '.php');
+        $files = [];
+        foreach (@scandir($appRootDir) ?: [] as $entry) {
+            if (str_starts_with($entry, $prefix) && str_ends_with($entry, '.php') && is_file($appRootDir . '/' . $entry)) {
+                $files[] = $appRootDir . '/' . $entry;
+            }
+        }
+
         sort($files);
 
         return $files;

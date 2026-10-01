@@ -55,6 +55,18 @@ final class MergedConfigCacheInvalidatorTest extends TestCase
         );
     }
 
+    public function test_project_config_files_read_a_root_with_glob_characters_literally(): void
+    {
+        $root = $this->dir . '/app[1]?';
+        mkdir($root);
+        file_put_contents($root . '/phel-config.php', '<?php return [];');
+
+        self::assertSame(
+            [$root . '/phel-config.php'],
+            MergedConfigCacheInvalidator::projectConfigFiles($root, 'phel-config.php'),
+        );
+    }
+
     public function test_an_edit_to_an_env_config_flips_the_fingerprint(): void
     {
         file_put_contents($this->dir . '/phel-config.php', '<?php return [];');
