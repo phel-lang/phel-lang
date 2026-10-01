@@ -6,6 +6,7 @@ namespace Phel\Api\Application;
 
 use Phel\Api\Transfer\PhpInteropContext;
 
+use function array_filter;
 use function array_map;
 use function array_pop;
 use function array_reverse;
@@ -334,7 +335,7 @@ final readonly class PhpInteropContextResolver
         }
 
         // [symbol (new Type ...)] / [symbol (Type/make ...)]
-        $m = $this->bindingInScope('/' . $sym . '\s+(?<form>\([^()]*)/', $source, namePosition: true);
+        $m = $this->bindingInScope('/' . $sym . '\s+(?<form>\([^()]*)/', $source, pairOnly: true);
         if ($m !== null) {
             $class = $this->formClass($m['form'], $aliases);
             if ($class !== '') {
@@ -343,7 +344,7 @@ final readonly class PhpInteropContextResolver
         }
 
         // [symbol other-symbol]  indirect binding → follow the alias.
-        $m = $this->bindingInScope('/' . $sym . '\s+(?<other>[A-Za-z_][A-Za-z0-9_\-]*)\b/', $source, namePosition: true);
+        $m = $this->bindingInScope('/' . $sym . '\s+(?<other>[A-Za-z_][A-Za-z0-9_\-]*)\b/', $source, pairOnly: true);
         if ($m !== null) {
             return $this->resolveSymbolTag($m['other'], $source, $aliases, [...$seen, $symbol]);
         }
@@ -354,15 +355,16 @@ final readonly class PhpInteropContextResolver
     /**
      * The nearest match of `$pattern` whose `sym` group is a binding visible at
      * the end of `$source` (the cursor): it sits directly in the vector of a
-     * binding form (`let`, `loop`, `fn` params, ...) that is still open there.
-     * With `$namePosition` the form must take `[name value ...]` pairs and the
-     * match must be in a name slot. So a call argument (`(f d (new Foo))`), a
+     * binding form (`let`, `loop`, `fn` params, ...) that is still open there,
+     * in a name slot when the form takes `[name value ...]` pairs.
+     * With `$pairOnly` (a name followed by its value) only a pair form
+     * qualifies. So a call argument (`(f d (new Foo))`), a
      * vector passed as data, or a binding in a closed sibling scope never types
      * the receiver. Null when no match qualifies.
      *
      * @return array<int|string, string>|null
      */
-    private function bindingInScope(string $pattern, string $source, bool $namePosition = false): ?array
+    private function bindingInScope(string $pattern, string $source, bool $pairOnly = false): ?array
     {
         if (preg_match_all($pattern, $source, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
             return null;
@@ -386,9 +388,11 @@ final readonly class PhpInteropContextResolver
             [$slots] = $this->tokenizer->topLevel(substr($source, $vector + 1, $offset - $vector - 1), true);
             $pairs = in_array($head, self::PAIR_BINDERS, true);
 
-            $isBinding = $namePosition
-                ? $pairs && count($slots) % 2 === 0
-                : $pairs || in_array($head, self::PARAM_BINDERS, true);
+            // A `^Tag` token belongs to the slot it annotates.
+            $filled = count(array_filter($slots, static fn(string $slot): bool => !str_starts_with($slot, '^')));
+            $isBinding = $pairs
+                ? $filled % 2 === 0
+                : !$pairOnly && in_array($head, self::PARAM_BINDERS, true);
 
             if ($isBinding) {
                 return array_map(static fn(array $group): string => $group[0], $match);
