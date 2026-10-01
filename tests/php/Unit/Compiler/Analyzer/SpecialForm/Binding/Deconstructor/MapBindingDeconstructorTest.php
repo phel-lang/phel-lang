@@ -58,22 +58,22 @@ final class MapBindingDeconstructorTest extends TestCase
         self::assertEquals([
             // __phel_1 x
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 $value,
             ],
             // __phel 2 (get __phel_1 :key)
             [
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
+                    Symbol::createGenerated('__phel_1'),
                     $key,
                 ]),
             ],
             // a __phel_2
             [
                 $bindTo,
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
             ],
         ], $bindings);
     }
@@ -102,22 +102,22 @@ final class MapBindingDeconstructorTest extends TestCase
         self::assertEquals([
             // __phel_1 x
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 $value,
             ],
             // __phel 2 (get __phel_1 :key)
             [
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
+                    Symbol::createGenerated('__phel_1'),
                     $key,
                 ]),
             ],
             // __phel_3 __phel_2
             [
-                Symbol::create('__phel_3'),
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_3'),
+                Symbol::createGenerated('__phel_2'),
             ],
             // __phel_4 (php/instanceof __phel_3 PersistentVectorInterface)
             [
@@ -167,36 +167,36 @@ final class MapBindingDeconstructorTest extends TestCase
         self::assertEquals([
             // __phel_1 x
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 $value,
             ],
             // __phel_2 (get __phel_1 :a)
             [
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
+                    Symbol::createGenerated('__phel_1'),
                     Keyword::create('a'),
                 ]),
             ],
             // a __phel_2
             [
                 Symbol::create('a'),
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
             ],
             // __phel_3 (get __phel_1 :b)
             [
-                Symbol::create('__phel_3'),
+                Symbol::createGenerated('__phel_3'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
+                    Symbol::createGenerated('__phel_1'),
                     Keyword::create('b'),
                 ]),
             ],
             // b __phel_3
             [
                 Symbol::create('b'),
-                Symbol::create('__phel_3'),
+                Symbol::createGenerated('__phel_3'),
             ],
         ], $bindings);
     }
@@ -226,36 +226,36 @@ final class MapBindingDeconstructorTest extends TestCase
         self::assertEquals([
             // __phel_1 x
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 $value,
             ],
             // __phel_2 (get __phel_1 "name")
             [
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
+                    Symbol::createGenerated('__phel_1'),
                     'name',
                 ]),
             ],
             // name __phel_2
             [
                 Symbol::create('name'),
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
             ],
             // __phel_3 (get __phel_1 "age")
             [
-                Symbol::create('__phel_3'),
+                Symbol::createGenerated('__phel_3'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
+                    Symbol::createGenerated('__phel_1'),
                     'age',
                 ]),
             ],
             // age __phel_3
             [
                 Symbol::create('age'),
-                Symbol::create('__phel_3'),
+                Symbol::createGenerated('__phel_3'),
             ],
         ], $bindings);
     }
@@ -285,15 +285,15 @@ final class MapBindingDeconstructorTest extends TestCase
         self::assertEquals([
             // __phel_1 x
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 $value,
             ],
             // __phel_2 (php/aget __phel_1 (quote a))
             [
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
+                    Symbol::createGenerated('__phel_1'),
                     Phel::list([
                         Symbol::create(Symbol::NAME_QUOTE),
                         Symbol::create('a'),
@@ -303,14 +303,14 @@ final class MapBindingDeconstructorTest extends TestCase
             // a __phel_2
             [
                 Symbol::create('a'),
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
             ],
             // __phel_3 (php/aget __phel_1 (quote b))
             [
-                Symbol::create('__phel_3'),
+                Symbol::createGenerated('__phel_3'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
+                    Symbol::createGenerated('__phel_1'),
                     Phel::list([
                         Symbol::create(Symbol::NAME_QUOTE),
                         Symbol::create('b'),
@@ -320,7 +320,7 @@ final class MapBindingDeconstructorTest extends TestCase
             // b __phel_3
             [
                 Symbol::create('b'),
-                Symbol::create('__phel_3'),
+                Symbol::createGenerated('__phel_3'),
             ],
         ], $bindings);
     }
@@ -354,7 +354,7 @@ final class MapBindingDeconstructorTest extends TestCase
             ],
             // __phel_1 (get m "name")
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('m'),
@@ -364,7 +364,7 @@ final class MapBindingDeconstructorTest extends TestCase
             // name __phel_1
             [
                 Symbol::create('name'),
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
             ],
         ], $bindings);
     }
@@ -398,7 +398,7 @@ final class MapBindingDeconstructorTest extends TestCase
             ],
             // __phel_1 (get m :a)
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('m'),
@@ -408,7 +408,7 @@ final class MapBindingDeconstructorTest extends TestCase
             // a __phel_1
             [
                 Symbol::create('a'),
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
             ],
         ], $bindings);
     }
@@ -443,36 +443,36 @@ final class MapBindingDeconstructorTest extends TestCase
         self::assertEquals([
             // __phel_1 x
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 $value,
             ],
             // __phel_2 (php/aget __phel_1 :a)
             [
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
+                    Symbol::createGenerated('__phel_1'),
                     Keyword::create('a'),
                 ]),
             ],
             // a __phel_2
             [
                 Symbol::create('a'),
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
             ],
             // __phel_3 (if (contains? __phel_1 :b) (php/aget __phel_1 :b) 42)
             [
-                Symbol::create('__phel_3'),
+                Symbol::createGenerated('__phel_3'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_IF),
                     Phel::list([
                         Symbol::create('contains?'),
-                        Symbol::create('__phel_1'),
+                        Symbol::createGenerated('__phel_1'),
                         Keyword::create('b'),
                     ]),
                     Phel::list([
                         Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                        Symbol::create('__phel_1'),
+                        Symbol::createGenerated('__phel_1'),
                         Keyword::create('b'),
                     ]),
                     42,
@@ -481,7 +481,7 @@ final class MapBindingDeconstructorTest extends TestCase
             // b __phel_3
             [
                 Symbol::create('b'),
-                Symbol::create('__phel_3'),
+                Symbol::createGenerated('__phel_3'),
             ],
         ], $bindings);
     }
@@ -508,22 +508,22 @@ final class MapBindingDeconstructorTest extends TestCase
         self::assertEquals([
             // __phel_1 val
             [
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 $value,
             ],
             // __phel_2 (if (contains? __phel_1 :a) (php/aget __phel_1 :a) 99)
             [
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_IF),
                     Phel::list([
                         Symbol::create('contains?'),
-                        Symbol::create('__phel_1'),
+                        Symbol::createGenerated('__phel_1'),
                         Keyword::create('a'),
                     ]),
                     Phel::list([
                         Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                        Symbol::create('__phel_1'),
+                        Symbol::createGenerated('__phel_1'),
                         Keyword::create('a'),
                     ]),
                     99,
@@ -532,7 +532,7 @@ final class MapBindingDeconstructorTest extends TestCase
             // x __phel_2
             [
                 Symbol::create('x'),
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
             ],
         ], $bindings);
     }
@@ -550,16 +550,16 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
 
         self::assertEquals([
-            [Symbol::create('__phel_1'), Symbol::create('x')],
+            [Symbol::createGenerated('__phel_1'), Symbol::create('x')],
             [
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
+                    Symbol::createGenerated('__phel_1'),
                     Keyword::create('tops'),
                 ]),
             ],
-            [Symbol::create('tops'), Symbol::create('__phel_2')],
+            [Symbol::create('tops'), Symbol::createGenerated('__phel_2')],
         ], $bindings);
     }
 
@@ -572,16 +572,16 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
 
         self::assertEquals([
-            [Symbol::create('__phel_1'), Symbol::create('x')],
+            [Symbol::createGenerated('__phel_1'), Symbol::create('x')],
             [
-                Symbol::create('__phel_2'),
+                Symbol::createGenerated('__phel_2'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
+                    Symbol::createGenerated('__phel_1'),
                     'name',
                 ]),
             ],
-            [Symbol::create('n'), Symbol::create('__phel_2')],
+            [Symbol::create('n'), Symbol::createGenerated('__phel_2')],
         ], $bindings);
     }
 
@@ -602,7 +602,7 @@ final class MapBindingDeconstructorTest extends TestCase
         self::assertEquals(
             Phel::list([
                 Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 Keyword::create('inner'),
             ]),
             $bindings[1][1],
@@ -621,12 +621,12 @@ final class MapBindingDeconstructorTest extends TestCase
         self::assertEquals(
             Phel::list([
                 Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                Symbol::create('__phel_1'),
+                Symbol::createGenerated('__phel_1'),
                 Symbol::create('k'),
             ]),
             $bindings[1][1],
         );
-        self::assertEquals([Symbol::create('v'), Symbol::create('__phel_2')], $bindings[2]);
+        self::assertEquals([Symbol::create('v'), Symbol::createGenerated('__phel_2')], $bindings[2]);
     }
 
     public function test_key_first_pair_reports_the_binding_first_spelling(): void

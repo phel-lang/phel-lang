@@ -43,7 +43,7 @@ final class SymbolReader
 
         if ($word === $prefix) {
             if (isset($fnArgs[1])) {
-                return Symbol::create($fnArgs[1]->getName());
+                return Symbol::createGenerated($fnArgs[1]->getName());
             }
 
             $sym = Symbol::gen('__short_fn_1_');
@@ -53,7 +53,7 @@ final class SymbolReader
 
         if ($word === $prefix . '&') {
             if (isset($fnArgs[0])) {
-                return Symbol::create($fnArgs[0]->getName());
+                return Symbol::createGenerated($fnArgs[0]->getName());
             }
 
             $sym = Symbol::gen('__short_fn_rest_');
@@ -64,7 +64,7 @@ final class SymbolReader
         if (preg_match(self::NUMBERED_PATTERNS[$prefix], $word, $matches)) {
             $number = (int) $matches[1];
             if (isset($fnArgs[$number])) {
-                return Symbol::create($fnArgs[$number]->getName());
+                return Symbol::createGenerated($fnArgs[$number]->getName());
             }
 
             $sym = Symbol::gen('__short_fn_' . $number . '_');

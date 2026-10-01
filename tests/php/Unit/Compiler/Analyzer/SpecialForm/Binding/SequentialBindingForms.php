@@ -23,7 +23,7 @@ final class SequentialBindingForms
      */
     public static function synthetic(string $name): Symbol
     {
-        return Symbol::create($name)
+        return Symbol::createGenerated($name)
             ->withMeta(Phel::map(Keyword::create(ReturnTypeInferrer::SYNTHETIC_BINDING), true));
     }
 
@@ -36,7 +36,7 @@ final class SequentialBindingForms
     {
         return Phel::list([
             Symbol::create('php/instanceof'),
-            Symbol::create($value),
+            Symbol::createGenerated($value),
             Symbol::create('\\' . PersistentVectorInterface::class),
         ]);
     }
@@ -52,7 +52,7 @@ final class SequentialBindingForms
             $test,
             Phel::list([
                 Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                Symbol::create($value),
+                Symbol::createGenerated($value),
                 $index,
             ]),
             Phel::list([Symbol::create('first'), self::walk($value, $walk)]),
@@ -84,13 +84,13 @@ final class SequentialBindingForms
         $vectorTail = $index === 1
             ? Phel::list([
                 Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
-                Symbol::create($value),
+                Symbol::createGenerated($value),
                 Phel::list([Symbol::create('cdr')]),
             ])
             : Phel::list([
                 Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
                 Symbol::create('\\' . Destructure::class),
-                Phel::list([Symbol::create('nthNext'), Symbol::create($value), $index]),
+                Phel::list([Symbol::create('nthNext'), Symbol::createGenerated($value), $index]),
             ]);
 
         return self::guard($test, $vectorTail, self::walk($value, $walk));
@@ -102,7 +102,7 @@ final class SequentialBindingForms
      */
     private static function walk(string $value, string $walk): Symbol
     {
-        return $walk === $value ? Symbol::create($walk) : self::synthetic($walk);
+        return $walk === $value ? Symbol::createGenerated($walk) : self::synthetic($walk);
     }
 
     /**

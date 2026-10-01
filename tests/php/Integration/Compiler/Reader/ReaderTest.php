@@ -779,12 +779,12 @@ final class ReaderTest extends TestCase
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
+                        Symbol::createGenerated('__short_fn_1_1'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 6, 1, 7),
                         ]),
                         1,
                         0,
@@ -808,13 +808,13 @@ final class ReaderTest extends TestCase
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
+                        Symbol::createGenerated('__short_fn_1_1'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 8, 1, 9),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 6, 1, 7),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 8, 1, 9),
                         ]),
                         1,
                         0,
@@ -838,14 +838,14 @@ final class ReaderTest extends TestCase
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
-                        Symbol::create('__short_fn_2_2'),
+                        Symbol::createGenerated('__short_fn_1_1'),
+                        Symbol::createGenerated('__short_fn_2_2'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                            $this->loc(Symbol::create('__short_fn_2_2'), 1, 9, 1, 11),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::createGenerated('__short_fn_2_2'), 1, 9, 1, 11),
                         ]),
                         1,
                         0,
@@ -869,13 +869,13 @@ final class ReaderTest extends TestCase
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
+                        Symbol::createGenerated('__short_fn_1_1'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 9, 1, 11),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 9, 1, 11),
                         ]),
                         1,
                         0,
@@ -899,15 +899,15 @@ final class ReaderTest extends TestCase
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
-                        Symbol::create('__short_fn_undefined_3'),
-                        Symbol::create('__short_fn_3_2'),
+                        Symbol::createGenerated('__short_fn_1_1'),
+                        Symbol::createGenerated('__short_fn_undefined_3'),
+                        Symbol::createGenerated('__short_fn_3_2'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                            $this->loc(Symbol::create('__short_fn_3_2'), 1, 9, 1, 11),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::createGenerated('__short_fn_3_2'), 1, 9, 1, 11),
                         ]),
                         1,
                         0,
@@ -931,15 +931,15 @@ final class ReaderTest extends TestCase
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
+                        Symbol::createGenerated('__short_fn_1_1'),
                         Symbol::create('&'),
-                        Symbol::create('__short_fn_rest_2'),
+                        Symbol::createGenerated('__short_fn_rest_2'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                            $this->loc(Symbol::create('__short_fn_rest_2'), 1, 9, 1, 11),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::createGenerated('__short_fn_rest_2'), 1, 9, 1, 11),
                         ]),
                         1,
                         0,
@@ -964,13 +964,13 @@ final class ReaderTest extends TestCase
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
                         Symbol::create('&'),
-                        Symbol::create('__short_fn_rest_1'),
+                        Symbol::createGenerated('__short_fn_rest_1'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('concat'), 1, 2, 1, 8),
-                            $this->loc(Symbol::create('__short_fn_rest_1'), 1, 9, 1, 11),
-                            $this->loc(Symbol::create('__short_fn_rest_1'), 1, 12, 1, 14),
+                            $this->loc(Symbol::createGenerated('__short_fn_rest_1'), 1, 9, 1, 11),
+                            $this->loc(Symbol::createGenerated('__short_fn_rest_1'), 1, 12, 1, 14),
                         ]),
                         1,
                         0,
@@ -1020,12 +1020,12 @@ final class ReaderTest extends TestCase
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
+                        Symbol::createGenerated('__short_fn_1_1'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 6, 1, 7),
                         ]),
                         1,
                         0,
@@ -1049,14 +1049,14 @@ final class ReaderTest extends TestCase
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
-                        Symbol::create('__short_fn_2_2'),
+                        Symbol::createGenerated('__short_fn_1_1'),
+                        Symbol::createGenerated('__short_fn_2_2'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                            $this->loc(Symbol::create('__short_fn_2_2'), 1, 9, 1, 11),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::createGenerated('__short_fn_2_2'), 1, 9, 1, 11),
                         ]),
                         1,
                         0,
@@ -1080,15 +1080,15 @@ final class ReaderTest extends TestCase
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
+                        Symbol::createGenerated('__short_fn_1_1'),
                         Symbol::create('&'),
-                        Symbol::create('__short_fn_rest_2'),
+                        Symbol::createGenerated('__short_fn_rest_2'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                            $this->loc(Symbol::create('__short_fn_rest_2'), 1, 9, 1, 11),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::createGenerated('__short_fn_rest_2'), 1, 9, 1, 11),
                         ]),
                         1,
                         0,
@@ -1112,13 +1112,13 @@ final class ReaderTest extends TestCase
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
+                        Symbol::createGenerated('__short_fn_1_1'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 8, 1, 9),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 6, 1, 7),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 8, 1, 9),
                         ]),
                         1,
                         0,
@@ -1142,13 +1142,13 @@ final class ReaderTest extends TestCase
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
+                        Symbol::createGenerated('__short_fn_1_1'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 9, 1, 11),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 9, 1, 11),
                         ]),
                         1,
                         0,
@@ -1172,15 +1172,15 @@ final class ReaderTest extends TestCase
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
-                        Symbol::create('__short_fn_undefined_3'),
-                        Symbol::create('__short_fn_3_2'),
+                        Symbol::createGenerated('__short_fn_1_1'),
+                        Symbol::createGenerated('__short_fn_undefined_3'),
+                        Symbol::createGenerated('__short_fn_3_2'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                            $this->loc(Symbol::create('__short_fn_3_2'), 1, 9, 1, 11),
+                            $this->loc(Symbol::createGenerated('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::createGenerated('__short_fn_3_2'), 1, 9, 1, 11),
                         ]),
                         1,
                         0,
@@ -1205,13 +1205,13 @@ final class ReaderTest extends TestCase
                     Symbol::create(Symbol::NAME_FN),
                     Phel::vector([
                         Symbol::create('&'),
-                        Symbol::create('__short_fn_rest_1'),
+                        Symbol::createGenerated('__short_fn_rest_1'),
                     ]),
                     $this->loc(
                         Phel::list([
                             $this->loc(Symbol::create('concat'), 1, 2, 1, 8),
-                            $this->loc(Symbol::create('__short_fn_rest_1'), 1, 9, 1, 11),
-                            $this->loc(Symbol::create('__short_fn_rest_1'), 1, 12, 1, 14),
+                            $this->loc(Symbol::createGenerated('__short_fn_rest_1'), 1, 9, 1, 11),
+                            $this->loc(Symbol::createGenerated('__short_fn_rest_1'), 1, 12, 1, 14),
                         ]),
                         1,
                         0,

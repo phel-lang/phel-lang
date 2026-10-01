@@ -61,6 +61,33 @@ final class SymbolTest extends TestCase
         $this->assertSame('bla2', (string) Symbol::gen('bla'));
     }
 
+    public function test_gen_marks_the_symbol_as_generated(): void
+    {
+        $this->assertTrue(Symbol::gen()->isGenerated());
+        $this->assertTrue(Symbol::gen('tmp')->isGenerated());
+        $this->assertTrue(Symbol::createGenerated('x__3')->isGenerated());
+        $this->assertFalse(Symbol::create('x__3')->isGenerated());
+    }
+
+    public function test_generated_marker_survives_copies(): void
+    {
+        $sym = Symbol::gen('tmp');
+
+        $this->assertTrue($sym->withMeta(null)->isGenerated());
+        $this->assertTrue($sym->copyLocationFrom(Symbol::create('other'))->isGenerated());
+        $this->assertTrue(unserialize(serialize($sym))->isGenerated());
+    }
+
+    public function test_generated_marker_does_not_affect_equality(): void
+    {
+        $generated = Symbol::createGenerated('tmp1');
+        $created = Symbol::create('tmp1');
+
+        $this->assertTrue($generated->equals($created));
+        $this->assertTrue($created->equals($generated));
+        $this->assertSame($created->hash(), $generated->hash());
+    }
+
     public function test_hash(): void
     {
         $s = Symbol::createForNamespace('namespace', 'test');

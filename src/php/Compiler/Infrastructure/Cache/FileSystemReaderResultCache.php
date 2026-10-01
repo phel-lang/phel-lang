@@ -25,6 +25,10 @@ use function is_array;
  */
 final readonly class FileSystemReaderResultCache implements ReaderResultCacheInterface
 {
+    // Bump when the serialized form shape changes within a release, e.g. a new
+    // Symbol property: entries written before it unserialize with its default.
+    private const string FORMAT_VERSION = '2';
+
     private string $dir;
 
     public function __construct(
@@ -111,7 +115,7 @@ final readonly class FileSystemReaderResultCache implements ReaderResultCacheInt
 
     private function pathFor(string $phelCode, int $optimizationLevel): string
     {
-        $key = md5($this->phelVersion . '|O' . $optimizationLevel . '|' . $phelCode);
+        $key = md5(self::FORMAT_VERSION . '|' . $this->phelVersion . '|O' . $optimizationLevel . '|' . $phelCode);
 
         return $this->dir . '/' . $key . '.cache';
     }

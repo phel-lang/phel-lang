@@ -14,7 +14,6 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 
 use function count;
-use function str_starts_with;
 
 /**
  * (break).
@@ -94,7 +93,7 @@ final class BreakSymbol implements SpecialFormAnalyzerInterface
                 continue;
             }
 
-            if ($this->isGeneratedName($name)) {
+            if ($local->isGenerated()) {
                 continue;
             }
 
@@ -104,14 +103,5 @@ final class BreakSymbol implements SpecialFormAnalyzerInterface
         }
 
         return $kvs;
-    }
-
-    /**
-     * `(gensym)` gives `__phel_<n>`, a prefixed `(gensym "res__")` gives
-     * `res__<n>`, and auto-gensym `x#` gives `x__<n>`.
-     */
-    private function isGeneratedName(string $name): bool
-    {
-        return str_starts_with($name, '__phel_') || preg_match('/__\d+$/', $name) === 1;
     }
 }
