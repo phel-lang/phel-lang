@@ -1,6 +1,7 @@
 (in-ns phel.core)
 
 (use InvalidArgumentException)
+(use Phel)
 (use Phel.Lang.BigDecimal)
 (use Phel.Lang.BigInt)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
@@ -8,6 +9,7 @@
 (use Phel.Lang.Collections.Map.PersistentMapInterface)
 (use Phel.Lang.Collections.Vector.PersistentVectorInterface)
 (use Phel.Lang.ContainsInterface)
+(use Phel.Lang.Hasher)
 (use Phel.Lang.IdenticalInterface)
 (use Phel.Lang.Keyword)
 (use Phel.Lang.NumericOperations)
@@ -18,14 +20,14 @@
 ;; Logic, equality, ordering, and the family of "is this thing X?" tests
 ;; that don't fit into the type-dispatch table in `predicates.phel`:
 ;;   - Short-circuit logic macros: `or`, `and`.
-;;   - Identity / equality: `identical?`, `id`, `=`, `not=`.
+;;   - Identity / equality: `identical?`, `id`, `=`, `not=`, `hash`.
 ;;   - Negation: `not`.
 ;;   - Ordering: `<`, `<=`, `>`, `>=`, `<=>`, `>=<`.
 ;;   - Quantifiers over collections: `all?`, `every?`, `not-every?`,
 ;;     `some?`, `not-any?`, `some`.
 ;;   - Boolean / nil predicates: `true?`, `truthy?`, `false?`, `nil?`.
 ;;   - Membership: `str-contains?`, `contains?`.
-;;   - Total ordering bridge: `compare-category`, `compare`.
+;;   - Total ordering bridge: `compare-category`, `compare`, `comparator`.
 ;; Also hosts the `keyword` constructor: it lived inside this section
 ;; historically (it is not a logical predicate) and is kept here to avoid
 ;; load-order churn — moving it out would require shuffling several
@@ -135,6 +137,23 @@
              (recur y (next remaining))
              false))))
      false)))
+
+(def ^:private value-hasher (new Hasher))
+
+(defn hash
+  "Returns the hash code of `x` as an int. Values that are `=` have the same hash: `(hash [1 2])` equals `(hash '(1 2))`. Other objects hash by identity."
+  {:example "(hash nil) ; => 0\n(= (hash [1 2]) (hash '(1 2))) ; => true"
+   :see-also ["=" "identical?"]}
+  ^int [x]
+  (if (php/is_array x)
+    ;; `=` compares PHP arrays with `===`, key by key in order, which the
+    ;; hasher has no branch for.
+    (let [parts (php-indexed-array)]
+      (foreach [k v x]
+        (php/apush parts (hash k))
+        (php/apush parts (hash v)))
+      (.hash value-hasher (Phel/vector parts)))
+    (.hash value-hasher x)))
 
 (defn- num? [x]
   (or (php/is_int x)
@@ -596,3 +615,14 @@
         (compare-same-category cx x y)
         (throw (new InvalidArgumentException
                     (str "Cannot compare " cx " with " cy)))))))
+
+(defn comparator
+  "Returns a comparator built from `pred`, a two-argument predicate such as `<`. The comparator returns -1 when `(pred x y)` is truthy, 1 when `(pred y x)` is, and 0 otherwise."
+  {:example "((comparator <) 1 2) ; => -1\n(sort (comparator >) [1 3 2]) ; => [3 2 1]"
+   :see-also ["compare" "sort" "sort-by"]}
+  [pred]
+  (fn [x y]
+    (cond
+      (pred x y) -1
+      (pred y x) 1
+      :else      0)))

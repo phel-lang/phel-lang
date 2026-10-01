@@ -1,0 +1,88 @@
+(ns phel-test.core.clojure-core-additions
+  (:require phel.test :refer [deftest is thrown?])
+  (:require phel.string :as s))
+
+(deftest test-with-out-str
+  (is (= "a1" (with-out-str (print "a") (print 1))) "returns what the body printed")
+  (is (= "" (with-out-str nil)) "empty when nothing is printed")
+  (is (= "hello" (with-output-buffer (print "hello"))) "with-output-buffer still works"))
+
+(deftest test-with-out-str-closes-the-buffer-when-the-body-throws
+  (let [level (php/ob_get_level)]
+    (is (thrown? \RuntimeException
+                 (with-out-str (print "x") (throw (new \RuntimeException "boom")))))
+    (is (= level (php/ob_get_level)) "with-out-str leaves no open buffer")
+    (is (thrown? \RuntimeException
+                 (with-output-buffer (print "x") (throw (new \RuntimeException "boom")))))
+    (is (= level (php/ob_get_level)) "with-output-buffer leaves no open buffer")))
+
+(deftest test-subs
+  (is (= "world" (subs "hello world" 6)))
+  (is (= "hello" (subs "hello world" 0 5)))
+  (is (= "ｌｏ" (subs "ｈｅｌｌｏ" 3)) "counts multibyte characters")
+  (is (= "llo" (subs "hello" 2 nil)) "a nil end runs to the end")
+  (is (thrown? \InvalidArgumentException (subs "hello" 3 2)))
+  (is (thrown? \InvalidArgumentException (subs "hello" 6)))
+  (is (thrown? \InvalidArgumentException (subs nil 0)))
+  (is (= "el" (s/subs "hello" 1 3)) "phel.string/subs delegates"))
+
+(deftest test-list*
+  (is (= '(1 2 3 4) (list* 1 2 [3 4])))
+  (is (= '(1 2) (list* [1 2])))
+  (is (nil? (list* [])))
+  (is (nil? (list* nil)))
+  (is (= '(1) (list* 1 nil)))
+  (is (= '(1 2 3 4 5 6) (list* 1 2 3 4 5 [6])))
+  (is (= '(1 0 1) (take 3 (list* 1 (range)))) "the tail stays lazy"))
+
+(deftest test-qualified-symbol?
+  (is (true? (qualified-symbol? 'foo/bar)))
+  (is (false? (qualified-symbol? 'bar)))
+  (is (false? (qualified-symbol? :foo/bar)))
+  (is (false? (qualified-symbol? "foo/bar"))))
+
+(deftest test-qualified-keyword?
+  (is (true? (qualified-keyword? :foo/bar)))
+  (is (true? (qualified-keyword? ::bar)))
+  (is (false? (qualified-keyword? :bar)))
+  (is (false? (qualified-keyword? 'foo/bar)))
+  (is (false? (qualified-keyword? nil))))
+
+(deftest test-hash-agrees-with-equality
+  (is (= (hash [1 2]) (hash '(1 2))))
+  (is (= (hash {:a 1}) (hash (hash-map :a 1))))
+  (is (= (hash {:a 1}) (hash (sorted-map :a 1))))
+  (is (= (hash #{1 2}) (hash (sorted-set 1 2))))
+  (is (= (hash [1 2]) (hash (lazy-seq [1 2]))))
+  (is (= (hash "abc") (hash (str "ab" "c"))))
+  (is (= (hash (php/array 1 2)) (hash (php/array 1 2))) "PHP arrays hash by content")
+  (is (int? (hash :a)))
+  (is (= 0 (hash nil))))
+
+(deftest test-comparator
+  (is (= -1 ((comparator <) 1 2)))
+  (is (= 1 ((comparator <) 2 1)))
+  (is (= 0 ((comparator <) 2 2)))
+  (is (= [3 2 1] (sort (comparator >) [1 3 2]))))
+
+(deftest test-load-string
+  (is (= 6 (load-string "(def load-string-probe 2) (* load-string-probe 3)"))
+      "a form sees what an earlier form defined")
+  (is (= 3 (load-string "(+ 1 2)")))
+  (is (nil? (load-string ""))))
+
+(deftest test-pcalls
+  (is (= '(1 2) (pcalls (fn [] 1) (fn [] 2))))
+  (is (= '() (pcalls))))
+
+(deftest test-pvalues
+  (is (= '(3 6) (pvalues (+ 1 2) (* 2 3))))
+  (let [calls (atom [])]
+    (pvalues (swap! calls conj :a) (swap! calls conj :b))
+    (is (= #{:a :b} (set (deref calls))) "every expression runs")))
+
+(deftest test-inst?
+  (is (true? (inst? #inst"2026-03-04")))
+  (is (true? (inst? (new \DateTime))))
+  (is (false? (inst? "2026-03-04")))
+  (is (false? (inst? nil))))

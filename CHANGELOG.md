@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Editor completion after `(.method` and `(.-field` knows a receiver built with `(new Foo)`, `(new \Foo)`, `(Foo.)` or a static factory such as `(Foo/make)`, bound in a `let` or written inline. `(new Fo` completes class names without the leading `\`, and `(DateTimeImmutable/` and `(Foo.Bar/` complete static members without a `:use`. Before, only the `php/new` spelling, an error since 0.52, typed a receiver. (#3398)
 - A protocol extended to a PHP interface or parent class applies to every class that implements or extends it: after `(extend-type \Countable Sized (size-of [x] (count x)))`, `(size-of (new \SplObjectStorage))` dispatches, and `satisfies?` and `extends?` agree. The exact class wins over a parent class, the nearest parent over an interface, and an interface over `:default`. Two matching interfaces where neither extends the other throw an error naming both. (#3413)
 - Public PHP API, since compiled code calls it: `Phel\Lang\Destructure`, `\Phel::fnSlot()` and `Phel\Lang\ForeignFn`. (#3354 #3356)
+- `phel.core` has `with-out-str`, `subs`, `list*`, `qualified-keyword?`, `qualified-symbol?`, `hash`, `comparator`, `load-string`, `pcalls`, `pvalues` and `inst?`, with their Clojure behaviour. `hash` agrees with `=`: `(hash [1 2])` equals `(hash '(1 2))`. `phel.string/subs` stays and gives the same result as core `subs`. (#3417)
 
 ### Performance
 
@@ -25,6 +26,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `with-output-buffer` closes its output buffer when the body throws. It used to leave the buffer open, so later output collected in it instead of reaching stdout. (#3417)
 - `#inst` accepts every prefix of the full timestamp, as the Clojure reader does: `#inst "2026"`, `#inst "2026-03"`, `#inst "2026-03-04"`, `#inst "2026-03-04T05"` and `#inst "2026-03-04T05:06"`. A missing field takes its minimum, in UTC unless an offset follows. An out-of-range field such as `2026-02-30` is still rejected. (#3416)
 - `phel --version` reports Phel's own commit when run inside another git repository. It used to read the version from the git repository in the current directory, so inside a project it printed that project's commit, as in `v0.53.0-beta#9e2895a`. Commands that do not print the version no longer start any `git` process; they used to start two, about 20 ms on every command. `Phel\Shared\VersionResolver` takes an optional Phel root directory. (#3407)
 - **BREAKING**: a map or set literal that repeats a constant key (keyword, string, number including ratios and big numbers, boolean or `nil`) fails with `[PHEL203] Duplicate key: :a` at the repeated key. It used to keep one entry and drop the other without a word: `{:a 1 :a 2}` read as `{:a 2}`. Symbol and call keys, `hash-map` and `hash-set` keep the last value. Lint rule `phel/duplicate-key` now reports only repeated symbol keys, so a constant key is not reported twice. (#3387)

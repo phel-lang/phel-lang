@@ -86,6 +86,20 @@ PHP fibers are cooperative on a single thread, so `pmap` overlaps IO-bound work 
     1 (await-all (map #(async (f %)) (first colls)))
     (await-all (apply map (fn [& args] (async (apply f args))) colls))))
 
+(defn pcalls
+  "Calls each of the no-argument fns `fns` concurrently via fibers and returns a seq of their results, in the order given. Like `pmap`, it overlaps IO-bound work but runs on one thread, and every call has finished when it returns."
+  {:example "(pcalls (fn [] 1) (fn [] 2)) ; => (1 2)"
+   :see-also ["pvalues" "pmap"]}
+  [& fns]
+  (apply list (pmap #(%) fns)))
+
+(defmacro pvalues
+  "Evaluates each expression in `exprs` concurrently via fibers and returns a seq of their values, in the order given. Same as `pcalls` with each expression wrapped in a fn."
+  {:example "(pvalues (+ 1 2) (* 2 3)) ; => (3 6)"
+   :see-also ["pcalls" "pmap"]}
+  [& exprs]
+  `(pcalls ~@(map (fn [e] `(fn [] ~e)) exprs)))
+
 (defn future-cancel
   "Signals the future's internal cancellation token, causing any pending or subsequent `deref` call to raise `CancelledException` (or return the timeout value for the 3-arg form). Due to AMPHP's cooperative fibers, the body keeps running until its next cancellation checkpoint; from the caller's perspective the future behaves as cancelled after this returns."
   {:example "(future-cancel (future (expensive-call)))"

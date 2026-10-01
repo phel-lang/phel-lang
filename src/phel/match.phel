@@ -236,13 +236,13 @@
                 (str "match: pattern count (" (count patterns)
                      ") does not match target count (" (count target-syms)
                      "): " patterns))))
-  (let [subs     (vec
+  (let [compiled (vec
                   (for [i :range [0 (count patterns)]]
                     (compile-pattern (get target-syms i) (get patterns i))))
-        checks   (for [s :in subs] (get s :check))
+        checks   (for [s :in compiled] (get s :check))
         bindings (vec
                   (apply concat
-                         (for [s :in subs] (get s :bindings))))]
+                         (for [s :in compiled] (get s :bindings))))]
     [(and-checks checks) bindings]))
 
 (defn- parse-clauses

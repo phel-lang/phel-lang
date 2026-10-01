@@ -13,7 +13,7 @@
 
 ;; I/O: stdout/formatting (`print`, `println`, `pr`, `prn`, `print-str`,
 ;; `println-str`, `pr-str`, `prn-str`, `format`, `printf`,
-;; `with-output-buffer`); stderr debugging (`dbg`,
+;; `with-output-buffer`, `with-out-str`); stderr debugging (`dbg`,
 ;; `dbg-write`); and file helpers (`slurp`, `spit`,
 ;; `line-seq`, `file-seq`, `read-file-lazy`, `csv-seq`, `with-open`).
 ;; Everything below the regex helpers touches the outside world.
@@ -80,15 +80,24 @@
 ;; ---------------
 
 (defmacro with-output-buffer
-  "Everything that is printed inside the body will be stored in a buffer. The result of the buffer is returned."
+  "Evaluates `body` and returns everything it printed as a string. The buffer is closed even when `body` throws. `with-out-str` is the Clojure name for it."
+  {:example "(with-output-buffer (print \"hello\")) ; => \"hello\""
+   :see-also ["with-out-str" "print-str"]}
   [& body]
-  (let [res (gensym)]
-    `(do
-       (php/ob_start)
+  `(do
+     (php/ob_start)
+     (try
        ~@body
-       (let [~res (php/ob_get_contents)]
-         (php/ob_end_clean)
-         ~res))))
+       (php/ob_get_contents)
+       (finally
+         (php/ob_end_clean)))))
+
+(defmacro with-out-str
+  "Evaluates `body` and returns everything it printed as a string. The buffer is closed even when `body` throws."
+  {:example "(with-out-str (print \"a\") (print 1)) ; => \"a1\""
+   :see-also ["with-output-buffer" "print-str" "pr-str"]}
+  [& body]
+  `(with-output-buffer ~@body))
 
 (defn- print-joined
   "Space-joins `xs`, stringifying each element with `printer`."

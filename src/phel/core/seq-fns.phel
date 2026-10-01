@@ -1410,6 +1410,17 @@ With one argument returns an infinite lazy sequence of calls to f."
      (php-indexed-array "\\Phel\\Lang\\Seq" "concat")
      (apply php/array coll1 coll2 coll3 colls)))))
 
+(defn list*
+  "Returns a seq of the leading `items` followed by the elements of `args`, the last argument. `args` is not realized past its first element, so it can be infinite."
+  {:example "(list* 1 2 [3 4]) ; => (1 2 3 4)\n(list* []) ; => nil"
+   :see-also ["list" "cons" "concat" "apply"]}
+  ([args] (seq args))
+  ;; `(cons x nil)` gives a vector, so an empty tail becomes `'()`.
+  ([a args] (cons a (or (seq args) '())))
+  ([a b args] (cons a (list* b args)))
+  ([a b c args] (cons a (list* b c args)))
+  ([a b c d & more] (cons a (apply list* b c d more))))
+
 (defn cat
   "A transducer that concatenates the contents of each input into the reduction."
   {:example "(transduce cat conj [] [[1 2] [3 4]]) ; => [1 2 3 4]"
