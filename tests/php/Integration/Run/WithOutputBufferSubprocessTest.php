@@ -35,5 +35,9 @@ final class WithOutputBufferSubprocessTest extends TestCase
             'left an output buffer open that PHP cannot close',
             $process->stdout . $process->stderr,
         );
+        self::assertStringContainsString(
+            'stay active and keep capturing output',
+            $process->stdout . $process->stderr,
+        );
     }
 }

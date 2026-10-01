@@ -80,7 +80,9 @@
 ;; ---------------
 
 (defmacro with-output-buffer
-  "Evaluates `body` and returns everything it printed as a string. The buffer is closed even when `body` throws. `with-out-str` is the Clojure name for it."
+  "Evaluates `body` and returns everything it printed as a string. The buffer is closed even when `body` throws. `with-out-str` is the Clojure name for it.
+
+  A body that opens an output buffer without PHP's removable flag cannot be captured: PHP refuses to close that buffer, so it and the one opened here stay active and keep capturing later output. This throws a `RuntimeException` in that case instead of returning the wrong output."
   {:example "(with-output-buffer (print \"hello\")) ; => \"hello\""
    :see-also ["with-out-str" "print-str"]}
   [& body]
@@ -96,7 +98,7 @@
            (if (php/ob_end_flush) (recur))))
        (if (php/> (php/ob_get_level) (php/+ level# 1))
          (throw (new \RuntimeException
-                     "with-output-buffer: the body left an output buffer open that PHP cannot close, so its output cannot be read")))
+                     "with-output-buffer: the body left an output buffer open that PHP cannot close, so its output cannot be read. That buffer and the one with-output-buffer opened stay active and keep capturing output.")))
        (if (php/> (php/ob_get_level) level#) (php/ob_get_contents) "")
        (finally
          (loop []
