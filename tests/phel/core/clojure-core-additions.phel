@@ -103,3 +103,9 @@
       (is (= "" (with-out-str (php/ob_end_clean))) "the body closed the macro's own buffer")
       (is (= outer (php/ob_get_level)) "the caller's buffer survives")
       (php/ob_end_clean))))
+
+(deftest test-hash-agrees-with-equality-across-numeric-types
+  (is (= 2 (/ 2 1)) "a whole ratio normalizes to an int")
+  (is (= (hash 2) (hash (/ 2 1))))
+  (is (= 1 1N))
+  (is (= (hash 1) (hash 1N))))
