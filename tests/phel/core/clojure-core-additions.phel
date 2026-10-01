@@ -1,5 +1,5 @@
 (ns phel-test.core.clojure-core-additions
-  (:require phel.test :refer [deftest is thrown?])
+  (:require phel.test :refer [deftest is testing thrown?])
   (:require phel.string :as s))
 
 (deftest test-with-out-str
