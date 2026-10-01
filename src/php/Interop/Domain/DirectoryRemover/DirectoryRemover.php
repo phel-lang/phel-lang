@@ -7,7 +7,7 @@ namespace Phel\Interop\Domain\DirectoryRemover;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Symfony\Component\Finder\SplFileInfo;
+use SplFileInfo;
 
 /**
  * @internal
