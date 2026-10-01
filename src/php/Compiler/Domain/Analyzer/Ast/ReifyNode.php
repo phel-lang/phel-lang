@@ -15,11 +15,13 @@ final class ReifyNode extends AbstractNode
 {
     /**
      * @param list<DefStructMethod> $methods
+     * @param list<string>          $interfaceNames
      * @param list<Symbol>          $uses
      */
     public function __construct(
         NodeEnvironmentInterface $env,
         private readonly array $methods,
+        private readonly array $interfaceNames,
         private readonly array $uses,
         ?SourceLocation $sourceLocation = null,
     ) {
@@ -32,6 +34,14 @@ final class ReifyNode extends AbstractNode
     public function getMethods(): array
     {
         return $this->methods;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getInterfaceNames(): array
+    {
+        return $this->interfaceNames;
     }
 
     /**

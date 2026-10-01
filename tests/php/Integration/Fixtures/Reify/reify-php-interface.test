@@ -1,0 +1,21 @@
+--PHEL--
+(let [n 1]
+  (reify \JsonSerializable (jsonSerialize [this] n)))
+--PHP--
+/** @var int $n_1 */
+$n_1 = 1;
+$reify__2_4 = new class($n_1) implements \JsonSerializable {
+  private $n_1;
+
+  public function __construct($n_1) {
+    $this->n_1 = $n_1;
+  }
+
+  public function jsonSerialize(): mixed {
+    $n_1 = $this->n_1;
+    $this_5 = $this;
+    return $n_1;
+  }
+};
+$class__3_6 = get_class($reify__2_4);
+$reify__2_4;

@@ -15,10 +15,14 @@ use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\MungeInterface;
 
+use function array_key_exists;
+use function array_map;
+use function array_merge;
 use function class_exists;
 use function count;
 use function interface_exists;
 use function sprintf;
+use function strtolower;
 
 /**
  * Parses the inline-implementation tail shared by `defstruct` and `defenum`:
@@ -106,11 +110,48 @@ final readonly class InterfaceImplementationsAnalyzer
             );
         }
 
+        $this->assertDistinctMethods(
+            array_merge(...array_map(static fn(DefStructInterface $interface): array => $interface->getMethods(), $interfaces)),
+            $list,
+            $context,
+        );
+
         return $interfaces;
     }
 
     /**
-     * The munged method names the interface expects, as a set.
+     * PHP rejects a class that declares a method twice, and the error only
+     * surfaces when the generated class loads. A method shared by two listed
+     * interfaces (a repeated interface, or a parent next to its child) has to
+     * be written once, under the most specific interface.
+     *
+     * @param list<DefStructMethod>          $methods
+     * @param PersistentListInterface<mixed> $list
+     */
+    public function assertDistinctMethods(array $methods, PersistentListInterface $list, string $context): void
+    {
+        $seen = [];
+        foreach ($methods as $method) {
+            $name = strtolower($method->getName()->getName());
+            if (isset($seen[$name])) {
+                throw AnalyzerException::withLocation(
+                    sprintf(
+                        '%s defines method %s more than once. List each method once, under the most specific interface or protocol.',
+                        $context,
+                        $method->getName()->getName(),
+                    ),
+                    $list,
+                    errorCode: ErrorCode::INTERFACE_ERROR,
+                );
+            }
+
+            $seen[$name] = true;
+        }
+    }
+
+    /**
+     * The munged method names the interface expects, each mapped to the
+     * return type its implementation must declare (null when there is none).
      *
      * Reflection is the source of truth, but it only works once the PHP
      * interface exists — which for a `definterface` in the very same file
@@ -120,7 +161,7 @@ final readonly class InterfaceImplementationsAnalyzer
      *
      * @param PersistentListInterface<mixed> $list
      *
-     * @return array<string, true>
+     * @return array<string, ?string>
      */
     private function expectedMethodIndex(
         PhpClassNameNode $classNode,
@@ -147,7 +188,7 @@ final readonly class InterfaceImplementationsAnalyzer
 
             $index = [];
             foreach ($declared as $methodName) {
-                $index[$this->munge->encode($methodName)] = true;
+                $index[$this->munge->encode($methodName)] = null;
             }
 
             return $index;
@@ -160,7 +201,7 @@ final readonly class InterfaceImplementationsAnalyzer
 
         $index = [];
         foreach ($reflectionClass->getMethods() as $method) {
-            $index[$method->getName()] = true;
+            $index[$method->getName()] = InterfaceMethodReturnType::of($method);
         }
 
         return $index;
@@ -168,7 +209,7 @@ final readonly class InterfaceImplementationsAnalyzer
 
     /**
      * @param PersistentListInterface<mixed> $list
-     * @param array<string, true>            $expectedMethodIndex
+     * @param array<string, ?string>         $expectedMethodIndex
      */
     private function analyzeInterfaceMethod(
         PersistentListInterface $list,
@@ -182,10 +223,10 @@ final readonly class InterfaceImplementationsAnalyzer
 
         $mungedMethodName = $this->munge->encode($methodName->getName());
 
-        if (!isset($expectedMethodIndex[$mungedMethodName])) {
+        if (!array_key_exists($mungedMethodName, $expectedMethodIndex)) {
             throw AnalyzerException::withLocation("The interface doesn't support this method: " . $methodName->getName(), $list, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
-        return $this->methodBodyAnalyzer->analyze($list, $env);
+        return $this->methodBodyAnalyzer->analyze($list, $env, $expectedMethodIndex[$mungedMethodName]);
     }
 }

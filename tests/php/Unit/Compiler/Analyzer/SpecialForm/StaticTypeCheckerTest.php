@@ -102,6 +102,12 @@ final class StaticTypeCheckerTest extends TestCase
         $this->compile('(fn ^void [] "x")');
     }
 
+    public function test_void_return_accepts_nil_tail_and_empty_body(): void
+    {
+        self::assertStringContainsString('): void', $this->compile('(fn ^void [] nil)'));
+        self::assertStringContainsString('): void', $this->compile('(fn ^void [])'));
+    }
+
     public function test_null_return_rejects_concrete_value(): void
     {
         $this->expectExceptionMessageMatches(

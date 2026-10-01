@@ -17,3 +17,14 @@
   (let [p (plain 1)]
     (is (not (php/is_a p "JsonSerializable")) "untagged struct is not JsonSerializable")
     (is (= 1 (p :a)) "untagged struct still behaves as a map")))
+
+(defstruct box [n]
+  \JsonSerializable
+  (jsonSerialize [this] n))
+
+(deftest struct-implementing-json-serializable
+  (is (= "3" (php/json_encode (box 3))) "the struct's own jsonSerialize runs"))
+
+(deftest struct-interface-method-declares-return-type
+  (let [rt (.getReturnType (new \ReflectionMethod (box 3) "jsonSerialize"))]
+    (is (= "mixed" (.getName rt)) "the method declares the interface's tentative return type")))
