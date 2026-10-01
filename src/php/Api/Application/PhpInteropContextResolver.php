@@ -10,10 +10,11 @@ use function array_slice;
 use function in_array;
 use function ltrim;
 use function preg_match;
-use function preg_match_all;
 use function preg_quote;
 use function str_replace;
 use function str_starts_with;
+use function strlen;
+use function substr;
 use function trim;
 
 /**
@@ -63,12 +64,12 @@ final readonly class PhpInteropContextResolver
 
         // (php/-> receiver method|)  or  (php/-> receiver (method|))
         if (preg_match('/\(\s*php\/->\s+(.+?)\s+\(?([A-Za-z0-9_]*)$/s', $before, $m) === 1) {
-            return $this->memberContext(PhpInteropContext::KIND_INSTANCE_MEMBER, $m, $source);
+            return $this->memberContext(PhpInteropContext::KIND_INSTANCE_MEMBER, $m, $source, $before);
         }
 
         // (php/:: Class method|)  or  (php/:: Class (method|))
         if (preg_match('/\(\s*php\/::\s+(.+?)\s+\(?([A-Za-z0-9_]*)$/s', $before, $m) === 1) {
-            return $this->memberContext(PhpInteropContext::KIND_STATIC_MEMBER, $m, $source);
+            return $this->memberContext(PhpInteropContext::KIND_STATIC_MEMBER, $m, $source, $before);
         }
 
         // \Foo/member| and (\Foo/member| , the source spelling of `php/::`
@@ -77,13 +78,13 @@ final readonly class PhpInteropContextResolver
         if (preg_match('/(?:^|[\s(\[{])(\\\\?[A-Za-z_][A-Za-z0-9_\\\\.]*)\/(\$?\w*)$/', $before, $m) === 1
             && $this->isClassReference($m[1])
         ) {
-            return $this->memberContext(PhpInteropContext::KIND_STATIC_MEMBER, $m, $source);
+            return $this->memberContext(PhpInteropContext::KIND_STATIC_MEMBER, $m, $source, $before);
         }
 
         // (.method receiver| and (.-field receiver| , where the receiver
         // follows the cursor rather than preceding it.
         if (preg_match('/\(\s*\.(-?)(\w*)$/', $before, $m) === 1) {
-            return $this->dotMemberContext($m[2], $source, $line, $col);
+            return $this->dotMemberContext($m[2], $source, $before, $line, $col);
         }
 
         // (new Foo| , (new \Foo| and the macro-output spelling (php/new \Foo|
@@ -133,14 +134,14 @@ final readonly class PhpInteropContextResolver
      * to come from the text *after* the cursor: the first token of what is
      * already typed there.
      */
-    private function dotMemberContext(string $prefix, string $source, int $line, int $col): PhpInteropContext
+    private function dotMemberContext(string $prefix, string $source, string $before, int $line, int $col): PhpInteropContext
     {
         $receiver = CursorText::firstTokenAfter($source, $line, $col);
         if ($receiver === '') {
             return PhpInteropContext::none();
         }
 
-        $class = $this->resolveReceiver($receiver, $source, $this->aliasExtractor->extract($source));
+        $class = $this->resolveReceiver($receiver, $before, $this->aliasExtractor->extract($source));
         if ($class === '') {
             return PhpInteropContext::none();
         }
@@ -155,10 +156,12 @@ final readonly class PhpInteropContextResolver
      *
      * @param array{0: string, 1: string, 2: string} $m
      */
-    private function memberContext(string $kind, array $m, string $source): PhpInteropContext
+    private function memberContext(string $kind, array $m, string $source, string $before): PhpInteropContext
     {
-        $aliases = $this->aliasExtractor->extract($source);
-        $class = $this->resolveReceiver($m[1], $source, $aliases);
+        // Bindings are looked up before the form, so the receiver itself
+        // (`dt` in `(php/-> dt (get`) is not mistaken for one.
+        $scope = substr($before, 0, strlen($before) - strlen($m[0]));
+        $class = $this->resolveReceiver($m[1], $scope, $this->aliasExtractor->extract($source));
 
         if ($class === '') {
             return PhpInteropContext::none();
@@ -276,7 +279,8 @@ final readonly class PhpInteropContextResolver
     }
 
     /**
-     * Searches the source for the type of a local binding named `$symbol`:
+     * Searches the source before the cursor for the type of a local binding
+     * named `$symbol`:
      *
      * - a `^{:tag \Type}` map or `^\Type` reader tag,
      * - a `[symbol (new Type ...)]` or `[symbol (Type. ...)]` binding,
@@ -309,11 +313,11 @@ final readonly class PhpInteropContextResolver
             return $this->mapAlias($m[1], $aliases);
         }
 
-        // [symbol (new Type ...)] / [symbol (Type/make ...)]: the first such
-        // form that types, so an earlier untyped call does not hide it.
-        preg_match_all('/\b' . $quoted . '\s+(\([^()]*)/', $source, $forms);
-        foreach ($forms[1] as $form) {
-            $class = $this->formClass($form, $aliases);
+        // [symbol (new Type ...)] / [symbol (Type/make ...)]: only the
+        // nearest such form, so a same-name binding in an earlier scope
+        // cannot type this one.
+        if (preg_match('/.*\b' . $quoted . '\s+(\([^()]*)/s', $source, $m) === 1) {
+            $class = $this->formClass($m[1], $aliases);
             if ($class !== '') {
                 return $class;
             }

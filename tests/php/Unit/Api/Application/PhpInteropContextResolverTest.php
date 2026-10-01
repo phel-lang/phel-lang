@@ -478,6 +478,30 @@ final class PhpInteropContextResolverTest extends TestCase
         self::assertSame('SU', $context->prefix);
     }
 
+    public function test_a_same_name_binding_in_another_scope_does_not_type_the_receiver(): void
+    {
+        $source = "(let [d (new DateTimeImmutable)] d)\n(let [d (make)] (.for";
+        $context = $this->resolver->resolve($source . ' d))', 2, strlen('(let [d (make)] (.for') + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_a_binding_after_the_cursor_does_not_type_the_receiver(): void
+    {
+        $source = '(.for';
+        $context = $this->resolver->resolve($source . " d)\n(let [d (new DateTimeImmutable)] d)", 1, strlen($source) + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_php_arrow_receiver_with_a_paren_hop_reads_its_binding(): void
+    {
+        $context = $this->resolveAtEnd("(let [dt (new DateTimeImmutable)]\n  (php/-> dt (for");
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
     public function test_lowercase_namespace_call_does_not_type_a_binding(): void
     {
         $source = '(let [d (str/join "a")] (.for';
