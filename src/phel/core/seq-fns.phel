@@ -1411,7 +1411,7 @@ With one argument returns an infinite lazy sequence of calls to f."
      (apply php/array coll1 coll2 coll3 colls)))))
 
 (defn list*
-  "Returns a seq of the leading `items` followed by the elements of `args`, the last argument. `args` is not realized past its first element, so it can be infinite."
+  "Returns a seq of the arguments before the last one, followed by the elements of `args`, the last argument. `args` is not realized past its first element, so it can be infinite. Returns nil when there is only an empty `args`."
   {:example "(list* 1 2 [3 4]) ; => (1 2 3 4)\n(list* []) ; => nil"
    :see-also ["list" "cons" "concat" "apply"]}
   ([args] (seq args))
