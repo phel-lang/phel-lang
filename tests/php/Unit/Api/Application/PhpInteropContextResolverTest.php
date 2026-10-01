@@ -486,6 +486,30 @@ final class PhpInteropContextResolverTest extends TestCase
         self::assertTrue($context->isNone());
     }
 
+    public function test_an_unbound_use_in_another_scope_is_not_typed(): void
+    {
+        $source = "(let [d (new DateTimeImmutable)] d)\n(defn f [] (.for";
+        $context = $this->resolver->resolve($source . ' d))', 2, strlen('(defn f [] (.for') + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_an_outer_binding_still_open_types_the_receiver(): void
+    {
+        $source = "(let [d (new DateTimeImmutable)]\n  (let [e (str 1)] e)\n  (.for";
+        $context = $this->resolver->resolve($source . ' d))', 3, strlen('  (.for') + 1);
+
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
+    public function test_a_hyphenated_name_is_not_a_binding_of_its_suffix(): void
+    {
+        $source = '(let [my-d (new DateTimeImmutable)] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
     public function test_a_binding_after_the_cursor_does_not_type_the_receiver(): void
     {
         $source = '(.for';

@@ -6,10 +6,13 @@ namespace Phel\Api\Application;
 
 use Phel\Api\Transfer\PhpInteropContext;
 
+use function array_map;
+use function array_reverse;
 use function array_slice;
 use function in_array;
 use function ltrim;
 use function preg_match;
+use function preg_match_all;
 use function preg_quote;
 use function str_replace;
 use function str_starts_with;
@@ -301,34 +304,60 @@ final readonly class PhpInteropContextResolver
             return '';
         }
 
-        $quoted = preg_quote($symbol, '/');
+        $sym = '(?<![\w\-])(?<sym>' . preg_quote($symbol, '/') . ')(?![\w\-])';
 
         // ^{:tag \Type} symbol  /  ^{:tag Type} symbol
-        if (preg_match('/\^\{[^}]*:tag\s+\\\\?([A-Za-z0-9_\\\\.]+)[^}]*\}\s+' . $quoted . '\b/', $source, $m) === 1) {
-            return $this->mapAlias($m[1], $aliases);
+        $m = $this->bindingInScope('/\^\{[^}]*:tag\s+\\\\?(?<type>[A-Za-z0-9_\\\\.]+)[^}]*\}\s+' . $sym . '/', $source);
+        if ($m !== null) {
+            return $this->mapAlias($m['type'], $aliases);
         }
 
         // ^\Type symbol  /  ^Type symbol
-        if (preg_match('/\^\\\\?([A-Za-z_][A-Za-z0-9_\\\\.]*)\s+' . $quoted . '\b/', $source, $m) === 1) {
-            return $this->mapAlias($m[1], $aliases);
+        $m = $this->bindingInScope('/\^\\\\?(?<type>[A-Za-z_][A-Za-z0-9_\\\\.]*)\s+' . $sym . '/', $source);
+        if ($m !== null) {
+            return $this->mapAlias($m['type'], $aliases);
         }
 
-        // [symbol (new Type ...)] / [symbol (Type/make ...)]: only the
-        // nearest such form, so a same-name binding in an earlier scope
-        // cannot type this one.
-        if (preg_match('/.*\b' . $quoted . '\s+(\([^()]*)/s', $source, $m) === 1) {
-            $class = $this->formClass($m[1], $aliases);
+        // [symbol (new Type ...)] / [symbol (Type/make ...)]
+        $m = $this->bindingInScope('/' . $sym . '\s+(?<form>\([^()]*)/', $source);
+        if ($m !== null) {
+            $class = $this->formClass($m['form'], $aliases);
             if ($class !== '') {
                 return $class;
             }
         }
 
         // [symbol other-symbol]  indirect binding → follow the alias.
-        if (preg_match('/\b' . $quoted . '\s+([A-Za-z_][A-Za-z0-9_\-]*)\b/', $source, $m) === 1) {
-            return $this->resolveSymbolTag($m[1], $source, $aliases, [...$seen, $symbol]);
+        $m = $this->bindingInScope('/' . $sym . '\s+(?<other>[A-Za-z_][A-Za-z0-9_\-]*)\b/', $source);
+        if ($m !== null) {
+            return $this->resolveSymbolTag($m['other'], $source, $aliases, [...$seen, $symbol]);
         }
 
         return '';
+    }
+
+    /**
+     * The nearest match of `$pattern` whose `sym` group sits in a form that is
+     * still open at the end of `$source` (the cursor), so a same-name binding
+     * in a closed sibling scope never types the receiver. Null when none is.
+     *
+     * @return array<int|string, string>|null
+     */
+    private function bindingInScope(string $pattern, string $source): ?array
+    {
+        if (preg_match_all($pattern, $source, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
+            return null;
+        }
+
+        $openAtCursor = CursorText::openParenPositions($source);
+        foreach (array_reverse($matches) as $match) {
+            $enclosing = CursorText::openParenPositions(substr($source, 0, $match['sym'][1]));
+            if ($enclosing === [] || in_array(array_last($enclosing), $openAtCursor, true)) {
+                return array_map(static fn(array $group): string => $group[0], $match);
+            }
+        }
+
+        return null;
     }
 
     /**
