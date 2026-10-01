@@ -20,7 +20,6 @@
   (is (= "world" (subs "hello world" 6)))
   (is (= "hello" (subs "hello world" 0 5)))
   (is (= "ｌｏ" (subs "ｈｅｌｌｏ" 3)) "counts multibyte characters")
-  (is (= "llo" (subs "hello" 2 nil)) "a nil end runs to the end")
   (is (thrown? \InvalidArgumentException (subs "hello" 3 2)))
   (is (thrown? \InvalidArgumentException (subs "hello" 6)))
   (is (thrown? \InvalidArgumentException (subs nil 0)))
@@ -113,3 +112,10 @@
     (is (not (= 0.5 (/ 1 2))))
     (is (not (= 2M 2)))
     (is (not (= 1.0 1M)))))
+
+(deftest test-subs-rejects-a-nil-index-as-clojure-does
+  (is (thrown? \InvalidArgumentException (subs "abcde" nil 2)))
+  (is (thrown? \InvalidArgumentException (subs "abcde" 1 nil)))
+  (is (thrown? \InvalidArgumentException (subs "abcde" nil)))
+  (is (= "bcde" (s/subs "abcde" 1 nil)) "phel.string/subs keeps reading a nil end as the end")
+  (is (= "ab" (s/subs "abcde" nil 2)) "and a nil start as 0"))

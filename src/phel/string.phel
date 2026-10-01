@@ -82,15 +82,15 @@ This is a convenience function for converting strings to character sequences. Pr
   ([separator coll] (php/implode separator (to-array coll))))
 
 (defn subs
-  "Returns the substring of s from start (inclusive) to end (exclusive). Same as core `subs`."
+  "Returns the substring of s from start (inclusive) to end (exclusive). Like core `subs`, except that a nil `start` reads as 0 and a nil or false `end` as the end of s."
   {:example "(subs \"hello world\" 0 5) ; => \"hello\""
    :see-also ["core/subs"]}
   ([s start]
    (assert-string s)
-   (phel.core/subs s start))
+   (phel.core/subs s (or start 0)))
   ([s start end]
    (assert-string s)
-   (phel.core/subs s start end)))
+   (phel.core/subs s (or start 0) (or end (php/mb_strlen s)))))
 
 (defn reverse
   "Returns s with its characters reversed."

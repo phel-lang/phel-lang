@@ -157,11 +157,15 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
   (throw (new InvalidArgumentException
               (php/. "Expected a string, got " (php/get_debug_type s)))))
 
+(defn- subs-index-expected [i]
+  (throw (new InvalidArgumentException
+              (php/. "Expected an int index for subs, got " (php/get_debug_type i)))))
+
 (defn- subs-bounds-error []
   (throw (new InvalidArgumentException "Invalid start or end index for subs")))
 
 (defn subs
-  "Returns the substring of `s` from `start` (inclusive) to `end` (exclusive), or to the end of `s` when `end` is left out. Indexes count multibyte characters. Throws `InvalidArgumentException` when `s` is not a string or an index is out of range."
+  "Returns the substring of `s` from `start` (inclusive) to `end` (exclusive), or to the end of `s` when `end` is left out. Indexes count multibyte characters. Throws `InvalidArgumentException` when `s` is not a string, an index is not an int, or an index is out of range."
   {:example "(subs \"hello world\" 6) ; => \"world\"\n(subs \"hello world\" 0 5) ; => \"hello\""
    :see-also ["str" "string/split"]}
   ;; Not `(subs s start (php/mb_strlen s))`: delegating would scan the string
@@ -170,6 +174,7 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
   ;; Bootstrap: `when`, `or` and `-` are defined after this file.
   (^string [s start]
    (if (php/is_string s) nil (subs-string-expected s))
+   (if (php/is_int start) nil (subs-index-expected start))
    (if (php/< start 0)
      (subs-bounds-error)
      (if (php/> start (php/mb_strlen s))
@@ -177,12 +182,12 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
        (php/mb_substr s start))))
   (^string [s start end]
    (if (php/is_string s) nil (subs-string-expected s))
-   (let [len  (php/mb_strlen s)
-         stop (if (php/=== nil end) len (if (php/=== false end) len end))]
-     (if (php/< start 0)
+   (if (php/is_int start) nil (subs-index-expected start))
+   (if (php/is_int end) nil (subs-index-expected end))
+   (if (php/< start 0)
+     (subs-bounds-error)
+     (if (php/< end start)
        (subs-bounds-error)
-       (if (php/< stop start)
+       (if (php/> end (php/mb_strlen s))
          (subs-bounds-error)
-         (if (php/> stop len)
-           (subs-bounds-error)
-           (php/mb_substr s start (php/- stop start))))))))
+         (php/mb_substr s start (php/- end start)))))))
