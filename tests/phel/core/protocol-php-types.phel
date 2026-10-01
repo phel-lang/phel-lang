@@ -145,3 +145,15 @@
   (is (= :default (memoized (new LogicException "x"))))
   (extend-type \Throwable Memoized (memoized [_] :throwable))
   (is (= :throwable (memoized (new LogicException "x")))))
+
+;; --- PHP class names are case-insensitive ---
+
+(defprotocol Cased (cased [x]))
+
+(extend-type \arrayobject Cased (cased [_] :symbol))
+(extend-type "SPLOBJECTSTORAGE" Cased (cased [_] :string))
+
+(deftest test-a-differently-cased-class-registers-its-declared-name
+  (is (= :symbol (cased (new ArrayObject))))
+  (is (= :string (cased (new SplObjectStorage))))
+  (is (extends? Cased "arrayobject")))

@@ -8,6 +8,7 @@
 (use Phel.Compiler.Domain.Analyzer.Environment.NodeEnvironment)
 (use Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton)
 (use Phel.Lang.Symbol)
+(use ReflectionClass)
 (use WeakMap)
 
 ;; Three loosely-related but late-loading pieces:
@@ -434,6 +435,16 @@ Maintained in parallel with `derive`'s class -> proto-class-string entry so hier
 (defn- php-class-like? [class-name]
   (or (php/class_exists class-name) (php/interface_exists class-name)))
 
+(defn- canonical-class-key
+  "A PHP class or interface name as `get_class` spells it, without the leading
+  `\\`. PHP names are case-insensitive but dispatch keys are not, so
+  `\\arrayobject` must register as `ArrayObject`. Other strings pass through."
+  [class-name]
+  (let [name (php/ltrim class-name "\\")]
+    (if (php-class-like? name)
+      (.getName (new ReflectionClass name))
+      name)))
+
 (defn- most-specific-interfaces
   "Drops each interface that another one in `interfaces` extends."
   [interfaces]
@@ -568,10 +579,10 @@ When x is an object with no implementation for its exact type, dispatch looks fo
         use-alias    (php/aget (.getUseAliases env (.getNs env)) name-str)
         php-fqn?     (or (php/str_contains name-str "\\") (php/str_contains name-str "."))]
     (cond
-      php-fqn?                        (php/ltrim (php/str_replace "." "\\" name-str) "\\")
+      php-fqn?                        (canonical-class-key (php/str_replace "." "\\" name-str))
       (php/class_exists struct-class) struct-class
-      use-alias                       (php/ltrim (.getName use-alias) "\\")
-      (php-class-like? name-str)      name-str
+      use-alias                       (canonical-class-key (.getName use-alias))
+      (php-class-like? name-str)      (canonical-class-key name-str)
       :else                           struct-class)))
 
 (defmacro extend-type
@@ -607,7 +618,7 @@ When x is an object with no implementation for its exact type, dispatch looks fo
   (let [type-key (cond
                    (nil? type-spec)                  :nil
                    (keyword? type-spec)              type-spec
-                   (php/is_string type-spec)         (php/ltrim type-spec "\\")
+                   (php/is_string type-spec)         (canonical-class-key type-spec)
                    (php/instanceof type-spec Symbol) (protocol-symbol-type-key type-spec))
         groups   (group-protocol-specs specs #(php/instanceof % Symbol))
         swaps    (reduce
@@ -656,7 +667,7 @@ When x is an object with no implementation for its exact type, dispatch looks fo
    :see-also ["satisfies?" "defprotocol" "extend-type"]}
   [protocol type-key]
   (let [dvars (get protocol :dispatch)
-        key   (if (php/is_string type-key) (php/ltrim type-key "\\") type-key)]
+        key   (if (php/is_string type-key) (canonical-class-key type-key) type-key)]
     (if (or (nil? dvars) (empty? dvars))
       false
       (every? (fn [dv]
