@@ -625,8 +625,9 @@ Equivalent to multiple `extend-type` calls."
         ;; Same parsing pattern as extend-type: symbols start a new group,
         ;; lists are methods belonging to the current header.
         groups                 (group-protocol-specs specs #(php/instanceof % Symbol))
-        proto-groups           (filter #(reify-protocol-header? (first %)) groups)
-        interface-groups       (remove #(reify-protocol-header? (first %)) groups)
+        by-kind                (group-by #(if (reify-protocol-header? (first %)) :protocol :interface) groups)
+        proto-groups           (get by-kind :protocol [])
+        interface-groups       (get by-kind :interface [])
         ;; Protocol methods lead, then each interface followed by its methods,
         ;; which is the order reify* reads them in.
         proto-methods          (reduce (fn [acc group] (concat acc (second group))) [] proto-groups)
