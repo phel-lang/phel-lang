@@ -533,6 +533,22 @@ final class PhpInteropContextResolverTest extends TestCase
         self::assertSame('DateTimeImmutable', $context->class);
     }
 
+    public function test_a_vector_passed_as_data_is_not_a_binding(): void
+    {
+        $source = '(consume [d (new DateTimeImmutable)] (.for';
+        $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_a_tagged_param_of_a_multi_arity_fn_types_the_receiver(): void
+    {
+        $source = '(defn f ([^DateTimeImmutable d] (.for';
+        $context = $this->resolver->resolve($source . ' d)))', 1, strlen($source) + 1);
+
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
     public function test_a_binding_after_the_cursor_does_not_type_the_receiver(): void
     {
         $source = '(.for';

@@ -48,6 +48,18 @@ final readonly class PhpInteropContextResolver
         'new', 'aget', 'aset', 'apush', 'aunset', 'ref', 'callable', 'oset',
     ];
 
+    /** Forms whose vector holds `[name value ...]` pairs. */
+    private const array PAIR_BINDERS = [
+        'let', 'loop', 'binding', 'for', 'dofor', 'doseq', 'dotimes', 'if-let', 'when-let',
+        'if-some', 'when-some', 'when-first', 'with-open', 'with-redefs',
+    ];
+
+    /**
+     * Forms whose vector holds parameters. An arity list `([x] ...)` has no
+     * head at all.
+     */
+    private const array PARAM_BINDERS = ['', 'fn', 'defn', 'defn-', 'defmacro', 'defmacro-', 'defmethod'];
+
     public function __construct(
         private PhpImportAliasExtractor $aliasExtractor = new PhpImportAliasExtractor(),
         private PhpInteropReflector $reflector = new PhpInteropReflector(),
@@ -341,10 +353,11 @@ final readonly class PhpInteropContextResolver
 
     /**
      * The nearest match of `$pattern` whose `sym` group is a binding visible at
-     * the end of `$source` (the cursor): it sits directly in a `[...]` vector,
-     * the form around that vector is still open, and with `$namePosition` it
-     * is a name slot of a `[name value ...]` pair vector. So a call argument
-     * (`(f d (new Foo))`) or a binding in a closed sibling scope never types
+     * the end of `$source` (the cursor): it sits directly in the vector of a
+     * binding form (`let`, `loop`, `fn` params, ...) that is still open there.
+     * With `$namePosition` the form must take `[name value ...]` pairs and the
+     * match must be in a name slot. So a call argument (`(f d (new Foo))`), a
+     * vector passed as data, or a binding in a closed sibling scope never types
      * the receiver. Null when no match qualifies.
      *
      * @return array<int|string, string>|null
@@ -363,17 +376,23 @@ final readonly class PhpInteropContextResolver
                 continue;
             }
 
-            $enclosing = CursorText::openParenPositions(substr($source, 0, $vector));
-            if ($enclosing === [] || !in_array(array_last($enclosing), $openAtCursor, true)) {
+            $form = array_last(CursorText::openParenPositions(substr($source, 0, $vector)));
+            if ($form === null || !in_array($form, $openAtCursor, true)) {
                 continue;
             }
 
-            [$before] = $this->tokenizer->topLevel(substr($source, $vector + 1, $offset - $vector - 1), true);
-            if ($namePosition && count($before) % 2 !== 0) {
-                continue;
-            }
+            [$headTokens] = $this->tokenizer->topLevel(substr($source, $form + 1, $vector - $form - 1), true);
+            $head = $headTokens[0] ?? '';
+            [$slots] = $this->tokenizer->topLevel(substr($source, $vector + 1, $offset - $vector - 1), true);
+            $pairs = in_array($head, self::PAIR_BINDERS, true);
 
-            return array_map(static fn(array $group): string => $group[0], $match);
+            $isBinding = $namePosition
+                ? $pairs && count($slots) % 2 === 0
+                : $pairs || in_array($head, self::PARAM_BINDERS, true);
+
+            if ($isBinding) {
+                return array_map(static fn(array $group): string => $group[0], $match);
+            }
         }
 
         return null;
