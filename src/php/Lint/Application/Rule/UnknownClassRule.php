@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Rule;
 
+use Composer\Autoload\ClassLoader;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
@@ -120,12 +121,29 @@ final readonly class UnknownClassRule implements LintRuleInterface
         return DiagnosticBuilder::fromForm($this->code(), $message, $uri, $head);
     }
 
+    /**
+     * Lint must not run project code, so no autoloader is invoked: a class is
+     * loadable when it is already declared, or when a Composer loader knows a
+     * file for it. A class only a custom autoloader can find is reported,
+     * which a warning tolerates.
+     */
     private function isLoadable(string $class): bool
     {
-        return class_exists($class)
-            || interface_exists($class)
-            || trait_exists($class)
-            || enum_exists($class);
+        if (class_exists($class, false)
+            || interface_exists($class, false)
+            || trait_exists($class, false)
+            || enum_exists($class, false)
+        ) {
+            return true;
+        }
+
+        foreach (ClassLoader::getRegisteredLoaders() as $loader) {
+            if ($loader->findFile($class) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

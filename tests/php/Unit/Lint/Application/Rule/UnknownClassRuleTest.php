@@ -15,6 +15,24 @@ use function array_map;
 
 final class UnknownClassRuleTest extends RuleTestCase
 {
+    public function test_it_never_runs_an_autoloader(): void
+    {
+        $called = [];
+        $autoloader = static function (string $class) use (&$called): void {
+            $called[] = $class;
+        };
+        spl_autoload_register($autoloader);
+
+        try {
+            $diagnostics = $this->rule()->apply($this->buildAnalysis("(ns app)\n(Lint.Probe.NeverLoaded/run)\n"));
+        } finally {
+            spl_autoload_unregister($autoloader);
+        }
+
+        self::assertSame([], $called);
+        self::assertCount(1, $diagnostics);
+    }
+
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_it_flags_a_java_class_call_with_its_phel_replacement(): void
