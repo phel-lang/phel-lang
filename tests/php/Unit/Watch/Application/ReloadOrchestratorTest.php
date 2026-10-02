@@ -255,11 +255,6 @@ final readonly class FakeBuildFacade implements BuildFacadeInterface
         throw new RuntimeException('not implemented');
     }
 
-    public function unresolvedRequireMessage(string $requiredNs, string $requiringNs): ?string
-    {
-        return null;
-    }
-
     public function getOutputDirectory(): string
     {
         return '';
