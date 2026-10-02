@@ -102,3 +102,7 @@
   (let [xf (partitionv-all 2)]
     (is (= [[1 2] [3]] (into [] xf [1 2 3])))
     (is (= [[4]] (into [] xf [4])))))
+
+(deftest test-halt-when-keeps-a-result-map-with-its-old-marker-key
+  (let [rf (fn ([] {}) ([r] r) ([r x] (assoc r :phel.core/halt x)))]
+    (is (= {:phel.core/halt 2} (transduce (halt-when neg?) rf {} [1 2])))))

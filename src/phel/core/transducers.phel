@@ -134,6 +134,10 @@
          ret (reduce rf init coll)]
      (rf ret))))
 
+;; Clojure marks the halted value with a `::halt` map key, which a reduction
+;; that never halts could still produce. A private object cannot collide.
+(def- halt-when-marker (new \stdClass))
+
 (defn halt-when
   "Returns a transducer that ends the transduction at the first input for which `pred` is truthy. The whole transduction then returns that input, or `(retf (rf result) input)` when `retf` is given. Inputs that do not match pass through unchanged."
   {:example "(transduce (halt-when neg?) conj [] [1 2 -1 3]) ; => -1\n(transduce (halt-when neg? (fn [r x] [r x])) conj [] [1 -1 2]) ; => [[1] -1]\n(into [] (halt-when neg?) [1 2]) ; => [1 2]"
@@ -144,12 +148,12 @@
      (fn
        ([] (rf))
        ([result]
-        (if (and (map? result) (contains? result ::halt))
-          (get result ::halt)
+        (if (and (vector? result) (identical? halt-when-marker (first result)))
+          (second result)
           (rf result)))
        ([result input]
         (if (pred input)
-          (reduced {::halt (if retf (retf (rf result) input) input)})
+          (reduced [halt-when-marker (if retf (retf (rf result) input) input)])
           (rf result input)))))))
 
 (defn volatile!
