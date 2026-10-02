@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Command\Infrastructure;
 
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\SourceMapInformation;
 use Phel\Command\Infrastructure\SourceMapExtractor;
+use Phel\Shared\SourceMap\SupersededSourceMaps;
 use PHPUnit\Framework\TestCase;
 
 use function array_map;
@@ -32,6 +33,7 @@ final class SourceMapExtractorTest extends TestCase
 
     protected function tearDown(): void
     {
+        SupersededSourceMaps::reset();
         array_map(unlink(...), glob($this->dir . '/*') ?: []);
         rmdir($this->dir);
     }
@@ -58,6 +60,22 @@ final class SourceMapExtractorTest extends TestCase
         self::assertSame('/src/main.phel', $info->filename());
         self::assertSame('AACA', $info->mappings());
         self::assertSame(5, $info->codeStartLine());
+    }
+
+    public function test_prefers_the_header_this_process_loaded_over_the_file_on_disk(): void
+    {
+        $file = $this->dir . '/__phel_reloaded.php';
+        file_put_contents($file, "<?php\n// /src/main.phel\n// ;;AACA\nreturn 1;\n");
+        require $file;
+        $secondVersion = "<?php\n// /src/main.phel\n// ;;AAGA\nreturn 2;\n";
+        SupersededSourceMaps::keepBeforeOverwrite($file, $secondVersion);
+        file_put_contents($file, $secondVersion);
+
+        $info = $this->extractor->extractFromFile($file);
+
+        self::assertSame('/src/main.phel', $info->filename());
+        self::assertSame('AACA', $info->mappings());
+        self::assertSame(4, $info->codeStartLine());
     }
 
     public function test_extracts_sibling_map_and_phel_files_from_built_output(): void

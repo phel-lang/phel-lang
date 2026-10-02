@@ -122,6 +122,7 @@ Stateless strategy-pattern printer (see `.agnostic-ai/rules/module-shared-printe
 | `SourceMapSiblings` | naming convention for `<file>.php.map` + `<file>.phel` artifacts. Written by Build (`FileCompiler`, `SecondaryFileHarvester`), read by Command (`SourceMapExtractor`) |
 | `BuiltFilePreamble` | fixed `<?php declare(strict_types=1);` line before generated code; `prepend()` (writer: `FileCompiler`), `codeStartLine()` (reader: `SourceMapExtractor`) |
 | `InlineSourceMapComments` | `// ` / `// ;;` metadata comment prefixes for inline maps in eval'd code. Written by Compiler's `EmitterResult`, parsed by `SourceMapExtractor` + `EvaluatedCodeException` |
+| `SupersededSourceMaps` | in-memory, per-process headers of compiled files this process `require`d before they were overwritten with different code. Written by Build (`CompiledCodeCache::put`), read first by Command (`SourceMapExtractor`), so a frame of the earlier code maps through its own source map |
 
 ## Key Constraints
 

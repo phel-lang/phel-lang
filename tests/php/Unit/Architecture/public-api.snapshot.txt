@@ -2460,6 +2460,13 @@ final class Phel\Shared\SourceMap\SourceMapSiblings
   public static function mapFile(string $compiledFile): string
   public static function sourceFile(string $compiledFile): string
 
+final class Phel\Shared\SourceMap\SupersededSourceMaps
+  public const int HEADER_LINES = 4
+  public static function has(string $compiledPath): bool
+  public static function headerOf(string $compiledPath): ?array
+  public static function keepBeforeOverwrite(string $compiledPath, string $newContent): void
+  public static function reset(): void
+
 final class Phel\Shared\SourceMap\VLQ
   public function __construct()
   public function decode(string $string): array

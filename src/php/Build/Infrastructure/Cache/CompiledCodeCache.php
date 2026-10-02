@@ -8,6 +8,7 @@ use Gacela\Framework\Cache\FileCache;
 use ParseError;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\SourceMap\SupersededSourceMaps;
 
 use function array_flip;
 use function count;
@@ -66,7 +67,8 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      * Source paths whose compiled file this process was handed to `require`.
      * Their fns stay defined after an invalidation, and an error report maps
      * each frame through the file's inline source map, so `invalidate` and
-     * `clear` drop the entry but keep the file. The next `put` overwrites it.
+     * `clear` drop the entry but keep the file. The next `put` overwrites it,
+     * after {@see SupersededSourceMaps} kept the map those frames need.
      * Keyed by source path, holding the compiled path, which `clear` needs
      * after `invalidate` has removed the entry.
      *
@@ -130,6 +132,12 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
             return null;
         }
 
+        // PHP already runs other code from this path; requiring the new code
+        // there too would leave one path with two source maps.
+        if (SupersededSourceMaps::has($compiledPath)) {
+            return null;
+        }
+
         $this->entries[$sourcePath]['last_accessed'] = time();
         $this->touchedThisProcess[$sourcePath] = true;
         $this->servedThisProcess[$sourcePath] = $compiledPath;
@@ -166,6 +174,8 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         if (!$this->isValidPhp($fullPhpCode)) {
             return;
         }
+
+        SupersededSourceMaps::keepBeforeOverwrite($compiledPath, $fullPhpCode);
 
         if (!$this->fileWriter->write($compiledPath, $fullPhpCode)) {
             return;

@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- In a process that recompiles a file it loaded from the compiled cache, such as the REPL after `reload!`, `phel watch` or an nREPL session, a stack trace through a fn of the earlier version maps to the line that version had. It used to read the source map of the new code, so the line could be wrong once the edit shifted lines. Nothing extra is written to `.phel/cache/compiled/`. `Phel\Shared\SourceMap\SupersededSourceMaps` is public PHP API. (#3435)
 - **BREAKING**: `transduce` calls the reducing fn's 1-arity once on the final result, as Clojure does: `(transduce (map inc) (fn ([] []) ([r] (conj r :done)) ([r x] (conj r x))) [] [1 2])` returns `[2 3 :done]`. It used to skip that completion, including the one `(completing + inc)` supplies. A reducer with only a 2-arity, such as `(fn [a b] (max a b))`, now throws `ArgumentCountError`; wrap it in `completing`. `(transduce xf - 0 coll)` now negates its result, since `(- x)` is the completion. (#3433)
 - `with-output-buffer` closes its output buffer when the body throws. It used to leave the buffer open, so later output collected in it instead of reaching stdout. (#3417)
 - An edit to `phel-config-<env>.php`, or to any other `phel-config-<suffix>.php` Gacela reads for `APP_ENV` or a config dimension, takes effect on the next run. It used to be ignored until `phel cache:clear`, because only `phel-config.php` and `phel-config-local.php` were checked against the cached merged config. (#3426)

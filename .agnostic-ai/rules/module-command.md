@@ -52,7 +52,7 @@ Directory getters are `#[Cacheable]`.
 
 ## Key Constraints
 
-- `SourceMapExtractor` reads inline `// ` / `// ;;` header comments (eval temp files) OR sibling `<file>.map` + `<file>.phel` artifacts (built output).
+- `SourceMapExtractor` reads inline `// ` / `// ;;` header comments (eval temp files) OR sibling `<file>.map` + `<file>.phel` artifacts (built output). A header kept by `Shared\SourceMap\SupersededSourceMaps` wins over the file on disk.
 - `FilePositionExtractor::getFileLineMap()` (via `getCompiledFileLineMap`) is used by `phel test --coverage` to enumerate coverable Phel lines; keep its return shape (`[phpLine => phelLine]` + filename) stable.
 - `RuntimeErrorReportFormatter` is the ONE report an uncaught runtime error gets from `phel run`, `phel eval` and the REPL, in this order and no other: message, `at`, `data:`, frames, collapse marker, `hint:`. The message opens with `[PHELxxx] ` when the failure has an error code: a located exception's own code, otherwise whatever `RuntimeErrorCodeResolver` recognises (#3266). An exception Phel does not recognise, a user's `ex-info` included, stays uncoded. `phel run` writes it through `writeStackTrace()`, the prompt through `getRuntimeErrorReport()`. Three commands used to print three layouts of the same failure (#3264).
 - `TextExceptionPrinter::getUserFacingTraceString()` is the ONE trace filter feeding that report. It keeps only Phel fn frames (mapped to `.phel:line`, or `repl` for eval'd code) and counts the PHP-native ones into a SINGLE trailing marker; `$showInternalFrames` (what `--stack-trace` sets) renders every frame instead. The full trace still goes to the error log.

@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Run;
 
+use Phel;
+use Phel\Command\CommandFacade;
+use Phel\Lang\TypeFactory;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
+use Throwable;
 
 use function sprintf;
 
@@ -266,6 +270,31 @@ final class RunCommandTest extends AbstractTestCommand
         self::assertStringNotContainsString('cache/compiled', $output);
     }
 
+    public function test_recompiled_file_keeps_frames_of_its_first_version_mapped(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-recompiled-' . uniqid();
+        mkdir($dir);
+        $path = $dir . '/recompiled-main.phel';
+        file_put_contents($path, "(ns recompiled-main)\n\n(defn read-fifth [xs]\n  (nth xs 5))\n");
+
+        try {
+            $this->captureRunOutput($path);
+            $this->captureRunOutput($path);
+            $firstVersion = Phel::getDefinition('recompiled_main', 'read-fifth');
+            file_put_contents($path, "(ns recompiled-main)\n\n;; one\n;; two\n;; three\n\n(defn read-fifth [xs]\n  (nth xs 5))\n");
+            $this->captureRunOutput($path);
+            $firstReport = $this->runtimeErrorReport($firstVersion);
+            $this->captureRunOutput($path);
+            $secondReport = $this->runtimeErrorReport(Phel::getDefinition('recompiled_main', 'read-fifth'));
+        } finally {
+            unlink($path);
+            rmdir($dir);
+        }
+
+        self::assertMatchesRegularExpression('~#\d+ \S*recompiled-main\.phel:4 : \(phel\\\\core\\\\nth~', $firstReport);
+        self::assertMatchesRegularExpression('~#\d+ \S*recompiled-main\.phel:8 : \(phel\\\\core\\\\nth~', $secondReport);
+    }
+
     public function test_uncaught_ex_info_prints_its_data(): void
     {
         $output = $this->captureRunOutput(
@@ -346,5 +375,18 @@ PHEL);
         self::assertStringContainsString('Expanding: (broken-macro 1)', $output);
         self::assertStringContainsString('Cause: macro exploded', $output);
         self::assertMatchesRegularExpression('~Defined: .*macro-error-script\.phel:3~', $output);
+    }
+
+    private function runtimeErrorReport(mixed $readFifth): string
+    {
+        self::assertIsCallable($readFifth);
+
+        try {
+            $readFifth(TypeFactory::getInstance()->persistentVectorFromArray([]));
+        } catch (Throwable $throwable) {
+            return new CommandFacade()->getRuntimeErrorReport($throwable);
+        }
+
+        self::fail('read-fifth did not throw');
     }
 }
