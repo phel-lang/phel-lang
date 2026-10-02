@@ -33,10 +33,10 @@
 ;;     `drop-last`, `drop-while`, `last`, `butlast`, `slice`, `subvec`.
 ;;   - Generation: `iterate`, `cycle`, `repeat`, `repeatedly`, `lazy-seq`,
 ;;     `lazy-cat`, `concat`, `cat`, `interpose`, `interleave`, `sequence`.
-;;   - Shaping: `partition`, `partition-by`, `partition-all`, `split-at`,
-;;     `split-with`, `group-by`, `frequencies`, `distinct`, `dedupe`,
-;;     `reverse`, `rseq`, `reversible?`, `sort`, `sort-by`, `shuffle`,
-;;     `compact`.
+;;   - Shaping: `partition`, `partitionv`, `partition-by`, `partition-all`,
+;;     `partitionv-all`, `split-at`, `split-with`, `group-by`, `frequencies`,
+;;     `distinct`, `dedupe`, `reverse`, `rseq`, `reversible?`, `sort`,
+;;     `sort-by`, `shuffle`, `compact`.
 ;;   - Reduction forcing: `doall`, `dorun`, `realized?`.
 ;;   - Collection coercion: `into`, `set`, `vec`.
 ;;   - Persistent update: `conj`, `disj`, `get-in`, `assoc-in`, `put-in`,
@@ -1836,5 +1836,53 @@ If map has duplicated values, some keys will be ignored."
      (let [s (seq coll)]
        (when s
          (cons (vec (take n s)) (partition-all n step (nthrest s step))))))))
+
+(defn partitionv
+  "Like `partition`, but always returns each chunk as a vector. Lazy, so it works on infinite input. `step` (default `n`) is how far to advance between chunks. With a `pad` collection, a final incomplete chunk is filled from `pad` up to `n` elements; without `pad` it is dropped."
+  {:example "(partitionv 2 [1 2 3 4 5]) ; => ([1 2] [3 4])\n(partitionv 2 1 [1 2 3]) ; => ([1 2] [2 3])\n(partitionv 3 3 [:x] [1 2 3 4]) ; => ([1 2 3] [4 :x])"
+   :see-also ["partition" "partitionv-all" "splitv-at"]}
+  ;; Phel's `partition` already returns vector chunks in every arity, unlike
+  ;; Clojure's; `test-partitionv-chunks-are-vectors` pins that this holds.
+  ([n coll] (partition n coll))
+  ([n step coll] (partition n step coll))
+  ([n step pad coll] (partition n step pad coll)))
+
+(defn- assert-positive-partition-arg [fn-name arg-name value]
+  (when-not (and (php/is_int value) (php/> value 0))
+    (throw (new InvalidArgumentException
+                (str fn-name " expects a positive int " arg-name ", got " value)))))
+
+(defn partitionv-all
+  "Like `partition-all`, but always returns each chunk as a vector, including an incomplete trailing chunk. Lazy, so it works on infinite input. `step` (default `n`) is how far to advance between chunks. When called with `n` only, returns a transducer."
+  {:example "(partitionv-all 2 [1 2 3]) ; => ([1 2] [3])\n(partitionv-all 3 2 [0 1 2 3 4]) ; => ([0 1 2] [2 3 4] [4])\n(into [] (partitionv-all 2) [1 2 3]) ; => [[1 2] [3]]"
+   :see-also ["partition-all" "partitionv" "splitv-at"]}
+  ([n]
+   ;; Without this, a chunk never reaches `n` and the buffer keeps every input.
+   (assert-positive-partition-arg "partitionv-all" "chunk size" n)
+   (fn [rf]
+     (let [buf (volatile! [])]
+       (fn
+         ([] (rf))
+         ([result]
+          (let [chunk  @buf
+                result (if (empty? chunk)
+                         result
+                         (do (vreset! buf [])
+                             (unreduced (rf result chunk))))]
+            (rf result)))
+         ([result input]
+          (let [chunk (vreset! buf (conj @buf input))]
+            (if (= n (count chunk))
+              (do (vreset! buf [])
+                  (rf result chunk))
+              result)))))))
+  ([n coll]
+   (assert-positive-partition-arg "partitionv-all" "chunk size" n)
+   (partition-all n coll))
+  ([n step coll]
+   ;; A step of 0 would repartition the same input forever.
+   (assert-positive-partition-arg "partitionv-all" "chunk size" n)
+   (assert-positive-partition-arg "partitionv-all" "step" step)
+   (partition-all n step coll)))
 
 ;; Functional core

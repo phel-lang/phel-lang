@@ -1,0 +1,123 @@
+(ns phel-test.core.transducer-additions
+  (:require phel.test :refer [deftest is]))
+
+(deftest test-halt-when-returns-the-halting-input
+  (is (= -1 (transduce (halt-when neg?) conj [] [1 2 -1 3]))))
+
+(deftest test-halt-when-with-retf
+  (is (= [[1] -1] (transduce (halt-when neg? (fn [r x] [r x])) conj [] [1 -1 2]))))
+
+(deftest test-halt-when-nothing-halts
+  (is (= [1 2] (into [] (halt-when neg?) [1 2])))
+  (is (= [1 2] (transduce (halt-when neg?) conj [] [1 2])))
+  (is (= [] (into [] (halt-when neg?) []))))
+
+(deftest test-halt-when-into-returns-the-halting-input
+  (is (= -2 (into [] (halt-when neg?) [1 -2 3]))))
+
+(deftest test-halt-when-stops-consuming-input
+  (let [seen (volatile! [])]
+    (transduce (comp (map (fn [x] (vswap! seen conj x) x)) (halt-when neg?))
+               conj [] [1 -1 2 3])
+    (is (= [1 -1] @seen))))
+
+(deftest test-halt-when-composed
+  (is (= 3 (into [] (comp (map inc) (halt-when #(> % 2))) [1 2 3]))))
+
+(deftest test-halt-when-on-infinite-input
+  (is (= 5 (transduce (halt-when #(= 5 %)) conj [] (range)))))
+
+(deftest test-ensure-reduced-wraps-a-plain-value
+  (let [r (ensure-reduced 1)]
+    (is (reduced? r))
+    (is (= 1 (deref r)))))
+
+(deftest test-ensure-reduced-does-not-double-wrap
+  (let [r (ensure-reduced (reduced 1))]
+    (is (reduced? r))
+    (is (= 1 (deref r)))))
+
+(deftest test-partitionv-drops-incomplete-chunk
+  (let [result (partitionv 2 [1 2 3 4 5])]
+    (is (= '([1 2] [3 4]) result))
+    (is (every? vector? result))))
+
+(deftest test-partitionv-with-step
+  (is (= '([1 2] [2 3]) (partitionv 2 1 [1 2 3])))
+  (is (every? vector? (partitionv 2 1 '(1 2 3)))))
+
+(deftest test-partitionv-step-larger-than-n
+  (is (= '([1 2] [4 5]) (partitionv 2 3 [1 2 3 4 5 6 7]))))
+
+(deftest test-partitionv-with-pad
+  (is (= '([1 2 3] [4 :x]) (partitionv 3 3 [:x] [1 2 3 4])))
+  (is (= '([1 2 3] [4 :x :y]) (partitionv 3 3 [:x :y :z] [1 2 3 4]))))
+
+(deftest test-partitionv-pad-shorter-than-needed
+  (is (= '([1 2 3] [4]) (partitionv 3 3 [] [1 2 3 4])))
+  (is (= '([1 2 3 4] [5 :x]) (partitionv 4 4 [:x] [1 2 3 4 5]))))
+
+(deftest test-partitionv-empty-input
+  (is (= '() (partitionv 2 [])))
+  (is (= '() (partitionv 2 nil)))
+  (is (= '() (partitionv 2 1 [])))
+  (is (= '() (partitionv 2 1 [:x] []))))
+
+(deftest test-partitionv-infinite-input
+  (is (= '([0 1] [2 3]) (take 2 (partitionv 2 (range)))))
+  (is (= '([0 1] [3 4]) (take 2 (partitionv 2 3 (range)))))
+  (is (= '([0 1] [3 4]) (take 2 (partitionv 2 3 [:x] (range))))))
+
+(deftest test-partitionv-all-keeps-incomplete-chunk
+  (let [result (partitionv-all 2 [1 2 3])]
+    (is (= '([1 2] [3]) result))
+    (is (every? vector? result))))
+
+(deftest test-partitionv-all-with-step
+  (is (= '([0 1 2] [2 3 4] [4]) (partitionv-all 3 2 [0 1 2 3 4]))))
+
+(deftest test-partitionv-all-step-larger-than-n
+  (is (= '([1 2] [4 5] [7]) (partitionv-all 2 3 [1 2 3 4 5 6 7]))))
+
+(deftest test-partitionv-all-empty-input
+  (is (= '() (partitionv-all 2 [])))
+  (is (= '() (partitionv-all 2 nil)))
+  (is (= '() (partitionv-all 2 1 []))))
+
+(deftest test-partitionv-all-infinite-input
+  (is (= '([0 1] [2 3]) (take 2 (partitionv-all 2 (range)))))
+  (is (= '([0 1] [3 4]) (take 2 (partitionv-all 2 3 (range))))))
+
+(deftest test-partitionv-all-transducer
+  (is (= [[1 2] [3]] (into [] (partitionv-all 2) [1 2 3])))
+  (is (= [[1 2] [3 4]] (into [] (partitionv-all 2) [1 2 3 4])))
+  (is (= [] (into [] (partitionv-all 2) [])))
+  (is (every? vector? (into [] (partitionv-all 2) '(1 2 3)))))
+
+(deftest test-partitionv-all-transducer-early-termination
+  (is (= [[1 2]] (into [] (comp (partitionv-all 2) (take 1)) [1 2 3])))
+  (is (= [[0 1] [2 3]] (into [] (comp (partitionv-all 2) (take 2)) (range)))))
+
+(deftest test-partitionv-all-transducer-state-is-per-transduction
+  (let [xf (partitionv-all 2)]
+    (is (= [[1 2] [3]] (into [] xf [1 2 3])))
+    (is (= [[4]] (into [] xf [4])))))
+
+(deftest test-halt-when-keeps-a-result-map-with-its-old-marker-key
+  (let [rf (fn ([] {}) ([r] r) ([r x] (assoc r :phel.core/halt x)))]
+    (is (= {:phel.core/halt 2} (transduce (halt-when neg?) rf {} [1 2])))))
+
+(deftest test-partitionv-chunks-are-vectors
+  (is (every? vector? (partitionv 2 [1 2 3 4])))
+  (is (every? vector? (partitionv 2 1 [1 2 3])))
+  (is (every? vector? (partitionv 2 2 [:x] [1 2 3])))
+  (is (every? vector? (take 3 (partitionv 2 (range))))))
+
+(deftest test-partitionv-all-transducer-rejects-a-non-positive-size
+  (is (thrown? \InvalidArgumentException (partitionv-all 0)))
+  (is (thrown? \InvalidArgumentException (partitionv-all -1))))
+
+(deftest test-partitionv-all-sequence-arities-reject-a-non-positive-size-or-step
+  (is (thrown? \InvalidArgumentException (partitionv-all 0 [1 2])))
+  (is (thrown? \InvalidArgumentException (partitionv-all -1 1 [1 2])))
+  (is (thrown? \InvalidArgumentException (partitionv-all 2 0 [1 2]))))
