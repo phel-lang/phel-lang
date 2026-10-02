@@ -1,0 +1,4 @@
+(ns unknown-clojure-require-script
+  (:require [clojure.nothere :as n]))
+
+(println "must not reach here")

@@ -18,6 +18,7 @@ Core compilation pipeline: Phel source → tokens → AST → analyzed nodes →
 | Tooling | `readFormsBestEffort(code, source) → Generator` of top-level forms; never throws (parse failure ends the stream, read failure skips the form). `Generator::getReturn()` is `true` when something was dropped, which is how a caller tells a buffer with nothing to report from one nobody could read (#3292). For linting/indexing/completion over a buffer mid-edit; `Application/BestEffortFormReader` |
 | Macros | `macroexpand1`, `macroexpand` |
 | Analyzer environment | `emptyNodeEnvironment` (a fresh `NodeEnvironment` for callers outside the module), `enableDeprecationWarnings`, `withoutDeprecations` (read a source without reporting its notices) |
+| Suggestions | `findSimilarNames(typed, candidates)`: the analyzer's "did you mean" ranking (`SymbolSuggestionProvider`), for Build's missing-namespace message and Lint's `phel/unresolved-namespace` |
 | Environment | `initializeGlobalEnvironment`, `resetGlobalEnvironment`, `isGlobalEnvironmentInitialized`, `getGlobalEnvironment`, `initializeNewGlobalEnvironment`, `setGlobalEnvironment` |
 | Namespace state | `getNamespaceEnvironmentData`, `restoreNamespaceEnvironmentData` |
 | Debugging | `enableDebugLineTap`, `disableDebugLineTap` |

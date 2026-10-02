@@ -302,4 +302,11 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         return $this->getFactory()
             ->withoutDeprecations($work);
     }
+
+    public function findSimilarNames(string $typed, array $candidates): array
+    {
+        return $this->getFactory()
+            ->createSymbolSuggestionProvider()
+            ->findSimilar($typed, $candidates);
+    }
 }
