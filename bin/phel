@@ -44,6 +44,7 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
         return;
     }
 
+    $invocation = array_values(array_map('strval', (array) ($_SERVER['argv'] ?? [])));
     $decision = OpcacheReexec::decide(
         opcacheLoaded: extension_loaded('Zend OPcache'),
         fileCacheConfigured: (string) ini_get('opcache.file_cache') !== '',
@@ -51,6 +52,10 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
         pcntlAvailable: function_exists('pcntl_exec'),
         fileCacheDir: $fileCacheDir,
         reexecAlreadyDone: getenv(OpcacheReexec::REEXEC_DONE_ENV) !== false,
+        compilesNothing: OpcacheReexec::compilesNothing($invocation),
+        isMacOs: PHP_OS_FAMILY === 'Darwin',
+        optedIn: getenv('PHEL_OPCACHE_REEXEC') !== false,
+        loadsManyFiles: OpcacheReexec::loadsManyFiles($invocation),
     );
 
     if (!$decision->shouldReexec) {

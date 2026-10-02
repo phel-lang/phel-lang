@@ -2256,7 +2256,9 @@ final readonly class Phel\Shared\Performance\OpcacheFileCachePruner
 
 final class Phel\Shared\Performance\OpcacheReexec
   public const string REEXEC_DONE_ENV = 'PHEL_OPCACHE_REEXEC_DONE'
-  public static function decide(bool $opcacheLoaded, bool $fileCacheConfigured, bool $optedOut, bool $pcntlAvailable, string $fileCacheDir, bool $reexecAlreadyDone = false): Phel\Shared\Performance\OpcacheReexecDecision
+  public static function compilesNothing(array $argv): bool
+  public static function decide(bool $opcacheLoaded, bool $fileCacheConfigured, bool $optedOut, bool $pcntlAvailable, string $fileCacheDir, bool $reexecAlreadyDone = false, bool $compilesNothing = false, bool $isMacOs = false, bool $optedIn = false, bool $loadsManyFiles = false): Phel\Shared\Performance\OpcacheReexecDecision
+  public static function loadsManyFiles(array $argv): bool
 
 final readonly class Phel\Shared\Performance\OpcacheReexecDecision
   public readonly array $flags
