@@ -78,6 +78,7 @@ Tooling:
 - `phel mutate` compiles at optimization level 0 whatever the config says. At level 2 every mutant used to survive. (#3396)
 - `phel doc --format json` and the API reference link special forms to their current guide sections, and `:see-also` entries name real fns. (#3371)
 - `build/preload.php` preloads every module's pillars, found at startup. The hand-kept list missed eight modules and named three deleted files. (#3410)
+- A failing `(is (= expected actual))` prints `expected:` and `actual:`, and its diff names the path of each change inside nested maps and vectors: `~ [:b :c 2] 3 -> 4`, `+ [:b :e] 5`, `- [:x] 1`. The diff used to repeat the whole subtree under the top-level key. A failing `(is (not (= a b)))` now says `but is: = to` instead of `but is not: = to`. (#3471)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 
