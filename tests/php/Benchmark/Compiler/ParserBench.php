@@ -7,7 +7,7 @@ namespace PhelTest\Benchmark\Compiler;
 use Phel;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
-use PhelTest\Benchmark\Compiler\Fixtures\CoreCorpus;
+use PhelTest\Benchmark\Fixtures\CoreCorpus;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;

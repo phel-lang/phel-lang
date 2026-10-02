@@ -9,7 +9,7 @@ use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\CompiledSourceHash;
 use Phel\Shared\CompileOptions;
-use PhelTest\Benchmark\Compiler\Fixtures\CoreCorpus;
+use PhelTest\Benchmark\Fixtures\CoreCorpus;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
