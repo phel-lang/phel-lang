@@ -324,8 +324,10 @@ final class FileRunnerTest extends TestCase
         );
     }
 
-    public function test_throws_when_ad_hoc_script_requires_a_missing_namespace(): void
+    public function test_leaves_a_missing_ad_hoc_require_to_the_scripts_ns_form(): void
     {
+        // The script's own `ns` form reports it, pointing at the require in
+        // the file; resolution here could only name the two namespaces.
         $script = $this->tmpDir . '/demo.phel';
         file_put_contents($script, "(ns demo (:require some.missing.ns))\n");
 
@@ -337,16 +339,22 @@ final class FileRunnerTest extends TestCase
         // The script is not under the configured dirs, so it is absent from the
         // resolved set and the run takes the ad-hoc fallback path.
         $buildFacade->method('getDependenciesForNamespace')->willReturn([$coreInfo]);
-        $buildFacade->method('evalFile')->willReturn(new CompiledFile('', '', '', false));
+
+        $evalled = [];
+        $buildFacade->method('evalFile')->willReturnCallback(
+            static function (string $file) use (&$evalled): CompiledFile {
+                $evalled[] = $file;
+                return new CompiledFile($file, '', '', false);
+            },
+        );
 
         $commandFacade = $this->createStub(CommandFacadeInterface::class);
         $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
-        $this->expectException(ExtractorException::class);
-        $this->expectExceptionMessage("Cannot find namespace 'some.missing.ns' required by 'demo'");
-
         $this->createFileRunner($buildFacade, $commandFacade)->run($script);
+
+        self::assertSame(['/phel/core.phel', $script], $evalled);
     }
 
     public function test_throws_when_ad_hoc_sibling_dependency_cannot_be_parsed(): void
