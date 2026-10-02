@@ -13,6 +13,7 @@ use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Transfer\LintResult;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Api\ProjectIndex;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\LintRuleCodes;
 
@@ -97,10 +98,18 @@ final readonly class LintRunner
             if ($read->failed) {
                 $fileDiagnostics = [...$semantic, ...$fileDiagnostics];
             } else {
-                // No rule owns an `ns` form the analyzer rejects, so its own
-                // error is the only word on it; dropping it reported the
-                // file clean while every command that loads it fails (#3457).
-                $fileDiagnostics = [...$this->nsFormErrors($read->forms, $semantic, $fileDiagnostics), ...$fileDiagnostics];
+                // Like a syntax error, a superseded form stops `phel run`, so
+                // it is reported under the analyzer's code, with no rule to
+                // switch it off (#3456). No rule owns an `ns` form the analyzer
+                // rejects either, so its own error is the only word on it;
+                // dropping it reported the file clean while every command that
+                // loads it fails (#3457).
+                $superseded = $this->supersededForms($semantic);
+                $fileDiagnostics = [
+                    ...$superseded,
+                    ...$this->nsFormErrors($read->forms, $semantic, [...$superseded, ...$fileDiagnostics]),
+                    ...$fileDiagnostics,
+                ];
             }
 
             // A rule crash is a fact about the linter, not about the file, and
@@ -147,6 +156,19 @@ final readonly class LintRunner
             static fn(Diagnostic $d): bool => $d->startLine >= $start->getLine()
                 && $d->startLine <= $end->getLine()
                 && !isset($reported[$d->startLine . ':' . $d->startCol . ':' . $d->message]),
+        ));
+    }
+
+    /**
+     * @param list<Diagnostic> $diagnostics
+     *
+     * @return list<Diagnostic>
+     */
+    private function supersededForms(array $diagnostics): array
+    {
+        return array_values(array_filter(
+            $diagnostics,
+            static fn(Diagnostic $diagnostic): bool => $diagnostic->code === ErrorCode::SUPERSEDED_FORM->value,
         ));
     }
 

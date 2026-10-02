@@ -1,0 +1,8 @@
+(ns fixtures.superseded-form)
+
+(def v 1)
+
+(php/new \DateTime)
+(php/-> (new \DateTime) (format "Y"))
+(php/:: \DateTime createFromFormat "Y" "2024")
+(set-var (var v) 2)

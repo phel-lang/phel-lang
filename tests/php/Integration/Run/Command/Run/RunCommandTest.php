@@ -98,6 +98,32 @@ final class RunCommandTest extends AbstractTestCommand
         self::assertStringNotContainsString('must not reach here', $output);
     }
 
+    /**
+     * `require` is a `phel.repl` macro, so in a file it used to fall through to
+     * "Did you mean 'reduce'?" (#3476).
+     */
+    public function test_a_top_level_require_points_at_the_ns_form(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-top-level-require-' . uniqid();
+        mkdir($dir);
+        $path = $dir . '/top-level-require-script.phel';
+        file_put_contents($path, "(ns top-level-require-script)\n\n(require phel.string :as s)\n\n(println \"must not reach here\")\n");
+
+        try {
+            $output = $this->captureRunOutput($path);
+        } finally {
+            unlink($path);
+            rmdir($dir);
+        }
+
+        self::assertStringContainsString(
+            "[PHEL001] Cannot resolve symbol 'require': require is only available in the REPL; use (:require ...) inside ns",
+            $output,
+        );
+        self::assertStringNotContainsString('Did you mean', $output);
+        self::assertStringNotContainsString('must not reach here', $output);
+    }
+
     public function test_requiring_a_missing_namespace_returns_failure_exit_code(): void
     {
         ob_start();

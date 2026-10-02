@@ -86,7 +86,7 @@ final class ErrorCodeCatalog
                 title: 'Undefined symbol',
                 summary: 'The analyzer reached a symbol that is bound nowhere: not in the current namespace, not in a required namespace, and not in a local binding.',
                 example: '(undefined-fn 1 2)',
-                fix: 'Check the spelling, require the namespace that defines it, or define it before the call.',
+                fix: 'Check the spelling, require the namespace that defines it, or define it before the call. `require` itself is a REPL helper: in a file, write `(:require ...)` inside the `ns` form.',
             ),
             new ErrorCodeExplanation(
                 code: ErrorCode::ARITY_ERROR,
