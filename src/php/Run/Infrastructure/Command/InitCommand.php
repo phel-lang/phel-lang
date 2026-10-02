@@ -9,6 +9,7 @@ use Phel\Run\Domain\Init\NamespaceNormalizer;
 use Phel\Run\Domain\Init\ProjectTemplateGenerator;
 use Phel\Run\Domain\Init\ProjectTemplateScaffolder;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\VersionFinder;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -45,6 +46,8 @@ final class InitCommand extends Command
 
     private const string DIR_OUT = 'out';
 
+    private const string COMPOSER_JSON = 'composer.json';
+
     public function __construct(
         private readonly ProjectTemplateGenerator $templateGenerator = new ProjectTemplateGenerator(),
         private readonly NamespaceNormalizer $namespaceNormalizer = new NamespaceNormalizer(),
@@ -58,8 +61,8 @@ final class InitCommand extends Command
         $this->setName('init')
             ->setDescription('Initialize a new Phel project with minimal configuration')
             ->setHelp(<<<'HELP'
-Scaffolds phel-config.php, a main namespace, a test, and .gitignore in the
-current directory. Use --template to start from a bundled example.
+Scaffolds phel-config.php, a main namespace, a test, .gitignore and, when
+there is none, composer.json in the current directory. Use --template to start from a bundled example.
 
 <info>Examples:</info>
   <comment>phel init my-app</comment>                Flat layout in the current directory
@@ -204,6 +207,10 @@ HELP)
             return Command::FAILURE;
         }
 
+        if (!$this->createComposerJson($cwd, $output, $dryRun)) {
+            return Command::FAILURE;
+        }
+
         if (!$noGitignore) {
             $this->createFile(
                 $cwd . '/.gitignore',
@@ -338,6 +345,28 @@ HELP)
         return true;
     }
 
+    /**
+     * Never overwritten, not even with --force: an existing composer.json holds
+     * the project's other dependencies.
+     */
+    private function createComposerJson(string $cwd, OutputInterface $output, bool $dryRun): bool
+    {
+        if (file_exists($cwd . '/' . self::COMPOSER_JSON)) {
+            $output->writeln(sprintf('<comment>%s already exists, keeping it</comment>', self::COMPOSER_JSON));
+
+            return true;
+        }
+
+        return $this->createFile(
+            $cwd . '/' . self::COMPOSER_JSON,
+            $this->templateGenerator->generateComposerJson(VersionFinder::LATEST_VERSION),
+            self::COMPOSER_JSON,
+            $output,
+            force: false,
+            dryRun: $dryRun,
+        );
+    }
+
     private function printTemplates(OutputInterface $output): void
     {
         $output->writeln('<info>Available templates:</info>');
@@ -365,7 +394,8 @@ HELP)
             return Command::FAILURE;
         }
 
-        foreach ($this->templateScaffolder->files($template, $projectName) as $relativePath => $content) {
+        $files = $this->templateScaffolder->files($template, $projectName);
+        foreach ($files as $relativePath => $content) {
             $fullPath = $cwd . '/' . $relativePath;
 
             if (!$dryRun && !$this->ensureParentDir($fullPath, $output)) {
@@ -375,6 +405,12 @@ HELP)
             if (!$this->createFile($fullPath, $content, $relativePath, $output, $force, $dryRun)) {
                 return Command::FAILURE;
             }
+        }
+
+        // The bundled templates ship their own manifest; one that does not
+        // still gets the one a plain init writes.
+        if (!isset($files[self::COMPOSER_JSON]) && !$this->createComposerJson($cwd, $output, $dryRun)) {
+            return Command::FAILURE;
         }
 
         if (!$dryRun) {

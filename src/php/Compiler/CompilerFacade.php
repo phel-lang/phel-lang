@@ -159,6 +159,16 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     }
 
     /**
+     * @throws AnalyzerException
+     */
+    public function rejectSupersededForms(mixed $form): void
+    {
+        $this->getFactory()
+            ->createSupersededFormRejector()
+            ->rejectIfWritten($form);
+    }
+
+    /**
      * @return Generator<int, bool|float|int|string|TypeInterface|null, mixed, bool>
      */
     public function readFormsBestEffort(
@@ -291,5 +301,12 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     {
         return $this->getFactory()
             ->withoutDeprecations($work);
+    }
+
+    public function findSimilarNames(string $typed, array $candidates): array
+    {
+        return $this->getFactory()
+            ->createSymbolSuggestionProvider()
+            ->findSimilar($typed, $candidates);
     }
 }

@@ -60,6 +60,29 @@ final class RunCommandTest extends AbstractTestCommand
         self::assertStringNotContainsString('juxt', $output);
     }
 
+    public function test_requiring_a_misspelled_phel_namespace_fails_with_a_suggestion(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/misspelled-phel-require-script.phel',
+        );
+
+        self::assertStringContainsString(
+            "Cannot find namespace 'phel.strng' required by 'misspelled-phel-require-script'. Did you mean 'phel.string'?",
+            $output,
+        );
+        self::assertStringNotContainsString('must not reach here', $output);
+    }
+
+    public function test_requiring_a_clojure_namespace_with_no_phel_target_fails(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/unknown-clojure-require-script.phel',
+        );
+
+        self::assertStringContainsString("Cannot find namespace 'clojure.nothere'", $output);
+        self::assertStringNotContainsString('must not reach here', $output);
+    }
+
     /**
      * Written to a temp dir at run time: a committed copy under tests/ is
      * reached by other tests' source scans and fails them all.
@@ -84,6 +107,32 @@ final class RunCommandTest extends AbstractTestCommand
             $output,
         );
         self::assertStringNotContainsString('add (:require ...)', $output);
+        self::assertStringNotContainsString('must not reach here', $output);
+    }
+
+    /**
+     * `require` is a `phel.repl` macro, so in a file it used to fall through to
+     * "Did you mean 'reduce'?" (#3476).
+     */
+    public function test_a_top_level_require_points_at_the_ns_form(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-top-level-require-' . uniqid();
+        mkdir($dir);
+        $path = $dir . '/top-level-require-script.phel';
+        file_put_contents($path, "(ns top-level-require-script)\n\n(require phel.string :as s)\n\n(println \"must not reach here\")\n");
+
+        try {
+            $output = $this->captureRunOutput($path);
+        } finally {
+            unlink($path);
+            rmdir($dir);
+        }
+
+        self::assertStringContainsString(
+            "[PHEL001] Cannot resolve symbol 'require': require is only available in the REPL; use (:require ...) inside ns",
+            $output,
+        );
+        self::assertStringNotContainsString('Did you mean', $output);
         self::assertStringNotContainsString('must not reach here', $output);
     }
 

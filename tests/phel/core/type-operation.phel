@@ -570,6 +570,7 @@
   (is (true? (seqable? "")) "seqable? on empty string")
   (is (true? (seqable? nil)) "seqable? on nil")
   (is (true? (seqable? (php-indexed-array 1 2))) "seqable? on php array")
+  (is (true? (seqable? (new ArrayIterator (php-indexed-array 1 2)))) "seqable? on a PHP Traversable, which seq accepts")
   (is (false? (seqable? 42)) "seqable? on integer")
   (is (false? (seqable? 1.5)) "seqable? on float")
   (is (false? (seqable? true)) "seqable? on boolean")

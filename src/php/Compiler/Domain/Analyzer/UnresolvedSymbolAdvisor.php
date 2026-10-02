@@ -40,6 +40,10 @@ final readonly class UnresolvedSymbolAdvisor
 
     public function exceptionFor(Symbol $symbol): AnalyzerException
     {
+        if ($symbol->getFullName() === 'require') {
+            return AnalyzerException::replOnlyRequire($symbol);
+        }
+
         $alias = $symbol->getNamespace();
 
         if ($alias === null) {

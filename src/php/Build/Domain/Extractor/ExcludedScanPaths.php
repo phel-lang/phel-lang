@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Extractor;
 
+use function dirname;
 use function in_array;
 use function strlen;
 
@@ -62,7 +63,9 @@ final readonly class ExcludedScanPaths
         array $excludedDirectories = [],
         private string $destDirBasename = '',
     ) {
-        $this->absolutePrefixes = $this->normalizePrefixes($excludedDirectories);
+        // Phel's own PHP sources (about 1,200 files, no Phel) sit under the
+        // internal `src/` that every run scans and every warm run recounts.
+        $this->absolutePrefixes = $this->normalizePrefixes([...$excludedDirectories, dirname(__DIR__, 3)]);
     }
 
     public static function none(): self

@@ -23,9 +23,10 @@ use function mkdir;
 use const JSON_THROW_ON_ERROR;
 
 /**
- * Incremental lint cache: keyed by file-hash + analyzer version + rule-set
- * fingerprint so stale entries self-invalidate. Stores per-file diagnostic
- * payloads under `.phel/lint-cache/`. v1 uses a single JSON index file.
+ * Incremental lint cache: keyed by file hash and a {@see LintCacheFingerprint}
+ * (Phel release, rule set, settings) so stale entries self-invalidate. Stores
+ * per-file diagnostic payloads under `.phel/lint-cache/`. v1 uses a single
+ * JSON index file.
  *
  * The cache is opt-in: callers pass an absolute base directory (usually
  * the project root + `.phel/lint-cache/`). When the directory cannot be

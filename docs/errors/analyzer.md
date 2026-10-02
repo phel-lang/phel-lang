@@ -30,7 +30,7 @@ The analyzer reached a symbol that is bound nowhere: not in the current namespac
 (undefined-fn 1 2)
 ```
 
-**Fix:** Check the spelling, require the namespace that defines it, or define it before the call.
+**Fix:** Check the spelling, require the namespace that defines it, or define it before the call. `require` itself is a REPL helper: in a file, write `(:require ...)` inside the `ns` form.
 
 ## PHEL002: Wrong number of arguments
 
