@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Config;
 
+use Gacela\Framework\Config\AppEnv;
 use Gacela\Framework\Config\Config;
+use Gacela\Framework\Config\MergedConfigCache;
 use Gacela\Framework\Testing\ContainerFixture;
 use Phel\Config\PhelConfig;
 use Phel\Phel;
@@ -20,7 +22,13 @@ final class MergedConfigCacheInvalidationTest extends TestCase
 
     use ContainerFixture;
 
+    private const int BASE_MTIME_OFFSET = -100;
+
     private string $projectDir = '';
+
+    private string|false $previousAppEnv = false;
+
+    private int $lastConfigMtime = 0;
 
     protected function setUp(): void
     {
@@ -28,10 +36,13 @@ final class MergedConfigCacheInvalidationTest extends TestCase
         $this->projectDir = sys_get_temp_dir() . '/phel-merged-config-' . uniqid('', true);
         mkdir($this->projectDir);
         Phel::resetAutoDetectedConfig();
+        $this->previousAppEnv = getenv('APP_ENV');
+        putenv('APP_ENV');
     }
 
     protected function tearDown(): void
     {
+        putenv($this->previousAppEnv === false ? 'APP_ENV' : 'APP_ENV=' . $this->previousAppEnv);
         $this->removeDir($this->projectDir);
         Phel::resetAutoDetectedConfig();
         $this->resetContainer();
@@ -40,12 +51,11 @@ final class MergedConfigCacheInvalidationTest extends TestCase
     public function test_editing_phel_config_invalidates_the_persisted_merged_cache(): void
     {
         $this->writeConfig(['first/dir']);
-        Phel::bootstrap($this->projectDir);
+        $this->bootstrapUntilCached();
         self::assertSame(['first/dir'], Config::getInstance()->get(PhelConfig::SRC_DIRS));
 
-        // The merged config is now persisted on disk under the project's
-        // .phel/cache. Re-bootstrapping with a changed config must pick up the
-        // new value instead of replaying the stale cached one.
+        // Re-bootstrapping with a changed config must pick up the new value
+        // instead of replaying the stale cached one.
         $this->resetContainer();
         $this->writeConfig(['second/dir']);
         Phel::bootstrap($this->projectDir);
@@ -60,7 +70,7 @@ final class MergedConfigCacheInvalidationTest extends TestCase
         self::assertSame(['stable/dir'], Config::getInstance()->get(PhelConfig::SRC_DIRS));
 
         // Re-bootstrapping with an unchanged config takes the fast path
-        // (fingerprint matches, the persisted cache is reused) and must still
+        // (the persisted cache is reused) and must still
         // expose the cached values rather than an empty or broken config.
         $this->resetContainer();
         Phel::bootstrap($this->projectDir);
@@ -68,20 +78,56 @@ final class MergedConfigCacheInvalidationTest extends TestCase
         self::assertSame(['stable/dir'], Config::getInstance()->get(PhelConfig::SRC_DIRS));
     }
 
+    public function test_editing_an_env_config_invalidates_the_persisted_merged_cache(): void
+    {
+        putenv('APP_ENV=prod');
+        $this->writeConfig([]);
+        $this->writeConfig(['prod1/dir'], 'prod');
+        $this->bootstrapUntilCached();
+        self::assertSame(['prod1/dir'], Config::getInstance()->get(PhelConfig::SRC_DIRS));
+
+        $this->resetContainer();
+        $this->writeConfig(['prod2/dir'], 'prod');
+        Phel::bootstrap($this->projectDir);
+
+        self::assertSame(['prod2/dir'], Config::getInstance()->get(PhelConfig::SRC_DIRS));
+    }
+
+    /**
+     * Gacela does not persist config read from a path touched this second,
+     * since its stamp could not tell a second edit in the same second. The
+     * project dir is a watched path, so it is backdated like the config files.
+     */
+    private function bootstrapUntilCached(): void
+    {
+        touch($this->projectDir, self::BASE_MTIME_OFFSET + time());
+        clearstatcache();
+        Phel::bootstrap($this->projectDir);
+
+        $config = Config::getInstance();
+        self::assertTrue(new MergedConfigCache($config->getCacheDir(), AppEnv::current(), $config->getAppRootDir())->exists());
+    }
+
     /**
      * @param list<string> $srcDirs
      */
-    private function writeConfig(array $srcDirs): void
+    private function writeConfig(array $srcDirs, string $env = ''): void
     {
-        $list = "'" . implode("', '", $srcDirs) . "'";
+        $list = $srcDirs === [] ? '' : "'" . implode("', '", $srcDirs) . "'";
+        $file = $this->projectDir . '/' . ($env === '' ? Phel::PHEL_CONFIG_FILE_NAME : 'phel-config-' . $env . '.php');
         file_put_contents(
-            $this->projectDir . '/' . Phel::PHEL_CONFIG_FILE_NAME,
+            $file,
             <<<PHP
             <?php
             use Phel\\Config\\PhelConfig;
             return (new PhelConfig())->withSrcDirs([{$list}]);
             PHP,
         );
-    }
 
+        // Each write lands in the past and later than the one before, so
+        // Gacela can persist the cache and still tell the edit apart.
+        $this->lastConfigMtime = $this->lastConfigMtime === 0 ? self::BASE_MTIME_OFFSET + time() : $this->lastConfigMtime + 10;
+        touch($file, $this->lastConfigMtime);
+        clearstatcache(true, $file);
+    }
 }

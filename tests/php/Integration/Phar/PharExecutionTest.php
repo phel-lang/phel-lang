@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Phar;
 
+use Phar;
+use PharFileInfo;
 use PhelTest\Support\RemoveDirTrait;
 use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\TestCase;
+use RecursiveIteratorIterator;
 
 use function dirname;
 use function sprintf;
+use function str_starts_with;
 
 /**
  * End-to-end test that runs the built `phel.phar` against a minimal user
@@ -192,6 +196,22 @@ final class PharExecutionTest extends TestCase
             'workers must actually run tests, not report 0 (the #2672 symptom)',
         );
         self::assertMatchesRegularExpression('/Error:\s+0/', $test['stdout']);
+    }
+
+    public function test_phar_ships_no_warmed_gacela_cache(): void
+    {
+        // Gacela serves a cache that `cache:warm` wrote without checking any
+        // source, until the next warm or `cache:clear`. One shipped in the
+        // PHAR would answer for every user's config.
+        $shipped = [];
+        /** @var PharFileInfo $file */
+        foreach (new RecursiveIteratorIterator(new Phar($this->pharPath)) as $file) {
+            if (str_starts_with($file->getFilename(), 'gacela-')) {
+                $shipped[] = (string) $file;
+            }
+        }
+
+        self::assertSame([], $shipped);
     }
 
     public function test_phar_ships_shell_completion_scripts(): void
