@@ -1,0 +1,34 @@
+(ns phel-test.core.seq-nil-element
+  (:require phel.test :refer [deftest is]))
+
+;; `seq` and `next` read a nil element as the end of a lazy sequence or a list,
+;; so everything after it was dropped without an error (#3451). `empty?` had
+;; the same flaw and was fixed in #3025.
+
+(deftest test-seq-keeps-a-sequence-whose-first-element-is-nil
+  (is (= [nil 1] (vec (seq (map identity [nil 1])))) "lazy seq")
+  (is (= [nil 1] (vec (seq '(nil 1)))) "list")
+  (is (= [nil] (vec (seq (lazy-seq [nil])))) "a single nil")
+  (is (= :some (if (seq (filter nil? [nil])) :some :none)) "a filter that keeps nil"))
+
+(deftest test-seq-still-answers-nil-for-an-empty-sequence
+  (is (nil? (seq (map identity []))) "empty lazy seq")
+  (is (nil? (seq '())) "empty list")
+  (is (nil? (seq (lazy-seq nil))) "lazy-seq of nil"))
+
+(deftest test-next-keeps-the-rest-after-a-nil-element
+  (is (= [nil 3] (vec (next (map identity [1 nil 3])))) "lazy seq")
+  (is (= [nil 3] (vec (next (concat [1] [nil 3])))) "concat")
+  (is (= [nil 4] (vec (nnext (map identity [1 2 nil 4])))) "nnext")
+  (is (= [nil 3] (vec (next (list 1 nil 3)))) "list")
+  (is (= [nil nil 4] (vec (next (map identity [1 nil nil 4])))) "two nils in a row")
+  (is (nil? (next (map identity [1]))) "the last element still ends it"))
+
+(deftest test-an-unbounded-nil-sequence-stays-lazy
+  (is (= [nil nil] (vec (take 2 (next (repeat nil))))) "next of repeat nil")
+  (is (= [nil nil] (vec (take 2 (seq (map (constantly nil) (range)))))) "seq of an infinite nil map"))
+
+(deftest test-reduce-sees-every-element
+  (is (thrown? InvalidArgumentException
+               (reduce + (map :price [{:price 1} {:prize 2}])))
+      "a missing value reaches + instead of ending the sum"))

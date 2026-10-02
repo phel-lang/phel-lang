@@ -10,6 +10,7 @@ use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use Phel\Lang\Seq;
 use Phel\Lang\SeqInterface;
 use Traversable;
 
@@ -88,8 +89,10 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
             return null;
         }
 
+        // A nil head does not end the sequence (#3451): only a cdr that yields
+        // nothing does, and that probe pulls one element.
         $head = $cdr->first();
-        if ($head === null) {
+        if ($head === null && Seq::isEmpty($cdr)) {
             return null;
         }
 
@@ -193,7 +196,7 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
         $current = $this->rest;
         while (true) {
             $head = $current->first();
-            if ($head === null) {
+            if ($head === null && Seq::isEmpty($current)) {
                 return;
             }
 
