@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- In a process that recompiles a file it loaded from the compiled cache, such as the REPL after `reload!`, `phel watch` or an nREPL session, a stack trace through a fn of the earlier version maps to the line that version had. It used to read the source map of the new code, so the line could be wrong once the edit shifted lines. Nothing extra is written to `.phel/cache/compiled/`. `Phel\Shared\SourceMap\SupersededSourceMaps` is public PHP API. (#3435)
 - **BREAKING**: `transduce` calls the reducing fn's 1-arity once on the final result, as Clojure does: `(transduce (map inc) (fn ([] []) ([r] (conj r :done)) ([r x] (conj r x))) [] [1 2])` returns `[2 3 :done]`. It used to skip that completion, including the one `(completing + inc)` supplies. A reducer with only a 2-arity, such as `(fn [a b] (max a b))`, now throws `ArgumentCountError`; wrap it in `completing`. `(transduce xf - 0 coll)` now negates its result, since `(- x)` is the completion. (#3433)
 - The `dedupe` transducer keeps a leading `:phel/none`: `(into [] (dedupe) [:phel/none :phel/none 1])` returns `[:phel/none 1]`. It used to take `:phel/none` as its "no value yet" marker and drop it, returning `[1]`. (#3437)
 - `partition-all` throws `InvalidArgumentException` for a size or step that is not a positive int. `(partition-all 0 coll)` used to return an empty seq, and a step of 0 built a seq that never ended. (#3437)

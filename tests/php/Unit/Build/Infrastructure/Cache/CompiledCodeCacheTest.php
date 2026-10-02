@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Build\Infrastructure\Cache;
 
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
+use Phel\Shared\SourceMap\SupersededSourceMaps;
 use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
@@ -26,6 +27,7 @@ final class CompiledCodeCacheTest extends TestCase
 
     protected function tearDown(): void
     {
+        SupersededSourceMaps::reset();
         $this->removeDir($this->cacheDir);
     }
 
@@ -142,6 +144,36 @@ final class CompiledCodeCacheTest extends TestCase
         self::assertFileExists($servedPath);
         self::assertNull($cache->get($this->sourceFile, 'hash'));
         self::assertNull(new CompiledCodeCache($this->cacheDir)->get($this->sourceFile, 'hash'));
+    }
+
+    public function test_put_over_a_required_file_keeps_the_source_map_of_the_loaded_code(): void
+    {
+        $servedPath = $this->requireServedFile();
+
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash2', "// /src/test.phel\n// ;;AAGA\n\$x = 2;");
+
+        self::assertSame("// ;;AACA\n", SupersededSourceMaps::headerOf($servedPath)[2] ?? null);
+    }
+
+    public function test_get_does_not_serve_a_path_whose_loaded_code_was_overwritten(): void
+    {
+        $this->requireServedFile();
+
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash2', "// /src/test.phel\n// ;;AAGA\n\$x = 2;");
+
+        self::assertNull($cache->get($this->sourceFile, 'hash2'));
+    }
+
+    public function test_put_over_a_file_never_required_keeps_no_source_map(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash1', '$x = 1;');
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash2', '$x = 2;');
+
+        self::assertFalse(SupersededSourceMaps::has($cache->getCompiledPath($this->sourceFile, 'test\\namespace')));
+        self::assertNotNull($cache->get($this->sourceFile, 'hash2'));
     }
 
     public function test_invalidate_only_removes_targeted_file(): void
@@ -523,4 +555,15 @@ final class CompiledCodeCacheTest extends TestCase
         self::assertSame($envData, $cache->getEnvironment('test\\namespace'));
     }
 
+    private function requireServedFile(): string
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash1', "// /src/test.phel\n// ;;AACA\n\$x = 1;");
+
+        $servedPath = $cache->get($this->sourceFile, 'hash1');
+        self::assertNotNull($servedPath);
+        require $servedPath;
+
+        return $servedPath;
+    }
 }

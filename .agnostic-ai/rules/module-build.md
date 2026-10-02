@@ -107,7 +107,7 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Con
 
 ### Source maps
 
-- `FileEvaluator` compiles with source maps enabled and caches `getCodeWithSourceMap()`, so runtime errors from cache-loaded namespaces still map back to `.phel` locations via the inline `// `/`// ;;` header comments.
+- `FileEvaluator` compiles with source maps enabled and caches `getCodeWithSourceMap()`, so runtime errors from cache-loaded namespaces still map back to `.phel` locations via the inline `// `/`// ;;` header comments. `CompiledCodeCache::put` over a compiled file this process `require`d keeps its old header in `Shared\SourceMap\SupersededSourceMaps` (memory only), and `get` stops serving that path for the rest of the process, so one path never runs two versions.
 
 ### Precompiled-sibling fast path
 
