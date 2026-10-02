@@ -269,6 +269,12 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
         return $this->prepend($x);
     }
 
+    /**
+     * Only an int indexes a vector or list. `contains?` and map
+     * destructuring ask with any key, which reads as absent.
+     *
+     * @param mixed $offset
+     */
     public function offsetExists(mixed $offset): bool
     {
         return is_int($offset) && $offset >= 0 && $offset < $this->count;
