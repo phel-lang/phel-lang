@@ -29,4 +29,5 @@ Run focused tests while working, then `COMPOSER_PROCESS_TIMEOUT=0 composer test`
 
 1. Wait for CI: `gh pr checks <pr> --watch`. Push fixes until every required check is green.
 2. Merge: `gh pr merge <pr> --squash --admin --delete-branch`. If `--admin` is refused, use `--auto --squash --delete-branch` and report that the PR waits for a human. Never merge past a failing required check.
-3. Sync: `git checkout main && git fetch origin main && git reset --hard origin/main`.
+3. Sync: `git checkout main && git fetch --prune origin && git reset --hard origin/main`.
+4. Clean up: `git worktree remove` the PR's worktree, `git branch -D` its local branch (a squash merge is never an ancestor, so `-d` refuses), and `git push origin --delete <branch>` if the remote branch survived. Then `git worktree prune`. Keep anything with unpushed commits or an open PR.
