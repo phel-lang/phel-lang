@@ -799,6 +799,18 @@ Creates intermediate maps if they don't exist."
     (find-entry pred-or-coll coll-or-key)
     (find-by-pred pred-or-coll coll-or-key)))
 
+(defn replace
+  "Replaces each element of `coll` that is a key in `smap` with its value in `smap`. Returns a vector when `coll` is a vector and a lazy sequence otherwise. `smap` can be a map or a vector, which maps an index to its element. When called with `smap` only, returns a transducer."
+  {:example "(replace {1 :a} [1 2 1]) ; => [:a 2 :a]\n(replace [:zero :one] '(0 1 2)) ; => (:zero :one 2)\n(into [] (replace {1 :a}) [1 2]) ; => [:a 2]"
+   :see-also ["map" "mapv" "transduce"]}
+  ([smap]
+   (map (fn [x] (if (contains? smap x) (get smap x) x))))
+  ([smap coll]
+   (let [lookup (fn [x] (if (contains? smap x) (get smap x) x))]
+     (if (vector? coll)
+       (mapv lookup coll)
+       (map lookup coll)))))
+
 (defn find-index
   "Returns the index of the first item in `coll` where `(pred item)` evaluates to true."
   {:example "(find-index #(> % 5) [1 2 3 6 7 8]) ; => 3"
@@ -1489,16 +1501,22 @@ With one argument returns an infinite lazy sequence of calls to f."
 (defn map-indexed
   "Maps a function over a collection with index. Returns a lazy sequence.
 
-Applies `f` to each element in `xs`. `f` is a two-argument function where the first argument is the index (0-based) and the second is the element itself. Works with infinite sequences."
-  {:example "(map-indexed vector [:a :b :c]) ; => ([0 :a] [1 :b] [2 :c])"}
-  [f coll]
-  (if (php/=== nil coll)
-    '()
-    (let [result (lazy-seq-from-generator
-                  (Phel.Lang.Seq/mapIndexed f coll))]
-      (if (php/=== nil result)
-        '()
-        (copy-meta coll result)))))
+Applies `f` to each element in `xs`. `f` is a two-argument function where the first argument is the index (0-based) and the second is the element itself. Works with infinite sequences. When called with `f` only, returns a transducer."
+  {:example "(map-indexed vector [:a :b :c]) ; => ([0 :a] [1 :b] [2 :c])\n(into [] (map-indexed vector) [:a :b]) ; => [[0 :a] [1 :b]]"
+   :see-also ["map" "keep-indexed" "transduce"]}
+  ([f]
+   (fn [rf]
+     (let [iv (volatile! -1)]
+       (xf-step rf (fn [result input]
+                     (rf result (f (vreset! iv (php/+ @iv 1)) input)))))))
+  ([f coll]
+   (if (php/=== nil coll)
+     '()
+     (let [result (lazy-seq-from-generator
+                   (Phel.Lang.Seq/mapIndexed f coll))]
+       (if (php/=== nil result)
+         '()
+         (copy-meta coll result))))))
 
 (defn interleave
   "Returns a lazy sequence of the first item in each `colls`, then the second item in each, until any one of the collections is exhausted. Any remaining items in the other collections are ignored. Returns an empty sequence when no collections are supplied or when any collection is empty or `nil`. Maps are iterated as `[key value]` pairs."
@@ -1726,15 +1744,49 @@ If map has duplicated values, some keys will be ignored."
   [f coll]
   [(take-while f coll) (drop-while f coll)])
 
+(defn- complete-with-buffered-chunk [rf buf result]
+  (let [chunk  @buf
+        result (if (empty? chunk)
+                 result
+                 (do (vreset! buf [])
+                     (unreduced (rf result chunk))))]
+    (rf result)))
+
+;; Marks "no prior value yet" in stateful transducers. A keyword such as
+;; `:phel/none` could also be a real input or key and would be skipped.
+(def- no-prior-value (new \stdClass))
+
 (defn partition-by
   "Returns a lazy sequence of partitions. Applies `f` to each value in `coll`, splitting them each time the return value changes."
-  {:example "(partition-by #(< % 3) [1 2 3 4 5 1 2]) ; => ([1 2] [3 4 5] [1 2])"
-   :see-also ["group-by" "partition"]}
-  [f coll]
-  (cond
-    (nil? coll)                              []
-    (and (indexed? coll) (= 0 (count coll))) []
-    true                                     (lazy-seq-from-generator (Seq/partitionBy f coll))))
+  {:example "(partition-by #(< % 3) [1 2 3 4 5 1 2]) ; => ([1 2] [3 4 5] [1 2])\n(into [] (partition-by odd?) [1 3 2 4 5]) ; => [[1 3] [2 4] [5]]"
+   :see-also ["group-by" "partition" "partition-all" "transduce"]}
+  ([f]
+   (fn [rf]
+     (let [buf (volatile! [])
+           pv  (volatile! no-prior-value)]
+       (fn
+         ([] (rf))
+         ([result] (complete-with-buffered-chunk rf buf result))
+         ([result input]
+          (let [prior @pv
+                v     (f input)]
+            (vreset! pv v)
+            (if (or (php/=== prior no-prior-value) (= v prior))
+              (do (vreset! buf (conj @buf input))
+                  result)
+              (let [chunk @buf]
+                (vreset! buf [])
+                (let [ret (rf result chunk)]
+                  ;; A reduced result ends the reduction, so the completion
+                  ;; step must not flush `input` as one more partition.
+                  (when-not (reduced? ret)
+                    (vreset! buf [input]))
+                  ret)))))))))
+  ([f coll]
+   (cond
+     (nil? coll)                              []
+     (and (indexed? coll) (= 0 (count coll))) []
+     true                                     (lazy-seq-from-generator (Seq/partitionBy f coll)))))
 
 (defn dedupe
   "Returns a lazy sequence with consecutive duplicate values removed in `coll`. When called with no args, returns a transducer."
@@ -1744,11 +1796,13 @@ If map has duplicated values, some keys will be ignored."
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
   ([]
    (fn [rf]
-     (let [pv (volatile! :phel/none)]
+     (let [pv (volatile! no-prior-value)]
        (xf-step rf (fn [result input]
                      (let [prior @pv]
                        (vreset! pv input)
-                       (if (= prior input) result (rf result input))))))))
+                       (if (and (not (php/=== prior no-prior-value)) (= prior input))
+                         result
+                         (rf result input))))))))
   ([coll]
    (cond
      (nil? coll)                              []
@@ -1819,11 +1873,31 @@ If map has duplicated values, some keys will be ignored."
              (cons p (partition n step pad (nthrest s step)))
              (list (vec (take n (concat p pad)))))))))))
 
+(defn- assert-positive-partition-arg [fn-name arg-name value]
+  (when-not (and (php/is_int value) (php/> value 0))
+    (throw (new InvalidArgumentException
+                (str fn-name " expects a positive int " arg-name ", got " value)))))
+
 (defn partition-all
-  "Partitions collection into chunks of size `n`, including any incomplete trailing chunks. `step` (default `n`) is how far to advance between chunks, so a `step` smaller than `n` yields overlapping chunks. Each chunk is a vector."
-  {:example "(partition-all 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6] [7])\n(partition-all 3 2 [0 1 2 3 4]) ; => ([0 1 2] [2 3 4] [4])"
-   :see-also ["partition" "partition-by"]}
+  "Partitions collection into chunks of size `n`, including any incomplete trailing chunks. `step` (default `n`) is how far to advance between chunks, so a `step` smaller than `n` yields overlapping chunks. Each chunk is a vector. When called with `n` only, returns a transducer."
+  {:example "(partition-all 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6] [7])\n(partition-all 3 2 [0 1 2 3 4]) ; => ([0 1 2] [2 3 4] [4])\n(into [] (partition-all 2) [1 2 3]) ; => [[1 2] [3]]"
+   :see-also ["partition" "partition-by" "partitionv-all" "transduce"]}
+  ([n]
+   ;; Without this, a chunk never reaches `n` and the buffer keeps every input.
+   (assert-positive-partition-arg "partition-all" "chunk size" n)
+   (fn [rf]
+     (let [buf (volatile! [])]
+       (fn
+         ([] (rf))
+         ([result] (complete-with-buffered-chunk rf buf result))
+         ([result input]
+          (let [chunk (vreset! buf (conj @buf input))]
+            (if (= n (count chunk))
+              (do (vreset! buf [])
+                  (rf result chunk))
+              result)))))))
   ([n coll]
+   (assert-positive-partition-arg "partition-all" "chunk size" n)
    (let [result (lazy-seq-from-generator
                  (php/call_user_func_array
                   (php-indexed-array "\\Phel\\Lang\\Seq" "partitionAll")
@@ -1832,6 +1906,9 @@ If map has duplicated values, some keys will be ignored."
        '()
        (copy-meta coll result))))
   ([n step coll]
+   ;; A step of 0 would repartition the same input forever.
+   (assert-positive-partition-arg "partition-all" "chunk size" n)
+   (assert-positive-partition-arg "partition-all" "step" step)
    (lazy-seq
      (let [s (seq coll)]
        (when s
@@ -1847,35 +1924,13 @@ If map has duplicated values, some keys will be ignored."
   ([n step coll] (partition n step coll))
   ([n step pad coll] (partition n step pad coll)))
 
-(defn- assert-positive-partition-arg [fn-name arg-name value]
-  (when-not (and (php/is_int value) (php/> value 0))
-    (throw (new InvalidArgumentException
-                (str fn-name " expects a positive int " arg-name ", got " value)))))
-
 (defn partitionv-all
   "Like `partition-all`, but always returns each chunk as a vector, including an incomplete trailing chunk. Lazy, so it works on infinite input. `step` (default `n`) is how far to advance between chunks. When called with `n` only, returns a transducer."
   {:example "(partitionv-all 2 [1 2 3]) ; => ([1 2] [3])\n(partitionv-all 3 2 [0 1 2 3 4]) ; => ([0 1 2] [2 3 4] [4])\n(into [] (partitionv-all 2) [1 2 3]) ; => [[1 2] [3]]"
    :see-also ["partition-all" "partitionv" "splitv-at"]}
   ([n]
-   ;; Without this, a chunk never reaches `n` and the buffer keeps every input.
    (assert-positive-partition-arg "partitionv-all" "chunk size" n)
-   (fn [rf]
-     (let [buf (volatile! [])]
-       (fn
-         ([] (rf))
-         ([result]
-          (let [chunk  @buf
-                result (if (empty? chunk)
-                         result
-                         (do (vreset! buf [])
-                             (unreduced (rf result chunk))))]
-            (rf result)))
-         ([result input]
-          (let [chunk (vreset! buf (conj @buf input))]
-            (if (= n (count chunk))
-              (do (vreset! buf [])
-                  (rf result chunk))
-              result)))))))
+   (partition-all n))
   ([n coll]
    (assert-positive-partition-arg "partitionv-all" "chunk size" n)
    (partition-all n coll))

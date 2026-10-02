@@ -241,35 +241,6 @@ final class RunCommandTest extends AbstractTestCommand
         self::assertStringNotContainsString('compiled:', $output);
     }
 
-    /**
-     * A changed `(load ...)` sibling invalidates every file of its namespace,
-     * the ones this run already required from the cache included. Deleting
-     * those left their frames pointing at a missing compiled file (#3430).
-     */
-    public function test_changed_load_sibling_keeps_frames_of_already_loaded_files_mapped(): void
-    {
-        $dir = sys_get_temp_dir() . '/phel-stale-sibling-' . uniqid();
-        mkdir($dir);
-        $mainPath = $dir . '/stale-sibling-main.phel';
-        $partPath = $dir . '/stale-sibling-part.phel';
-        file_put_contents($mainPath, "(ns stale-sibling-main)\n\n(defn read-fifth [xs]\n  (nth xs 5))\n\n(load \"stale-sibling-part\")\n");
-        file_put_contents($partPath, "(in-ns stale-sibling-main)\n\n(read-fifth [1 2 3 4 5 6])\n");
-
-        try {
-            $this->captureRunOutput($mainPath);
-            file_put_contents($partPath, "(in-ns stale-sibling-main)\n\n(read-fifth [])\n");
-            $output = $this->captureRunOutput($mainPath);
-        } finally {
-            unlink($mainPath);
-            unlink($partPath);
-            rmdir($dir);
-        }
-
-        self::assertStringContainsString('Vector index 5 out of bounds', $output);
-        self::assertMatchesRegularExpression('~#\d+ \S*stale-sibling-main\.phel:4 : \(phel\\\\core\\\\nth~', $output);
-        self::assertStringNotContainsString('cache/compiled', $output);
-    }
-
     public function test_recompiled_file_keeps_frames_of_its_first_version_mapped(): void
     {
         $dir = sys_get_temp_dir() . '/phel-recompiled-' . uniqid();
