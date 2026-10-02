@@ -16,6 +16,7 @@ use function is_string;
 use function is_subclass_of;
 use function preg_match;
 use function sprintf;
+use function str_contains;
 use function str_replace;
 use function str_starts_with;
 use function strrpos;
@@ -98,8 +99,19 @@ final readonly class RuntimeArityMessage
         }
 
         $namespace = str_replace('\\', '.', substr($decoded, 0, $lastSeparator));
+        $definedName = $this->definedName($boundTo, $class);
+        if ($definedName !== null) {
+            return $namespace . '/' . $definedName;
+        }
 
-        return $namespace . '/' . ($this->definedName($boundTo, $class) ?? substr($decoded, $lastSeparator + 1));
+        // Without the registry an underscore could be `-` or `_` in the
+        // source, so name the namespace rather than guess. That happens under
+        // `phel profile`, whose registry holds a wrapper around the fn.
+        $compiledName = substr($boundTo, (int) strrpos($boundTo, '\\') + 1);
+
+        return str_contains($compiledName, '_')
+            ? 'a fn in ' . $namespace
+            : $namespace . '/' . $compiledName;
     }
 
     /**

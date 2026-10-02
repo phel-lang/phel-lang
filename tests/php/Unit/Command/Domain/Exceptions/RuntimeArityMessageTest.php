@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Command\Domain\Exceptions;
 use ArgumentCountError;
 use Phel\Command\Domain\Exceptions\RuntimeArityMessage;
 use Phel\Lang\AbstractFn;
+use Phel\Lang\Registry;
 use Phel\Shared\Munge;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -14,19 +15,39 @@ use Throwable;
 
 final class RuntimeArityMessageTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        Registry::getInstance()->removeNamespace('my_app.foo_bar');
+    }
+
     public function test_names_the_phel_fn_called_with_too_few_args(): void
     {
-        $fn = new class() extends AbstractFn {
-            public const BOUND_TO = 'my_app\\foo_bar\\add_it';
-
-            public function __invoke(mixed $a, mixed $b): mixed
-            {
-                return $a;
-            }
-        };
+        $fn = $this->addIt();
+        Registry::getInstance()->addDefinition('my_app.foo_bar', 'add-it', $fn);
 
         self::assertSame(
             'Wrong number of args (1) passed to my-app.foo-bar/add-it, expected 2',
+            $this->message()->rewrite($this->thrownBy(static fn(): mixed => $fn(1))),
+        );
+    }
+
+    public function test_keeps_an_underscore_the_fn_was_defined_with(): void
+    {
+        $fn = $this->addIt();
+        Registry::getInstance()->addDefinition('my_app.foo_bar', 'add_it', $fn);
+
+        self::assertSame(
+            'Wrong number of args (1) passed to my-app.foo-bar/add_it, expected 2',
+            $this->message()->rewrite($this->thrownBy(static fn(): mixed => $fn(1))),
+        );
+    }
+
+    public function test_names_only_the_namespace_when_the_registry_cannot_tell_dash_from_underscore(): void
+    {
+        $fn = $this->addIt();
+
+        self::assertSame(
+            'Wrong number of args (1) passed to a fn in my-app.foo-bar, expected 2',
             $this->message()->rewrite($this->thrownBy(static fn(): mixed => $fn(1))),
         );
     }
@@ -88,5 +109,17 @@ final class RuntimeArityMessageTest extends TestCase
         }
 
         return $result instanceof Throwable ? $result : new RuntimeException('nothing thrown');
+    }
+
+    private function addIt(): AbstractFn
+    {
+        return new class() extends AbstractFn {
+            public const BOUND_TO = 'my_app\\foo_bar\\add_it';
+
+            public function __invoke(mixed $a, mixed $b): mixed
+            {
+                return $a;
+            }
+        };
     }
 }
