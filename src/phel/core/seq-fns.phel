@@ -1897,6 +1897,7 @@ If map has duplicated values, some keys will be ignored."
                   (rf result chunk))
               result)))))))
   ([n coll]
+   (assert-positive-partition-arg "partition-all" "chunk size" n)
    (let [result (lazy-seq-from-generator
                  (php/call_user_func_array
                   (php-indexed-array "\\Phel\\Lang\\Seq" "partitionAll")
@@ -1905,6 +1906,9 @@ If map has duplicated values, some keys will be ignored."
        '()
        (copy-meta coll result))))
   ([n step coll]
+   ;; A step of 0 would repartition the same input forever.
+   (assert-positive-partition-arg "partition-all" "chunk size" n)
+   (assert-positive-partition-arg "partition-all" "step" step)
    (lazy-seq
      (let [s (seq coll)]
        (when s
