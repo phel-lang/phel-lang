@@ -542,11 +542,19 @@ This function is useful for explicitly converting strings to sequences of charac
 
     ;; `seq?` inlined. Same three checks it makes, without the call, and it sits
     ;; on the path of every collection that is not one of these three.
-    ;; Lazy sequences and lists are not forced: only the first element is read.
-    (or (php/instanceof coll LazySeqInterface)
-        (php/instanceof coll Cons)
-        (php/instanceof coll PersistentListInterface))
-    (if (php/=== nil (.first coll)) nil coll)
+    ;; A nil head does not make a sequence empty: `(seq '(nil 1))` holds two
+    ;; elements (#3451, as `empty?` in #3025). A lazy sequence with a nil head
+    ;; is asked by pulling one element, never by forcing it.
+    (php/instanceof coll Cons)
+    coll
+
+    (php/instanceof coll LazySeqInterface)
+    (if (php/!== nil (.first coll))
+      coll
+      (if (Seq/isEmpty coll) nil coll))
+
+    (php/instanceof coll PersistentListInterface)
+    (if (php/=== 0 (php/count coll)) nil coll)
 
     ;; For other countable collections, check count (won't force lazy seqs).
     ;; `instanceof Countable` has already proven `php/count` valid, so core
