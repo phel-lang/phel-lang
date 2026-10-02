@@ -60,7 +60,6 @@ Runtime:
 
 - **BREAKING**: `transduce` calls the reducing fn's completion once, as Clojure does: a reducer with a 1-arity finalizes the result. A reducer with only a 2-arity now throws `ArgumentCountError`; wrap it in `completing`. (#3433)
 - `seq` and `next` keep a lazy seq or list whose next element is nil, as in Clojure: `(next (map identity [1 nil 3]))` returns `(nil 3)`. They used to return nil and drop the rest, so `(reduce + (map :price items))` stopped silently at the first missing key. (#3451)
-- `(seq 5)` fails with `Don't know how to create a seq from: int`. It used to blame `apply`, which the user never called. (#3459)
 - `declare` keeps the value of a symbol that is already defined, as in Clojure. Loading a namespace again used to reset what it declares to nil, so a long-lived process (REPL, `phel watch`, nREPL) could fail with `Value of type null is not callable` while recompiling `phel.core`. (#3444)
 - `partition-all` throws for a size or step that is not a positive int. A size of 0 used to return an empty seq, and a step of 0 never ended. (#3437)
 - The `dedupe` transducer keeps a leading `:phel/none`. It used to drop it. (#3437)
@@ -73,7 +72,6 @@ Tooling:
 - `phel --version` reports Phel's own commit. Inside another git repository it used to print that repository's commit. (#3407)
 - An edit to `phel-config-<env>.php` takes effect on the next run. It used to be ignored until `phel cache:clear`. (#3426)
 - A stack trace maps every frame to its `.phel` source after an edit to a file loaded with `(load ...)`, and after a recompile in the REPL, `phel watch` or nREPL. Frames used to show `.phel/cache/compiled/` paths or the new code's lines. (#3430 #3435)
-- A runtime arity error names the Phel fn: `[PHEL401] Wrong number of args (1) passed to app.main/add, expected 2`. It used to print PHP's `Too few arguments to function Phel\Lang\AbstractFn@anonymous::__invoke()` with the path of the PHP file that made the call. (#3459)
 - The PHAR's precompiled stdlib names its sources inside the PHAR. It used to carry the release builder's absolute paths, so a deprecation raised inside the stdlib reached the user from the PHAR while a source checkout hid it. (#3448)
 - `phel test` in parallel mode reads worker stderr as it arrives. On macOS a worker writing over 16 KB to stderr used to crawl. (#3378)
 - `phel run` prints a backslash separator notice once per loaded file, with a relative path. It used to warn for every `.phel` file under the working directory, on every warm run. (#3381)
