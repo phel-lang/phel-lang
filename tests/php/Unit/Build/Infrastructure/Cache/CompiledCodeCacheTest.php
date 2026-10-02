@@ -100,6 +100,20 @@ final class CompiledCodeCacheTest extends TestCase
         self::assertFileDoesNotExist($compiledPath);
     }
 
+    public function test_clear_keeps_a_file_this_process_was_served(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
+
+        $servedPath = $cache->get($this->sourceFile, 'hash');
+
+        $cache->clear();
+
+        self::assertIsString($servedPath);
+        self::assertFileExists($servedPath);
+        self::assertNull($cache->get($this->sourceFile, 'hash'));
+    }
+
     public function test_invalidate_keeps_a_file_this_process_was_served(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);

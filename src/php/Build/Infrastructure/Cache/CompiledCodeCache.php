@@ -9,8 +9,11 @@ use ParseError;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
+use function array_keys;
 use function count;
 use function function_exists;
+use function is_string;
+
 use function token_get_all;
 
 use const TOKEN_PARSE;
@@ -250,16 +253,28 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
     }
 
     /**
-     * Clears every cached compiled file and every namespace env file.
+     * Clears every cached compiled file and every namespace env file, except
+     * the files this process already required, for the reason `invalidate`
+     * keeps them. The index forgets them all, so the next run recompiles.
      */
     public function clear(): void
     {
+        $served = [];
+        foreach (array_keys($this->servedThisProcess) as $sourcePath) {
+            $namespace = $this->entries[$sourcePath]['namespace'] ?? null;
+            if (is_string($namespace)) {
+                $served[$this->getCompiledPath($sourcePath, $namespace)] = true;
+            }
+        }
+
         $compiledDir = $this->directory->compiledDir();
         if (is_dir($compiledDir)) {
             $files = glob($compiledDir . '/*.php');
             if ($files !== false) {
                 foreach ($files as $file) {
-                    FileCache::delete($file);
+                    if (!isset($served[$file])) {
+                        FileCache::delete($file);
+                    }
                 }
             }
         }
