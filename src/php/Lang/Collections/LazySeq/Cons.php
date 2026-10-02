@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\LazySeq;
 
+use Countable;
 use IteratorAggregate;
 use NoDiscard;
 use Phel\Lang\AbstractType;
@@ -13,6 +14,8 @@ use Phel\Lang\HasherInterface;
 use Phel\Lang\Seq;
 use Phel\Lang\SeqInterface;
 use Traversable;
+
+use function count;
 
 /**
  * A realized cons cell: a concrete head paired with a lazy tail, matching
@@ -27,7 +30,7 @@ use Traversable;
  *
  * @extends AbstractType<SeqInterface<T, LazySeqInterface>>
  */
-final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
+final class Cons extends AbstractType implements SeqInterface, Countable, IteratorAggregate
 {
     private ?int $hashCache = null;
 
@@ -115,6 +118,14 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
         $next = self::fromCdr($this->hasher, $this->equalizer, $this->rest);
 
         return $next;
+    }
+
+    /**
+     * Realizes the tail, which keeps it cached like the seq it came from.
+     */
+    public function count(): int
+    {
+        return 1 + count($this->rest->toArray());
     }
 
     /**

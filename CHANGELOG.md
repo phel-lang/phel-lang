@@ -60,6 +60,7 @@ Runtime:
 
 - **BREAKING**: `transduce` calls the reducing fn's completion once, as Clojure does: a reducer with a 1-arity finalizes the result. A reducer with only a 2-arity now throws `ArgumentCountError`; wrap it in `completing`. (#3433)
 - `seq` and `next` keep a lazy seq or list whose next element is nil, as in Clojure: `(next (map identity [1 nil 3]))` returns `(nil 3)`. They used to return nil and drop the rest, so `(reduce + (map :price items))` stopped silently at the first missing key. (#3451)
+- `count` counts the seq `next` returns for a lazy seq: `(count (next (map identity [1 2 3])))` returns `2`. It used to throw `count is not supported on a lazily consumed source`. (#3452)
 - `declare` keeps the value of a symbol that is already defined, as in Clojure. Loading a namespace again used to reset what it declares to nil, so a long-lived process (REPL, `phel watch`, nREPL) could fail with `Value of type null is not callable` while recompiling `phel.core`. (#3444)
 - `partition-all` throws for a size or step that is not a positive int. A size of 0 used to return an empty seq, and a step of 0 never ended. (#3437)
 - The `dedupe` transducer keeps a leading `:phel/none`. It used to drop it. (#3437)
