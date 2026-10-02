@@ -55,6 +55,7 @@ It also does not weaken the Gacela rule it appears to touch. Shared only *names*
 - `AbstractLocatedException`: base for located errors; carries `SourceLocation` + `ErrorCode` (enum, PHEL001-PHEL404: analyzer, parser, reader, lexer, runtime), plus an optional `relatedLocationNote`: a second position worth naming, already formatted, that `TextExceptionPrinter` renders under the snippet (`first defined at foo.phel:2`, #3267)
 - `FileException` (file/dir ops); `CompiledCodeIsMalformedException` (wraps PHP `eval()` parse errors)
 - `ErrorCode`: the codes themselves, in five ranges (PHEL0xx analyzer, PHEL1xx parser, PHEL2xx reader, PHEL3xx lexer, PHEL4xx runtime). A case with no production caller fails `ErrorCodeInventoryTest`: a code nobody raises is a promise nobody keeps (#3266).
+- `getSuggestions()` on `AbstractLocatedException`: the names a "did you mean" message offers (set by `AnalyzerException::cannotResolveSymbol`), so tools read them without parsing the message (#3464).
 - `RuntimeErrorCodeResolver`: maps an uncaught PHP throwable to its PHEL4xx code, unwrapping one `getPrevious()` level. Only the engine's own classes are recognised; a user's `ex-info` stays uncoded.
 - `ErrorCodeCatalog` + `ErrorCodeExplanation`: the prose behind every code (title, summary, minimal repro, fix). The single source `phel explain` prints and `composer error-docs:update` renders into `docs/errors/`, so the terminal and the pages cannot drift. `find()` accepts what a user types off their terminal: `PHEL008`, `phel008`, `8`.
 - `MissingNsFormException`: thrown by Build's namespace extractor when a file's first form is not `(ns ...)` and analysing it hit an unresolved symbol. The analyzer error stays in the previous slot, so the report headline is unchanged and only the hint differs.
@@ -130,3 +131,7 @@ Stateless strategy-pattern printer (see `.agnostic-ai/rules/module-shared-printe
 - Exceptions are cross-module: thrown and caught everywhere.
 - Utilities stay stateless: safe to instantiate without module context.
 - The one permitted outward edge is `CompilerFacadeInterface → Compiler\Domain` (see "Compiler Back-Edge" above). Adding a second Shared → Compiler import, or a new compiler type to that contract, breaks `SharedCompilerBoundaryTest`; widen it only deliberately, and update the rationale when you do.
+
+## Lint rule catalog
+
+`LintRuleCodes` holds the public lint rule codes; `LintRuleCatalog` + `LintRuleExplanation` hold their prose (title, summary, example, fix) for `phel explain` and a lint diagnostic's `fix`. `LintRuleCatalogTest` fails when a code has no entry. `InstallDocsPath::rewrite()` turns a `docs/...` path in catalog prose into one that resolves from the working directory (`vendor/phel-lang/phel-lang/docs/...` in a user project); the generated pages under `docs/errors/` keep the raw text.

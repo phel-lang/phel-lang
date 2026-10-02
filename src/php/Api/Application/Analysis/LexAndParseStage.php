@@ -8,7 +8,6 @@ use Phel\Api\Domain\AnalysisStageInterface;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Shared\Api\Diagnostic;
-use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
@@ -53,7 +52,7 @@ final readonly class LexAndParseStage implements AnalysisStageInterface
                 $parseTrees[] = $parseTree;
             }
         } catch (LexerValueException $lexerValueException) {
-            $diagnostics[] = $this->locatedDiagnostic($lexerValueException, ErrorCode::LEXER_ERROR, $uri);
+            $diagnostics[] = Diagnostic::fromLocatedException($lexerValueException, ErrorCode::LEXER_ERROR, $uri);
         }
 
         $context['parseTrees'] = $parseTrees;
@@ -63,31 +62,6 @@ final readonly class LexAndParseStage implements AnalysisStageInterface
 
     private function parseErrorDiagnostic(AbstractParserException $e, string $uri): Diagnostic
     {
-        return $this->locatedDiagnostic($e, ErrorCode::PARSER_ERROR, $uri);
-    }
-
-    /**
-     * Both phases raise a located exception, so an editor gets the same span
-     * from either. The lexer error used to be hardcoded to 1:1 because its
-     * exception carried no location at all (#3289).
-     */
-    private function locatedDiagnostic(
-        AbstractLocatedException $e,
-        ErrorCode $fallbackCode,
-        string $uri,
-    ): Diagnostic {
-        $start = $e->getStartLocation();
-        $end = $e->getEndLocation();
-
-        return new Diagnostic(
-            code: ($e->getErrorCode() ?? $fallbackCode)->value,
-            severity: Diagnostic::SEVERITY_ERROR,
-            message: $e->getMessage(),
-            uri: $uri,
-            startLine: $start?->getLine() ?? 1,
-            startCol: $start?->getColumn() ?? 1,
-            endLine: $end?->getLine() ?? ($start?->getLine() ?? 1),
-            endCol: $end?->getColumn() ?? ($start?->getColumn() ?? 1),
-        );
+        return Diagnostic::fromLocatedException($e, ErrorCode::PARSER_ERROR, $uri);
     }
 }

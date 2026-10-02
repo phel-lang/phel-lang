@@ -7,10 +7,15 @@ namespace PhelTest\Unit\Run\Infrastructure\Command;
 use Phel\Run\Infrastructure\Command\ExplainCommand;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Exceptions\ErrorCodeCatalog;
+use Phel\Shared\LintRuleCatalog;
+use Phel\Shared\LintRuleCodes;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 
 use function count;
+use function json_decode;
+
+use const JSON_THROW_ON_ERROR;
 
 /**
  * The catalog is the data source, so these assertions read the entry they
@@ -105,7 +110,7 @@ final class ExplainCommandTest extends TestCase
         $lines = preg_split('/\R/', trim($tester->getDisplay())) ?: [];
         $entryLines = array_filter($lines, static fn(string $line): bool => str_starts_with($line, ' - '));
 
-        self::assertCount(count(ErrorCodeCatalog::all()), $entryLines);
+        self::assertCount(count(ErrorCodeCatalog::all()) + count(LintRuleCatalog::all()), $entryLines);
     }
 
     public function test_the_command_is_named_explain_and_takes_an_optional_code(): void
@@ -115,5 +120,57 @@ final class ExplainCommandTest extends TestCase
         self::assertSame('explain', $command->getName());
         self::assertSame(ExplainCommand::DESCRIPTION, $command->getDescription());
         self::assertFalse($command->getDefinition()->getArgument('code')->isRequired());
+    }
+
+    public function test_a_lint_rule_code_prints_its_entry(): void
+    {
+        $expected = LintRuleCatalog::find(LintRuleCodes::UNUSED_REQUIRE);
+        self::assertNotNull($expected);
+        $tester = new CommandTester(new ExplainCommand());
+
+        $exitCode = $tester->execute(['code' => 'phel/unused-require']);
+
+        $display = $tester->getDisplay();
+        self::assertSame(0, $exitCode);
+        self::assertStringContainsString('[phel/unused-require]', $display);
+        self::assertStringContainsString($expected->summary, $display);
+        self::assertStringContainsString('  ' . $expected->fix, $display);
+    }
+
+    public function test_json_format_prints_one_entry(): void
+    {
+        $expected = LintRuleCatalog::find(LintRuleCodes::UNUSED_REQUIRE);
+        self::assertNotNull($expected);
+        $tester = new CommandTester(new ExplainCommand());
+
+        $exitCode = $tester->execute(['code' => 'phel/unused-require', '--format' => 'json']);
+
+        self::assertSame(0, $exitCode);
+        self::assertSame([
+            'code' => 'phel/unused-require',
+            'title' => $expected->title,
+            'summary' => $expected->summary,
+            'example' => $expected->example,
+            'fix' => $expected->fix,
+        ], json_decode($tester->getDisplay(), true, flags: JSON_THROW_ON_ERROR));
+    }
+
+    public function test_json_format_lists_every_code_and_rule(): void
+    {
+        $tester = new CommandTester(new ExplainCommand());
+
+        $tester->execute(['--format' => 'json']);
+
+        $listing = json_decode($tester->getDisplay(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertIsArray($listing);
+        self::assertCount(count(ErrorCodeCatalog::all()) + count(LintRuleCatalog::all()), $listing);
+        self::assertSame(['code' => 'PHEL001', 'title' => ErrorCodeCatalog::explain(ErrorCode::UNDEFINED_SYMBOL)->title], $listing[0]);
+    }
+
+    public function test_an_unknown_format_fails(): void
+    {
+        $tester = new CommandTester(new ExplainCommand());
+
+        self::assertSame(1, $tester->execute(['code' => 'PHEL001', '--format' => 'xml']));
     }
 }

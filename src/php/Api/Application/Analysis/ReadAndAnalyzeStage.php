@@ -71,52 +71,12 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
                     $this->compilerFacade->emptyNodeEnvironment()->withReturnContext(),
                 );
             } catch (ReaderException $e) {
-                $diagnostics[] = $this->diagnosticFromLocation(
-                    code: ($e->getErrorCode() ?? ErrorCode::READER_ERROR)->value,
-                    message: $e->getMessage(),
-                    uri: $uri,
-                    startLine: $e->getStartLocation()?->getLine(),
-                    startCol: $e->getStartLocation()?->getColumn(),
-                    endLine: $e->getEndLocation()?->getLine(),
-                    endCol: $e->getEndLocation()?->getColumn(),
-                );
+                $diagnostics[] = Diagnostic::fromLocatedException($e, ErrorCode::READER_ERROR, $uri);
             } catch (AnalyzerException $e) {
-                $diagnostics[] = $this->diagnosticFromLocation(
-                    code: ($e->getErrorCode() ?? ErrorCode::INVALID_SPECIAL_FORM)->value,
-                    message: $e->getMessage(),
-                    uri: $uri,
-                    startLine: $e->getStartLocation()?->getLine(),
-                    startCol: $e->getStartLocation()?->getColumn(),
-                    endLine: $e->getEndLocation()?->getLine(),
-                    endCol: $e->getEndLocation()?->getColumn(),
-                );
+                $diagnostics[] = Diagnostic::fromLocatedException($e, ErrorCode::INVALID_SPECIAL_FORM, $uri);
             }
         }
 
         return $diagnostics;
-    }
-
-    private function diagnosticFromLocation(
-        string $code,
-        string $message,
-        string $uri,
-        ?int $startLine,
-        ?int $startCol,
-        ?int $endLine,
-        ?int $endCol,
-    ): Diagnostic {
-        $sl = $startLine ?? 1;
-        $sc = $startCol ?? 1;
-
-        return new Diagnostic(
-            code: $code,
-            severity: Diagnostic::SEVERITY_ERROR,
-            message: $message,
-            uri: $uri,
-            startLine: $sl,
-            startCol: $sc,
-            endLine: $endLine ?? $sl,
-            endCol: $endCol ?? $sc,
-        );
     }
 }

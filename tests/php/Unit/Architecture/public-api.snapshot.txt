@@ -1638,6 +1638,9 @@ final readonly class Phel\Shared\Api\Diagnostic
   public const string SEVERITY_HINT = 'hint'
   public const string SEVERITY_INFO = 'info'
   public const string SEVERITY_WARNING = 'warning'
+  public readonly ?string $errorCode
+  public readonly ?string $fix
+  public readonly array $suggestions
   public readonly int $endCol
   public readonly int $endLine
   public readonly int $startCol
@@ -1646,8 +1649,12 @@ final readonly class Phel\Shared\Api\Diagnostic
   public readonly string $message
   public readonly string $severity
   public readonly string $uri
-  public function __construct(string $code, string $severity, string $message, string $uri, int $startLine, int $startCol, int $endLine, int $endCol)
+  public function __construct(string $code, string $severity, string $message, string $uri, int $startLine, int $startCol, int $endLine, int $endCol, ?string $errorCode = null, array $suggestions = [], ?string $fix = null)
   public function toArray(): array
+  public function withCode(string $code): Phel\Shared\Api\Diagnostic
+  public function withFix(?string $fix): Phel\Shared\Api\Diagnostic
+  public function withSeverity(string $severity): Phel\Shared\Api\Diagnostic
+  public static function fromLocatedException(Phel\Shared\Exceptions\AbstractLocatedException $e, Phel\Shared\Exceptions\ErrorCode $fallbackCode, string $uri): Phel\Shared\Api\Diagnostic
 
 final readonly class Phel\Shared\Api\Location
   public readonly int $col
@@ -1784,11 +1791,13 @@ final readonly class Phel\Shared\Eval\StackFrame
 abstract class Phel\Shared\Exceptions\AbstractLocatedException extends RuntimeException
   protected function setErrorCode(Phel\Shared\Exceptions\ErrorCode $errorCode): void
   protected function setRelatedLocationNote(string $relatedLocationNote): void
+  protected function setSuggestions(array $suggestions): void
   public function __construct(string $message, ?Phel\Lang\SourceLocation $startLocation = null, ?Phel\Lang\SourceLocation $endLocation = null, ?Throwable $nestedException = null)
   public function getEndLocation(): ?Phel\Lang\SourceLocation
   public function getErrorCode(): ?Phel\Shared\Exceptions\ErrorCode
   public function getRelatedLocationNote(): ?string
   public function getStartLocation(): ?Phel\Lang\SourceLocation
+  public function getSuggestions(): array
 
 final class Phel\Shared\Exceptions\CompiledCodeIsMalformedException extends RuntimeException
   public static function fromThrowable(Throwable $e): Phel\Shared\Exceptions\CompiledCodeIsMalformedException
@@ -2018,10 +2027,17 @@ final class Phel\Shared\FrameworkNamespaces
   public const string PHEL_PREFIX = 'phel.'
   public static function matches(string $namespace): bool
 
+final class Phel\Shared\InstallDocsPath
+  public static function rewrite(string $text, ?string $workingDir = null, ?string $installDir = null): string
+
 final readonly class Phel\Shared\Interop\Wrapper
   public function __construct(string $relativeFilenamePath, string $compiledPhp)
   public function compiledPhp(): string
   public function relativeFilenamePath(): string
+
+final class Phel\Shared\LintRuleCatalog
+  public static function all(): array
+  public static function find(string $input): ?Phel\Shared\LintRuleExplanation
 
 final class Phel\Shared\LintRuleCodes
   public const string ARITY_MISMATCH = 'phel/arity-mismatch'
@@ -2039,6 +2055,14 @@ final class Phel\Shared\LintRuleCodes
   public const string UNUSED_IMPORT = 'phel/unused-import'
   public const string UNUSED_REQUIRE = 'phel/unused-require'
   public static function allCodes(): array
+
+final readonly class Phel\Shared\LintRuleExplanation
+  public readonly string $code
+  public readonly string $example
+  public readonly string $fix
+  public readonly string $summary
+  public readonly string $title
+  public function __construct(string $code, string $title, string $summary, string $example, string $fix)
 
 final readonly class Phel\Shared\Munge implements Phel\Shared\MungeInterface
   public function __construct(array $mapping = ['-' => '_', '.' => '_DOT_', ':' => '_COLON_', '+' => '_PLUS_', '>' => '_GT_', '<' => '_LT_', '=' => '_EQ_', '~' => '_TILDE_', '!' => '_BANG_', '@' => '_CIRCA_', '#' => '_SHARP_', '\'' => '_SINGLEQUOTE_', '"' => '_DOUBLEQUOTE_', '%' => '_PERCENT_', '^' => '_CARET_', '&' => '_AMPERSAND_', '*' => '_STAR_', '|' => '_BAR_', '{' => '_LBRACE_', '}' => '_RBRACE_', '[' => '_LBRACK_', ']' => '_RBRACK_', '/' => '_SLASH_', '\\' => '_BSLASH_', '?' => '_QMARK_', '$' => '_DOLLAR_'], array $nsMapping = ['-' => '_'])

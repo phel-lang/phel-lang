@@ -37,6 +37,12 @@ use const JSON_THROW_ON_ERROR;
  */
 final class LintCache
 {
+    /**
+     * Bump when a cached diagnostic gains a field, so entries written without
+     * it are recomputed instead of read back with the field empty.
+     */
+    public const int ENTRY_FORMAT = 2;
+
     private const string INDEX_FILE = 'index.json';
 
     /** @var array<string, IndexEntry>|null */
@@ -78,6 +84,9 @@ final class LintCache
                 startCol: ScalarCoercion::toInt($data['startCol'] ?? null, 1),
                 endLine: ScalarCoercion::toInt($data['endLine'] ?? null, 1),
                 endCol: ScalarCoercion::toInt($data['endCol'] ?? null, 1),
+                errorCode: isset($data['errorCode']) ? ScalarCoercion::toString($data['errorCode']) : null,
+                suggestions: ScalarCoercion::toStringList($data['suggestions'] ?? null),
+                fix: isset($data['fix']) ? ScalarCoercion::toString($data['fix']) : null,
             );
         }
 

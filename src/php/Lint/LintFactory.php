@@ -153,6 +153,6 @@ final class LintFactory extends AbstractFactory
         $codes = LintRuleCodes::allCodes();
         sort($codes);
 
-        return md5(implode('|', $codes) . '|' . $settings->fingerprint());
+        return md5(LintCache::ENTRY_FORMAT . '|' . implode('|', $codes) . '|' . $settings->fingerprint());
     }
 }

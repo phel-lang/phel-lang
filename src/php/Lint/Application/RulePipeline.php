@@ -9,8 +9,8 @@ use Phel\Lint\Domain\Exception\LintRuleException;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\LintRuleCatalog;
 use Phel\Shared\LintRuleCodes;
-
 use Throwable;
 
 /**
@@ -62,16 +62,9 @@ final readonly class RulePipeline
 
             $severity = $settings->severityFor($code);
             foreach ($diagnostics as $diagnostic) {
-                $result[] = new Diagnostic(
-                    code: $diagnostic->code,
-                    severity: $severity,
-                    message: $diagnostic->message,
-                    uri: $diagnostic->uri,
-                    startLine: $diagnostic->startLine,
-                    startCol: $diagnostic->startCol,
-                    endLine: $diagnostic->endLine,
-                    endCol: $diagnostic->endCol,
-                );
+                $result[] = $diagnostic
+                    ->withSeverity($severity)
+                    ->withFix($diagnostic->fix ?? LintRuleCatalog::find($code)?->fix);
             }
         }
 
@@ -101,6 +94,7 @@ final readonly class RulePipeline
             startCol: 1,
             endLine: 1,
             endCol: 1,
+            fix: LintRuleCatalog::find(LintRuleCodes::INTERNAL_ERROR)?->fix,
         );
     }
 }

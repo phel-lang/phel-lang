@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Shared\Api;
 
+use Phel\Lang\SourceLocation;
 use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\Exceptions\ErrorCodeCatalog;
 use PHPUnit\Framework\TestCase;
 
 final class DiagnosticTest extends TestCase
@@ -54,6 +58,42 @@ final class DiagnosticTest extends TestCase
             'startCol' => 11,
             'endLine' => 12,
             'endCol' => 13,
+            'errorCode' => null,
+            'suggestions' => [],
+            'fix' => null,
         ], $diagnostic->toArray());
+    }
+
+    public function test_a_located_exception_carries_its_code_suggestions_and_catalog_fix(): void
+    {
+        $e = new class('Cannot resolve symbol', new SourceLocation('a.phel', 2, 3)) extends AbstractLocatedException {
+            public function __construct(string $message, SourceLocation $start)
+            {
+                parent::__construct($message, $start);
+                $this->setErrorCode(ErrorCode::UNDEFINED_SYMBOL);
+                $this->setSuggestions(['println']);
+            }
+        };
+
+        $diagnostic = Diagnostic::fromLocatedException($e, ErrorCode::INVALID_SPECIAL_FORM, 'a.phel');
+
+        self::assertSame('PHEL001', $diagnostic->code);
+        self::assertSame('PHEL001', $diagnostic->errorCode);
+        self::assertSame(['println'], $diagnostic->suggestions);
+        self::assertSame(ErrorCodeCatalog::explain(ErrorCode::UNDEFINED_SYMBOL)->fix, $diagnostic->fix);
+        self::assertSame([2, 3, 2, 3], [$diagnostic->startLine, $diagnostic->startCol, $diagnostic->endLine, $diagnostic->endCol]);
+    }
+
+    public function test_a_new_code_keeps_the_error_code_behind_it(): void
+    {
+        $diagnostic = new Diagnostic('PHEL001', Diagnostic::SEVERITY_ERROR, 'm', 'a.phel', 1, 1, 1, 1, 'PHEL001', ['x'], 'fix it')
+            ->withCode('phel/unresolved-symbol')
+            ->withSeverity(Diagnostic::SEVERITY_WARNING);
+
+        self::assertSame('phel/unresolved-symbol', $diagnostic->code);
+        self::assertSame(Diagnostic::SEVERITY_WARNING, $diagnostic->severity);
+        self::assertSame('PHEL001', $diagnostic->errorCode);
+        self::assertSame(['x'], $diagnostic->suggestions);
+        self::assertSame('fix it', $diagnostic->fix);
     }
 }

@@ -26,8 +26,8 @@ final class AnalyzeCommandTest extends TestCase
         $this->bootstrap();
 
         $tester = new CommandTester(new AnalyzeCommand());
-        $exit = $tester->execute(['file' => __DIR__ . '/Fixtures/arity_mismatch.phel']);
-        self::assertSame(0, $exit);
+        $exit = $tester->execute(['paths' => [__DIR__ . '/Fixtures/arity_mismatch.phel']]);
+        self::assertSame(1, $exit, 'an error diagnostic fails the run');
 
         $decoded = json_decode(trim($tester->getDisplay()), true);
         self::assertIsArray($decoded);
@@ -42,7 +42,7 @@ final class AnalyzeCommandTest extends TestCase
         $this->bootstrap();
 
         $tester = new CommandTester(new AnalyzeCommand());
-        $exit = $tester->execute(['file' => __DIR__ . '/Fixtures/uses_core_macro.phel']);
+        $exit = $tester->execute(['paths' => [__DIR__ . '/Fixtures/uses_core_macro.phel']]);
         self::assertSame(0, $exit);
 
         $decoded = json_decode(trim($tester->getDisplay()), true);
@@ -60,7 +60,7 @@ final class AnalyzeCommandTest extends TestCase
         $this->bootstrap();
 
         $tester = new CommandTester(new AnalyzeCommand());
-        $exit = $tester->execute(['file' => __DIR__ . '/Fixtures/bar.phel']);
+        $exit = $tester->execute(['paths' => [__DIR__ . '/Fixtures/bar.phel']]);
         self::assertSame(0, $exit);
 
         $decoded = json_decode(trim($tester->getDisplay()), true);
@@ -78,7 +78,7 @@ final class AnalyzeCommandTest extends TestCase
         $this->bootstrap();
 
         $tester = new CommandTester(new AnalyzeCommand());
-        $exit = $tester->execute(['file' => '/nonexistent/file.phel']);
+        $exit = $tester->execute(['paths' => ['/nonexistent/file.phel']]);
 
         self::assertSame(1, $exit);
     }
