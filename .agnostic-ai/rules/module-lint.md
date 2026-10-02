@@ -37,7 +37,7 @@ Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`
 
 ## Rule Set (v1)
 
-- Errors: `phel/unresolved-symbol`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`, `phel/duplicate-def`
+- Errors: `phel/unresolved-symbol`, `phel/unresolved-namespace`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`, `phel/duplicate-def`
 - Warnings: `phel/unused-binding`, `phel/unused-require`, `phel/unused-import`, `phel/shadowed-binding`, `phel/shadowed-core-fn`, `phel/redundant-do`, `phel/discouraged-var`, `phel/comment-style`
 
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
@@ -48,7 +48,7 @@ Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code con
 
 The code `RulePipeline` reports under when a rule's `apply()` throws. It is the
 one diagnostic the linter emits about itself, so it plays by different rules
-from the thirteen above:
+from the fourteen above:
 
 - **Always `error` severity**, never `RuleSettings::severityFor()`. A configured
   severity grades a finding about the linted code; a crash is a finding about
@@ -74,6 +74,16 @@ crashing rule to `:off`, which skips it before `apply()` is ever reached.
 - `SymbolAlias`: the implicit alias of a `(:use ...)` / `(:require ...)` entry with no `:as`. Splits on both `.` and `\`, because Phel accepts both separators and the analyzer treats them alike.
 
 `Phel\Shared\Binding\IterationHead` parses the `for`/`dofor`/`foreach` heads for the binding rules. It lives in Shared because Api's `PointCompleter` reads the same heads; see `.agnostic-ai/rules/module-shared.md`.
+
+### `phel/unresolved-namespace`
+
+Flags a `(:require ...)` of a `phel.*` namespace, or a `clojure.*` one whose
+`phel.*` target (`FrameworkNamespaces::clojureTarget`), that no source, test or
+vendor directory declares, with the closest known name as a suggestion. The
+known set comes from `RunFacadeInterface::getAllNamespaces()`
+(`Infrastructure\ProjectKnownNamespaces`), read once per run. A user namespace
+is out of scope: linting a file outside the configured dirs would flag its
+siblings, and the runtime already names a missing one.
 
 ### `phel/duplicate-def`
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Analyzer;
+namespace Phel\Shared;
 
 use function array_map;
 use function array_slice;
@@ -16,8 +16,6 @@ use function usort;
 
 /**
  * @phpstan-type ScoredCandidate array{symbol: string, subsequence: int, prefix: int, distance: int}
- *
- * @internal
  */
 final class SymbolSuggestionProvider
 {

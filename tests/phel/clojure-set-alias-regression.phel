@@ -1,0 +1,7 @@
+(ns phel-test.clojure-set-alias-regression
+  (:require [clojure.set :as set]
+            [phel.test :refer [deftest is]]))
+
+(deftest clojure-set-alias-resolves-to-phel-core
+  (is (= #{1 2} (set/union #{1} #{2})))
+  (is (= #{1} (set/intersection #{1 2} #{1 3}))))

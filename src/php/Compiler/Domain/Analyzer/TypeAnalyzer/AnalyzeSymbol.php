@@ -9,9 +9,9 @@ use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Analyzer\SymbolSuggestionProvider;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\SymbolSuggestionProvider;
 
 /**
  * @internal

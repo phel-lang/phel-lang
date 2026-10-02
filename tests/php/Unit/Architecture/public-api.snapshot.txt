@@ -79,6 +79,7 @@ final class Phel\Build\BuildFacade extends Gacela\Framework\AbstractFacade imple
   public function getNamespaceFromDirectories(array $directories): array
   public function getNamespaceFromFile(string $filename): Phel\Shared\NamespaceInformation
   public function getOutputDirectory(): string
+  public function unresolvedRequireMessage(string $requiredNs, string $requiringNs): ?string
   public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\CompilerException $e): void
   public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e): void
   public static function disableBuildMode(): void
@@ -2016,6 +2017,8 @@ final readonly class Phel\Shared\Formatter\FormatResult
 final class Phel\Shared\FrameworkNamespaces
   public const string CLOJURE_PREFIX = 'clojure.'
   public const string PHEL_PREFIX = 'phel.'
+  public static function clojureTarget(string $namespace): ?string
+  public static function isPhel(string $namespace): bool
   public static function matches(string $namespace): bool
 
 final readonly class Phel\Shared\Interop\Wrapper
@@ -2034,6 +2037,7 @@ final class Phel\Shared\LintRuleCodes
   public const string REDUNDANT_DO = 'phel/redundant-do'
   public const string SHADOWED_BINDING = 'phel/shadowed-binding'
   public const string SHADOWED_CORE_FN = 'phel/shadowed-core-fn'
+  public const string UNRESOLVED_NAMESPACE = 'phel/unresolved-namespace'
   public const string UNRESOLVED_SYMBOL = 'phel/unresolved-symbol'
   public const string UNUSED_BINDING = 'phel/unused-binding'
   public const string UNUSED_IMPORT = 'phel/unused-import'
@@ -2472,6 +2476,9 @@ final class Phel\Shared\SourceMap\VLQ
   public function decode(string $string): array
   public function encodeInteger(int $num): string
   public function encodeIntegers(array $numbers): string
+
+final class Phel\Shared\SymbolSuggestionProvider
+  public function findSimilar(string $undefinedSymbol, array $availableSymbols): array
 
 final class Phel\Shared\TagResolver
   public const array TYPE_ALIASES = ['map' => 'Phel\\Lang\\Collections\\Map\\PersistentMapInterface', 'vector' => 'Phel\\Lang\\Collections\\Vector\\PersistentVectorInterface', 'set' => 'Phel\\Lang\\Collections\\HashSet\\PersistentHashSetInterface', 'list' => 'Phel\\Lang\\Collections\\LinkedList\\PersistentListInterface', 'keyword' => 'Phel\\Lang\\Keyword', 'symbol' => 'Phel\\Lang\\Symbol', 'atom' => 'Phel\\Lang\\Atom']
