@@ -15,6 +15,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\FrameworkNamespaces;
 
 use function count;
 use function explode;
@@ -23,8 +24,6 @@ use function preg_match;
 use function sprintf;
 use function str_contains;
 use function str_replace;
-use function str_starts_with;
-use function substr;
 
 /**
  * (ns name (:require ...) (:use ...)).
@@ -445,19 +444,18 @@ TXT;
     }
 
     /**
-     * Remaps `clojure.*` namespaces to `phel.*` when a matching `phel.*`
-     * namespace is registered (e.g. `clojure.test` -> `phel.test`).
-     * User-defined `clojure.*` namespaces with no matching `phel.*` target
-     * are left untouched.
+     * Remaps `clojure.*` namespaces to their `phel.*` target when it is
+     * registered (`clojure.test` -> `phel.test`, `clojure.set` -> `phel.core`).
+     * User-defined `clojure.*` namespaces with no registered target are left
+     * untouched.
      */
     private function remapClojureNamespace(Symbol $symbol): Symbol
     {
-        $name = $symbol->getName();
-        if (!str_starts_with($name, 'clojure.')) {
+        $targetNs = FrameworkNamespaces::clojureTarget($symbol->getName());
+        if ($targetNs === null) {
             return $symbol;
         }
 
-        $targetNs = 'phel.' . substr($name, 8);
         $mungedNs = str_replace('-', '_', $targetNs);
 
         if (Registry::getInstance()->getDefinitionInNamespace($mungedNs) === []) {

@@ -46,6 +46,9 @@ final class ScanIndexBench
     /** @var list<string> */
     private array $directories = [];
 
+    /** @var list<string> */
+    private array $phelSourceDirectories = [];
+
     public function setUp(): void
     {
         $projectRoot = __DIR__ . '/../../../../';
@@ -69,9 +72,12 @@ final class ScanIndexBench
             );
         }
 
-        // Prime the persisted index once so the warm subject reads it back.
+        $this->phelSourceDirectories = [$projectRoot . 'src'];
+
+        // Prime the persisted index once so the warm subjects read it back.
         $cache = new PhpScanIndexCache($this->scanIndexFile);
         $this->makeExtractor($cache)->getNamespacesFromDirectories($this->directories);
+        $this->makeExtractor($cache)->getNamespacesFromDirectories($this->phelSourceDirectories);
         $cache->save();
     }
 
@@ -106,6 +112,23 @@ final class ScanIndexBench
     {
         $cache = new PhpScanIndexCache($this->scanIndexFile);
         $this->makeExtractor($cache)->getNamespacesFromDirectories($this->directories);
+    }
+
+    /**
+     * Warm scan of Phel's own `src/`, the first source dir of every run. Its
+     * validation recounts the Phel files, so it must not walk `src/php` (#3467).
+     * The input is the real tree on purpose: the cost under guard is its size.
+     *
+     * @Revs(5)
+     *
+     * @Iterations(5)
+     *
+     * @Warmup(1)
+     */
+    public function bench_warm_scan_phel_sources(): void
+    {
+        $cache = new PhpScanIndexCache($this->scanIndexFile);
+        $this->makeExtractor($cache)->getNamespacesFromDirectories($this->phelSourceDirectories);
     }
 
     private function makeExtractor(PhpScanIndexCache $scanIndexCache): CachedNamespaceExtractor

@@ -26,6 +26,7 @@ use Phel\Lint\Application\Rule\InvalidDestructuringRule;
 use Phel\Lint\Application\Rule\RedundantDoRule;
 use Phel\Lint\Application\Rule\ShadowedBindingRule;
 use Phel\Lint\Application\Rule\ShadowedCoreFnRule;
+use Phel\Lint\Application\Rule\UnresolvedNamespaceRule;
 use Phel\Lint\Application\Rule\UnresolvedSymbolRule;
 use Phel\Lint\Application\Rule\UnusedBindingRule;
 use Phel\Lint\Application\Rule\UnusedImportRule;
@@ -33,6 +34,7 @@ use Phel\Lint\Application\Rule\UnusedRequireRule;
 use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Application\SourceReader;
 use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Lint\Infrastructure\ProjectKnownNamespaces;
 use Phel\Lint\Infrastructure\RegistryCoreFunctionNames;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
@@ -74,6 +76,7 @@ final class LintFactory extends AbstractFactory
     {
         return [
             new UnresolvedSymbolRule(),
+            new UnresolvedNamespaceRule(new ProjectKnownNamespaces($this->getRunFacade()), $this->getCompilerFacade()),
             new ArityMismatchRule(),
             new UnusedBindingRule(),
             new UnusedRequireRule(),

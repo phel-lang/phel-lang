@@ -49,6 +49,29 @@ final class RunCommandTest extends AbstractTestCommand
         self::assertStringNotContainsString('must not reach here', $output);
     }
 
+    public function test_requiring_a_misspelled_phel_namespace_fails_with_a_suggestion(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/misspelled-phel-require-script.phel',
+        );
+
+        self::assertStringContainsString(
+            "Cannot find namespace 'phel.strng' required by 'misspelled-phel-require-script'. Did you mean 'phel.string'?",
+            $output,
+        );
+        self::assertStringNotContainsString('must not reach here', $output);
+    }
+
+    public function test_requiring_a_clojure_namespace_with_no_phel_target_fails(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/unknown-clojure-require-script.phel',
+        );
+
+        self::assertStringContainsString("Cannot find namespace 'clojure.nothere'", $output);
+        self::assertStringNotContainsString('must not reach here', $output);
+    }
+
     /**
      * A sibling whose `ns` form does not analyse is not this script's
      * dependency, so it must not stop the run (#3457).

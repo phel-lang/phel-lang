@@ -22,6 +22,7 @@ use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Domain\Analyzer\SymbolSuggestionProvider;
 use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Domain\Compiler\EvalCompilerInterface;
@@ -104,6 +105,11 @@ final class CompilerFactory extends AbstractFactory
             $this->createEvaluator(),
             $this->createReaderResultCache(),
         );
+    }
+
+    public function createSymbolSuggestionProvider(): SymbolSuggestionProvider
+    {
+        return new SymbolSuggestionProvider();
     }
 
     public function createLexer(bool $withLocation = true): LexerInterface

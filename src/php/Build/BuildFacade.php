@@ -136,6 +136,19 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
     }
 
     /**
+     * The error for a `(:require ...)` that matched no source file, or null
+     * when it still resolves: already loaded, or a `phel.*` namespace (or the
+     * target of a `clojure.*` remap) that Phel or an installed package ships.
+     * The emitted `ns` form calls it and throws at its own site.
+     */
+    public function unresolvedRequireMessage(string $requiredNs, string $requiringNs): ?string
+    {
+        return $this->getFactory()
+            ->createBundledNamespaceIndex()
+            ->unresolvedRequireMessage($requiredNs, $requiringNs);
+    }
+
+    /**
      * Compiles a phel file and saves it to the give destination.
      */
     public function compileFile(string $src, string $dest): CompiledFile

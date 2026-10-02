@@ -24,6 +24,8 @@ use RuntimeException;
 
 use function array_map;
 use function basename;
+use function dirname;
+use function realpath;
 use function sprintf;
 
 final class NamespaceExtractorTest extends TestCase
@@ -169,7 +171,11 @@ final class NamespaceExtractorTest extends TestCase
             self::assertStringContainsString(':refer :all is not supported', $nested->getMessage());
             self::assertSame(ErrorCode::INVALID_SPECIAL_FORM, $nested->getErrorCode());
             self::assertSame(2, $nested->getStartLocation()?->getLine());
-            self::assertStringStartsWith(sys_get_temp_dir(), $nested->getStartLocation()?->getFile());
+            self::assertSame(
+                realpath(sys_get_temp_dir()),
+                realpath(dirname((string) $nested->getStartLocation()?->getFile())),
+                'macOS resolves /var to /private/var, so both sides are resolved',
+            );
         }
     }
 

@@ -79,6 +79,7 @@ final class Phel\Build\BuildFacade extends Gacela\Framework\AbstractFacade imple
   public function getNamespaceFromDirectories(array $directories): array
   public function getNamespaceFromFile(string $filename): Phel\Shared\NamespaceInformation
   public function getOutputDirectory(): string
+  public function unresolvedRequireMessage(string $requiredNs, string $requiringNs): ?string
   public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\CompilerException $e): void
   public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e): void
   public static function disableBuildMode(): void
@@ -118,6 +119,7 @@ final class Phel\Compiler\CompilerFacade extends Gacela\Framework\AbstractFacade
   public function encodeNs(string $namespace): string
   public function eval(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): mixed
   public function evalForm(mixed $form, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): mixed
+  public function findSimilarNames(string $typed, array $candidates): array
   public function getGlobalEnvironment(): Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface
   public function getNamespaceEnvironmentData(string $namespace): array
   public function hasBalancedParentheses(string $code): bool
@@ -620,7 +622,7 @@ final class Phel\Lang\Collections\LinkedList\PersistentList extends Phel\Lang\Ab
   public function getMeta(): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function hash(): int
   public function isList(): bool
-  public function offsetExists($offset): bool
+  public function offsetExists(mixed $offset): bool
   public function offsetGet($offset): mixed
   public function offsetSet($offset, $value): void
   public function offsetUnset($offset): void
@@ -910,7 +912,7 @@ abstract class Phel\Lang\Collections\Vector\AbstractPersistentVector extends Phe
   public function first()
   public function getMeta(): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function hash(): int
-  public function offsetExists($offset): bool
+  public function offsetExists(mixed $offset): bool
   public function offsetGet($offset): mixed
   public function offsetSet($offset, $value): void
   public function offsetUnset($offset): void
@@ -975,7 +977,7 @@ final class Phel\Lang\Collections\Vector\TransientVector implements Phel\Lang\Co
   public function contains($key): bool
   public function count(): int
   public function get(int $i)
-  public function offsetExists($offset): bool
+  public function offsetExists(mixed $offset): bool
   public function offsetGet($offset): mixed
   public function offsetSet($offset, $value): void
   public function offsetUnset($offset): void
@@ -1948,6 +1950,7 @@ interface Phel\Shared\Facade\CompilerFacadeInterface
   public function encodeNs(string $namespace): string
   public function eval(string $phelCode, Phel\Shared\CompileOptions $compileOptions): mixed
   public function evalForm(mixed $form, Phel\Shared\CompileOptions $compileOptions): mixed
+  public function findSimilarNames(string $typed, array $candidates): array
   public function getGlobalEnvironment(): Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface
   public function getNamespaceEnvironmentData(string $namespace): array
   public function hasBalancedParentheses(string $code): bool
@@ -2019,6 +2022,8 @@ final readonly class Phel\Shared\Formatter\FormatResult
 final class Phel\Shared\FrameworkNamespaces
   public const string CLOJURE_PREFIX = 'clojure.'
   public const string PHEL_PREFIX = 'phel.'
+  public static function clojureTarget(string $namespace): ?string
+  public static function isPhel(string $namespace): bool
   public static function matches(string $namespace): bool
 
 final readonly class Phel\Shared\Interop\Wrapper
@@ -2037,6 +2042,7 @@ final class Phel\Shared\LintRuleCodes
   public const string REDUNDANT_DO = 'phel/redundant-do'
   public const string SHADOWED_BINDING = 'phel/shadowed-binding'
   public const string SHADOWED_CORE_FN = 'phel/shadowed-core-fn'
+  public const string UNRESOLVED_NAMESPACE = 'phel/unresolved-namespace'
   public const string UNRESOLVED_SYMBOL = 'phel/unresolved-symbol'
   public const string UNUSED_BINDING = 'phel/unused-binding'
   public const string UNUSED_IMPORT = 'phel/unused-import'

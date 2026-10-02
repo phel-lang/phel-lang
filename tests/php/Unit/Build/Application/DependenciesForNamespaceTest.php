@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Application;
 
+use Phel\Build\Application\BundledNamespaceIndex;
 use Phel\Build\Application\DependenciesForNamespace;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
+use Phel\Compiler\CompilerFacade;
 use Phel\Lang\Registry;
+use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\NamespaceInformation;
 use PHPUnit\Framework\TestCase;
 
@@ -28,7 +31,7 @@ final class DependenciesForNamespaceTest extends TestCase
                 new NamespaceInformation('core.phel', 'phel.core', []),
             ]);
 
-        $deps = new DependenciesForNamespace($extractor);
+        $deps = $this->deps($extractor);
         $result = $deps->getDependenciesForNamespace(['/src'], ['foo']);
 
         self::assertSame([], $result);
@@ -43,7 +46,7 @@ final class DependenciesForNamespaceTest extends TestCase
                 new NamespaceInformation('app.phel', 'app\\main', ['phel.core']),
             ]);
 
-        $deps = new DependenciesForNamespace($extractor);
+        $deps = $this->deps($extractor);
         $result = $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
 
         self::assertCount(2, $result);
@@ -63,7 +66,7 @@ final class DependenciesForNamespaceTest extends TestCase
                 new NamespaceInformation('app.phel', 'app\\main', ['phel.core']),
             ]);
 
-        $deps = new DependenciesForNamespace($extractor);
+        $deps = $this->deps($extractor);
 
         $first = $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
         $repeat = $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
@@ -86,7 +89,7 @@ final class DependenciesForNamespaceTest extends TestCase
                 new NamespaceInformation('app.phel', 'app\\main', ['phel.core', 'some.missing.ns']),
             ]);
 
-        $deps = new DependenciesForNamespace($extractor);
+        $deps = $this->deps($extractor);
 
         $this->expectException(ExtractorException::class);
         // The requiring namespace is reported in canonical dot form, whichever
@@ -96,22 +99,18 @@ final class DependenciesForNamespaceTest extends TestCase
         $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
     }
 
-    public function test_does_not_throw_for_clojure_compat_require_with_no_bundled_target(): void
+    public function test_clojure_set_require_resolves_to_phel_core(): void
     {
-        // Regression for the clojure-test-suite: a downstream `.cljc` requires
-        // `clojure.set`, which Phel ships no `phel.set` for (the referred symbols
-        // live in phel.core). It is absent from the source scan index in a
-        // vendored build, yet resolves at runtime, so it must not error.
+        // The clojure-test-suite requires `clojure.set`; Phel ships no
+        // `phel.set`, its functions live in phel.core.
         $extractor = $this->createStub(NamespaceExtractorInterface::class);
         $extractor->method('getNamespacesFromDirectories')
             ->willReturn([
                 new NamespaceInformation('core.phel', 'phel.core', []),
-                new NamespaceInformation('nnext.cljc', 'clojure.core-test.nnext', ['phel.core', 'clojure.set']),
+                new NamespaceInformation('nnext.cljc', 'clojure.core-test.nnext', ['clojure.set']),
             ]);
 
-        $deps = new DependenciesForNamespace($extractor);
-
-        $result = $deps->getDependenciesForNamespace(['/src'], ['clojure.core-test.nnext']);
+        $result = $this->deps($extractor)->getDependenciesForNamespace(['/src'], ['clojure.core-test.nnext']);
 
         self::assertSame(
             ['phel.core', 'clojure.core-test.nnext'],
@@ -119,10 +118,70 @@ final class DependenciesForNamespaceTest extends TestCase
         );
     }
 
+    public function test_a_clojure_seed_resolves_to_its_phel_target(): void
+    {
+        $extractor = $this->createStub(NamespaceExtractorInterface::class);
+        $extractor->method('getNamespacesFromDirectories')
+            ->willReturn([
+                new NamespaceInformation('core.phel', 'phel.core', []),
+                new NamespaceInformation('string.phel', 'phel.string', ['phel.core']),
+            ]);
+
+        $result = $this->deps($extractor)->getDependenciesForNamespace(['/src'], ['clojure.string']);
+
+        self::assertSame(
+            ['phel.core', 'phel.string'],
+            array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $result),
+        );
+    }
+
+    public function test_throws_with_a_suggestion_for_a_misspelled_phel_require(): void
+    {
+        $extractor = $this->createStub(NamespaceExtractorInterface::class);
+        $extractor->method('getNamespacesFromDirectories')
+            ->willReturn([
+                new NamespaceInformation('core.phel', 'phel.core', []),
+                new NamespaceInformation('app.phel', 'app.main', ['phel.strng']),
+            ]);
+
+        $this->expectException(ExtractorException::class);
+        $this->expectExceptionMessage("Cannot find namespace 'phel.strng' required by 'app.main'. Did you mean 'phel.string'?");
+
+        $this->deps($extractor, ['phel.core', 'phel.string'])->getDependenciesForNamespace(['/src'], ['app.main']);
+    }
+
+    public function test_throws_for_a_phel_require_that_nothing_ships(): void
+    {
+        $extractor = $this->createStub(NamespaceExtractorInterface::class);
+        $extractor->method('getNamespacesFromDirectories')
+            ->willReturn([
+                new NamespaceInformation('app.phel', 'app.main', ['phel.nonexistent']),
+            ]);
+
+        $this->expectException(ExtractorException::class);
+        $this->expectExceptionMessage("Cannot find namespace 'phel.nonexistent' required by 'app.main'.");
+
+        $this->deps($extractor)->getDependenciesForNamespace(['/src'], ['app.main']);
+    }
+
+    public function test_throws_for_a_clojure_require_with_no_phel_target(): void
+    {
+        $extractor = $this->createStub(NamespaceExtractorInterface::class);
+        $extractor->method('getNamespacesFromDirectories')
+            ->willReturn([
+                new NamespaceInformation('app.phel', 'app.main', ['clojure.nothere']),
+            ]);
+
+        $this->expectException(ExtractorException::class);
+        $this->expectExceptionMessage("Cannot find namespace 'clojure.nothere' required by 'app.main'.");
+
+        $this->deps($extractor)->getDependenciesForNamespace(['/src'], ['app.main']);
+    }
+
     public function test_does_not_throw_for_bundled_phel_require_absent_from_scan_index(): void
     {
-        // Bundled `phel.*` modules are precompiled + lazy-loaded downstream, so
-        // they are not in the `.phel` source scan; requiring one must not error.
+        // A vendored build's scan can lack the stdlib; a `phel.*` namespace
+        // shipped on the configured source or vendor dirs still resolves.
         $extractor = $this->createStub(NamespaceExtractorInterface::class);
         $extractor->method('getNamespacesFromDirectories')
             ->willReturn([
@@ -130,7 +189,7 @@ final class DependenciesForNamespaceTest extends TestCase
                 new NamespaceInformation('app.phel', 'app\\main', ['phel.core', 'phel.json']),
             ]);
 
-        $deps = new DependenciesForNamespace($extractor);
+        $deps = $this->deps($extractor);
 
         $result = $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
 
@@ -151,7 +210,7 @@ final class DependenciesForNamespaceTest extends TestCase
                 new NamespaceInformation('core.phel', 'phel.core', []),
             ]);
 
-        $deps = new DependenciesForNamespace($extractor);
+        $deps = $this->deps($extractor);
 
         self::assertSame([], $deps->getDependenciesForNamespace(['/src'], ['some.missing.ns']));
     }
@@ -169,7 +228,7 @@ final class DependenciesForNamespaceTest extends TestCase
                 new NamespaceInformation('app.phel', 'app\\main', ['phel.core', 'clojure.string']),
             ]);
 
-        $deps = new DependenciesForNamespace($extractor);
+        $deps = $this->deps($extractor);
 
         $result = $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
 
@@ -188,7 +247,7 @@ final class DependenciesForNamespaceTest extends TestCase
                 new NamespaceInformation('lib.phel', 'fixtures.cross-require.lib', ['phel.core']),
             ]);
 
-        $deps = new DependenciesForNamespace($extractor);
+        $deps = $this->deps($extractor);
 
         $result = $deps->getDependenciesForNamespace(['/src'], ['fixtures.cross-require.lib']);
 
@@ -210,7 +269,7 @@ final class DependenciesForNamespaceTest extends TestCase
                 new NamespaceInformation('lib.phel', 'fixtures.cross-require.lib', ['phel.core']),
             ]);
 
-        $deps = new DependenciesForNamespace($extractor);
+        $deps = $this->deps($extractor);
 
         $result = $deps->getDependenciesForNamespace(['/src'], ['fixtures\\cross-require\\lib']);
 
@@ -230,7 +289,7 @@ final class DependenciesForNamespaceTest extends TestCase
                 new NamespaceInformation('app.phel', 'app.main', ['phel.core', 'fixtures\\cross-require\\lib']),
             ]);
 
-        $deps = new DependenciesForNamespace($extractor);
+        $deps = $this->deps($extractor);
 
         $result = $deps->getDependenciesForNamespace(['/src'], ['app.main']);
 
@@ -254,7 +313,7 @@ final class DependenciesForNamespaceTest extends TestCase
                 new NamespaceInformation('app.phel', 'app\\main', ['phel.core', 'already.loaded']),
             ]);
 
-        $deps = new DependenciesForNamespace($extractor);
+        $deps = $this->deps($extractor);
 
         $result = $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
 
@@ -262,5 +321,22 @@ final class DependenciesForNamespaceTest extends TestCase
             ['phel.core', 'app\\main'],
             array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $result),
         );
+    }
+
+    /**
+     * @param list<string> $bundled namespaces shipped on the configured source and vendor dirs
+     */
+    private function deps(NamespaceExtractorInterface $extractor, array $bundled = ['phel.core', 'phel.json']): DependenciesForNamespace
+    {
+        $bundledExtractor = $this->createStub(NamespaceExtractorInterface::class);
+        $bundledExtractor->method('getNamespacesFromDirectories')->willReturn(array_map(
+            static fn(string $ns): NamespaceInformation => new NamespaceInformation($ns . '.phel', $ns, []),
+            $bundled,
+        ));
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
+        $commandFacade->method('getSourceDirectories')->willReturn(['/phel/src']);
+        $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
+
+        return new DependenciesForNamespace($extractor, new BundledNamespaceIndex($bundledExtractor, $commandFacade, new CompilerFacade()));
     }
 }
