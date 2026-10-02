@@ -16,6 +16,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\SourcePathResolver;
+use Phel\Shared\Exceptions\MissingNsFormException;
 use Phel\Shared\NamespaceInformation;
 use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
@@ -103,11 +104,11 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         foreach ($this->findAllPhelFiles($directories) as $file) {
             try {
                 $allInfos[] = $this->getNamespaceFromFile($file);
-            } catch (ExtractorException) {
-                // Skip files that cannot be parsed/lexed so one malformed
-                // .phel file in a scanned directory does not abort the
-                // whole scan (e.g. REPL starting in a cwd that contains
-                // unrelated broken Phel files).
+            } catch (ExtractorException|MissingNsFormException) {
+                // Skip files that cannot be parsed/lexed, or that start with
+                // no ns form, so one stray file in a scanned directory does
+                // not abort the whole scan (e.g. `phel eval` in a cwd holding
+                // unrelated Clojure checkouts, #3484).
                 continue;
             }
         }
