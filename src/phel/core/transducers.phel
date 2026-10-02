@@ -108,9 +108,6 @@
   "Takes a reducing function `f` of 2 args and returns a fn suitable for transduce by adding a 1-arity (completion) that calls `cf` (default: identity)."
   {:example "(transduce (filter even?) (completing conj) [] [1 2 3 4]) ; => [2 4]"
    :see-also ["transduce"]}
-  ;; Real arities on both the outer function and the closure it returns
-  ;; (#2973). The closure matters most: `transduce` wraps its reducing function
-  ;; in `completing`, so this is called once per element reduced.
   ([f] (completing f identity))
   ([f cf]
    (fn
@@ -121,7 +118,9 @@
 (defn transduce
   "Reduce with a transformation of `f` (xf). If init is not supplied,
   `(f)` will be called to produce it. `f` should be a reducing function
-  that returns the initial value when called with no arguments."
+  that returns the initial value when called with no arguments. The
+  result is passed once to `f`'s 1-arity (completion); wrap a 2-arity
+  reducer in `completing`."
   {:example "(transduce (map inc) + [1 2 3]) ; => 9"
    :see-also ["reduce" "into" "sequence"]}
   ;; Real arities rather than `(case (count args) ...)` over a rest argument
@@ -130,7 +129,9 @@
   ([xform f coll]
    (transduce xform f (f) coll))
   ([xform f init coll]
-   (let [rf  (xform (completing f))
+   ;; Never wrap `f` in `completing`: its `identity` completion would hide
+   ;; `f`'s own 1-arity.
+   (let [rf  (xform f)
          ret (reduce rf init coll)]
      (rf ret))))
 

@@ -15,13 +15,15 @@ Full CLI: `tasks/cli-tool.md`.
 
 ## 2. `transduce` with `max` / `min`
 
-`max` and `min` lack a 0-arity init. Wrap and pass an explicit seed:
+`max` and `min` lack a 0-arity init, so pass an explicit seed. A hand-written reducer also needs a 1-arity, because `transduce` calls it once to complete; `completing` adds one:
 
 ```phel
 ;; bad
 (transduce (map :score) max items)
-;; good
 (transduce (map :score) (fn [a b] (max a b)) 0 items)
+;; good
+(transduce (map :score) max 0 items)
+(transduce (map :score) (completing (fn [a b] (max a b))) 0 items)
 ```
 
 ## 3. `for` vs `doseq`
