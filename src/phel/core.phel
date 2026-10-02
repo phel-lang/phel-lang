@@ -221,9 +221,9 @@ A lazily consumed source with no indexed access of its own (an `eduction` pipeli
 
 (def declare
   {:macro true
-   :doc "Declare a global symbol before it is defined."}
+   :doc "Declare a global symbol before it is defined. A symbol that already has a root value keeps it, so loading a namespace again does not unbind what it declares."}
   (fn [name]
-    `(def ~name nil)))
+    `(def ~name (\Phel\Lang\Registry/readRoot (php/str_replace "-" "_" *ns*) ~(.getName name)))))
 
 ;; Forward-declare symbols used by sub-files loaded before their definitions
 ;; so they can still pass compile-time symbol resolution.
