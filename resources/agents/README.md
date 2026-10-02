@@ -34,4 +34,4 @@ Targets: [`skills/INSTALL.md`](skills/INSTALL.md).
 
 - Hand-written docs (`tasks/`, `skills/`, `RULES.md`, `index.md`): update when public surface changes.
 - `examples/` validated by `composer test-agents`; tests must stay green.
-- Ground truth: `docs/` + `src/phel/`. This tree only routes.
+- Ground truth: phel-lang's `docs/` + `src/phel/`, which a project has under `vendor/phel-lang/phel-lang/`. This tree only routes.

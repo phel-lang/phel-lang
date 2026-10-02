@@ -34,6 +34,7 @@ use Phel\Lint\Application\Rule\UnusedImportRule;
 use Phel\Lint\Application\Rule\UnusedRequireRule;
 use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Application\SourceReader;
+use Phel\Lint\Domain\LintRuleCatalog;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Lint\Infrastructure\ProjectKnownNamespaces;
 use Phel\Lint\Infrastructure\RegistryCoreFunctionNames;
@@ -42,6 +43,7 @@ use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\Lint\LintRuleExplainerInterface;
 use Phel\Shared\LintRuleCodes;
 use Phel\Shared\VersionFinder;
 
@@ -123,6 +125,11 @@ final class LintFactory extends AbstractFactory
     public function createFileCollector(): FileCollector
     {
         return new FileCollector();
+    }
+
+    public function createRuleExplainer(): LintRuleExplainerInterface
+    {
+        return new LintRuleCatalog();
     }
 
     public function createLintCache(string $cacheDir, RuleSettings $settings): LintCache

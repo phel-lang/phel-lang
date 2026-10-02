@@ -139,8 +139,8 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
         // transcript, so the reported form shows up in getOutputString().
         $output = $io->getOutputString();
         self::assertStringContainsString('Form: (= 0 "")', $output);
-        self::assertStringContainsString('evaluated to: ""', $output);
-        self::assertStringNotContainsString('evaluated to: ' . PHP_EOL, $output);
+        self::assertStringContainsString('actual: ""', $output);
+        self::assertStringNotContainsString('actual: ' . PHP_EOL, $output);
     }
 
 }

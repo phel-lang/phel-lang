@@ -78,7 +78,7 @@ final class ChangedLoadSiblingTest extends TestCase
 
         self::assertNotSame(0, $secondRun->exitCode, $output);
         self::assertStringContainsString('Vector index 5 out of bounds', $output);
-        self::assertMatchesRegularExpression('~#\d+ \S*stale-sibling-main\.phel:4 : \(phel\\\\core\\\\nth~', $output);
+        self::assertMatchesRegularExpression('~#\d+ \S*stale-sibling-main\.phel:4 : \(phel\.core/nth~', $output);
         // The `at` line may name the compiled file next to the source; a frame
         // must not, or its source map was lost.
         self::assertDoesNotMatchRegularExpression('~^#\d+ \S*/compiled/~m', $output);

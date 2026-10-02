@@ -12,7 +12,7 @@ enables tab-completion (setup in the [README](../README.md)).
 | Command | Purpose |
 |---|---|
 | `agent-install` | Install agent skill files (Claude, Cursor, Codex, Gemini, Copilot, Aider) into the current project |
-| `analyze` | Run semantic analysis on a single Phel source file and emit JSON diagnostics |
+| `analyze` | Run semantic analysis on Phel source files or directories and emit JSON diagnostics |
 | `api-daemon` | Long-running JSON-RPC daemon exposing the Api semantic-analysis facade over stdio (for tooling) |
 | `balance` | Report unbalanced `()`, `[]`, `{}` in Phel files; append the missing closers with `--fix` |
 | `bench` | Run the `defbench` benchmarks (all of them, or the files/namespaces you pass) |
@@ -25,7 +25,7 @@ enables tab-completion (setup in the [README](../README.md)).
 | `doc` | Display the docs for any/all Phel functions |
 | `doctor` | Check system requirements (PHP, extensions, OPcache cold-start, cache size) for the Phel CLI |
 | `eval` `e` | Evaluate a Phel expression (or stdin) and print the result |
-| `explain` | Explain a Phel error code: what it means, a minimal example, the fix. No argument lists every code |
+| `explain` | Explain a Phel error code or lint rule: what it means, a minimal example, the fix. No argument lists every code. `--format=json` for tools |
 | `export` | Export all definitions tagged `{:export true}` as PHP classes |
 | `format` `fmt` | Format the given files (defaults to the configured format dirs) |
 | `index` | Build a project-level symbol index across source directories |
@@ -93,7 +93,16 @@ A compile or runtime failure prints a `[PHELxxx]` code in front of its message.
 phel explain PHEL001      # what it means, a minimal example, the fix
 phel explain 1            # same code: the prefix and leading zeroes are optional
 phel explain              # every code, one line each
+phel explain phel/unused-require        # a lint rule code, as phel lint prints it
+phel explain PHEL001 --format=json      # the same entry as JSON
 ```
+
+`phel lint --format=json` and `phel analyze` report every diagnostic with the
+same fields. Next to `code` (the lint rule, or the `PHELxxx` code for
+`analyze`), `errorCode` holds the `PHELxxx` code behind it (`null` for a
+lint-only rule), `suggestions` the names a "did you mean" offers, and `fix` the
+catalog's advice. `phel analyze` takes files or directories and exits 1 when a
+diagnostic is an error.
 
 An unknown code exits 1. The text comes from the same catalog the pages under
 `docs/errors/` are generated from, so the terminal and the docs cannot drift.
@@ -119,8 +128,8 @@ One line in the entry point replaces it with the Phel reading:
 RuntimeException: boom
 in out/app/main.phel:3 (gen: out/app/main.php:22)
 
-#0 out/app/main.phel:6 (gen: out/app/main.php:43) : (app\main\level-three 2)
-#1 out/app/main.phel:9 (gen: out/app/main.php:64) : (app\main\level-two 1)
+#0 out/app/main.phel:6 (gen: out/app/main.php:43) : (app.main/level-three 2)
+#1 out/app/main.phel:9 (gen: out/app/main.php:64) : (app.main/level-two 1)
 ```
 
 It follows PHP's own rules about where a report goes rather than inventing new

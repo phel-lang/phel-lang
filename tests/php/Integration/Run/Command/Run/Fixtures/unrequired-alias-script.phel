@@ -1,0 +1,3 @@
+(ns unrequired-alias-script)
+
+(println (str/join "," [1 2]))

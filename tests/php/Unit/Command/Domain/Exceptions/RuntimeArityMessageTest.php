@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Command\Domain\Exceptions;
 
 use ArgumentCountError;
+use Phel\Command\Domain\Exceptions\CompiledFnName;
 use Phel\Command\Domain\Exceptions\RuntimeArityMessage;
 use Phel\Lang\AbstractFn;
 use Phel\Lang\Registry;
@@ -97,7 +98,7 @@ final class RuntimeArityMessageTest extends TestCase
 
     private function message(): RuntimeArityMessage
     {
-        return new RuntimeArityMessage(new Munge());
+        return new RuntimeArityMessage(new CompiledFnName(new Munge()));
     }
 
     private function thrownBy(callable $call): Throwable

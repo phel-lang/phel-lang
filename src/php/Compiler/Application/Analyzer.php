@@ -168,6 +168,16 @@ final class Analyzer implements AnalyzerInterface
         return $this->globalEnvironment->getAllDefinitions();
     }
 
+    public function resolveRequireAlias(string $alias): ?string
+    {
+        return $this->globalEnvironment->resolveAlias($alias);
+    }
+
+    public function getPublicDefinitionNames(string $ns): array
+    {
+        return $this->globalEnvironment->getPublicDefinitionNames($ns);
+    }
+
     /**
      * @throws AnalyzerException
      */
