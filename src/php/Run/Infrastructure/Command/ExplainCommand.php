@@ -6,7 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Phel\Shared\Exceptions\ErrorCodeCatalog;
 use Phel\Shared\Exceptions\ErrorCodeExplanation;
-use Phel\Shared\Facade\LintFacadeInterface;
+use Phel\Shared\Lint\LintRuleExplainerInterface;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -28,7 +28,7 @@ use const JSON_UNESCAPED_SLASHES;
  * Prints what one `[PHELxxx]` code or lint rule code off a terminal means.
  *
  * The prose comes from {@see ErrorCodeCatalog}, the same source the pages under
- * `docs/errors/` are generated from, and the Lint facade's rule catalog, so this
+ * `docs/errors/` are generated from, and Lint's rule catalog, so this
  * command only renders.
  *
  * @internal
@@ -50,12 +50,12 @@ final class ExplainCommand extends Command
     private const string INDENT = '  ';
 
     /**
-     * Lint rules come from the Lint facade, handed in by the console: Lint
+     * Lint rules come from Lint's explainer, handed in by the console: Lint
      * already depends on Run, so Run cannot reach Lint on its own. Without
      * it, only the error codes are known.
      */
     public function __construct(
-        private readonly ?LintFacadeInterface $lintFacade = null,
+        private readonly ?LintRuleExplainerInterface $lintRules = null,
     ) {
         parent::__construct();
     }
@@ -130,7 +130,7 @@ HELP)
             return $this->entry($explanation->code->value, $explanation->title, $explanation->summary, $explanation->example, $explanation->fix);
         }
 
-        $rule = $this->lintFacade?->explainRule($code);
+        $rule = $this->lintRules?->explainRule($code);
         if ($rule === null) {
             return null;
         }
@@ -174,7 +174,7 @@ HELP)
      */
     private function lintRules(): array
     {
-        return $this->lintFacade?->ruleExplanations() ?? [];
+        return $this->lintRules?->ruleExplanations() ?? [];
     }
 
     /**

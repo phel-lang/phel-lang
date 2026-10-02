@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Phel\Shared\Facade;
+namespace Phel\Shared\Lint;
 
-interface LintFacadeInterface
+/**
+ * The prose behind each lint rule, for a command outside Lint that explains
+ * codes: `phel explain` lives in Run, and Lint already depends on Run.
+ */
+interface LintRuleExplainerInterface
 {
     /**
      * What one lint rule reports, as `phel lint` prints its code, with or

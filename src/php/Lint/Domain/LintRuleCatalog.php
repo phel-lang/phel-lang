@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Domain;
 
+use Phel\Shared\Lint\LintRuleExplainerInterface;
 use Phel\Shared\LintRuleCodes;
 
+use function array_map;
 use function array_values;
 use function str_starts_with;
 use function strtolower;
@@ -20,7 +22,7 @@ use function trim;
  *
  * @internal
  */
-final class LintRuleCatalog
+final class LintRuleCatalog implements LintRuleExplainerInterface
 {
     private const string CODE_PREFIX = 'phel/';
 
@@ -36,6 +38,16 @@ final class LintRuleCatalog
         }
 
         return self::entries()[$code] ?? null;
+    }
+
+    public function explainRule(string $code): ?array
+    {
+        return self::find($code)?->toArray();
+    }
+
+    public function ruleExplanations(): array
+    {
+        return array_map(static fn(LintRuleExplanation $explanation): array => $explanation->toArray(), self::all());
     }
 
     /**

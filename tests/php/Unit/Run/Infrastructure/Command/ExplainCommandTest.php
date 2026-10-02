@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Run\Infrastructure\Command;
 
 use Phel\Lint\Domain\LintRuleCatalog;
-use Phel\Lint\LintFacade;
 use Phel\Run\Infrastructure\Command\ExplainCommand;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Exceptions\ErrorCodeCatalog;
@@ -28,7 +27,7 @@ final class ExplainCommandTest extends TestCase
     public function test_a_valid_code_prints_its_title_summary_example_and_fix(): void
     {
         $expected = ErrorCodeCatalog::explain(ErrorCode::UNDEFINED_SYMBOL);
-        $tester = new CommandTester(new ExplainCommand(new LintFacade()));
+        $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
 
         $exitCode = $tester->execute(['code' => 'PHEL001']);
 
@@ -45,7 +44,7 @@ final class ExplainCommandTest extends TestCase
 
     public function test_the_phel_prefix_is_optional(): void
     {
-        $tester = new CommandTester(new ExplainCommand(new LintFacade()));
+        $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
 
         $exitCode = $tester->execute(['code' => '1']);
 
@@ -56,7 +55,7 @@ final class ExplainCommandTest extends TestCase
     public function test_the_code_is_case_insensitive_and_leading_zeroes_are_optional(): void
     {
         foreach (['phel001', 'Phel001', '001'] as $input) {
-            $tester = new CommandTester(new ExplainCommand(new LintFacade()));
+            $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
 
             $exitCode = $tester->execute(['code' => $input]);
 
@@ -67,7 +66,7 @@ final class ExplainCommandTest extends TestCase
 
     public function test_an_unknown_code_fails_and_names_the_input(): void
     {
-        $tester = new CommandTester(new ExplainCommand(new LintFacade()));
+        $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
 
         $exitCode = $tester->execute(['code' => 'PHEL999']);
 
@@ -80,7 +79,7 @@ final class ExplainCommandTest extends TestCase
 
     public function test_input_that_is_not_a_code_at_all_fails_the_same_way(): void
     {
-        $tester = new CommandTester(new ExplainCommand(new LintFacade()));
+        $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
 
         $exitCode = $tester->execute(['code' => 'nonsense']);
 
@@ -90,7 +89,7 @@ final class ExplainCommandTest extends TestCase
 
     public function test_no_argument_lists_every_code_with_its_title(): void
     {
-        $tester = new CommandTester(new ExplainCommand(new LintFacade()));
+        $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
 
         $exitCode = $tester->execute([]);
 
@@ -105,7 +104,7 @@ final class ExplainCommandTest extends TestCase
 
     public function test_the_listing_prints_one_line_per_code(): void
     {
-        $tester = new CommandTester(new ExplainCommand(new LintFacade()));
+        $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
         $tester->execute([]);
 
         $lines = preg_split('/\R/', trim($tester->getDisplay())) ?: [];
@@ -116,7 +115,7 @@ final class ExplainCommandTest extends TestCase
 
     public function test_the_command_is_named_explain_and_takes_an_optional_code(): void
     {
-        $command = new ExplainCommand(new LintFacade());
+        $command = new ExplainCommand(new LintRuleCatalog());
 
         self::assertSame('explain', $command->getName());
         self::assertSame(ExplainCommand::DESCRIPTION, $command->getDescription());
@@ -127,7 +126,7 @@ final class ExplainCommandTest extends TestCase
     {
         $expected = LintRuleCatalog::find(LintRuleCodes::UNUSED_REQUIRE);
         self::assertNotNull($expected);
-        $tester = new CommandTester(new ExplainCommand(new LintFacade()));
+        $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
 
         $exitCode = $tester->execute(['code' => 'phel/unused-require']);
 
@@ -142,7 +141,7 @@ final class ExplainCommandTest extends TestCase
     {
         $expected = LintRuleCatalog::find(LintRuleCodes::UNUSED_REQUIRE);
         self::assertNotNull($expected);
-        $tester = new CommandTester(new ExplainCommand(new LintFacade()));
+        $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
 
         $exitCode = $tester->execute(['code' => 'phel/unused-require', '--format' => 'json']);
 
@@ -158,7 +157,7 @@ final class ExplainCommandTest extends TestCase
 
     public function test_json_format_lists_every_code_and_rule(): void
     {
-        $tester = new CommandTester(new ExplainCommand(new LintFacade()));
+        $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
 
         $tester->execute(['--format' => 'json']);
 
@@ -170,7 +169,7 @@ final class ExplainCommandTest extends TestCase
 
     public function test_an_unknown_format_fails(): void
     {
-        $tester = new CommandTester(new ExplainCommand(new LintFacade()));
+        $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
 
         self::assertSame(1, $tester->execute(['code' => 'PHEL001', '--format' => 'xml']));
     }
