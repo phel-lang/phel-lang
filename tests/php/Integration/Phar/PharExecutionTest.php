@@ -13,6 +13,8 @@ use RecursiveIteratorIterator;
 
 use function dirname;
 use function sprintf;
+use function str_contains;
+use function str_ends_with;
 use function str_starts_with;
 
 /**
@@ -196,6 +198,25 @@ final class PharExecutionTest extends TestCase
             'workers must actually run tests, not report 0 (the #2672 symptom)',
         );
         self::assertMatchesRegularExpression('/Error:\s+0/', $test['stdout']);
+    }
+
+    public function test_phar_stdlib_names_its_sources_inside_the_phar(): void
+    {
+        // The stdlib is compiled in `build/workdir` (build/phar.sh). A path to
+        // it would leak the builder's home directory and, matching no bundled
+        // path on the user's machine, let deprecations raised inside the
+        // stdlib through to the user.
+        $leaking = [];
+        /** @var PharFileInfo $file */
+        foreach (new RecursiveIteratorIterator(new Phar($this->pharPath)) as $file) {
+            $path = (string) $file;
+            if (str_contains($path, '/src/phel/') && str_ends_with($path, '.php')
+                && str_contains((string) file_get_contents($path), '/build/workdir/src/phel/')) {
+                $leaking[] = $path;
+            }
+        }
+
+        self::assertSame([], $leaking);
     }
 
     public function test_phar_ships_no_warmed_gacela_cache(): void
