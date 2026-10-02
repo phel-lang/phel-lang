@@ -394,7 +394,8 @@ HELP)
             return Command::FAILURE;
         }
 
-        foreach ($this->templateScaffolder->files($template, $projectName) as $relativePath => $content) {
+        $files = $this->templateScaffolder->files($template, $projectName);
+        foreach ($files as $relativePath => $content) {
             $fullPath = $cwd . '/' . $relativePath;
 
             if (!$dryRun && !$this->ensureParentDir($fullPath, $output)) {
@@ -404,6 +405,12 @@ HELP)
             if (!$this->createFile($fullPath, $content, $relativePath, $output, $force, $dryRun)) {
                 return Command::FAILURE;
             }
+        }
+
+        // The bundled templates ship their own manifest; one that does not
+        // still gets the one a plain init writes.
+        if (!isset($files[self::COMPOSER_JSON]) && !$this->createComposerJson($cwd, $output, $dryRun)) {
+            return Command::FAILURE;
         }
 
         if (!$dryRun) {
