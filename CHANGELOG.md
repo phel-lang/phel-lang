@@ -36,7 +36,6 @@ Compiler:
 - A multi-arity fn built at runtime, such as what `comp` or `partial` return, allocates one closure: `(comp f g)` created and called is 2.3x faster, with peak memory down from 125MB to 20MB. (#3355)
 - Sequential destructuring reads a vector by index: `(let [[a b] v] ...)` is 3.2x faster. (#3356)
 - `(not x)` compiles to an inline nil/false check, 2.6x faster; an `if` over a `^bool` param skips the truthiness check. (#3352 #3353)
-- Binary `+`, `-` and `*` on values of unknown type answer inline for native ints: `(+ a b)` is 4x faster, `(* a b)` 6x. An overflow still promotes to `BigInt`, and floats, `BigInt` and nil take the runtime fn as before. (#3468)
 
 CLI:
 
