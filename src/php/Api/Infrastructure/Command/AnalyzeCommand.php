@@ -18,6 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use function file_get_contents;
 use function is_dir;
 use function is_file;
+use function is_readable;
 use function iterator_to_array;
 use function json_encode;
 use function sort;
@@ -60,6 +61,13 @@ HELP)
         $files = [];
         foreach (ScalarCoercion::toStringList($input->getArgument(self::ARG_PATHS)) as $path) {
             if (is_dir($path)) {
+                // An unreadable directory iterates as empty, which would pass
+                // as a clean result for source that was never analyzed.
+                if (!is_readable($path)) {
+                    $output->writeln(sprintf('<error>Unable to read directory: %s</error>', $path));
+                    return self::FAILURE;
+                }
+
                 $found = iterator_to_array(PhelFileIterator::iterate($path), false);
                 sort($found);
                 $files = [...$files, ...$found];

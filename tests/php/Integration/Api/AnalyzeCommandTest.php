@@ -83,6 +83,29 @@ final class AnalyzeCommandTest extends TestCase
         self::assertSame(1, $exit);
     }
 
+    public function test_analyze_command_fails_on_an_unreadable_directory(): void
+    {
+        if (posix_geteuid() === 0) {
+            self::markTestSkipped('root reads any directory');
+        }
+
+        $this->bootstrap();
+        $dir = sys_get_temp_dir() . '/phel-analyze-unreadable-' . uniqid();
+        mkdir($dir);
+        chmod($dir, 0o000);
+
+        try {
+            $tester = new CommandTester(new AnalyzeCommand());
+            $exit = $tester->execute(['paths' => [$dir]]);
+        } finally {
+            chmod($dir, 0o755);
+            rmdir($dir);
+        }
+
+        self::assertSame(1, $exit);
+        self::assertStringContainsString('Unable to read directory', $tester->getDisplay());
+    }
+
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_index_command_prints_summary(): void
