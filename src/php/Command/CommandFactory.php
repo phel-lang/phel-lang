@@ -13,6 +13,7 @@ use Phel\Command\Application\RuntimeErrorReportFormatter;
 use Phel\Command\Application\TextExceptionPrinter;
 use Phel\Command\Domain\CommandExceptionWriterInterface;
 use Phel\Command\Domain\ErrorLogInterface;
+use Phel\Command\Domain\Exceptions\CompiledFnName;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Domain\Exceptions\InternalPathDetector;
@@ -63,7 +64,7 @@ final class CommandFactory extends AbstractFactory
             $this->createInternalPathDetector(),
             $this->createExceptionHintResolver(),
             Printer::readable(),
-            new RuntimeArityMessage(new Munge()),
+            new RuntimeArityMessage(new CompiledFnName(new Munge())),
             $this->getConfig()->getStaleOutputHint(),
         );
     }
@@ -91,7 +92,7 @@ final class CommandFactory extends AbstractFactory
         return new TextExceptionPrinter(
             new ExceptionArgsPrinter(Printer::readable()),
             NoColor::style(),
-            new Munge(),
+            new CompiledFnName(new Munge()),
             $this->createFilePositionExtractor(),
             $this->createErrorLog(),
             $this->getConfig()->getCollapsedTraceHint(),

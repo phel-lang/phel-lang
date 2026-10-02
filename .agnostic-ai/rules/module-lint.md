@@ -17,6 +17,7 @@ Read-only semantic linter: emits diagnostics on Phel sources, never rewrites the
 | `defaultSettings()` | `RuleSettings` |
 | `formatters()` | `FormatterRegistry` |
 | `createCache(string $baseDir, RuleSettings $settings)` | `LintCache` |
+| `ruleExplainer()` | `Shared\Lint\LintRuleExplainerInterface`, implemented by `Domain\LintRuleCatalog`, for `phel explain` |
 
 ## Dependencies
 
@@ -149,7 +150,7 @@ deprecating something does not flag its declaration.
 
 ## Output Formats
 
-`human` (`file:line:col [severity] code message` + summary), `json` (stable array of `Diagnostic`), `github` (workflow annotations). Add one: implement `DiagnosticFormatterInterface`, register on `FormatterRegistry`.
+`human` (`file:line:col [severity] code message` + summary), `json` (stable array of `Diagnostic`), `github` (workflow annotations). `json` carries `errorCode` (the `PHELxxx` code behind a promoted analyzer diagnostic, else `null`), `suggestions` and `fix` (from `ErrorCodeCatalog`, or `Domain\LintRuleCatalog` for a lint-only rule, filled in by `RulePipeline`). `LintFacade::ruleExplainer()` exposes the catalog to `phel explain` as a `Shared\Lint\LintRuleExplainerInterface`. Fields are only ever added: the codes are public API since #3315. A new cached field bumps `LintCacheFingerprint::ENTRY_FORMAT`. Add one: implement `DiagnosticFormatterInterface`, register on `FormatterRegistry`.
 
 ## Key Constraints
 

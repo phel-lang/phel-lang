@@ -48,6 +48,15 @@ interface GlobalEnvironmentInterface
     public function hasDefinition(string $namespace, Symbol $name): bool;
 
     /**
+     * Registers the top-level definitions of a compiled-code cache file once
+     * it has run. A name already registered is left alone, so loading the
+     * file again raises no duplicate-definition error.
+     *
+     * @param array<string, list<string>> $namesByNamespace
+     */
+    public function addCompiledDefinitions(array $namesByNamespace): void;
+
+    /**
      * @return PersistentMapInterface<mixed, mixed>|null
      */
     public function getDefinition(string $namespace, Symbol $name): ?PersistentMapInterface;
@@ -110,6 +119,14 @@ interface GlobalEnvironmentInterface
      * @return array<string> List of available symbol names
      */
     public function getAllDefinitions(): array;
+
+    /**
+     * Names another namespace makes available to a qualified reference: its
+     * definitions, minus the private ones.
+     *
+     * @return list<string>
+     */
+    public function getPublicDefinitionNames(string $namespace): array;
 
     /**
      * Takes a snapshot of the current environment state.

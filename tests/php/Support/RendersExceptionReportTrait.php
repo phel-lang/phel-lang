@@ -6,11 +6,12 @@ namespace PhelTest\Support;
 
 use Phel\Command\Application\TextExceptionPrinter;
 use Phel\Command\Domain\ErrorLogInterface;
+use Phel\Command\Domain\Exceptions\CompiledFnName;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
-use Phel\Shared\MungeInterface;
+use Phel\Shared\Munge;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use PHPUnit\Framework\TestCase;
 
@@ -33,7 +34,7 @@ trait RendersExceptionReportTrait
         $exceptionPrinter = new TextExceptionPrinter(
             $this->createStub(ExceptionArgsPrinterInterface::class),
             $colorStyle,
-            $this->createStub(MungeInterface::class),
+            new CompiledFnName(new Munge()),
             $this->createStub(FilePositionExtractorInterface::class),
             $this->createStub(ErrorLogInterface::class),
             '--stack-trace to show, full trace in .phel/error.log',
