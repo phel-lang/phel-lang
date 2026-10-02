@@ -12,7 +12,7 @@
 (defn ^int      square  [^int x]            (* x x))
 (defn ^float    avg     [^"int|float" a ^"int|float" b] (/ (+ a b) 2))
 (defn ^"?int"   parse   [^string s]          (try (php/intval s) (catch Throwable _ nil)))
-(defn ^string   greet   [^string name]       (str "Hello, " name "!"))
+(defn ^string   greet   [^string who]        (str "Hello, " who "!"))
 (defn ^bool     valid?  [^string s]          (php/!== "" s))
 (defn ^DateTimeImmutable now [] (new DateTimeImmutable))
 (defn ^{:tag "array"} pairs [m] (to-array m))
