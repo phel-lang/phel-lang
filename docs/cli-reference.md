@@ -119,8 +119,8 @@ One line in the entry point replaces it with the Phel reading:
 RuntimeException: boom
 in out/app/main.phel:3 (gen: out/app/main.php:22)
 
-#0 out/app/main.phel:6 (gen: out/app/main.php:43) : (app\main\level-three 2)
-#1 out/app/main.phel:9 (gen: out/app/main.php:64) : (app\main\level-two 1)
+#0 out/app/main.phel:6 (gen: out/app/main.php:43) : (app.main/level-three 2)
+#1 out/app/main.phel:9 (gen: out/app/main.php:64) : (app.main/level-two 1)
 ```
 
 It follows PHP's own rules about where a report goes rather than inventing new
