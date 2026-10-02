@@ -60,6 +60,16 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     private array $touchedThisProcess = [];
 
+    /**
+     * Source paths whose compiled file this process was handed to `require`.
+     * Their fns stay defined after an invalidation, and an error report maps
+     * each frame through the file's inline source map, so `invalidate` drops
+     * the entry but keeps the file. The next `put` overwrites it.
+     *
+     * @var array<string, true>
+     */
+    private array $servedThisProcess = [];
+
     private bool $loaded = false;
 
     private readonly CacheDirectory $directory;
@@ -118,6 +128,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
 
         $this->entries[$sourcePath]['last_accessed'] = time();
         $this->touchedThisProcess[$sourcePath] = true;
+        $this->servedThisProcess[$sourcePath] = true;
 
         return $compiledPath;
     }
@@ -229,8 +240,9 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
             return;
         }
 
-        $compiledPath = $this->getCompiledPath($sourcePath, $entry['namespace']);
-        FileCache::delete($compiledPath);
+        if (!isset($this->servedThisProcess[$sourcePath])) {
+            FileCache::delete($this->getCompiledPath($sourcePath, $entry['namespace']));
+        }
 
         unset($this->entries[$sourcePath], $this->touchedThisProcess[$sourcePath]);
         $this->tombstones[$sourcePath] = true;
@@ -255,6 +267,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         $this->entries = [];
         $this->tombstones = [];
         $this->touchedThisProcess = [];
+        $this->servedThisProcess = [];
         $this->saveEntries();
         $this->clearFlushPending();
         $this->environmentStore->clearMemo();
