@@ -8,6 +8,7 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use InvalidArgumentException;
 use Phel\Api\ApiFacade;
+use Phel\Api\ApiFactory;
 use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
@@ -20,15 +21,23 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Terminal;
 
+use function array_filter;
+use function array_map;
+use function array_values;
+use function implode;
 use function in_array;
+use function max;
+use function mb_strlen;
 use function sprintf;
 
 /**
  * @method ApiFacade getFacade()
+ * @method ApiFactory getFactory()
  *
  * @internal
  */
 #[ServiceMap(method: 'getFacade', className: ApiFacade::class)]
+#[ServiceMap(method: 'getFactory', className: ApiFactory::class)]
 final class DocCommand extends Command
 {
     use ServiceResolverAwareTrait;
@@ -36,6 +45,8 @@ final class DocCommand extends Command
     private const string OPTION_NAMESPACES = 'ns';
 
     private const string OPTION_FORMAT = 'format';
+
+    private const int MIN_DESCRIPTION_WIDTH = 20;
 
     private const array AVAILABLE_FORMATS = ['table', 'json'];
 
@@ -99,14 +110,56 @@ HELP)
             return self::SUCCESS;
         }
 
+        $exactMatches = $this->exactMatches($phelFunctions, $search);
+        if ($exactMatches !== []) {
+            $this->printFullDocs($output, $exactMatches);
+            return self::SUCCESS;
+        }
+
         if ($normalized === []) {
             $this->printNoMatches($output, $search);
             return self::SUCCESS;
         }
 
+        if ($search !== '') {
+            $output->writeln(sprintf('<comment>No exact match for "%s". Closest:</comment>', OutputFormatter::escape($search)));
+        }
+
         $this->printFunctionsAsTable($output, $normalized);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * A search naming a function exactly, bare (`reduce-kv`) or with its
+     * namespace label (`string/upper-case`), wants that function's doc, not a
+     * similarity table that also lists `reduce`.
+     *
+     * @param list<PhelFunction> $phelFunctions
+     *
+     * @return list<PhelFunction>
+     */
+    private function exactMatches(array $phelFunctions, string $search): array
+    {
+        if ($search === '') {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $phelFunctions,
+            static fn(PhelFunction $fn): bool => $fn->name === $search || $fn->namespace . '/' . $fn->name === $search,
+        ));
+    }
+
+    /**
+     * @param list<PhelFunction> $phelFunctions
+     */
+    private function printFullDocs(OutputInterface $output, array $phelFunctions): void
+    {
+        $formatter = $this->getFactory()->createDocViewFormatter();
+        $views = array_map($formatter->format(...), $phelFunctions);
+
+        $output->writeln(OutputFormatter::escape(implode("\n\n", $views)));
     }
 
     /**
@@ -217,7 +270,8 @@ HELP)
      */
     private function printFunctionsAsTable(OutputInterface $output, array $phelFunctions): void
     {
-        [$width1, $width2, $width3] = $this->calculateWithProportionalToCurrentScreen();
+        $longestName = max(array_map(static fn(array $func): int => mb_strlen($func['name']), $phelFunctions));
+        [$width1, $width2, $width3] = $this->calculateWithProportionalToCurrentScreen($longestName);
 
         $table = new Table($output)
             ->setHeaders(['function', 'signature', 'description'])
@@ -258,7 +312,7 @@ HELP)
     /**
      * @return array{0:int, 1:int, 2:int}
      */
-    private function calculateWithProportionalToCurrentScreen(): array
+    private function calculateWithProportionalToCurrentScreen(int $longestName): array
     {
         $colCount = new Terminal()->getWidth();
         $colCountFloat = (float) $colCount;
@@ -266,9 +320,11 @@ HELP)
         $proportion2 = 40;
         $proportion3 = 50;
         $totalProportion = (float) ($proportion1 + $proportion2 + $proportion3);
-        $width1 = (int) (((float) $proportion1 / $totalProportion) * $colCountFloat) - 5;
+        // A name is one token, so the function column grows to fit the
+        // longest one instead of wrapping it mid-word.
+        $width1 = max($longestName, (int) (((float) $proportion1 / $totalProportion) * $colCountFloat) - 5);
         $width2 = (int) (((float) $proportion2 / $totalProportion) * $colCountFloat) - 5;
-        $width3 = $colCount - ($width1 + $width2 + 10);
+        $width3 = max(self::MIN_DESCRIPTION_WIDTH, $colCount - ($width1 + $width2 + 10));
 
         return [$width1, $width2, $width3];
     }
