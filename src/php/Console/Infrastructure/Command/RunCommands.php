@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Console\Infrastructure\Command;
 
 use Phel\Console\Domain\ConsoleCommandProviderInterface;
+use Phel\Lint\LintFacade;
 use Phel\Run\Infrastructure\Command\AgentInstallCommand;
 use Phel\Run\Infrastructure\Command\BenchCommand;
 use Phel\Run\Infrastructure\Command\CompileCommand;
@@ -40,7 +41,7 @@ final class RunCommands implements ConsoleCommandProviderInterface
             new LazyCommand(TestWorkerCommand::COMMAND_NAME, [], 'Internal: parallel test worker. Not for direct use.', true, static fn(): TestWorkerCommand => new TestWorkerCommand()),
             new LazyCommand('doctor', [], 'Check system requirements for running the Phel CLI', false, static fn(): DoctorCommand => new DoctorCommand()),
             new LazyCommand('config', [], 'Show the effective Phel configuration and where it comes from', false, static fn(): ConfigCommand => new ConfigCommand()),
-            new LazyCommand(ExplainCommand::COMMAND_NAME, [], ExplainCommand::DESCRIPTION, false, static fn(): ExplainCommand => new ExplainCommand()),
+            new LazyCommand(ExplainCommand::COMMAND_NAME, [], ExplainCommand::DESCRIPTION, false, static fn(): ExplainCommand => new ExplainCommand(new LintFacade())),
         ];
     }
 }

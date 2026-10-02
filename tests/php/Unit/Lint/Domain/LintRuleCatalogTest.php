@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Shared;
+namespace PhelTest\Unit\Lint\Domain;
 
-use Phel\Shared\LintRuleCatalog;
+use Phel\Lint\Domain\LintRuleCatalog;
+use Phel\Lint\Domain\LintRuleExplanation;
 use Phel\Shared\LintRuleCodes;
-use Phel\Shared\LintRuleExplanation;
 use PHPUnit\Framework\TestCase;
 
 final class LintRuleCatalogTest extends TestCase

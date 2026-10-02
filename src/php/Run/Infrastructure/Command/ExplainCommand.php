@@ -6,9 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Phel\Shared\Exceptions\ErrorCodeCatalog;
 use Phel\Shared\Exceptions\ErrorCodeExplanation;
-use Phel\Shared\InstallDocsPath;
-use Phel\Shared\LintRuleCatalog;
-use Phel\Shared\LintRuleExplanation;
+use Phel\Shared\Facade\LintFacadeInterface;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -30,8 +28,8 @@ use const JSON_UNESCAPED_SLASHES;
  * Prints what one `[PHELxxx]` code or lint rule code off a terminal means.
  *
  * The prose comes from {@see ErrorCodeCatalog}, the same source the pages under
- * `docs/errors/` are generated from, and {@see LintRuleCatalog}, so this command
- * only renders.
+ * `docs/errors/` are generated from, and the Lint facade's rule catalog, so this
+ * command only renders.
  *
  * @internal
  */
@@ -50,6 +48,17 @@ final class ExplainCommand extends Command
     private const string FORMAT_JSON = 'json';
 
     private const string INDENT = '  ';
+
+    /**
+     * Lint rules come from the Lint facade, handed in by the console: Lint
+     * already depends on Run, so Run cannot reach Lint on its own. Without
+     * it, only the error codes are known.
+     */
+    public function __construct(
+        private readonly ?LintFacadeInterface $lintFacade = null,
+    ) {
+        parent::__construct();
+    }
 
     protected function configure(): void
     {
@@ -121,12 +130,12 @@ HELP)
             return $this->entry($explanation->code->value, $explanation->title, $explanation->summary, $explanation->example, $explanation->fix);
         }
 
-        $rule = LintRuleCatalog::find($code);
-        if ($rule instanceof LintRuleExplanation) {
-            return $this->entry($rule->code, $rule->title, $rule->summary, $rule->example, $rule->fix);
+        $rule = $this->lintFacade?->explainRule($code);
+        if ($rule === null) {
+            return null;
         }
 
-        return null;
+        return $this->entry($rule['code'], $rule['title'], $rule['summary'], $rule['example'], $rule['fix']);
     }
 
     /**
@@ -153,11 +162,19 @@ HELP)
             $listing[] = ['code' => $explanation->code->value, 'title' => $explanation->title];
         }
 
-        foreach (LintRuleCatalog::all() as $rule) {
-            $listing[] = ['code' => $rule->code, 'title' => $rule->title];
+        foreach ($this->lintRules() as $rule) {
+            $listing[] = ['code' => $rule['code'], 'title' => $rule['title']];
         }
 
         return $listing;
+    }
+
+    /**
+     * @return list<array{code: string, title: string, summary: string, example: string, fix: string}>
+     */
+    private function lintRules(): array
+    {
+        return $this->lintFacade?->ruleExplanations() ?? [];
     }
 
     /**
@@ -188,8 +205,8 @@ HELP)
 
         $output->writeln('');
         $output->writeln('<comment>Lint rules:</comment>');
-        foreach (LintRuleCatalog::all() as $rule) {
-            $output->writeln(sprintf(' - <info>%s</info>  %s', $rule->code, $rule->title));
+        foreach ($this->lintRules() as $rule) {
+            $output->writeln(sprintf(' - <info>%s</info>  %s', $rule['code'], $rule['title']));
         }
 
         $output->writeln('');

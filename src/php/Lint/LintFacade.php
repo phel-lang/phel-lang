@@ -11,13 +11,18 @@ use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\Formatter\FormatterRegistry;
 use Phel\Lint\Domain\Exception\LintConfigException;
 use Phel\Lint\Domain\Exception\LintSourceException;
+use Phel\Lint\Domain\LintRuleCatalog;
+use Phel\Lint\Domain\LintRuleExplanation;
 use Phel\Lint\Transfer\LintResult;
+use Phel\Shared\Facade\LintFacadeInterface;
+
+use function array_map;
 
 /**
  * @extends AbstractFacade<LintFactory>
  */
 #[ServiceMap(method: 'getFactory', className: LintFactory::class)]
-final class LintFacade extends AbstractFacade
+final class LintFacade extends AbstractFacade implements LintFacadeInterface
 {
     /**
      * @param list<string> $paths
@@ -54,5 +59,18 @@ final class LintFacade extends AbstractFacade
     public function createCache(string $baseDir, RuleSettings $settings): LintCache
     {
         return $this->getFactory()->createLintCache($baseDir, $settings);
+    }
+
+    public function explainRule(string $code): ?array
+    {
+        return LintRuleCatalog::find($code)?->toArray();
+    }
+
+    public function ruleExplanations(): array
+    {
+        return array_map(
+            static fn(LintRuleExplanation $explanation): array => $explanation->toArray(),
+            LintRuleCatalog::all(),
+        );
     }
 }

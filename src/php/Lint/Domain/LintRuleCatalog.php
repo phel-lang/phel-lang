@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Shared;
+namespace Phel\Lint\Domain;
+
+use Phel\Shared\LintRuleCodes;
 
 use function array_values;
 use function str_starts_with;
@@ -15,6 +17,8 @@ use function trim;
  *
  * `LintRuleCatalogTest` fails when a code in {@see LintRuleCodes::allCodes()}
  * has no entry here.
+ *
+ * @internal
  */
 final class LintRuleCatalog
 {

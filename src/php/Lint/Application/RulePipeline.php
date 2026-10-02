@@ -7,9 +7,9 @@ namespace Phel\Lint\Application;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Domain\Exception\LintRuleException;
 use Phel\Lint\Domain\FileAnalysis;
+use Phel\Lint\Domain\LintRuleCatalog;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Api\Diagnostic;
-use Phel\Shared\LintRuleCatalog;
 use Phel\Shared\LintRuleCodes;
 use Throwable;
 

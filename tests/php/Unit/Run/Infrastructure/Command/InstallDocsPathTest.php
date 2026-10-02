@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Shared;
+namespace PhelTest\Unit\Run\Infrastructure\Command;
 
-use Phel\Shared\InstallDocsPath;
+use Phel\Run\Infrastructure\Command\InstallDocsPath;
 use PHPUnit\Framework\TestCase;
 
 final class InstallDocsPathTest extends TestCase

@@ -131,7 +131,3 @@ Stateless strategy-pattern printer (see `.agnostic-ai/rules/module-shared-printe
 - Exceptions are cross-module: thrown and caught everywhere.
 - Utilities stay stateless: safe to instantiate without module context.
 - The one permitted outward edge is `CompilerFacadeInterface → Compiler\Domain` (see "Compiler Back-Edge" above). Adding a second Shared → Compiler import, or a new compiler type to that contract, breaks `SharedCompilerBoundaryTest`; widen it only deliberately, and update the rationale when you do.
-
-## Lint rule catalog
-
-`LintRuleCodes` holds the public lint rule codes; `LintRuleCatalog` + `LintRuleExplanation` hold their prose (title, summary, example, fix) for `phel explain` and a lint diagnostic's `fix`. `LintRuleCatalogTest` fails when a code has no entry. `InstallDocsPath::rewrite()` turns a `docs/...` path in catalog prose into one that resolves from the working directory (`vendor/phel-lang/phel-lang/docs/...` in a user project); the generated pages under `docs/errors/` keep the raw text.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Shared;
+namespace Phel\Run\Infrastructure\Command;
 
 use function dirname;
 use function getcwd;
@@ -16,6 +16,8 @@ use function substr;
  * Catalog prose names files as `docs/...`, relative to the Phel checkout. In a
  * user project those files live under `vendor/phel-lang/phel-lang/docs/`, so
  * text printed to the user names them from where the command runs.
+ *
+ * @internal
  */
 final class InstallDocsPath
 {
@@ -23,7 +25,7 @@ final class InstallDocsPath
     {
         $prefix = self::prefix(
             $workingDir ?? (string) getcwd(),
-            $installDir ?? dirname(__DIR__, 3),
+            $installDir ?? dirname(__DIR__, 5),
         );
 
         if ($prefix === '') {

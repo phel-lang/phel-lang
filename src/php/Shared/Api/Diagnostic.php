@@ -7,7 +7,6 @@ namespace Phel\Shared\Api;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Exceptions\ErrorCodeCatalog;
-use Phel\Shared\InstallDocsPath;
 
 /**
  * `code` is what the tool reports under: a `PHELxxx` code from `phel analyze`,
@@ -61,7 +60,7 @@ final readonly class Diagnostic
             endCol: $end?->getColumn() ?? ($start?->getColumn() ?? 1),
             errorCode: $errorCode->value,
             suggestions: $e->getSuggestions(),
-            fix: InstallDocsPath::rewrite(ErrorCodeCatalog::explain($errorCode)->fix),
+            fix: ErrorCodeCatalog::explain($errorCode)->fix,
         );
     }
 
