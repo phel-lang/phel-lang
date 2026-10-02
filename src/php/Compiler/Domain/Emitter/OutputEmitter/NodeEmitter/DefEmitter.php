@@ -25,22 +25,13 @@ final class DefEmitter implements NodeEmitterInterface
         assert($node instanceof DefNode);
 
         // In cache mode, also register the definition in GlobalEnvironment
-        // so the analyzer can resolve symbols when other files have cache misses
+        // so the analyzer can resolve symbols when other files have cache misses.
+        // A top-level def is registered by the file's closing batch instead.
         if ($this->outputEmitter->getOptions()->isCacheEmitMode()) {
-            $ns = PhpStringEscape::doubleQuoted($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace()));
-            $name = PhpStringEscape::doubleQuoted($node->getName()->getName());
-            $this->outputEmitter->emitLine('if (!\\' . GlobalEnvironmentSingleton::class . '::getInstance()->hasDefinition("' . $ns . '", \\' . Symbol::class . '::create("' . $name . '"))) {');
-            $this->outputEmitter->increaseIndentLevel();
-            $this->outputEmitter->emitLine('\\' . GlobalEnvironmentSingleton::class . '::getInstance()->addDefinition(');
-            $this->outputEmitter->increaseIndentLevel();
-            $this->outputEmitter->emitStr('"');
-            $this->outputEmitter->emitStr($ns);
-            $this->outputEmitter->emitLine('",');
-            $this->outputEmitter->emitLine('\\' . Symbol::class . '::create("' . $name . '")');
-            $this->outputEmitter->decreaseIndentLevel();
-            $this->outputEmitter->emitLine(');');
-            $this->outputEmitter->decreaseIndentLevel();
-            $this->outputEmitter->emitLine('}');
+            $registryKey = $this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace());
+            if (!$this->outputEmitter->getDeferredDefinitions()->defer($node, $registryKey)) {
+                $this->emitInlineRegistration($node, $registryKey);
+            }
         }
 
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
@@ -89,5 +80,23 @@ final class DefEmitter implements NodeEmitterInterface
             $this->outputEmitter->decreaseIndentLevel();
             $this->outputEmitter->emitLine('}');
         }
+    }
+
+    private function emitInlineRegistration(DefNode $node, string $registryKey): void
+    {
+        $ns = PhpStringEscape::doubleQuoted($registryKey);
+        $name = PhpStringEscape::doubleQuoted($node->getName()->getName());
+        $this->outputEmitter->emitLine('if (!\\' . GlobalEnvironmentSingleton::class . '::getInstance()->hasDefinition("' . $ns . '", \\' . Symbol::class . '::create("' . $name . '"))) {');
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitLine('\\' . GlobalEnvironmentSingleton::class . '::getInstance()->addDefinition(');
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitStr('"');
+        $this->outputEmitter->emitStr($ns);
+        $this->outputEmitter->emitLine('",');
+        $this->outputEmitter->emitLine('\\' . Symbol::class . '::create("' . $name . '")');
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine(');');
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}');
     }
 }

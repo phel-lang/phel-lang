@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Benchmark\Compiler\Fixtures;
+namespace PhelTest\Benchmark\Fixtures;
 
 use RuntimeException;
 
 use function sprintf;
 
 /**
- * The realistic-source corpus the front-half compiler benchmarks read.
+ * The realistic-source corpus the compiler and build benchmarks read.
  *
  * It is a frozen snapshot of `src/phel/core.phel`, and it is frozen because
  * the bench job compares a baseline run against a head run: an input taken

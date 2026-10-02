@@ -176,6 +176,15 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return $this->defFnNodes[$namespace][$name->getName()] ?? null;
     }
 
+    public function addCompiledDefinitions(array $namesByNamespace): void
+    {
+        foreach ($namesByNamespace as $namespace => $names) {
+            foreach ($names as $name) {
+                $this->definitions[$namespace][$name] ??= true;
+            }
+        }
+    }
+
     public function hasDefinition(string $namespace, Symbol $name): bool
     {
         return (
