@@ -54,7 +54,6 @@ Compiler:
 - A call to a `^:dynamic` or `^:redef` fn in a build sees `binding`. It used to keep the first value it saw, and `-O2` inlined short `^:dynamic` fns past `binding`. (#3367)
 - `(def- x "doc" 1)` binds `x` to `1` with `"doc"` as its docstring. It used to bind `x` to `"doc"`. (#3372)
 - `(let [a false] (if a a a))` returns `false`. It used to return `nil` with an `Undefined variable` warning when the other branch read the local again. (#3383)
-- A symbol that does not resolve gets suggestions from where it says it lives. `(str/join "," [1 2])` with no require fails with `No namespace or alias 'str'. Did you mean (:require phel.string :as str)?`, `(s/uper-case "a")` suggests `s/upper-case`, and a bare `upper-case` names `(:require phel.string :refer [upper-case])`. A qualified symbol used to get unrelated core names, or no suggestion at all. (#3458)
 - `#inst` accepts every prefix of the full timestamp, as Clojure does: `#inst "2026-03-04"`. An out-of-range field such as `2026-02-30` is still rejected. (#3416)
 
 Runtime:
