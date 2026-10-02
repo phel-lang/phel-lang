@@ -1744,6 +1744,14 @@ If map has duplicated values, some keys will be ignored."
   [f coll]
   [(take-while f coll) (drop-while f coll)])
 
+(defn- complete-with-buffered-chunk [rf buf result]
+  (let [chunk  @buf
+        result (if (empty? chunk)
+                 result
+                 (do (vreset! buf [])
+                     (unreduced (rf result chunk))))]
+    (rf result)))
+
 (defn partition-by
   "Returns a lazy sequence of partitions. Applies `f` to each value in `coll`, splitting them each time the return value changes."
   {:example "(partition-by #(< % 3) [1 2 3 4 5 1 2]) ; => ([1 2] [3 4 5] [1 2])\n(into [] (partition-by odd?) [1 3 2 4 5]) ; => [[1 3] [2 4] [5]]"
@@ -1754,13 +1762,7 @@ If map has duplicated values, some keys will be ignored."
            pv  (volatile! :phel/none)]
        (fn
          ([] (rf))
-         ([result]
-          (let [chunk  @buf
-                result (if (empty? chunk)
-                         result
-                         (do (vreset! buf [])
-                             (unreduced (rf result chunk))))]
-            (rf result)))
+         ([result] (complete-with-buffered-chunk rf buf result))
          ([result input]
           (let [prior @pv
                 v     (f input)]
@@ -1881,13 +1883,7 @@ If map has duplicated values, some keys will be ignored."
      (let [buf (volatile! [])]
        (fn
          ([] (rf))
-         ([result]
-          (let [chunk  @buf
-                result (if (empty? chunk)
-                         result
-                         (do (vreset! buf [])
-                             (unreduced (rf result chunk))))]
-            (rf result)))
+         ([result] (complete-with-buffered-chunk rf buf result))
          ([result input]
           (let [chunk (vreset! buf (conj @buf input))]
             (if (= n (count chunk))
