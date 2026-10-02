@@ -66,6 +66,7 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
                 $readerResult = $this->compilerFacade->read($parseTree);
                 /** @var bool|float|int|string|TypeInterface|null $ast */
                 $ast = $readerResult->getAst();
+                $this->compilerFacade->rejectSupersededForms($ast);
                 $this->compilerFacade->analyze(
                     $ast,
                     $this->compilerFacade->emptyNodeEnvironment()->withReturnContext(),
