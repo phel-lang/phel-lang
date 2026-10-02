@@ -11,8 +11,11 @@ use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 use function file_put_contents;
+use function putenv;
+use function strpos;
 use function substr_count;
 use function sys_get_temp_dir;
 use function tempnam;
@@ -21,7 +24,9 @@ use function tempnam;
  * A compiled-code cache file registers its top-level definitions in the global
  * environment with one call at its end, so a later file compiled from source
  * resolves them (#3470). A `def` that is not a top-level form keeps its own
- * guarded registration, because it registers only if it runs.
+ * guarded registration, because it registers only if it runs. Any other
+ * top-level form may compile another file or throw, so the definitions before
+ * it are registered first.
  */
 final class CachedDefinitionRegistrationTest extends TestCase
 {
@@ -71,5 +76,53 @@ final class CachedDefinitionRegistrationTest extends TestCase
         self::assertArrayHasKey('x', $definitions);
         self::assertArrayHasKey('f', $definitions);
         self::assertArrayNotHasKey('y', $definitions, 'A nested def registers only once it runs');
+    }
+
+    public function test_definitions_before_a_form_that_throws_are_registered(): void
+    {
+        $source = <<<'PHEL'
+            (ns probe.cached-throw)
+            (def a 1)
+            (defn g [] a)
+            (when (php/getenv "PHEL_PROBE_CACHED_THROW") (throw (RuntimeException. "boom")))
+            (def b 2)
+            PHEL;
+        $code = new CompilerFacade()->compileForCache($source, new CompileOptions())->getPhpCode();
+        $file = (string) tempnam(sys_get_temp_dir(), 'phel-cached-throw');
+        file_put_contents($file, "<?php\n" . $code);
+        $env = GlobalEnvironmentSingleton::initializeNew();
+
+        putenv('PHEL_PROBE_CACHED_THROW=1');
+        try {
+            require $file;
+            self::fail('The top-level throw should stop the file');
+        } catch (RuntimeException) {
+        } finally {
+            putenv('PHEL_PROBE_CACHED_THROW');
+        }
+
+        $definitions = $env->snapshot()['definitions']['probe.cached_throw'] ?? [];
+        self::assertArrayHasKey('a', $definitions);
+        self::assertArrayHasKey('g', $definitions);
+        self::assertArrayNotHasKey('b', $definitions, 'A definition after the throw never ran');
+    }
+
+    public function test_a_def_whose_value_runs_code_flushes_the_pending_batch_first(): void
+    {
+        $source = <<<'PHEL'
+            (ns probe.cached-flush)
+            (def a 1)
+            (def b (php/strlen "ab"))
+            (def c 3)
+            PHEL;
+        $code = new CompilerFacade()->compileForCache($source, new CompileOptions())->getPhpCode();
+
+        self::assertSame(2, substr_count($code, '->addCompiledDefinitions('));
+        self::assertLessThan(
+            (int) strpos($code, 'strlen('),
+            (int) strpos($code, 'addCompiledDefinitions(["probe.cached_flush" => ["a"]]);'),
+        );
+        self::assertStringEndsWith('addCompiledDefinitions(["probe.cached_flush" => ["c"]]);' . "\n", $code);
+        self::assertSame(1, substr_count($code, '->hasDefinition('), 'b registers where it runs');
     }
 }

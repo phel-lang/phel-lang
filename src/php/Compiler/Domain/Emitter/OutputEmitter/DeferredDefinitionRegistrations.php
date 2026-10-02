@@ -6,6 +6,10 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
+use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 
 use function array_keys;
@@ -15,9 +19,13 @@ use function implode;
  * A cache-mode file registers every top-level `def` in the global environment
  * with one call at its end, instead of a guarded block per definition: on
  * `phel.core` that was 736 blocks, each building a `Symbol` and asking the
- * environment twice. Only a `def` that is itself a top-level form is
- * deferred. One nested in a fn or a `when` registers where it runs, as it
- * always did, because it may never run.
+ * environment twice. Only a `def` that is itself a top-level form, with a
+ * fn or a constant as its value, is deferred. One nested in a fn or a `when`
+ * registers where it runs, as it always did, because it may never run.
+ *
+ * Any other top-level form can run code that compiles another file, as
+ * `(load ...)` does, or throw. So the pending batch is emitted before it, and
+ * every definition that ran before it is already known to the analyzer.
  *
  * @internal
  */
@@ -34,9 +42,16 @@ final class DeferredDefinitionRegistrations
         $this->names = [];
     }
 
-    public function enterTopLevelForm(AbstractNode $node): void
+    /**
+     * Starts a top-level form. Returns the PHP statement registering the
+     * pending definitions when the form may run code before they are known,
+     * or '' when nothing has to be emitted first.
+     */
+    public function enterTopLevelForm(AbstractNode $node): string
     {
         $this->topLevelForm = $node;
+
+        return $this->isDeferrable($node) ? '' : $this->flush();
     }
 
     /**
@@ -47,7 +62,7 @@ final class DeferredDefinitionRegistrations
      */
     public function defer(DefNode $node, string $namespace): bool
     {
-        if ($node !== $this->topLevelForm) {
+        if ($node !== $this->topLevelForm || !$this->isDeferrable($node)) {
             return false;
         }
 
@@ -57,10 +72,10 @@ final class DeferredDefinitionRegistrations
     }
 
     /**
-     * The PHP statement registering every deferred definition, or '' when
-     * there is none.
+     * The PHP statement registering every pending definition, or '' when
+     * there is none. The pending list is emptied.
      */
-    public function toPhp(): string
+    public function flush(): string
     {
         if ($this->names === []) {
             return '';
@@ -76,6 +91,22 @@ final class DeferredDefinitionRegistrations
             $namespaces[] = '"' . PhpStringEscape::doubleQuoted($namespace) . '" => [' . implode(', ', $quoted) . ']';
         }
 
-        return '\\' . GlobalEnvironmentSingleton::class . '::getInstance()->addCompiledDefinitions([' . implode(', ', $namespaces) . "]);\n";
+        $this->names = [];
+
+        return '\\' . GlobalEnvironmentSingleton::class . '::getInstance()->addCompiledDefinitions([' . implode(', ', $namespaces) . ']);';
+    }
+
+    private function isDeferrable(AbstractNode $node): bool
+    {
+        if (!$node instanceof DefNode) {
+            return false;
+        }
+
+        $init = $node->getInit();
+
+        return $init instanceof FnNode
+            || $init instanceof MultiFnNode
+            || $init instanceof LiteralNode
+            || $init instanceof QuoteNode;
     }
 }

@@ -73,7 +73,7 @@ Runs after `ConstantFolder` (in `Domain/Analyzer/TypeAnalyzer/Simplification/`):
 
 ### Cache-mode definition registration
 
-A cache-mode file also registers its definitions in the global environment, so a file compiled from source later resolves them. A `def` that is itself a top-level form is registered by one `addCompiledDefinitions([...])` call appended to the end of the file (`OutputEmitter/DeferredDefinitionRegistrations`, fed by `FileEmitter`); only a nested `def` keeps the inline `hasDefinition` guard, because it registers only if it runs. Appended, not prepended: a leading line would shift every source map mapping, and the PHP `namespace` declaration must come first. The batch marks names absent from the environment and never raises a duplicate-definition error, so reloading a cached file stays harmless (#3470).
+A cache-mode file also registers its definitions in the global environment, so a file compiled from source later resolves them. A `def` that is itself a top-level form, with a fn or a constant as its value, is registered by an `addCompiledDefinitions([...])` batch (`OutputEmitter/DeferredDefinitionRegistrations`, fed by `FileEmitter`). The batch is emitted before any other top-level form, since that form can compile another file (`(load ...)`) or throw, and the rest is appended to the end of the file. Any other `def` keeps the inline `hasDefinition` guard, because it registers only if it runs. Never prepended: a leading line would shift every source map mapping, and the PHP `namespace` declaration must come first. The batch marks names absent from the environment and never raises a duplicate-definition error, so reloading a cached file stays harmless (#3470).
 
 ### Reader-result cache
 
