@@ -69,7 +69,6 @@ Runtime:
 
 Tooling:
 
-- A file whose `ns` form does not analyse no longer breaks every command. `phel lint` reports it as a diagnostic (`PHEL007 :refer :all is not supported...`, in JSON with `--format=json`) and lints the other files, `phel run` of a file that does not require it works, and `phel build` fails naming the file and line. All three used to stop with a bare `Refer must be a vector` and no file. (#3457)
 - `phel --version` reports Phel's own commit. Inside another git repository it used to print that repository's commit. (#3407)
 - An edit to `phel-config-<env>.php` takes effect on the next run. It used to be ignored until `phel cache:clear`. (#3426)
 - A stack trace maps every frame to its `.phel` source after an edit to a file loaded with `(load ...)`, and after a recompile in the REPL, `phel watch` or nREPL. Frames used to show `.phel/cache/compiled/` paths or the new code's lines. (#3430 #3435)
