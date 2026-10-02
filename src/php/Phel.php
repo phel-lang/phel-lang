@@ -283,8 +283,8 @@ class Phel
      *    calls {@see mirrorPhelDirToEnv()} inside the guard to force it. Without
      *    that read the reader could never run at all.
      * 3. A warm merged-config cache does not hide it either: the edited
-     *    `phel-config.php` is newer than the cache, so Gacela rebuilds it and
-     *    the reader runs.
+     *    `phel-config.php` is newer than the cache, so
+     *    {@see mergedConfigCacheInvalidator()} re-inits and the reader runs.
      *
      * {@see ConfigLoadException::wrapIfConfigError()} then names the file and
      * `bin/phel` prints it and exits 1.
@@ -354,8 +354,8 @@ class Phel
 
     /**
      * Build the merged-config cache invalidator for the current Gacela config,
-     * wiring it to the config data-model classes whose contents define the
-     * cached merged config. Gacela watches the project config files itself.
+     * wiring it to the project config files and the config data-model classes
+     * whose contents define the cached merged config.
      */
     private static function mergedConfigCacheInvalidator(): MergedConfigCacheInvalidator
     {
@@ -366,6 +366,7 @@ class Phel
             $config->getCacheDir(),
             $appRootDir,
             [
+                ...MergedConfigCacheInvalidator::projectConfigFiles($appRootDir, self::PHEL_CONFIG_FILE_NAME),
                 __DIR__ . '/Config/PhelConfig.php',
                 __DIR__ . '/Config/PhelBuildConfig.php',
                 __DIR__ . '/Config/PhelExportConfig.php',

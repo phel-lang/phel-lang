@@ -63,6 +63,21 @@ final class MergedConfigCacheInvalidationTest extends TestCase
         self::assertSame(['second/dir'], Config::getInstance()->get(PhelConfig::SRC_DIRS));
     }
 
+    public function test_editing_phel_config_invalidates_a_warmed_merged_cache(): void
+    {
+        // `phel cache:warm` writes a cache Gacela trusts without checking any
+        // config file, so only Phel's fingerprint notices the edit.
+        $this->writeConfig(['warm/dir']);
+        Phel::bootstrap($this->projectDir);
+        Config::getInstance()->writeMergedConfigCache();
+
+        $this->resetContainer();
+        $this->writeConfig(['edited/dir']);
+        Phel::bootstrap($this->projectDir);
+
+        self::assertSame(['edited/dir'], Config::getInstance()->get(PhelConfig::SRC_DIRS));
+    }
+
     public function test_unchanged_config_keeps_returning_values_on_cache_hit(): void
     {
         $this->writeConfig(['stable/dir']);
