@@ -112,3 +112,7 @@
   (is (every? vector? (partitionv 2 1 [1 2 3])))
   (is (every? vector? (partitionv 2 2 [:x] [1 2 3])))
   (is (every? vector? (take 3 (partitionv 2 (range))))))
+
+(deftest test-partitionv-all-transducer-rejects-a-non-positive-size
+  (is (thrown? \InvalidArgumentException (partitionv-all 0)))
+  (is (thrown? \InvalidArgumentException (partitionv-all -1))))

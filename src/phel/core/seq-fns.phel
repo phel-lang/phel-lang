@@ -1852,6 +1852,10 @@ If map has duplicated values, some keys will be ignored."
   {:example "(partitionv-all 2 [1 2 3]) ; => ([1 2] [3])\n(partitionv-all 3 2 [0 1 2 3 4]) ; => ([0 1 2] [2 3 4] [4])\n(into [] (partitionv-all 2) [1 2 3]) ; => [[1 2] [3]]"
    :see-also ["partition-all" "partitionv" "splitv-at"]}
   ([n]
+   ;; Without this, a chunk never reaches `n` and the buffer keeps every input.
+   (when-not (and (php/is_int n) (php/> n 0))
+     (throw (new InvalidArgumentException
+                 (str "partitionv-all expects a positive int chunk size, got " n))))
    (fn [rf]
      (let [buf (volatile! [])]
        (fn
