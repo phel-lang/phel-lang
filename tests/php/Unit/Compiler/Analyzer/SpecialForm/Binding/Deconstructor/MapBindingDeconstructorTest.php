@@ -14,6 +14,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PhelTest\Support\CapturesDeprecationsTrait;
+use PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding\MapBindingForms;
 use PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding\SequentialBindingForms;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -44,7 +45,7 @@ final class MapBindingDeconstructorTest extends TestCase
     {
         // Test for binding like this (let [{:key a} x])
         // This will be destructured to this:
-        // (let [__phel_1 x
+        // (let [__phel_1 (lookupSource x)
         //       __phel 2 (get __phel_1 :key)
         //       a __phel_2])
 
@@ -57,10 +58,10 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
-            // __phel_1 x
+            // __phel_1 (if (php/instanceof x PersistentMapInterface) x (Destructure/lookupSource x))
             [
                 Symbol::createGenerated('__phel_1'),
-                $value,
+                MapBindingForms::lookupSource($value),
             ],
             // __phel 2 (get __phel_1 :key)
             [
@@ -83,7 +84,7 @@ final class MapBindingDeconstructorTest extends TestCase
     {
         // Test for binding like this (let [{:key [a]} x])
         // This will be destructured to this:
-        // (let [__phel_1 x
+        // (let [__phel_1 (lookupSource x)
         //       __phel 2 (get __phel_1 :key)
         //       __phel_3 __phel_2
         //       __phel_3 __phel_2
@@ -101,10 +102,10 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
-            // __phel_1 x
+            // __phel_1 (if (php/instanceof x PersistentMapInterface) x (Destructure/lookupSource x))
             [
                 Symbol::createGenerated('__phel_1'),
-                $value,
+                MapBindingForms::lookupSource($value),
             ],
             // __phel 2 (get __phel_1 :key)
             [
@@ -147,7 +148,7 @@ final class MapBindingDeconstructorTest extends TestCase
     {
         // Test for binding like this (let [{:keys [a b]} x])
         // This will be destructured to this:
-        // (let [__phel_1 x
+        // (let [__phel_1 (lookupSource x)
         //       __phel_2 (get __phel_1 :a)
         //       a __phel_2
         //       __phel_3 (get __phel_1 :b)
@@ -166,10 +167,10 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
-            // __phel_1 x
+            // __phel_1 (if (php/instanceof x PersistentMapInterface) x (Destructure/lookupSource x))
             [
                 Symbol::createGenerated('__phel_1'),
-                $value,
+                MapBindingForms::lookupSource($value),
             ],
             // __phel_2 (get __phel_1 :a)
             [
@@ -206,7 +207,7 @@ final class MapBindingDeconstructorTest extends TestCase
     {
         // Test for binding like this (let [{:strs [name age]} x])
         // This will be destructured to this:
-        // (let [__phel_1 x
+        // (let [__phel_1 (lookupSource x)
         //       __phel_2 (get __phel_1 "name")
         //       name __phel_2
         //       __phel_3 (get __phel_1 "age")
@@ -225,10 +226,10 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
-            // __phel_1 x
+            // __phel_1 (if (php/instanceof x PersistentMapInterface) x (Destructure/lookupSource x))
             [
                 Symbol::createGenerated('__phel_1'),
-                $value,
+                MapBindingForms::lookupSource($value),
             ],
             // __phel_2 (get __phel_1 "name")
             [
@@ -265,7 +266,7 @@ final class MapBindingDeconstructorTest extends TestCase
     {
         // Test for binding like this (let [{:syms [a b]} x])
         // This will be destructured to this:
-        // (let [__phel_1 x
+        // (let [__phel_1 (lookupSource x)
         //       __phel_2 (php/aget __phel_1 (quote a))
         //       a __phel_2
         //       __phel_3 (php/aget __phel_1 (quote b))
@@ -284,10 +285,10 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
-            // __phel_1 x
+            // __phel_1 (if (php/instanceof x PersistentMapInterface) x (Destructure/lookupSource x))
             [
                 Symbol::createGenerated('__phel_1'),
-                $value,
+                MapBindingForms::lookupSource($value),
             ],
             // __phel_2 (php/aget __phel_1 (quote a))
             [
@@ -330,9 +331,10 @@ final class MapBindingDeconstructorTest extends TestCase
     {
         // Test for binding like this (let [{:strs [name] :as m} x])
         // This will be destructured to this:
-        // (let [m x
-        //       __phel_1 (get m "name")
-        //       name __phel_1])
+        // (let [m (kwargs x)
+        //       __phel_1 (lookupSource m)
+        //       __phel_2 (get __phel_1 "name")
+        //       name __phel_2])
 
         $binding = Phel::map(
             Keyword::create('strs'),
@@ -348,24 +350,29 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
-            // m x
+            // m (if (php/instanceof x PersistentMapInterface) x (Destructure/kwargs x))
             [
                 Symbol::create('m'),
-                $value,
+                MapBindingForms::kwargs($value),
             ],
-            // __phel_1 (get m "name")
+            // __phel_1 (if (php/instanceof m PersistentMapInterface) m (Destructure/lookupSource m))
             [
                 Symbol::createGenerated('__phel_1'),
+                MapBindingForms::lookupSource(Symbol::create('m')),
+            ],
+            // __phel_2 (get __phel_1 "name")
+            [
+                Symbol::createGenerated('__phel_2'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('m'),
+                    Symbol::createGenerated('__phel_1'),
                     'name',
                 ]),
             ],
-            // name __phel_1
+            // name __phel_2
             [
                 Symbol::create('name'),
-                Symbol::createGenerated('__phel_1'),
+                Symbol::createGenerated('__phel_2'),
             ],
         ], $bindings);
     }
@@ -374,9 +381,10 @@ final class MapBindingDeconstructorTest extends TestCase
     {
         // Test for binding like this (let [{:keys [a] :as m} x])
         // This will be destructured to this:
-        // (let [m x
-        //       __phel_1 (get m :a)
-        //       a __phel_1])
+        // (let [m (kwargs x)
+        //       __phel_1 (lookupSource m)
+        //       __phel_2 (get __phel_1 :a)
+        //       a __phel_2])
 
         $binding = Phel::map(
             Keyword::create('keys'),
@@ -392,24 +400,29 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
-            // m x
+            // m (if (php/instanceof x PersistentMapInterface) x (Destructure/kwargs x))
             [
                 Symbol::create('m'),
-                $value,
+                MapBindingForms::kwargs($value),
             ],
-            // __phel_1 (get m :a)
+            // __phel_1 (if (php/instanceof m PersistentMapInterface) m (Destructure/lookupSource m))
             [
                 Symbol::createGenerated('__phel_1'),
+                MapBindingForms::lookupSource(Symbol::create('m')),
+            ],
+            // __phel_2 (get __phel_1 :a)
+            [
+                Symbol::createGenerated('__phel_2'),
                 Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('m'),
+                    Symbol::createGenerated('__phel_1'),
                     Keyword::create('a'),
                 ]),
             ],
-            // a __phel_1
+            // a __phel_2
             [
                 Symbol::create('a'),
-                Symbol::createGenerated('__phel_1'),
+                Symbol::createGenerated('__phel_2'),
             ],
         ], $bindings);
     }
@@ -418,7 +431,7 @@ final class MapBindingDeconstructorTest extends TestCase
     {
         // Test for binding like this (let [{:keys [a b] :or {b 42}} x])
         // This will be destructured to this:
-        // (let [__phel_1 x
+        // (let [__phel_1 (lookupSource x)
         //       __phel_2 (php/aget __phel_1 :a)
         //       a __phel_2
         //       __phel_3 (if (contains? __phel_1 :b) (php/aget __phel_1 :b) 42)
@@ -442,10 +455,10 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
-            // __phel_1 x
+            // __phel_1 (if (php/instanceof x PersistentMapInterface) x (Destructure/lookupSource x))
             [
                 Symbol::createGenerated('__phel_1'),
-                $value,
+                MapBindingForms::lookupSource($value),
             ],
             // __phel_2 (php/aget __phel_1 :a)
             [
@@ -510,7 +523,7 @@ final class MapBindingDeconstructorTest extends TestCase
             // __phel_1 val
             [
                 Symbol::createGenerated('__phel_1'),
-                $value,
+                MapBindingForms::lookupSource($value),
             ],
             // __phel_2 (if (contains? __phel_1 :a) (php/aget __phel_1 :a) 99)
             [
@@ -551,7 +564,7 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
 
         self::assertEquals([
-            [Symbol::createGenerated('__phel_1'), Symbol::create('x')],
+            [Symbol::createGenerated('__phel_1'), MapBindingForms::lookupSource(Symbol::create('x'))],
             [
                 Symbol::createGenerated('__phel_2'),
                 Phel::list([
@@ -573,7 +586,7 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
 
         self::assertEquals([
-            [Symbol::createGenerated('__phel_1'), Symbol::create('x')],
+            [Symbol::createGenerated('__phel_1'), MapBindingForms::lookupSource(Symbol::create('x'))],
             [
                 Symbol::createGenerated('__phel_2'),
                 Phel::list([
@@ -763,7 +776,7 @@ final class MapBindingDeconstructorTest extends TestCase
         $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
 
         self::assertEquals([
-            [Symbol::createGenerated('__phel_1'), Symbol::create('x')],
+            [Symbol::createGenerated('__phel_1'), MapBindingForms::lookupSource(Symbol::create('x'))],
             [
                 Symbol::createGenerated('__phel_2'),
                 Phel::list([

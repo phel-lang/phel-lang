@@ -137,3 +137,29 @@
          (loop [{:my/keys [a] :or {a 0} :as m} {}]
            (if (< a 3) (recur {:my/a (inc a)}) [a m])))
       ":or and :as across recur in loop"))
+
+(deftest destructure-map-pattern-over-a-seq-reads-kwargs
+  (is (= 1 (let [{:keys [a]} '(:a 1)] a)) "a list reads as key/value pairs")
+  (is (= 1 (let [{:keys [a]} (map identity [:a 1])] a)) "so does a lazy seq")
+  (is (= 2 (let [{:keys [b]} (next (map identity [:z :a 1 :b 2]))] b)) "and a Cons cell")
+  (is (= {:a 1 :b 2} (let [{:as m} '(:a 1 :b 2)] m)) ":as binds the map the seq reads as")
+  (is (= 3 (let [{:keys [a]} '(:a 1 :a 3)] a)) "a later key wins, as by assoc")
+  (is (= 2 (let [{:keys [a]} (list :a 1 {:a 2})] a)) "a trailing map merges over the pairs")
+  (is (= 5 (let [{:keys [a]} (list {:a 5})] a)) "a lone map is the map")
+  (is (nil? (let [{:keys [a]} '()] a)) "an empty seq has no keys")
+  (is (= 7 (let [{:keys [a] :or {a 7}} '(:b 1)] a)) ":or still fills a missing key")
+  (is (thrown-with-msg? InvalidArgumentException "No value supplied for key: :b"
+                        (let [{:keys [a]} '(:a 1 :b)] a))
+      "a dangling key that is not a map fails as in Clojure"))
+
+(deftest destructure-map-pattern-over-a-set-reads-through-get
+  (is (= :a (let [{:keys [a]} #{:a}] a)) "a member reads as itself")
+  (is (nil? (let [{:keys [b]} #{:a}] b)) "a missing member is nil")
+  (is (= #{:a} (let [{:as s} #{:a}] s)) ":as binds the set itself")
+  (is (= :x (let [{:keys [b] :or {b :x}} #{:a}] b)) ":or fills a missing member"))
+
+(deftest destructure-map-pattern-over-other-values
+  (is (nil? (let [{:keys [a]} nil] a)) "nil has no keys")
+  (is (= :y (let [{y 1} [:x :y]] y)) "a vector reads by index")
+  (is (= 1 (let [{:strs [a]} (php-associative-array "a" 1)] a)) "a php array reads by string key")
+  (is (nil? (let [{:keys [a]} :a] a)) "a keyword has no keys"))
