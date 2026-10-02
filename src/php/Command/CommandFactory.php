@@ -16,6 +16,7 @@ use Phel\Command\Domain\ErrorLogInterface;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Domain\Exceptions\InternalPathDetector;
+use Phel\Command\Domain\Exceptions\RuntimeArityMessage;
 use Phel\Command\Domain\Finder\DirectoryFinderInterface;
 use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
 use Phel\Command\Infrastructure\ComposerVendorDirectoriesFinder;
@@ -62,6 +63,7 @@ final class CommandFactory extends AbstractFactory
             $this->createInternalPathDetector(),
             $this->createExceptionHintResolver(),
             Printer::readable(),
+            new RuntimeArityMessage(new Munge()),
             $this->getConfig()->getStaleOutputHint(),
         );
     }

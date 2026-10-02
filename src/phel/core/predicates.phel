@@ -3,6 +3,7 @@
 (use Countable)
 (use DateTimeInterface)
 (use Traversable)
+(use TypeError)
 (use Phel)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
 (use Phel.Lang.Collections.LazySeq.Cons)
@@ -565,8 +566,11 @@ This function is useful for explicitly converting strings to sequences of charac
     (php/is_array coll)
     (seq-list coll)
 
+    (php/instanceof coll Traversable)
+    (seq-list (to-array coll))
+
     true
-    (seq-list (to-array coll))))
+    (throw (new TypeError (str "Don't know how to create a seq from: " (php/get_debug_type coll))))))
 
 (defn- indexed-php-array?
   [x]
@@ -620,14 +624,15 @@ Indexed sequences include lists, vectors, and indexed PHP arrays."
       (php/instanceof x LazySeqInterface)))
 
 (defn seqable?
-  "Returns true if `(seq x)` is supported: collections (vectors, lists, maps, sets, structs), lazy sequences, strings, PHP arrays, and nil. Returns false for numbers, booleans, keywords, symbols, and other types."
+  "Returns true if `(seq x)` is supported: collections (vectors, lists, maps, sets, structs), lazy sequences, strings, PHP arrays, PHP `Traversable` objects, and nil. Returns false for numbers, booleans, keywords, symbols, and other types."
   {:example "(seqable? [1 2]) ; => true\n(seqable? 42) ; => false"
    :see-also ["seq" "coll?" "seq?"]}
   [x]
   (or (nil? x)
       (coll? x)
       (php/is_string x)
-      (php/is_array x)))
+      (php/is_array x)
+      (php/instanceof x Traversable)))
 
 (defn counted?
   "Returns true if `coll` can report its length in constant time — persistent

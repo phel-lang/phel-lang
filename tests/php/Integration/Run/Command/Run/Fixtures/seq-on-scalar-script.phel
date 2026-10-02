@@ -1,0 +1,3 @@
+(ns seq-on-scalar-script)
+
+(seq 5)

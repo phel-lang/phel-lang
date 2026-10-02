@@ -15,6 +15,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
+use Phel\Shared\FrameworkNamespaces;
 use RuntimeException;
 
 use function ltrim;
@@ -282,11 +283,11 @@ final readonly class SymbolResolver
 
     private function remapClojureAlias(string $alias): string
     {
-        if (!str_starts_with($alias, 'clojure.')) {
+        $targetNs = FrameworkNamespaces::clojureTarget($alias);
+        if ($targetNs === null) {
             return $alias;
         }
 
-        $targetNs = 'phel.' . substr($alias, 8);
         $mungedNs = str_replace('-', '_', $targetNs);
 
         if (Registry::getInstance()->getDefinitionInNamespace($mungedNs) === []) {

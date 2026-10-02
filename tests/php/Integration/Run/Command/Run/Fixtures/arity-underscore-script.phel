@@ -1,0 +1,6 @@
+(ns arity-underscore-script)
+
+(defn add_it [a b]
+  (+ a b))
+
+(doall (map add_it [1 2]))

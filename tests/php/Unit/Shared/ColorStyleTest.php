@@ -32,6 +32,6 @@ final class ColorStyleTest extends TestCase
         self::assertSame("\033[0;32many text\033[0m", $style->green($anyText));
         self::assertSame("\033[31;31many text\033[0m", $style->red($anyText));
         self::assertSame("\033[33;33many text\033[0m", $style->yellow($anyText));
-        self::assertSame("\033[33;34many text\033[0m", $style->blue($anyText));
+        self::assertSame("\033[34many text\033[0m", $style->blue($anyText));
     }
 }
