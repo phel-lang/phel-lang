@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d058a147945d7cfa901c64a0461fa431",
+    "content-hash": "c96823f541727c77c89264bcafc08283",
     "packages": [
         {
             "name": "amphp/amp",
@@ -165,16 +165,16 @@
         },
         {
             "name": "gacela-project/gacela",
-            "version": "2.4.0",
+            "version": "2.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "c148b7f1fd44d84d8d71a5b84c7a882e7a86c75a"
+                "reference": "312ae8964727885deb15e16cac4f1c0bb6b7d310"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/c148b7f1fd44d84d8d71a5b84c7a882e7a86c75a",
-                "reference": "c148b7f1fd44d84d8d71a5b84c7a882e7a86c75a",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/312ae8964727885deb15e16cac4f1c0bb6b7d310",
+                "reference": "312ae8964727885deb15e16cac4f1c0bb6b7d310",
                 "shasum": ""
             },
             "require": {
@@ -263,7 +263,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/2.4.0"
+                "source": "https://github.com/gacela-project/gacela/tree/2.6.0"
             },
             "funding": [
                 {
@@ -271,7 +271,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-08-17T19:12:54+00:00"
+            "time": "2026-10-02T11:49:58+00:00"
         },
         {
             "name": "psr/container",
@@ -9532,5 +9532,5 @@
     "platform-overrides": {
         "php": "8.5.0"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }

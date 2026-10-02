@@ -130,10 +130,9 @@ final class CompositionRootBoundaryTest extends TestCase
     /**
      * True when the file really calls `Gacela::bootstrap()` / `Phel::bootstrap()`.
      *
-     * Comments are stripped first: `MergedConfigCacheInvalidator` documents the
-     * bootstrap contract in a docblock without invoking it, and a docblock that
-     * reads like a call is precisely the false positive the other architecture
-     * tests already refuse to count.
+     * Comments are stripped first: a docblock that mentions the bootstrap
+     * without invoking it reads like a call, which is precisely the false
+     * positive the other architecture tests already refuse to count.
      */
     private function callsBootstrap(string $contents): bool
     {

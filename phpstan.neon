@@ -171,20 +171,6 @@ parameters:
         -
             identifier: instanceof.alwaysTrue
             path: src/php/Lang/Collections/LazySeq/LazySeq.php
-        # Phel-domain classes whose suffix coincides with Gacela pillar names
-        # but are not Gacela modules (they're plain Phel runtime/config types).
-        -
-            identifier: gacela.suffixExtends
-            paths:
-                - src/php/Compiler/Domain/Analyzer/SymbolSuggestionProvider.php
-                - src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitterFactory.php
-                - src/php/Compiler/Domain/Parser/ExpressionParserFactory.php
-                - src/php/Compiler/Domain/Reader/ExpressionReaderFactory.php
-                - src/php/Config/PhelBuildConfig.php
-                - src/php/Config/PhelConfig.php
-                - src/php/Config/PhelExportConfig.php
-                - src/php/Lang/Collections/LazySeq/LazySeqConfig.php
-                - src/php/Lang/TypeFactory.php
         # Printer's dispatchers select a TypePrinterInterface<Concrete> per
         # runtime-matched type, which is sound by construction but an
         # existential type: generic invariance cannot relate it to the
