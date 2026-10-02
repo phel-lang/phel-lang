@@ -262,6 +262,29 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $extractor->getNamespacesFromDirectories([$this->dir], failOnInvalidNsForm: true);
     }
 
+    public function test_a_strict_scan_reads_a_file_broken_in_the_same_second_as_the_cached_scan(): void
+    {
+        Phel::bootstrap(__DIR__);
+        $this->writePhel('main.phel', '(ns app.main)');
+        $mtime = (int) filemtime($this->dir . '/main.phel');
+
+        $extractor = new CachedNamespaceExtractor(
+            new NamespaceExtractor(new CompilerFacade(), new TopologicalNamespaceSorter(), new SystemFileIo()),
+            new NullNamespaceCache(),
+            new TopologicalNamespaceSorter(),
+            null,
+            new PhpScanIndexCache($this->cacheFile),
+        );
+        $extractor->getNamespacesFromDirectories([$this->dir]);
+
+        $this->writePhel('main.phel', '(ns app.main (:require [phel.string :refer :all]))');
+        touch($this->dir . '/main.phel', $mtime);
+        clearstatcache();
+
+        $this->expectException(CompilerException::class);
+        $extractor->getNamespacesFromDirectories([$this->dir], failOnInvalidNsForm: true);
+    }
+
     private function writePhel(string $name, string $content): void
     {
         file_put_contents($this->dir . '/' . $name, $content);

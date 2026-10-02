@@ -80,6 +80,13 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
      */
     public function getNamespacesFromDirectories(array $directories, bool $failOnInvalidNsForm = false): array
     {
+        // A strict scan (`phel build`) reads every file. Both caches validate
+        // by whole-second mtime, so an `ns` form broken in the same second as
+        // the cached read would be served stale and left out of the build.
+        if ($failOnInvalidNsForm) {
+            return $this->innerExtractor->getNamespacesFromDirectories($directories, true);
+        }
+
         $cacheKey = $this->scanCacheKey($directories);
 
         // First-level, intra-process cache: an exact dir-set repeat within the
