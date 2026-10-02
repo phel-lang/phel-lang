@@ -121,6 +121,19 @@ final class AnalyzerException extends AbstractLocatedException
     }
 
     /**
+     * `require` is a `phel.repl` macro, referred only in the REPL. Keeps the
+     * `Cannot resolve symbol 'x'` prefix that lint reads the name from.
+     */
+    public static function replOnlyRequire(TypeInterface $type): self
+    {
+        return self::withLocation(
+            "Cannot resolve symbol 'require': require is only available in the REPL; use (:require ...) inside ns",
+            $type,
+            errorCode: ErrorCode::UNDEFINED_SYMBOL,
+        );
+    }
+
+    /**
      * Creates a type error exception with information about expected vs received type.
      *
      * @param array<string>|string $expectedTypes Expected type name(s)

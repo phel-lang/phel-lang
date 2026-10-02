@@ -37,7 +37,7 @@ Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`
 
 ## Rule Set (v1)
 
-- Errors: `phel/unresolved-symbol`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`, `phel/duplicate-def`
+- Errors: `phel/unresolved-symbol`, `phel/unresolved-namespace`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`, `phel/duplicate-def`
 - Warnings: `phel/unused-binding`, `phel/unused-require`, `phel/unused-import`, `phel/shadowed-binding`, `phel/shadowed-core-fn`, `phel/redundant-do`, `phel/discouraged-var`, `phel/comment-style`, `phel/unknown-class`
 
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
@@ -74,6 +74,16 @@ crashing rule to `:off`, which skips it before `apply()` is ever reached.
 - `SymbolAlias`: the implicit alias of a `(:use ...)` / `(:require ...)` entry with no `:as`. Splits on both `.` and `\`, because Phel accepts both separators and the analyzer treats them alike.
 
 `Phel\Shared\Binding\IterationHead` parses the `for`/`dofor`/`foreach` heads for the binding rules. It lives in Shared because Api's `PointCompleter` reads the same heads; see `.agnostic-ai/rules/module-shared.md`.
+
+### `phel/unresolved-namespace`
+
+Flags a `(:require ...)` of a `phel.*` namespace, or a `clojure.*` one whose
+`phel.*` target (`FrameworkNamespaces::clojureTarget`), that no source, test or
+vendor directory declares, with the closest known name as a suggestion. The
+known set comes from `RunFacadeInterface::getAllNamespaces()`
+(`Infrastructure\ProjectKnownNamespaces`), read once per run. A user namespace
+is out of scope: linting a file outside the configured dirs would flag its
+siblings, and the runtime already names a missing one.
 
 ### `phel/duplicate-def`
 
@@ -152,6 +162,7 @@ Warns on a static call `(Foo/bar ...)` whose class cannot be autoloaded, after r
 - Open/closed: `LintFactory::createRules()` and `FormatterRegistry` are the ONLY edit points for new rules/formatters
 - `RulePipeline` isolates a failing rule without silencing it: the run continues, but a `phel/internal-error` diagnostic makes it exit 1 rather than report the file as clean (see above)
 - `DuplicateKeyRule` scans the parse tree, not read forms, because the reader silently deduplicates map literals
-- Cache (default on, `.phel/lint-cache/index.json`): keyed by MD5(file hash) + rule fingerprint (all rule codes + severities + exclude patterns); adding/removing rules or editing `phel-lint.phel` invalidates it. A file whose run produced a `phel/internal-error` is not cached at all
+- Cache (default on, `.phel/lint-cache/index.json`): keyed by MD5(file hash) + `LintCacheFingerprint` (Phel release + all rule codes + severities + exclude patterns); upgrading Phel, adding/removing rules or editing `phel-lint.phel` invalidates it. A file whose run produced a `phel/internal-error` is not cached at all
 - The rule-level `catch (Throwable)` in `CommentStyleRule` and `DuplicateKeyRule` exists for a source that does not lex or parse, not as a licence to swallow rule bugs. Because it catches `Throwable` around the whole `apply()` body, a genuine bug in either rule still bypasses `RulePipeline`'s guard; narrowing both to the documented lexer/parser exceptions is open work
 - A file that does not lex or parse is reported with the analyzer's own code (`PHEL310`, `PHEL100`, ...) and fails the run. `readFormsBestEffort` is still best-effort, but its `Generator::getReturn()` now says whether anything was dropped; `SourceReader` passes that through as `SourceRead::$failed`, and `LintRunner` emits the `analyzeSource` diagnostics for such a file. Rules still see the forms that did read (#3292)
+- A superseded form (`PHEL012`: `php/new`, `php/->`, `php/::`, `set-var`) is passed through from `analyzeSource` by `LintRunner` under the analyzer's code, like a syntax error: it stops `phel run`, so no rule can switch it off (#3456)

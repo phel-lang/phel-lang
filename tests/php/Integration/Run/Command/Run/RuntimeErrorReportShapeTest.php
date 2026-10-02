@@ -31,6 +31,9 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
         yield 'interop type error' => ['interop-type-error-script.phel', 'must be of type int, string given'];
         yield 'division by zero' => ['division-by-zero-script.phel', 'Division by zero'];
         yield 'java class call' => ['java-class-call-script.phel', 'Class "Integer" not found'];
+        yield 'runtime arity' => ['arity-error-script.phel', 'Wrong number of args (1) passed to arity-error-script/add, expected 2'];
+        yield 'runtime arity, underscore in the name' => ['arity-underscore-script.phel', 'Wrong number of args (1) passed to arity-underscore-script/add_it, expected 2'];
+        yield 'seq on a scalar' => ['seq-on-scalar-script.phel', "Don't know how to create a seq from: int"];
     }
 
     #[DataProvider('runtimeErrorClassProvider')]
@@ -70,6 +73,8 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
         yield 'interop type error' => ['interop-type-error-script.phel', 'PHEL402'];
         yield 'bounds' => ['core-error-script.phel', 'PHEL403'];
         yield 'division by zero' => ['division-by-zero-script.phel', 'PHEL404'];
+        yield 'runtime arity' => ['arity-error-script.phel', 'PHEL401'];
+        yield 'seq on a scalar' => ['seq-on-scalar-script.phel', 'PHEL402'];
     }
 
     /**
@@ -92,6 +97,18 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
         $output = $this->captureRunOutput(__DIR__ . '/Fixtures/java-class-call-script.phel');
 
         self::assertStringContainsString('hint: Integer is a Java class, not a PHP one: for Integer/parseInt use (parse-long s).', $output);
+    }
+
+    /**
+     * The headline names the Phel fn, never the PHP file that made the call
+     * (#3459).
+     */
+    public function test_a_runtime_arity_headline_names_no_php_file(): void
+    {
+        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/arity-error-script.phel');
+
+        self::assertMatchesRegularExpression('~^\[PHEL401\] Wrong number of args \(1\) passed to arity-error-script/add, expected 2$~m', $output);
+        self::assertStringNotContainsString('Too few arguments', $output);
     }
 
     /**

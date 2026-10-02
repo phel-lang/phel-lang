@@ -308,6 +308,13 @@
   (is (true? (contains? [1] 0)))
   (is (false? (contains? [1] 1))))
 
+(deftest test-contains?-indexed-with-a-non-int-key
+  (is (false? (contains? [1 2] :a)) "keyword on a vector")
+  (is (false? (contains? [1 2] "1")) "numeric string on a vector")
+  (is (false? (contains? [1 2] 1.0)) "float on a vector")
+  (is (false? (contains? '(1 2) :a)) "keyword on a list")
+  (is (false? (contains? (transient [1 2]) :a)) "keyword on a transient vector"))
+
 (deftest test-contains?-set
   (is (false? (contains? (hash-set) 1)))
   (is (true? (contains? (hash-set 1) 1)))

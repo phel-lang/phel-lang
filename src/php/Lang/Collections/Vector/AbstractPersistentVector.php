@@ -18,6 +18,7 @@ use Phel\Lang\HasherInterface;
 use Phel\Lang\IteratorUnwrapper;
 
 use function count;
+use function is_int;
 use function is_object;
 
 /**
@@ -162,11 +163,14 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     }
 
     /**
-     * @param int $offset
+     * Only an int indexes a vector or list. `contains?` and map
+     * destructuring ask with any key, which reads as absent.
+     *
+     * @psalm-param mixed $offset
      */
-    public function offsetExists($offset): bool
+    public function offsetExists(mixed $offset): bool
     {
-        return $offset >= 0 && $offset < $this->count();
+        return is_int($offset) && $offset >= 0 && $offset < $this->count();
     }
 
     public function offsetSet($offset, $value): void
