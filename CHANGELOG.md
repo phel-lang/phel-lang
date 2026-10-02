@@ -69,7 +69,6 @@ Runtime:
 
 Tooling:
 
-- A require of a `phel.*` or `clojure.*` namespace that Phel does not ship fails at the `ns` form: `(:require phel.strng)` reports `Cannot find namespace 'phel.strng' required by 'app.main'. Did you mean 'phel.string'?`, and lint rule `phel/unresolved-namespace` flags it. It used to load nothing and fail later with `Cannot resolve symbol`. `clojure.set` resolves to `phel.core`, so `(set/union #{1} #{2})` returns `#{1 2}`. (#3454)
 - `phel --version` reports Phel's own commit. Inside another git repository it used to print that repository's commit. (#3407)
 - An edit to `phel-config-<env>.php` takes effect on the next run. It used to be ignored until `phel cache:clear`. (#3426)
 - A stack trace maps every frame to its `.phel` source after an edit to a file loaded with `(load ...)`, and after a recompile in the REPL, `phel watch` or nREPL. Frames used to show `.phel/cache/compiled/` paths or the new code's lines. (#3430 #3435)
