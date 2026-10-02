@@ -126,8 +126,8 @@
   ([xform f coll]
    (transduce xform f (f) coll))
   ([xform f init coll]
-   ;; No `completing` wrapper, as in Clojure: its `identity` completion hid
-   ;; `f`'s own 1-arity (#3433).
+   ;; Never wrap `f` in `completing`: its `identity` completion would hide
+   ;; `f`'s own 1-arity.
    (let [rf  (xform f)
          ret (reduce rf init coll)]
      (rf ret))))
