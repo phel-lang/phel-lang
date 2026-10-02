@@ -8,6 +8,7 @@ use Phel;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use Phel\Lint\Infrastructure\Command\LintCommand;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -17,6 +18,8 @@ use function json_decode;
 
 final class LintCommandTest extends TestCase
 {
+    use RemoveDirTrait;
+
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_it_emits_json_diagnostics_for_unused_binding_fixture(): void
@@ -320,6 +323,52 @@ final class LintCommandTest extends TestCase
         self::assertStringNotContainsString('Lint failed', $display);
         self::assertStringNotContainsString('does not exist', $display);
         self::assertSame(0, $exit, 'Output: ' . $display);
+    }
+
+    /**
+     * The bad file sits on the configured src dir, so the namespace load that
+     * precedes linting used to throw before any file was linted, as a bare
+     * console error with no file, line or JSON (#3457).
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_bad_ns_form_is_reported_as_a_diagnostic_and_the_other_files_still_lint(): void
+    {
+        $root = realpath(sys_get_temp_dir()) . '/phel-lint-bad-ns-' . uniqid();
+        mkdir($root . '/src', 0777, true);
+        file_put_contents($root . '/src/bad.phel', "(ns app.bad\n  (:require [phel.string :refer :all]))\n");
+        file_put_contents($root . '/src/main.phel', "(ns app.main)\n\n(defn f [] (let [unused 1] 2))\n");
+
+        try {
+            Phel::bootstrap($root);
+            Phel::clear();
+            Symbol::resetGen();
+            GlobalEnvironmentSingleton::initializeNew();
+
+            $tester = new CommandTester(new LintCommand());
+            $exit = $tester->execute([
+                'paths' => [$root . '/src'],
+                '--format' => 'json',
+                '--no-cache' => true,
+            ]);
+        } finally {
+            $this->removeDir($root);
+        }
+
+        self::assertSame(1, $exit, $tester->getDisplay());
+        $payload = json_decode(trim($tester->getDisplay()), true);
+        self::assertIsArray($payload, $tester->getDisplay());
+
+        $byCode = [];
+        foreach ($payload as $diagnostic) {
+            $byCode[$diagnostic['code']] = $diagnostic;
+        }
+
+        self::assertArrayHasKey('PHEL007', $byCode);
+        self::assertStringEndsWith('/src/bad.phel', $byCode['PHEL007']['uri']);
+        self::assertSame(2, $byCode['PHEL007']['startLine']);
+        self::assertStringContainsString(':refer :all is not supported', (string) $byCode['PHEL007']['message']);
+        self::assertArrayHasKey('phel/unused-binding', $byCode, 'the other file is still linted');
     }
 
     private function bootstrap(): void

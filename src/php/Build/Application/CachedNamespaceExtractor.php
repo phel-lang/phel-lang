@@ -16,6 +16,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\SourcePathResolver;
+use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\NamespaceInformation;
 use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
@@ -77,7 +78,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
      *
      * @return list<NamespaceInformation>
      */
-    public function getNamespacesFromDirectories(array $directories): array
+    public function getNamespacesFromDirectories(array $directories, bool $failOnInvalidNsForm = false): array
     {
         $cacheKey = $this->scanCacheKey($directories);
 
@@ -100,6 +101,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         }
 
         $allInfos = [];
+        $skippedInvalidNsForm = false;
         foreach ($this->findAllPhelFiles($directories) as $file) {
             try {
                 $allInfos[] = $this->getNamespaceFromFile($file);
@@ -109,10 +111,23 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
                 // whole scan (e.g. REPL starting in a cwd that contains
                 // unrelated broken Phel files).
                 continue;
+            } catch (CompilerException $compilerException) {
+                if ($failOnInvalidNsForm) {
+                    throw $compilerException;
+                }
+
+                $skippedInvalidNsForm = true;
             }
         }
 
         $grouped = $this->grouper->groupAndSort($allInfos);
+
+        // Neither cache may hold a scan that skipped a bad `ns` form: a later
+        // build reading it would never see the file it has to fail on.
+        if ($skippedInvalidNsForm) {
+            return $grouped;
+        }
+
         $this->scanIndexCache->put($cacheKey, $this->perDirFingerprint($directories), $grouped);
 
         return $this->directoriesScanCache[$cacheKey] = $grouped;

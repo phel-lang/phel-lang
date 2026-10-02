@@ -14,6 +14,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 use function explode;
@@ -343,12 +344,20 @@ TXT;
         PersistentListInterface $import,
     ): PersistentVectorInterface {
         if ($index >= count($elements)) {
-            throw AnalyzerException::withLocation('Refer must be a vector', $import);
+            throw AnalyzerException::withLocation('Refer must be a vector', $import, errorCode: ErrorCode::INVALID_SPECIAL_FORM);
         }
 
         $referCandidate = $elements[$index];
+        if ($referCandidate instanceof Keyword && $referCandidate->getName() === 'all') {
+            throw AnalyzerException::withLocation(
+                ':refer :all is not supported. List the names to refer, as in :refer [upper-case trim], or use :as.',
+                $import,
+                errorCode: ErrorCode::INVALID_SPECIAL_FORM,
+            );
+        }
+
         if (!$referCandidate instanceof PersistentVectorInterface) {
-            throw AnalyzerException::withLocation('Refer must be a vector', $import);
+            throw AnalyzerException::withLocation('Refer must be a vector', $import, errorCode: ErrorCode::INVALID_SPECIAL_FORM);
         }
 
         ++$index;

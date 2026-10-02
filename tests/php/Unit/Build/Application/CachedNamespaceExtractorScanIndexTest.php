@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Application;
 
+use Phel;
 use Phel\Build\Application\CachedNamespaceExtractor;
+use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Infrastructure\Cache\NullNamespaceCache;
 use Phel\Build\Infrastructure\Cache\PhpScanIndexCache;
+use Phel\Build\Infrastructure\IO\SystemFileIo;
+use Phel\Compiler\CompilerFacade;
+use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\NamespaceInformation;
 use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
@@ -220,16 +225,48 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         self::assertSame(['app\\main'], array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $warm));
     }
 
-    private function writePhel(string $name, string $content): void
-    {
-        file_put_contents($this->dir . '/' . $name, $content);
-    }
-
     /**
      * Build an extractor whose inner extractor derives `NamespaceInformation`
      * from the actual file content and counts how often it is invoked, so a
      * skipped walk is observable via a zero call count.
      */
+    /**
+     * A lenient scan skips the bad file; a stored index would then let a later
+     * build serve the same scan and never see the file it must fail on.
+     */
+    public function test_a_scan_that_skipped_a_bad_ns_form_is_not_persisted(): void
+    {
+        Phel::bootstrap(__DIR__);
+        $this->writePhel('main.phel', '(ns app.main)');
+        $this->writePhel('bad.phel', '(ns app.bad (:require [phel.string :refer :all]))');
+
+        $cache = new PhpScanIndexCache($this->cacheFile);
+        $extractor = new CachedNamespaceExtractor(
+            new NamespaceExtractor(new CompilerFacade(), new TopologicalNamespaceSorter(), new SystemFileIo()),
+            new NullNamespaceCache(),
+            new TopologicalNamespaceSorter(),
+            null,
+            $cache,
+        );
+
+        $infos = $extractor->getNamespacesFromDirectories([$this->dir]);
+        $cache->save();
+
+        self::assertSame(['app.main'], array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $infos));
+
+        $callCount = 0;
+        $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)->getNamespacesFromDirectories([$this->dir]);
+        self::assertSame(2, $callCount, 'The next process must walk again, not serve the skipping scan.');
+
+        $this->expectException(CompilerException::class);
+        $extractor->getNamespacesFromDirectories([$this->dir], failOnInvalidNsForm: true);
+    }
+
+    private function writePhel(string $name, string $content): void
+    {
+        file_put_contents($this->dir . '/' . $name, $content);
+    }
+
     private function makeExtractor(PhpScanIndexCache $scanIndexCache, int &$callCount): CachedNamespaceExtractor
     {
         $inner = $this->createStub(NamespaceExtractorInterface::class);

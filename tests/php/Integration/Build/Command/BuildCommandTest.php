@@ -203,6 +203,35 @@ TXT;
         self::assertSame(Command::FAILURE, $exitCode);
     }
 
+    /**
+     * Other commands skip a file whose `ns` form does not analyse; a build
+     * must not ship without it, so it fails and names the file (#3457).
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_build_fails_naming_a_file_whose_ns_form_does_not_analyse(): void
+    {
+        $this->workspace->writeFile('src-failing/failing/bad-ns.phel', "(ns failing.bad-ns\n  (:require [phel.string :refer :all]))\n");
+        Gacela::bootstrap($this->workspace->root(), static function (GacelaConfig $config): void {
+            $config->addAppConfig('phel-config-failing.php');
+        });
+
+        $output = new BufferedOutput();
+        ob_start();
+        $exitCode = $this->command->run(
+            new ArrayInput([
+                '--no-source-map' => true,
+                '--no-cache' => true,
+            ]),
+            $output,
+        );
+        $text = ob_get_clean() . $output->fetch();
+
+        self::assertSame(Command::FAILURE, $exitCode);
+        self::assertStringContainsString(':refer :all is not supported', $text);
+        self::assertStringContainsString('bad-ns.phel:2', $text);
+    }
+
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_build_report_prints_namespaces_sizes_and_timing(): void

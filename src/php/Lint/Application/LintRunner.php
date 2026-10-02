@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application;
 
+use Phel\Lang\SourceLocation;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\RuleSettings;
+use Phel\Lint\Application\Rule\NamespaceForm;
 use Phel\Lint\Domain\Exception\LintSourceException;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Transfer\LintResult;
@@ -15,6 +17,8 @@ use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\LintRuleCodes;
 
 use function array_any;
+use function array_filter;
+use function array_values;
 use function file_get_contents;
 use function is_dir;
 
@@ -92,6 +96,11 @@ final readonly class LintRunner
             // the run reports the file as clean and exits 0 (#3292).
             if ($read->failed) {
                 $fileDiagnostics = [...$semantic, ...$fileDiagnostics];
+            } else {
+                // No rule owns an `ns` form the analyzer rejects, so its own
+                // error is the only word on it; dropping it reported the
+                // file clean while every command that loads it fails (#3457).
+                $fileDiagnostics = [...$this->nsFormErrors($read->forms, $semantic, $fileDiagnostics), ...$fileDiagnostics];
             }
 
             // A rule crash is a fact about the linter, not about the file, and
@@ -110,6 +119,35 @@ final readonly class LintRunner
         $this->cache?->flush();
 
         return new LintResult($allDiagnostics);
+    }
+
+    /**
+     * @param list<mixed>      $forms
+     * @param list<Diagnostic> $semantic
+     * @param list<Diagnostic> $ruleDiagnostics
+     *
+     * @return list<Diagnostic>
+     */
+    private function nsFormErrors(array $forms, array $semantic, array $ruleDiagnostics): array
+    {
+        $nsForm = NamespaceForm::find($forms);
+        $start = $nsForm?->getStartLocation();
+        $end = $nsForm?->getEndLocation();
+        if (!$start instanceof SourceLocation || !$end instanceof SourceLocation) {
+            return [];
+        }
+
+        $reported = [];
+        foreach ($ruleDiagnostics as $diagnostic) {
+            $reported[$diagnostic->startLine . ':' . $diagnostic->startCol . ':' . $diagnostic->message] = true;
+        }
+
+        return array_values(array_filter(
+            $semantic,
+            static fn(Diagnostic $d): bool => $d->startLine >= $start->getLine()
+                && $d->startLine <= $end->getLine()
+                && !isset($reported[$d->startLine . ':' . $d->startCol . ':' . $d->message]),
+        ));
     }
 
     /**
