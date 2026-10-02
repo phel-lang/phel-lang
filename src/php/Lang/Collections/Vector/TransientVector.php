@@ -254,7 +254,7 @@ final class TransientVector implements TransientVectorInterface, Stringable
      * Only an int indexes a vector or list. `contains?` and map
      * destructuring ask with any key, which reads as absent.
      *
-     * @param mixed $offset
+     * @psalm-param mixed $offset
      */
     public function offsetExists(mixed $offset): bool
     {
