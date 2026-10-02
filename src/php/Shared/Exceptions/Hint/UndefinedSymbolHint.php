@@ -7,8 +7,8 @@ namespace Phel\Shared\Exceptions\Hint;
 use Throwable;
 
 use function preg_match;
-use function str_contains;
 use function sprintf;
+use function str_contains;
 
 final class UndefinedSymbolHint implements ExceptionHintInterface
 {
