@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Command\Application;
 use Phel\Command\Application\CommandExceptionWriter;
 use Phel\Command\Application\RuntimeErrorReportFormatter;
 use Phel\Command\Domain\ErrorLogInterface;
+use Phel\Command\Domain\Exceptions\CompiledFnName;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
 use Phel\Command\Domain\Exceptions\InternalPathDetector;
@@ -108,7 +109,7 @@ final class CommandExceptionWriterTest extends TestCase
                 new InternalPathDetector('/proj/vendor/phel-lang/phel-lang/src', '/proj/.phel/cache'),
                 $hintResolver,
                 Printer::readable(),
-                new RuntimeArityMessage(new Munge()),
+                new RuntimeArityMessage(new CompiledFnName(new Munge())),
                 'stale compiled output? try `rm -rf out /var/state/cache` and rebuild.',
             ),
         );
