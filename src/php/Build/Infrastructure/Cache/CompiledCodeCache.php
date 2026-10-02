@@ -9,10 +9,9 @@ use ParseError;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
-use function array_keys;
+use function array_flip;
 use function count;
 use function function_exists;
-use function is_string;
 
 use function token_get_all;
 
@@ -66,10 +65,12 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
     /**
      * Source paths whose compiled file this process was handed to `require`.
      * Their fns stay defined after an invalidation, and an error report maps
-     * each frame through the file's inline source map, so `invalidate` drops
-     * the entry but keeps the file. The next `put` overwrites it.
+     * each frame through the file's inline source map, so `invalidate` and
+     * `clear` drop the entry but keep the file. The next `put` overwrites it.
+     * Keyed by source path, holding the compiled path, which `clear` needs
+     * after `invalidate` has removed the entry.
      *
-     * @var array<string, true>
+     * @var array<string, string>
      */
     private array $servedThisProcess = [];
 
@@ -131,7 +132,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
 
         $this->entries[$sourcePath]['last_accessed'] = time();
         $this->touchedThisProcess[$sourcePath] = true;
-        $this->servedThisProcess[$sourcePath] = true;
+        $this->servedThisProcess[$sourcePath] = $compiledPath;
 
         return $compiledPath;
     }
@@ -259,13 +260,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function clear(): void
     {
-        $served = [];
-        foreach (array_keys($this->servedThisProcess) as $sourcePath) {
-            $namespace = $this->entries[$sourcePath]['namespace'] ?? null;
-            if (is_string($namespace)) {
-                $served[$this->getCompiledPath($sourcePath, $namespace)] = true;
-            }
-        }
+        $served = array_flip($this->servedThisProcess);
 
         $compiledDir = $this->directory->compiledDir();
         if (is_dir($compiledDir)) {
