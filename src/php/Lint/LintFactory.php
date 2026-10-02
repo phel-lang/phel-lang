@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lint;
 
+use Composer\InstalledVersions;
 use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lint\Application\Cache\LintCache;
@@ -48,6 +49,8 @@ use Phel\Shared\VersionFinder;
 #[ServiceMap(method: 'getConfig', className: LintConfig::class)]
 final class LintFactory extends AbstractFactory
 {
+    private const string PHEL_PACKAGE = 'phel-lang/phel-lang';
+
     public function createLintRunner(?LintCache $cache = null): LintRunner
     {
         return new LintRunner(
@@ -147,6 +150,20 @@ final class LintFactory extends AbstractFactory
      */
     private function ruleFingerprint(RuleSettings $settings): string
     {
-        return LintCacheFingerprint::of(VersionFinder::LATEST_VERSION, LintRuleCodes::allCodes(), $settings->fingerprint());
+        return LintCacheFingerprint::of($this->installedPhelVersion(), LintRuleCodes::allCodes(), $settings->fingerprint());
+    }
+
+    /**
+     * The release tag plus the installed commit, so moving between
+     * development commits of the same release counts as an upgrade too.
+     * Read from Composer's metadata rather than `git`, which costs a process.
+     */
+    private function installedPhelVersion(): string
+    {
+        $reference = InstalledVersions::isInstalled(self::PHEL_PACKAGE)
+            ? InstalledVersions::getReference(self::PHEL_PACKAGE)
+            : null;
+
+        return VersionFinder::LATEST_VERSION . '@' . ($reference ?? '');
     }
 }
