@@ -214,6 +214,17 @@ final class PharExecutionTest extends TestCase
         self::assertSame([], $shipped);
     }
 
+    public function test_phar_eval_prints_no_deprecation_from_bundled_code(): void
+    {
+        // A deprecated spelling inside phel.core reaches the user through the
+        // stdlib that expands its macros, and the PHAR does not recognise its
+        // own precompiled paths as bundled code (v1.0.0-rc1 printed three).
+        $result = $this->runPhar(['eval', '(+ 1 2)']);
+
+        self::assertSame(0, $result['exit'], $result['stderr']);
+        self::assertStringNotContainsString('deprecated', $result['stdout'] . $result['stderr']);
+    }
+
     public function test_phar_ships_shell_completion_scripts(): void
     {
         // Regression: the PHAR build must not exclude Symfony's
