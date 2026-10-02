@@ -301,7 +301,17 @@ final class ReplCompleterTest extends TestCase
         $results = $this->completer->completeWithTypes('phel\\string\\jo');
 
         self::assertCount(1, $results);
-        self::assertSame('phel\\string\\join', $results[0]->candidate);
+        self::assertSame('phel.string/join', $results[0]->candidate);
         self::assertSame('function', $results[0]->type);
+    }
+
+    public function test_a_qualified_name_completes_with_a_slash_however_it_is_typed(): void
+    {
+        $fn = self::createStub(FnInterface::class);
+        Phel::addDefinition('phel.string', 'upper-case', $fn);
+
+        self::assertSame(['phel.string/upper-case'], $this->completer->complete('phel.string/upp'));
+        self::assertSame(['phel.string/upper-case'], $this->completer->complete('phel.string\\upp'));
+        self::assertSame(['phel.string/upper-case'], $this->completer->complete('phel.str'));
     }
 }
