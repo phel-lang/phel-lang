@@ -111,7 +111,7 @@ Phel runs on PHP, not the JVM. A Java class name resolves as a PHP class and fai
 | `(Double/parseDouble s)` | `(parse-double s)` |
 | `(Math/abs x)` | `(abs x)` |
 | `(Thread/sleep ms)` | `(php/usleep (* ms 1000))` |
-| `(System/currentTimeMillis)` | `(php/microtime true)`, in seconds as a float |
+| `(System/currentTimeMillis)` | `(php/intval (* 1000 (php/microtime true)))`; `(php/microtime true)` alone is seconds as a float |
 | `(.toUpperCase s)`, any method on a string | `(phel.string/upper-case s)`; a PHP string has no methods |
 | `(:require [x :refer :all])` | `:refer [a b]` with each name, or `:as x` |
 | `(:import (java.time Instant))` | `(:use DateTimeImmutable)` for a PHP class |
