@@ -118,11 +118,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
                 // whole scan (e.g. REPL starting in a cwd that contains
                 // unrelated broken Phel files).
                 continue;
-            } catch (CompilerException $compilerException) {
-                if ($failOnInvalidNsForm) {
-                    throw $compilerException;
-                }
-
+            } catch (CompilerException) {
                 $skippedInvalidNsForm = true;
             }
         }
