@@ -49,6 +49,17 @@ final class RunCommandTest extends AbstractTestCommand
         self::assertStringNotContainsString('must not reach here', $output);
     }
 
+    public function test_an_alias_never_required_names_the_namespace_to_require(): void
+    {
+        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/unrequired-alias-script.phel');
+
+        self::assertStringContainsString(
+            "Cannot resolve symbol 'str/join'. No namespace or alias 'str'. Did you mean (:require phel.string :as str)?",
+            $output,
+        );
+        self::assertStringNotContainsString('juxt', $output);
+    }
+
     /**
      * Written to a temp dir at run time: a committed copy under tests/ is
      * reached by other tests' source scans and fails them all.

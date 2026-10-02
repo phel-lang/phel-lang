@@ -8,8 +8,9 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
-use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\BundledSymbolIndex;
 use Phel\Compiler\Domain\Analyzer\SymbolSuggestionProvider;
+use Phel\Compiler\Domain\Analyzer\UnresolvedSymbolAdvisor;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 
@@ -20,7 +21,7 @@ final class AnalyzeSymbol
 {
     use WithAnalyzerTrait;
 
-    private ?SymbolSuggestionProvider $suggestionProvider = null;
+    private ?UnresolvedSymbolAdvisor $unresolvedSymbolAdvisor = null;
 
     private ?QualifiedMemberExpander $memberExpander = null;
 
@@ -63,12 +64,7 @@ final class AnalyzeSymbol
             return $this->analyzer->analyze($memberForm, $env);
         }
 
-        $suggestions = $this->getSuggestionProvider()->findSimilar(
-            $symbol->getName(),
-            $this->analyzer->getAvailableSymbols(),
-        );
-
-        throw AnalyzerException::cannotResolveSymbol($symbol->getFullName(), $symbol, $suggestions);
+        throw $this->getUnresolvedSymbolAdvisor()->exceptionFor($symbol);
     }
 
     private function getMemberExpander(): QualifiedMemberExpander
@@ -76,8 +72,12 @@ final class AnalyzeSymbol
         return $this->memberExpander ??= new QualifiedMemberExpander($this->analyzer);
     }
 
-    private function getSuggestionProvider(): SymbolSuggestionProvider
+    private function getUnresolvedSymbolAdvisor(): UnresolvedSymbolAdvisor
     {
-        return $this->suggestionProvider ??= new SymbolSuggestionProvider();
+        return $this->unresolvedSymbolAdvisor ??= new UnresolvedSymbolAdvisor(
+            $this->analyzer,
+            new BundledSymbolIndex(),
+            new SymbolSuggestionProvider(),
+        );
     }
 }

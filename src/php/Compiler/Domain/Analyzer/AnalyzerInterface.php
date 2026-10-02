@@ -89,4 +89,14 @@ interface AnalyzerInterface
      * @return array<string> List of available symbol names
      */
     public function getAvailableSymbols(): array;
+
+    /**
+     * The namespace a `:require ... :as` alias of the current namespace names.
+     */
+    public function resolveRequireAlias(string $alias): ?string;
+
+    /**
+     * @return list<string>
+     */
+    public function getPublicDefinitionNames(string $ns): array;
 }

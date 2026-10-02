@@ -112,6 +112,14 @@ interface GlobalEnvironmentInterface
     public function getAllDefinitions(): array;
 
     /**
+     * Names another namespace makes available to a qualified reference: its
+     * definitions, minus the private ones.
+     *
+     * @return list<string>
+     */
+    public function getPublicDefinitionNames(string $namespace): array;
+
+    /**
      * Takes a snapshot of the current environment state.
      * Used by the REPL to rollback on eval errors.
      *

@@ -7,13 +7,21 @@ namespace Phel\Shared\Exceptions\Hint;
 use Throwable;
 
 use function preg_match;
+use function str_contains;
 use function sprintf;
 
 final class UndefinedSymbolHint implements ExceptionHintInterface
 {
     public function appliesTo(Throwable $e): bool
     {
-        return $this->extract($e->getMessage()) !== null;
+        $message = $e->getMessage();
+
+        // The message already names the `:require` to add (#3458).
+        if (str_contains($message, '(:require ')) {
+            return false;
+        }
+
+        return $this->extract($message) !== null;
     }
 
     public function hint(Throwable $e): string
@@ -29,6 +37,8 @@ final class UndefinedSymbolHint implements ExceptionHintInterface
     private function extract(string $message): ?string
     {
         $patterns = [
+            // A quoted name keeps its dots: `'phel.strng/join'`.
+            "/Cannot resolve symbol '([^']+)'/",
             // Trailing `.` covers the analyzer's `. Did you mean ...?` suffix.
             '/Cannot resolve symbol \'?([^\']+?)\'?(?:[.\s]|$)/',
             '/Undefined (?:variable|constant|function) [\'"$]?([^\'"]+?)[\'"]?(?:\s|$|\.)/',

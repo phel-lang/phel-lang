@@ -413,6 +413,26 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return array_keys($symbols);
     }
 
+    public function getPublicDefinitionNames(string $namespace): array
+    {
+        $names = [
+            ...array_keys($this->definitions[$namespace] ?? []),
+            ...array_keys(Phel::getDefinitionInNamespace($this->mungeEncodeNs($namespace))),
+        ];
+
+        $public = [];
+        foreach ($names as $name) {
+            $meta = $this->getDefinition($namespace, Symbol::create((string) $name));
+            if ($meta instanceof PersistentMapInterface && $meta[Keyword::create('private')] === true) {
+                continue;
+            }
+
+            $public[(string) $name] = true;
+        }
+
+        return array_keys($public);
+    }
+
     /**
      * A `:tag` written as a bare imported class name (`(:use Phel.Lang.Symbol)`
      * then `^Symbol s`) resolves through the current namespace's `:use`
