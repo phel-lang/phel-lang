@@ -20,7 +20,6 @@ Tooling:
 - A file whose first form is not `(ns ...)` fails with `'src/app.phel' does not start with an (ns ...) form`, instead of a `Cannot resolve symbol 'defn-'` hint. (#3373)
 - Lint rule `phel/shadowed-core-fn` warns when a `let`, `loop` or `fn` binding is named after a public `phel.core` fn, as in `(let [inc (fn [x] 99)] (inc 1))`. (#3374)
 - Editor completion after `(.method` knows a receiver built with `(new Foo)`, `(Foo.)` or `(Foo/make)`, bound or inline. `(new Fo` completes class names, and `(DateTimeImmutable/` completes static members without a `:use`. (#3398)
-- `phel doc --format=json` names the namespace to require: `upper-case` carries `"requireNs": "phel.string"` and `"require": "(:require phel.string :refer [upper-case])"`. A `phel.core` fn carries `requireNs` and a null `require`. (#3466)
 
 PHP API:
 
