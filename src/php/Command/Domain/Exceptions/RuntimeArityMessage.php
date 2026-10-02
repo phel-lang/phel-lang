@@ -6,6 +6,7 @@ namespace Phel\Command\Domain\Exceptions;
 
 use ArgumentCountError;
 use Phel\Lang\FnInterface;
+use Phel\Lang\Registry;
 use Phel\Shared\MungeInterface;
 use ReflectionClass;
 use Throwable;
@@ -96,6 +97,30 @@ final readonly class RuntimeArityMessage
             return $decoded;
         }
 
-        return str_replace('\\', '.', substr($decoded, 0, $lastSeparator)) . '/' . substr($decoded, $lastSeparator + 1);
+        $namespace = str_replace('\\', '.', substr($decoded, 0, $lastSeparator));
+
+        return $namespace . '/' . ($this->definedName($boundTo, $class) ?? substr($decoded, $lastSeparator + 1));
+    }
+
+    /**
+     * The name the fn was defined under. `BOUND_TO` writes `-` as `_`, so
+     * `add-it` and `my_fn` both end in an underscore there, and only the
+     * registry still knows which one the source spelled.
+     */
+    private function definedName(string $boundTo, string $class): ?string
+    {
+        $lastSeparator = strrpos($boundTo, '\\');
+        if ($lastSeparator === false) {
+            return null;
+        }
+
+        $registryNs = str_replace('\\', '.', substr($boundTo, 0, $lastSeparator));
+        foreach (Registry::getInstance()->getDefinitionInNamespace($registryNs) as $name => $value) {
+            if ($value instanceof $class) {
+                return $name;
+            }
+        }
+
+        return null;
     }
 }

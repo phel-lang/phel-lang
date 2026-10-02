@@ -31,6 +31,7 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
         yield 'interop type error' => ['interop-type-error-script.phel', 'must be of type int, string given'];
         yield 'division by zero' => ['division-by-zero-script.phel', 'Division by zero'];
         yield 'runtime arity' => ['arity-error-script.phel', 'Wrong number of args (1) passed to arity-error-script/add, expected 2'];
+        yield 'runtime arity, underscore in the name' => ['arity-underscore-script.phel', 'Wrong number of args (1) passed to arity-underscore-script/add_it, expected 2'];
         yield 'seq on a scalar' => ['seq-on-scalar-script.phel', "Don't know how to create a seq from: int"];
     }
 
