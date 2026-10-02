@@ -12,7 +12,6 @@ use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use Phel\Shared\Printer\Printer;
 
 use function array_pop;
 use function count;
@@ -80,7 +79,7 @@ final class Destructure
 
         $tail = count($items) % 2 === 1 ? array_pop($items) : null;
         if ($tail !== null && !$tail instanceof PersistentMapInterface) {
-            throw new InvalidArgumentException(sprintf('No value supplied for key: %s', Printer::readable()->print($tail)));
+            throw new InvalidArgumentException(sprintf('No value supplied for key: %s', TypeStringifier::describe($tail)));
         }
 
         $map = TypeFactory::getInstance()->persistentMapFromKVs()->asTransient();

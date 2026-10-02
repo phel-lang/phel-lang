@@ -105,7 +105,7 @@ final class DeconstructorTest extends TestCase
     {
         // Test for binding like this (let [{:key a} x])
         // This will be destructured to this:
-        // (let [__phel_1 x
+        // (let [__phel_1 (lookupSource x)
         //       __phel 2 (get __phel_1 :key)
         //       a __phel_2])
         $bindings = $this->deconstructor->deconstruct(
@@ -118,7 +118,7 @@ final class DeconstructorTest extends TestCase
         self::assertEquals([
             [
                 Symbol::createGenerated('__phel_1'),
-                Symbol::create('x'),
+                MapBindingForms::lookupSource(Symbol::create('x')),
             ],
             [
                 Symbol::createGenerated('__phel_2'),
