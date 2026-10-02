@@ -37,7 +37,7 @@ Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`
 
 ## Rule Set (v1)
 
-- Errors: `phel/unresolved-symbol`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`, `phel/duplicate-def`
+- Errors: `phel/unresolved-symbol`, `phel/unresolved-refer`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`, `phel/duplicate-def`
 - Warnings: `phel/unused-binding`, `phel/unused-require`, `phel/unused-import`, `phel/shadowed-binding`, `phel/shadowed-core-fn`, `phel/redundant-do`, `phel/discouraged-var`, `phel/comment-style`
 
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
@@ -48,7 +48,7 @@ Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code con
 
 The code `RulePipeline` reports under when a rule's `apply()` throws. It is the
 one diagnostic the linter emits about itself, so it plays by different rules
-from the thirteen above:
+from the fourteen above:
 
 - **Always `error` severity**, never `RuleSettings::severityFor()`. A configured
   severity grades a finding about the linted code; a crash is a finding about
@@ -74,6 +74,15 @@ crashing rule to `:off`, which skips it before `apply()` is ever reached.
 - `SymbolAlias`: the implicit alias of a `(:use ...)` / `(:require ...)` entry with no `:as`. Splits on both `.` and `\`, because Phel accepts both separators and the analyzer treats them alike.
 
 `Phel\Shared\Binding\IterationHead` parses the `for`/`dofor`/`foreach` heads for the binding rules. It lives in Shared because Api's `PointCompleter` reads the same heads; see `.agnostic-ai/rules/module-shared.md`.
+
+### `phel/unresolved-refer`
+
+Promotes the analyzer's `PHEL013`, raised by `NsSymbol` when a `:refer` names
+something the required namespace does not define or keeps private. The analyzer
+can only check a namespace that is loaded; the Api analysis stage loads the
+linted file's dependencies first, so the rule sees every project and stdlib
+require. `definterface` and `defstruct` names count as defined through their PHP
+class.
 
 ### `phel/duplicate-def`
 

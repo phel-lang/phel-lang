@@ -19,6 +19,7 @@ The analyzer walks the parsed forms and resolves every symbol, arity and binding
 | [PHEL010](#phel010-invalid-recur) | Invalid recur |
 | [PHEL011](#phel011-value-in-call-position-is-not-callable) | Value in call position is not callable |
 | [PHEL012](#phel012-superseded-form) | Superseded form |
+| [PHEL013](#phel013-unresolved-refer) | Unresolved refer |
 
 ## PHEL001: Undefined symbol
 
@@ -167,6 +168,19 @@ A form Phel already says another way, kept as the compiler's own target but no l
 ```
 
 **Fix:** Use the replacement the message names. The full table is in docs/migration/deprecated-surface.md.
+
+## PHEL013: Unresolved refer
+
+Enum case: `ErrorCode::UNRESOLVED_REFER`
+
+A `:refer` in an `ns` form names something the required namespace does not define, or keeps private. Phel checks it when the namespace is already loaded, which it is for every file a run, test or build loads in dependency order.
+
+```phel
+(ns app.main
+  (:require phel.string :refer [upper-case shout]))
+```
+
+**Fix:** Check the spelling against the namespace, or drop the name from the `:refer` vector.
 
 ---
 

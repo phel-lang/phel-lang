@@ -15,10 +15,12 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\NsSymbol;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 use PhelTest\Support\CapturesDeprecationsTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -315,6 +317,51 @@ final class NsSymbolTest extends TestCase
         $barNode = $this->globalEnv->resolve(Symbol::create('bar'), NodeEnvironment::empty());
         self::assertInstanceOf(GlobalVarNode::class, $barNode);
         self::assertSame('vendor.package', $barNode->getNamespace());
+    }
+
+    public function test_refer_of_a_name_a_loaded_namespace_does_not_define_fails(): void
+    {
+        Phel::addDefinition('app.util', 'f', 'fValue', Phel::map());
+
+        try {
+            new NsSymbol($this->analyzer)->analyze($this->nsReferring('app.util', ['f', 'nope']), NodeEnvironment::empty());
+            self::fail('Expected an AnalyzerException.');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertSame("'nope' is referred from app.util, which does not define it.", $analyzerException->getMessage());
+            self::assertSame(ErrorCode::UNRESOLVED_REFER, $analyzerException->getErrorCode());
+        }
+
+        self::assertInstanceOf(
+            GlobalVarNode::class,
+            $this->globalEnv->resolve(Symbol::create('f'), NodeEnvironment::empty()),
+            'The defined refer is still registered, so analysis can read on',
+        );
+    }
+
+    public function test_refer_of_a_private_name_fails(): void
+    {
+        Phel::addDefinition('app.util', 'secret', 'v', Phel::map(Keyword::create('private'), true));
+
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("'secret' is referred from app.util, which keeps it private.");
+
+        new NsSymbol($this->analyzer)->analyze($this->nsReferring('app.util', ['secret']), NodeEnvironment::empty());
+    }
+
+    public function test_refer_of_a_name_defined_as_nil_is_accepted(): void
+    {
+        Phel::addDefinition('app.util', 'nothing', null, Phel::map());
+
+        new NsSymbol($this->analyzer)->analyze($this->nsReferring('app.util', ['nothing']), NodeEnvironment::empty());
+
+        self::assertSame(['nothing'], array_keys($this->globalEnv->getRefers('app.core')));
+    }
+
+    public function test_refer_from_a_namespace_that_is_not_loaded_is_not_checked(): void
+    {
+        new NsSymbol($this->analyzer)->analyze($this->nsReferring('not.loaded', ['anything']), NodeEnvironment::empty());
+
+        self::assertSame(['anything'], array_keys($this->globalEnv->getRefers('app.core')));
     }
 
     public function test_require_vector_with_as_and_refer(): void
@@ -1281,6 +1328,25 @@ final class NsSymbolTest extends TestCase
 
         self::assertSame([], $this->capturedDeprecations());
 
+    }
+
+    /**
+     * @param list<string> $names
+     */
+    private function nsReferring(string $requiredNs, array $names): PersistentListInterface
+    {
+        return Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app.core'),
+            Phel::list([
+                Keyword::create('require'),
+                Phel::vector([
+                    Symbol::create($requiredNs),
+                    Keyword::create('refer'),
+                    Phel::vector(array_map(Symbol::create(...), $names)),
+                ]),
+            ]),
+        ]);
     }
 
     private function locatedSymbol(string $name, string $file): Symbol

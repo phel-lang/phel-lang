@@ -28,6 +28,7 @@ final class LintConfig extends AbstractConfig
     {
         return [
             LintRuleCodes::UNRESOLVED_SYMBOL => Diagnostic::SEVERITY_ERROR,
+            LintRuleCodes::UNRESOLVED_REFER => Diagnostic::SEVERITY_ERROR,
             LintRuleCodes::ARITY_MISMATCH => Diagnostic::SEVERITY_ERROR,
             LintRuleCodes::INVALID_DESTRUCTURING => Diagnostic::SEVERITY_ERROR,
             LintRuleCodes::DUPLICATE_KEY => Diagnostic::SEVERITY_ERROR,
