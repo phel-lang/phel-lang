@@ -78,7 +78,6 @@ Tooling:
 - `phel mutate` compiles at optimization level 0 whatever the config says. At level 2 every mutant used to survive. (#3396)
 - `phel doc --format json` and the API reference link special forms to their current guide sections, and `:see-also` entries name real fns. (#3371)
 - `build/preload.php` preloads every module's pillars, found at startup. The hand-kept list missed eight modules and named three deleted files. (#3410)
-- `phel init` writes a `composer.json` requiring the running Phel, such as `"phel-lang/phel-lang": "^1.0.0-rc1"`, so the `composer install` step it prints works. An existing `composer.json` is kept, even with `--force`. (#3472)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 
