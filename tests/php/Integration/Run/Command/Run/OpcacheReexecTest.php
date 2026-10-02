@@ -28,6 +28,12 @@ final class OpcacheReexecTest extends TestCase
 {
     use RemoveDirTrait;
 
+    /**
+     * macOS skips the re-exec by default (#3425); opting in keeps these
+     * cases running on every host.
+     */
+    private const array OPTED_IN = ['PHEL_OPCACHE_REEXEC' => '1'];
+
     private string $repoRoot;
 
     private string $projectDir;
@@ -66,9 +72,9 @@ final class OpcacheReexecTest extends TestCase
     {
         // Cold run primes the compiled-code cache and (when re-exec fires) the
         // OPcache file cache, so the asserted run below is a genuine warm one.
-        $this->runPhel([]);
+        $this->runPhel(self::OPTED_IN);
 
-        [$warmExit, $warmOut] = $this->runPhel([]);
+        [$warmExit, $warmOut] = $this->runPhel(self::OPTED_IN);
         [$optOutExit, $optOutOut] = $this->runPhel(['PHEL_NO_OPCACHE_REEXEC' => '1']);
 
         self::assertSame(0, $warmExit);
@@ -82,7 +88,7 @@ final class OpcacheReexecTest extends TestCase
         // `-d` never reaches $_SERVER['argv'], so the re-exec used to hand the
         // child a bare argv and every user ini override vanished — which is what
         // made ini-based workarounds look like they did nothing.
-        [$exitCode, $output] = $this->runPhel([], ['-d', 'precision=9'], 'ini.phel');
+        [$exitCode, $output] = $this->runPhel(self::OPTED_IN, ['-d', 'precision=9'], 'ini.phel');
 
         self::assertSame(0, $exitCode);
 
@@ -100,7 +106,7 @@ final class OpcacheReexecTest extends TestCase
         // flag on those directives must lose. Everything else on the same command
         // line still has to survive.
         [$exitCode, $output] = $this->runPhel(
-            [],
+            self::OPTED_IN,
             ['-d', 'opcache.enable_cli=0', '-d', 'precision=9'],
             'ini.phel',
         );
