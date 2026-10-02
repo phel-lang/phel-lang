@@ -8,6 +8,7 @@ use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
@@ -49,6 +50,19 @@ final class DeclareKeepsDefinitionTest extends TestCase
         $this->compilerFacade->eval("(ns probe.declare-keeps)\n(declare helper)");
 
         self::assertSame($helper, Registry::getInstance()->getDefinition('probe.declare_keeps', 'helper'));
+    }
+
+    public function test_declare_keeps_the_root_value_while_the_symbol_is_dynamically_bound(): void
+    {
+        Registry::getInstance()->addDefinition('probe.declare_dynamic', '*setting*', 'root', Phel::map(Keyword::create('dynamic'), true));
+
+        Phel::openBindingFrame();
+        Phel::setVar('probe.declare_dynamic', '*setting*', 'bound');
+        Phel::commitAndRunBindingFrame(
+            fn(): mixed => $this->compilerFacade->eval("(ns probe.declare-dynamic)\n(declare *setting*)"),
+        );
+
+        self::assertSame('root', Registry::readRoot('probe.declare_dynamic', '*setting*'));
     }
 
     public function test_declare_binds_nil_before_the_definition(): void
