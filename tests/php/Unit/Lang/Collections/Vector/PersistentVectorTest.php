@@ -17,6 +17,7 @@ use Phel\Lang\Collections\Vector\SubVector;
 use Phel\Lang\Collections\Vector\TransientVector;
 use Phel\Lang\Equalizer;
 use Phel\Lang\Hasher;
+use Phel\Lang\Keyword;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -553,6 +554,16 @@ final class PersistentVectorTest extends TestCase
         $this->assertTrue($vector->contains(0));
         $this->assertTrue($vector->contains(1));
         $this->assertFalse($vector->contains(2));
+    }
+
+    public function test_a_non_int_offset_is_absent(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+
+        $this->assertFalse($vector->contains(Keyword::create('a')));
+        $this->assertFalse($vector->contains('1'));
+        $this->assertFalse($vector->contains(1.0));
+        $this->assertNull($vector[Keyword::create('a')] ?? null);
     }
 
     /**

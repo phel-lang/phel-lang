@@ -137,3 +137,10 @@
          (loop [{:my/keys [a] :or {a 0} :as m} {}]
            (if (< a 3) (recur {:my/a (inc a)}) [a m])))
       ":or and :as across recur in loop"))
+
+(deftest destructure-hash-map-from-an-indexed-collection
+  (is (nil? (let [{:keys [a]} [1 2]] a)) "a vector has no :a, as with get")
+  (is (nil? (let [{:keys [a]} '(1 2)] a)) "nor does a list")
+  (is (nil? (let [{:keys [a]} (subvec [1 2 3] 1)] a)) "nor a subvector")
+  (is (= 5 (let [{:keys [a] :or {a 5}} [1 2]] a)) ":or applies")
+  (is (= 2 (let [{b 1} [1 2]] b)) "an int key still reads an index"))

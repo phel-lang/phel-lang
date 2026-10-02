@@ -7,8 +7,10 @@ namespace Phel\Api\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use InvalidArgumentException;
+use Phel;
 use Phel\Api\ApiFacade;
 use Phel\Shared\Api\PhelFunction;
+use Phel\Shared\CompilerConstants;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Completion\CompletionInput;
@@ -20,6 +22,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Terminal;
 
+use function array_flip;
 use function in_array;
 use function sprintf;
 
@@ -38,6 +41,8 @@ final class DocCommand extends Command
     private const string OPTION_FORMAT = 'format';
 
     private const array AVAILABLE_FORMATS = ['table', 'json'];
+
+    private const string INTEROP_LABEL = 'php';
 
     protected function configure(): void
     {
@@ -207,6 +212,8 @@ HELP)
      *     percent:int,
      *     namespace:string,
      *     name:string,
+     *     requireNs:string|null,
+     *     require:string|null,
      *     signatures:list<string>,
      *     doc:string,
      *     description:string,
@@ -237,6 +244,8 @@ HELP)
      *     percent:int,
      *     namespace:string,
      *     name:string,
+     *     requireNs:string|null,
+     *     require:string|null,
      *     signatures:list<string>,
      *     doc:string,
      *     description:string,
@@ -280,6 +289,8 @@ HELP)
      *   percent: int,
      *   namespace: string,
      *   name: string,
+     *   requireNs: string|null,
+     *   require: string|null,
      *   signatures: list<string>,
      *   doc: string,
      *   description: string,
@@ -291,6 +302,7 @@ HELP)
     private function normalizeGroupedFunctions(array $phelFunctions, string $search): array
     {
         $normalized = [];
+        $loadedNamespaces = array_flip(Phel::getNamespaces());
 
         foreach ($phelFunctions as $phelFunction) {
             $fnName = $phelFunction->namespace . '/' . $phelFunction->name;
@@ -301,10 +313,15 @@ HELP)
             }
 
             $description = preg_replace('/\r?\n/', '', $phelFunction->description) ?? '';
+            $requireNs = $this->requireNamespace($phelFunction->namespace, $loadedNamespaces);
 
             $normalized[] = [
                 'namespace' => $phelFunction->namespace,
                 'name' => $fnName,
+                'requireNs' => $requireNs,
+                'require' => $requireNs === null || $requireNs === CompilerConstants::PHEL_CORE_NAMESPACE
+                    ? null
+                    : sprintf('(:require %s :refer [%s])', $requireNs, $phelFunction->name),
                 'signatures' => $phelFunction->signatures,
                 'doc' => $phelFunction->doc,
                 'description' => $description,
@@ -318,5 +335,26 @@ HELP)
         usort($normalized, static fn(array $a, array $b): int => $b['percent'] <=> $a['percent']);
 
         return $normalized;
+    }
+
+    /**
+     * The `namespace` label drops the `phel.` prefix of the stdlib (`string`
+     * for `phel.string`), and a `php/...` special form has nothing to require.
+     *
+     * @param array<string, int> $loadedNamespaces
+     */
+    private function requireNamespace(string $label, array $loadedNamespaces): ?string
+    {
+        if ($label === self::INTEROP_LABEL) {
+            return null;
+        }
+
+        if ($label === 'core') {
+            return CompilerConstants::PHEL_CORE_NAMESPACE;
+        }
+
+        $stdlib = 'phel.' . $label;
+
+        return isset($loadedNamespaces[$stdlib]) ? $stdlib : $label;
     }
 }

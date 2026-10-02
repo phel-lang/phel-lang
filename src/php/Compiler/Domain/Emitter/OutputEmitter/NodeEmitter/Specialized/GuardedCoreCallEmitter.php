@@ -30,15 +30,17 @@ use function array_any;
  *
  * Not one of the {@see SpecializedCallEmitterInterface} families: the
  * fallback calls the runtime fn, so the call keeps its `$__phel_call_N`
- * slot and the callee is written by the generic path's own emitter.
+ * slot and the callee is written by the generic path's own emitter, which
+ * also picks the method (`__invoke` or a fixed `invokeArityN`).
  *
  * @internal
  */
 final readonly class GuardedCoreCallEmitter
 {
     /**
-     * @param Closure(CallNode):void $emitCallee writes the callee the way the
-     *                                           generic call path does
+     * @param Closure(CallNode):string $emitCallee writes the callee the way the
+     *                                             generic call path does and
+     *                                             returns the method to call
      */
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
@@ -57,6 +59,12 @@ final readonly class GuardedCoreCallEmitter
         $orderingOp = GuardedCoreCallSpecialization::orderingOperator($name);
         if ($orderingOp !== null) {
             $this->emitOrdering($node, $operands, $orderingOp);
+            return true;
+        }
+
+        $arithmeticOp = GuardedCoreCallSpecialization::arithmeticOperator($name);
+        if ($arithmeticOp !== null) {
+            $this->emitArithmetic($node, $operands, $arithmeticOp);
             return true;
         }
 
@@ -84,6 +92,34 @@ final readonly class GuardedCoreCallEmitter
         $this->outputEmitter->emitStr(' ' . $op . ' ', $loc);
         $this->emitRead($operands[1]);
         $this->outputEmitter->emitStr(') : ', $loc);
+        $this->emitRuntimeCall($node, $operands);
+        $this->outputEmitter->emitStr(')', $loc);
+    }
+
+    /**
+     * The native result is kept only while it is still an int, since PHP
+     * turns an overflowing int result into a float where the runtime fn
+     * promotes to `BigInt`:
+     *
+     *     (\is_int($a) && \is_int($b) && \is_int($t = $a + $b) ? $t : <runtime call>)
+     *
+     * @param list<array{AbstractNode, ?Symbol}> $operands
+     */
+    private function emitArithmetic(CallNode $node, array $operands, string $op): void
+    {
+        $loc = $node->getStartSourceLocation();
+        $result = Symbol::gen('__phel_guard_');
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->emitGuards($operands, GuardedCoreCallSpecialization::guardFor($op), true);
+        $this->outputEmitter->emitStr(' && \\is_int(', $loc);
+        $this->outputEmitter->emitPhpVariable($result, $loc);
+        $this->outputEmitter->emitStr(' = ', $loc);
+        $this->emitRead($operands[0]);
+        $this->outputEmitter->emitStr(' ' . $op . ' ', $loc);
+        $this->emitRead($operands[1]);
+        $this->outputEmitter->emitStr(') ? ', $loc);
+        $this->outputEmitter->emitPhpVariable($result, $loc);
+        $this->outputEmitter->emitStr(' : ', $loc);
         $this->emitRuntimeCall($node, $operands);
         $this->outputEmitter->emitStr(')', $loc);
     }
@@ -210,10 +246,10 @@ final readonly class GuardedCoreCallEmitter
      */
     private function emitRuntimeCall(CallNode $node, array $operands): void
     {
-        ($this->emitCallee)($node);
+        $method = ($this->emitCallee)($node);
 
         $loc = $node->getStartSourceLocation();
-        $this->outputEmitter->emitStr('->__invoke(', $loc);
+        $this->outputEmitter->emitStr('->' . $method . '(', $loc);
         foreach ($operands as $i => $operand) {
             if ($i > 0) {
                 $this->outputEmitter->emitStr(', ', $loc);

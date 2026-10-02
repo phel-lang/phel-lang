@@ -12,6 +12,7 @@ use Phel\Lint\Application\Formatter\FormatterRegistry;
 use Phel\Lint\Domain\Exception\LintConfigException;
 use Phel\Lint\Domain\Exception\LintSourceException;
 use Phel\Lint\Transfer\LintResult;
+use Phel\Shared\Lint\LintRuleExplainerInterface;
 
 /**
  * @extends AbstractFacade<LintFactory>
@@ -54,5 +55,10 @@ final class LintFacade extends AbstractFacade
     public function createCache(string $baseDir, RuleSettings $settings): LintCache
     {
         return $this->getFactory()->createLintCache($baseDir, $settings);
+    }
+
+    public function ruleExplainer(): LintRuleExplainerInterface
+    {
+        return $this->getFactory()->createRuleExplainer();
     }
 }
