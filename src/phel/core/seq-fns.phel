@@ -1752,6 +1752,10 @@ If map has duplicated values, some keys will be ignored."
                      (unreduced (rf result chunk))))]
     (rf result)))
 
+;; Marks "no prior value yet" in stateful transducers. A keyword such as
+;; `:phel/none` could also be a real input or key and would be skipped.
+(def- no-prior-value (new \stdClass))
+
 (defn partition-by
   "Returns a lazy sequence of partitions. Applies `f` to each value in `coll`, splitting them each time the return value changes."
   {:example "(partition-by #(< % 3) [1 2 3 4 5 1 2]) ; => ([1 2] [3 4 5] [1 2])\n(into [] (partition-by odd?) [1 3 2 4 5]) ; => [[1 3] [2 4] [5]]"
@@ -1759,7 +1763,7 @@ If map has duplicated values, some keys will be ignored."
   ([f]
    (fn [rf]
      (let [buf (volatile! [])
-           pv  (volatile! :phel/none)]
+           pv  (volatile! no-prior-value)]
        (fn
          ([] (rf))
          ([result] (complete-with-buffered-chunk rf buf result))
@@ -1767,7 +1771,7 @@ If map has duplicated values, some keys will be ignored."
           (let [prior @pv
                 v     (f input)]
             (vreset! pv v)
-            (if (or (= prior :phel/none) (= v prior))
+            (if (or (php/=== prior no-prior-value) (= v prior))
               (do (vreset! buf (conj @buf input))
                   result)
               (let [chunk @buf]
@@ -1792,11 +1796,13 @@ If map has duplicated values, some keys will be ignored."
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
   ([]
    (fn [rf]
-     (let [pv (volatile! :phel/none)]
+     (let [pv (volatile! no-prior-value)]
        (xf-step rf (fn [result input]
                      (let [prior @pv]
                        (vreset! pv input)
-                       (if (= prior input) result (rf result input))))))))
+                       (if (and (not (php/=== prior no-prior-value)) (= prior input))
+                         result
+                         (rf result input))))))))
   ([coll]
    (cond
      (nil? coll)                              []

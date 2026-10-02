@@ -78,3 +78,7 @@
   (let [xf (replace {1 :a})]
     (is (= [:a 2] (into [] xf [1 2])))
     (is (= [3 :a] (into [] xf [3 1])))))
+
+(deftest test-stateful-transducers-accept-any-value-as-a-first-input
+  (is (= [[:phel/none] [:other]] (into [] (partition-by identity) [:phel/none :other])))
+  (is (= [:phel/none 1] (into [] (dedupe) [:phel/none :phel/none 1]))))
