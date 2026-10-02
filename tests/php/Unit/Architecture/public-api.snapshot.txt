@@ -79,7 +79,7 @@ final class Phel\Build\BuildFacade extends Gacela\Framework\AbstractFacade imple
   public function getNamespaceFromDirectories(array $directories): array
   public function getNamespaceFromFile(string $filename): Phel\Shared\NamespaceInformation
   public function getOutputDirectory(): string
-  public function unresolvedRequireMessage(string $requiredNs, string $requiringNs): ?string
+  public function unresolvedRequireError(string $requiredNs, string $requiringNs, string $requiringFile = '', array $searchedDirectories = []): ?RuntimeException
   public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\CompilerException $e): void
   public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e): void
   public static function disableBuildMode(): void
@@ -1815,6 +1815,7 @@ enum Phel\Shared\Exceptions\ErrorCode: string
   case INVALID_SPLICE = 'PHEL202'
   case LEXER_ERROR = 'PHEL310'
   case MACRO_EXPANSION_ERROR = 'PHEL005'
+  case MISSING_NAMESPACE = 'PHEL014'
   case NOT_CALLABLE = 'PHEL011'
   case PARSER_ERROR = 'PHEL120'
   case READER_ERROR = 'PHEL210'

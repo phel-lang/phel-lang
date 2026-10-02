@@ -150,7 +150,7 @@ parameters:
             # contract; gacela 2.4 no longer counts static methods for either
             # `facadeOnlyDelegates` or `facadeInterfaceDrift`, which is why the
             # count dropped from 11 to 5 with no interface change. The sixth,
-            # `unresolvedRequireMessage` (#3454), is called by the emitted `ns`
+            # `unresolvedRequireError` (#3454, #3461), is called by the emitted `ns`
             # guard on a `new BuildFacade()` and stays off the contract so
             # implementers of the interface are not broken.
             count: 6

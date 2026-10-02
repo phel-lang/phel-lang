@@ -44,8 +44,10 @@ final class RunCommandTest extends AbstractTestCommand
             __DIR__ . '/Fixtures/missing-require-script.phel',
         );
 
-        self::assertStringContainsString("Cannot find namespace 'some.nonexistent.ns'", $output);
+        self::assertStringContainsString("[PHEL014] Cannot find namespace 'some.nonexistent.ns'", $output);
         self::assertStringContainsString("required by 'missing-require-script'", $output);
+        self::assertStringContainsString('missing-require-script.phel:2', $output);
+        self::assertStringContainsString('searched: ', $output);
         self::assertStringNotContainsString('must not reach here', $output);
     }
 
