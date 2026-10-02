@@ -210,7 +210,7 @@ final class LintCommandTest extends TestCase
         );
 
         self::assertSame([
-            ['warning', 4, "Class 'System' in 'System/currentTimeMillis' cannot be autoloaded. System is a Java class, not a PHP one: for System/currentTimeMillis use (php/microtime true), which returns seconds as a float."],
+            ['warning', 4, "Class 'System' in 'System/currentTimeMillis' cannot be autoloaded. System is a Java class, not a PHP one: for System/currentTimeMillis use (php/intval (* 1000 (php/microtime true))), the epoch in milliseconds."],
         ], $unknown);
         self::assertSame(0, $exit, 'A class can still be loaded at runtime, so the command still succeeds');
     }

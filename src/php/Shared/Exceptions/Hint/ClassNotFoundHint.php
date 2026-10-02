@@ -21,7 +21,7 @@ final class ClassNotFoundHint implements ExceptionHintInterface
         'Long' => 'for Long/parseLong use (parse-long s)',
         'Double' => 'for Double/parseDouble use (parse-double s)',
         'Math' => 'for Math/abs use (abs x), and for the rest a PHP function such as (php/floor x) or (php/sqrt x)',
-        'System' => 'for System/currentTimeMillis use (php/microtime true), which returns seconds as a float',
+        'System' => 'for System/currentTimeMillis use (php/intval (* 1000 (php/microtime true))), the epoch in milliseconds',
         'Thread' => 'for Thread/sleep use (php/usleep (* ms 1000))',
         'String' => 'for String/valueOf use (str x)',
     ];

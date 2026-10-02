@@ -20,7 +20,7 @@ final class ClassNotFoundHintTest extends TestCase
     {
         yield 'Integer/parseInt' => ['Integer', '(parse-long s)'];
         yield 'Math/abs' => ['Math', '(abs x)'];
-        yield 'System/currentTimeMillis' => ['System', '(php/microtime true)'];
+        yield 'System/currentTimeMillis' => ['System', '(php/intval (* 1000 (php/microtime true)))'];
         yield 'Thread/sleep' => ['Thread', '(php/usleep (* ms 1000))'];
         yield 'String/valueOf' => ['String', '(str x)'];
     }
