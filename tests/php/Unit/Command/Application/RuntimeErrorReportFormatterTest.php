@@ -8,6 +8,7 @@ use Phel\Command\Application\RuntimeErrorReportFormatter;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
 use Phel\Command\Domain\Exceptions\InternalPathDetector;
+use Phel\Command\Domain\Exceptions\RuntimeArityMessage;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Lang\ExceptionInfo;
 use Phel\Lang\Keyword;
@@ -15,6 +16,7 @@ use Phel\Lang\TypeFactory;
 use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Exceptions\Hint\NotCallableHint;
+use Phel\Shared\Munge;
 use Phel\Shared\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -341,6 +343,7 @@ final class RuntimeErrorReportFormatterTest extends TestCase
             new InternalPathDetector(self::PHEL_SRC_DIR, self::CACHE_DIR),
             $hintResolver ?? new ExceptionHintResolver([]),
             Printer::readable(),
+            new RuntimeArityMessage(new Munge()),
             self::STALE_OUTPUT_HINT,
         );
     }

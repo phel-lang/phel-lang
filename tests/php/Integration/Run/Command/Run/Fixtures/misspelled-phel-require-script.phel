@@ -1,0 +1,4 @@
+(ns misspelled-phel-require-script
+  (:require phel.strng :as s))
+
+(println "must not reach here")

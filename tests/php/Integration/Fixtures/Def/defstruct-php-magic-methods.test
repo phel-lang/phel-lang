@@ -21,7 +21,7 @@ final class counter extends \Phel\Lang\Collections\Struct\AbstractPersistentStru
     $n = $this->n;
     static $__phel_call_0;
     $this_1 = $this;
-    return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($x, $n);
+    return (\is_int($x) && \is_int($n) && \is_int($__phel_guard_3 = $x + $n) ? $__phel_guard_3 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($x, $n));
   }
 
   public function __toString(): string {

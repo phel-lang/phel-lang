@@ -1,0 +1,27 @@
+--PHEL--
+(fn [a b] (+ a b))
+(fn [a] (- a 1))
+(fn [a] (* 2 a))
+(fn [f g] (+ (f) (g)))
+(fn [a] (+ a 1.5))
+(fn [a] (* a 2 3))
+--PHP--
+(function($a, $b) {
+  static $__phel_call_0;
+  return (\is_int($a) && \is_int($b) && \is_int($__phel_guard_1 = $a + $b) ? $__phel_guard_1 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($a, $b));
+});(function($a) {
+  static $__phel_call_0;
+  return (\is_int($a) && \is_int($__phel_guard_3 = $a - 1) ? $__phel_guard_3 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "-"))->invokeArity2($a, 1));
+});(function($a) {
+  static $__phel_call_0;
+  return (\is_int($a) && \is_int($__phel_guard_5 = 2 * $a) ? $__phel_guard_5 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "*"))->invokeArity2(2, $a));
+});(function($f, $g) {
+  static $__phel_call_0;
+  return (\is_int(($__phel_guard_7 = ($f)())) & \is_int(($__phel_guard_8 = ($g)())) && \is_int($__phel_guard_9 = $__phel_guard_7 + $__phel_guard_8) ? $__phel_guard_9 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($__phel_guard_7, $__phel_guard_8));
+});(function($a) {
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($a, 1.5);
+});(function($a) {
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "*"))->invokeArity3($a, 2, 3);
+});

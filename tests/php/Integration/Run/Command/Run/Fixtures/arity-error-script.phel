@@ -1,0 +1,6 @@
+(ns arity-error-script)
+
+(defn add [a b]
+  (+ a b))
+
+(doall (map add [1 2]))

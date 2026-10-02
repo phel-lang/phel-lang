@@ -9,6 +9,7 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Override;
 use Phel\Console\Application\WarnDeprecationsFlag;
 use Phel\Console\ConsoleFactory;
+use Phel\Shared\NoColor;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -80,6 +81,18 @@ final class ConsoleBootstrap extends Application
         $this->getFactory()->getFilesystemFacade()->clearAll();
 
         exit($exitCode);
+    }
+
+    /**
+     * Phel's own coloured text (error reports, printed values) follows the
+     * decision Symfony just made for stdout, where every command writes it.
+     */
+    #[Override]
+    protected function configureIO(InputInterface $input, OutputInterface $output): void
+    {
+        parent::configureIO($input, $output);
+
+        NoColor::followOutput($output->isDecorated());
     }
 
     /**

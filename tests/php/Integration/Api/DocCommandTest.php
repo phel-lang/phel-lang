@@ -15,6 +15,12 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandCompletionTester;
 use Symfony\Component\Console\Tester\CommandTester;
 
+use function is_array;
+use function json_decode;
+use function sprintf;
+
+use const JSON_THROW_ON_ERROR;
+
 final class DocCommandTest extends TestCase
 {
     #[PreserveGlobalState(false)]
@@ -141,6 +147,50 @@ final class DocCommandTest extends TestCase
 
         self::assertSame(Command::SUCCESS, $exitCode);
         self::assertSame('[]', trim($tester->getDisplay()));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_the_json_format_names_the_namespace_to_require(): void
+    {
+        $this->bootstrap();
+
+        $upperCase = $this->jsonEntry('string/upper-case');
+
+        self::assertSame('string', $upperCase['namespace']);
+        self::assertSame('phel.string', $upperCase['requireNs']);
+        self::assertSame('(:require phel.string :refer [upper-case])', $upperCase['require']);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_core_fn_needs_no_require(): void
+    {
+        $this->bootstrap();
+
+        $map = $this->jsonEntry('core/map');
+
+        self::assertSame('phel.core', $map['requireNs']);
+        self::assertNull($map['require']);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function jsonEntry(string $name): array
+    {
+        $tester = new CommandTester(new DocCommand());
+        $tester->execute(['search' => $name, '--format' => 'json']);
+
+        $entries = json_decode($tester->getDisplay(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertIsArray($entries);
+        foreach ($entries as $entry) {
+            if (is_array($entry) && ($entry['name'] ?? null) === $name) {
+                return $entry;
+            }
+        }
+
+        self::fail(sprintf('No JSON entry named %s', $name));
     }
 
     private function bootstrap(): void

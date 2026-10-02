@@ -26,8 +26,8 @@ final class AnalyzeCommandTest extends TestCase
         $this->bootstrap();
 
         $tester = new CommandTester(new AnalyzeCommand());
-        $exit = $tester->execute(['file' => __DIR__ . '/Fixtures/arity_mismatch.phel']);
-        self::assertSame(0, $exit);
+        $exit = $tester->execute(['paths' => [__DIR__ . '/Fixtures/arity_mismatch.phel']]);
+        self::assertSame(1, $exit, 'an error diagnostic fails the run');
 
         $decoded = json_decode(trim($tester->getDisplay()), true);
         self::assertIsArray($decoded);
@@ -42,7 +42,7 @@ final class AnalyzeCommandTest extends TestCase
         $this->bootstrap();
 
         $tester = new CommandTester(new AnalyzeCommand());
-        $exit = $tester->execute(['file' => __DIR__ . '/Fixtures/uses_core_macro.phel']);
+        $exit = $tester->execute(['paths' => [__DIR__ . '/Fixtures/uses_core_macro.phel']]);
         self::assertSame(0, $exit);
 
         $decoded = json_decode(trim($tester->getDisplay()), true);
@@ -60,7 +60,7 @@ final class AnalyzeCommandTest extends TestCase
         $this->bootstrap();
 
         $tester = new CommandTester(new AnalyzeCommand());
-        $exit = $tester->execute(['file' => __DIR__ . '/Fixtures/bar.phel']);
+        $exit = $tester->execute(['paths' => [__DIR__ . '/Fixtures/bar.phel']]);
         self::assertSame(0, $exit);
 
         $decoded = json_decode(trim($tester->getDisplay()), true);
@@ -78,9 +78,58 @@ final class AnalyzeCommandTest extends TestCase
         $this->bootstrap();
 
         $tester = new CommandTester(new AnalyzeCommand());
-        $exit = $tester->execute(['file' => '/nonexistent/file.phel']);
+        $exit = $tester->execute(['paths' => ['/nonexistent/file.phel']]);
 
         self::assertSame(1, $exit);
+    }
+
+    public function test_analyze_command_fails_on_an_unreadable_subdirectory(): void
+    {
+        if (posix_geteuid() === 0) {
+            self::markTestSkipped('root reads any directory');
+        }
+
+        $this->bootstrap();
+        $dir = sys_get_temp_dir() . '/phel-analyze-unreadable-child-' . uniqid();
+        mkdir($dir . '/locked', 0o777, true);
+        file_put_contents($dir . '/main.phel', '(ns app.main)');
+        chmod($dir . '/locked', 0o000);
+
+        try {
+            $tester = new CommandTester(new AnalyzeCommand());
+            $exit = $tester->execute(['paths' => [$dir]]);
+        } finally {
+            chmod($dir . '/locked', 0o755);
+            rmdir($dir . '/locked');
+            unlink($dir . '/main.phel');
+            rmdir($dir);
+        }
+
+        self::assertSame(1, $exit);
+        self::assertStringContainsString('Unable to read directory', $tester->getDisplay());
+    }
+
+    public function test_analyze_command_fails_on_an_unreadable_directory(): void
+    {
+        if (posix_geteuid() === 0) {
+            self::markTestSkipped('root reads any directory');
+        }
+
+        $this->bootstrap();
+        $dir = sys_get_temp_dir() . '/phel-analyze-unreadable-' . uniqid();
+        mkdir($dir);
+        chmod($dir, 0o000);
+
+        try {
+            $tester = new CommandTester(new AnalyzeCommand());
+            $exit = $tester->execute(['paths' => [$dir]]);
+        } finally {
+            chmod($dir, 0o755);
+            rmdir($dir);
+        }
+
+        self::assertSame(1, $exit);
+        self::assertStringContainsString('Unable to read directory', $tester->getDisplay());
     }
 
     #[PreserveGlobalState(false)]
