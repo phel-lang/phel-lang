@@ -559,6 +559,7 @@ final class CompiledCodeCacheTest extends TestCase
     {
         $cache = new CompiledCodeCache($this->cacheDir);
         $cache->put($this->sourceFile, 'test\\namespace', 'hash1', "// /src/test.phel\n// ;;AACA\n\$x = 1;");
+
         $servedPath = $cache->get($this->sourceFile, 'hash1');
         self::assertNotNull($servedPath);
         require $servedPath;
