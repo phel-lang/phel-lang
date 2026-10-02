@@ -16,6 +16,7 @@ use RuntimeException;
 use Stringable;
 
 use function count;
+use function is_int;
 
 /**
  * @template T
@@ -249,12 +250,9 @@ final class TransientVector implements TransientVectorInterface, Stringable
         return $this->get($offset);
     }
 
-    /**
-     * @param int $offset
-     */
-    public function offsetExists($offset): bool
+    public function offsetExists(mixed $offset): bool
     {
-        return $offset >= 0 && $offset < $this->count;
+        return is_int($offset) && $offset >= 0 && $offset < $this->count;
     }
 
     public function offsetSet($offset, $value): void

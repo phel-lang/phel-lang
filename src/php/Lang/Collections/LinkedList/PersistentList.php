@@ -18,6 +18,7 @@ use Phel\Lang\SeqInterface;
 use Traversable;
 
 use function count;
+use function is_int;
 
 /**
  * @template T
@@ -268,12 +269,9 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
         return $this->prepend($x);
     }
 
-    /**
-     * @param int $offset
-     */
-    public function offsetExists($offset): bool
+    public function offsetExists(mixed $offset): bool
     {
-        return $offset >= 0 && $offset < $this->count;
+        return is_int($offset) && $offset >= 0 && $offset < $this->count;
     }
 
     /**
