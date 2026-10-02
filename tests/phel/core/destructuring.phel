@@ -173,3 +173,14 @@
   (is (nil? (let [{:keys [a]} (subvec [1 2 3] 1)] a)) "nor a subvector")
   (is (= 5 (let [{:keys [a] :or {a 5}} [1 2]] a)) ":or applies")
   (is (= 2 (let [{b 1} [1 2]] b)) "an int key still reads an index"))
+
+(defn- kwargs-fn [& {:keys [a b] :or {b :default}}] [a b])
+
+(deftest destructure-rest-param-as-keyword-arguments
+  (is (= 1 ((fn [& {:keys [a]}] a) :a 1)) "pairs after & read as a map")
+  (is (= 1 ((fn [& {:keys [a]}] a) {:a 1})) "a lone map after & is the map")
+  (is (= [1 2] (kwargs-fn :a 1 {:b 2})) "a trailing map merges over the pairs")
+  (is (= [nil :default] (kwargs-fn)) "no arguments read as no keys")
+  (is (nil? ((fn [& {:as m}] m))) ":as is nil without arguments, as in Clojure")
+  (is (= {:a 1} ((fn [x & {:as m}] m) 0 :a 1)) ":as binds the map after fixed params")
+  (is (= [1 [2 3]] ((fn [a & [b & more]] [a [b (first more)]]) 1 2 3)) "a vector pattern after & is untouched"))
