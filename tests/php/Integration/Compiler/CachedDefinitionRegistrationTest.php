@@ -80,13 +80,13 @@ final class CachedDefinitionRegistrationTest extends TestCase
 
     public function test_definitions_before_a_form_that_throws_are_registered(): void
     {
-        $source = <<<'PHEL'
-            (ns probe.cached-throw)
-            (def a 1)
-            (defn g [] a)
-            (when (php/getenv "PHEL_PROBE_CACHED_THROW") (throw (RuntimeException. "boom")))
-            (def b 2)
-            PHEL;
+        $source = <<<'PHEL_WRAP'
+        (ns probe.cached-throw)
+        (def a 1)
+        (defn g [] a)
+        (when (php/getenv "PHEL_PROBE_CACHED_THROW") (throw (RuntimeException. "boom")))
+        (def b 2)
+        PHEL_WRAP;
         $code = new CompilerFacade()->compileForCache($source, new CompileOptions())->getPhpCode();
         $file = (string) tempnam(sys_get_temp_dir(), 'phel-cached-throw');
         file_put_contents($file, "<?php\n" . $code);
