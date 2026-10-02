@@ -1,5 +1,5 @@
 (ns phel-test.core.basic-sequence-operation
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is thrown-with-msg?]))
 
 (deftest test-cons
   (is (= (php-indexed-array 1 2) (cons 1 (php-indexed-array 2))) "cons php array")
@@ -98,6 +98,10 @@
       "seq of int-array returns a Phel sequence")
   (is (not (php/is_array (seq (int-array 3))))
       "seq of int-array does not return a raw PHP array"))
+
+(deftest test-seq-on-a-scalar-names-the-type
+  (is (thrown-with-msg? TypeError "Don't know how to create a seq from: int" (seq 5)))
+  (is (thrown-with-msg? TypeError "Don't know how to create a seq from: bool" (seq true))))
 
 (deftest test-nfirst
   (is (= [2] (nfirst [[1 2]])) "(nfirst [[1 2]])")

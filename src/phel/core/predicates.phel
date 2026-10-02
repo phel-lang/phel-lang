@@ -3,6 +3,7 @@
 (use Countable)
 (use DateTimeInterface)
 (use Traversable)
+(use TypeError)
 (use Phel)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
 (use Phel.Lang.Collections.LazySeq.Cons)
@@ -565,8 +566,11 @@ This function is useful for explicitly converting strings to sequences of charac
     (php/is_array coll)
     (seq-list coll)
 
+    (php/instanceof coll Traversable)
+    (seq-list (to-array coll))
+
     true
-    (seq-list (to-array coll))))
+    (throw (new TypeError (str "Don't know how to create a seq from: " (php/get_debug_type coll))))))
 
 (defn- indexed-php-array?
   [x]
