@@ -620,7 +620,7 @@ final class Phel\Lang\Collections\LinkedList\PersistentList extends Phel\Lang\Ab
   public function getMeta(): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function hash(): int
   public function isList(): bool
-  public function offsetExists($offset): bool
+  public function offsetExists(mixed $offset): bool
   public function offsetGet($offset): mixed
   public function offsetSet($offset, $value): void
   public function offsetUnset($offset): void
@@ -910,7 +910,7 @@ abstract class Phel\Lang\Collections\Vector\AbstractPersistentVector extends Phe
   public function first()
   public function getMeta(): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function hash(): int
-  public function offsetExists($offset): bool
+  public function offsetExists(mixed $offset): bool
   public function offsetGet($offset): mixed
   public function offsetSet($offset, $value): void
   public function offsetUnset($offset): void
@@ -975,7 +975,7 @@ final class Phel\Lang\Collections\Vector\TransientVector implements Phel\Lang\Co
   public function contains($key): bool
   public function count(): int
   public function get(int $i)
-  public function offsetExists($offset): bool
+  public function offsetExists(mixed $offset): bool
   public function offsetGet($offset): mixed
   public function offsetSet($offset, $value): void
   public function offsetUnset($offset): void
