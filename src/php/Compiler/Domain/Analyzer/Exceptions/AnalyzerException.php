@@ -16,6 +16,7 @@ use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Printer\Printer;
 use Throwable;
 
+use function array_values;
 use function count;
 use function get_debug_type;
 use function implode;
@@ -117,7 +118,10 @@ final class AnalyzerException extends AbstractLocatedException
             $message .= sprintf('. Did you mean %s?', self::formatSuggestions($suggestions));
         }
 
-        return self::withLocation($message, $type, errorCode: ErrorCode::UNDEFINED_SYMBOL);
+        $e = self::withLocation($message, $type, errorCode: ErrorCode::UNDEFINED_SYMBOL);
+        $e->setSuggestions(array_values($suggestions));
+
+        return $e;
     }
 
     /**
