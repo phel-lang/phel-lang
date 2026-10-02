@@ -6,59 +6,75 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `PHEL_OPTIMIZATION_LEVEL` sets the optimization level for every command of a process, over `phel-config.php`: `PHEL_OPTIMIZATION_LEVEL=0 phel test`. A value that is not a non-negative integer stops the command with an error. `phel build -O` still wins for its build. (#3396)
-- **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::withoutDeprecations()` runs a callable with deprecation notices held back, for tools that read a source without compiling it. (#3381)
-- A file whose first form is not `(ns ...)` fails with the hint `'src/app.phel' does not start with an (ns ...) form`, instead of the `Check the spelling, or add (:require ...)` hint for `Cannot resolve symbol 'defn-'`. `Phel\Shared\Exceptions\MissingNsFormException` and `Phel\Shared\Exceptions\Hint\MissingNsFormHint` are public PHP API. (#3373)
-- Lint rule `phel/shadowed-core-fn` warns when a `let`, `loop` or `fn` parameter binding is named after a public `phel.core` function, as in `(let [inc (fn [x] 99)] (inc 1))`, where the local wins. Turn it off with `{:rules {:phel/shadowed-core-fn :off}}` in `phel-lint.phel`. (#3374)
-- Editor completion after `(.method` and `(.-field` knows a receiver built with `(new Foo)`, `(new \Foo)`, `(Foo.)` or a static factory such as `(Foo/make)`, bound in a `let` or written inline. `(new Fo` completes class names without the leading `\`, and `(DateTimeImmutable/` and `(Foo.Bar/` complete static members without a `:use`. Before, only the `php/new` spelling, an error since 0.52, typed a receiver. (#3398)
-- A protocol extended to a PHP interface or parent class applies to every class that implements or extends it: after `(extend-type \Countable Sized (size-of [x] (count x)))`, `(size-of (new \SplObjectStorage))` dispatches, and `satisfies?` and `extends?` agree. The exact class wins over a parent class, the nearest parent over an interface, and an interface over `:default`. Two matching interfaces where neither extends the other throw an error naming both. (#3413)
-- Public PHP API, since compiled code calls it: `Phel\Lang\Destructure`, `\Phel::fnSlot()` and `Phel\Lang\ForeignFn`. (#3354 #3356)
-- `phel.core` has `with-out-str`, `subs`, `list*`, `qualified-keyword?`, `qualified-symbol?`, `hash`, `comparator`, `load-string`, `pcalls`, `pvalues` and `inst?`, with their Clojure behaviour. `hash` agrees with `=`: `(hash [1 2])` equals `(hash '(1 2))`. Core `subs` throws on a nil index, as Clojure does. `phel.string/subs` stays, and still reads a nil `start` as 0 and a nil `end` as the end of the string. (#3417)
-- `defmulti` takes Clojure's signature, `(defmulti name docstring? attr-map? dispatch-fn & options)`. `:default :unknown` makes `(defmethod area :unknown ...)` the fallback. `:hierarchy h`, with `h` an atom or var holding a `(make-hierarchy)`, drives `isa?` matching and `prefer-method` instead of the global hierarchy. Any other option fails with a message that lists the supported ones. (#3415)
-- `phel.core` has `halt-when`, `ensure-reduced`, `partitionv` and `partitionv-all`, with their Clojure behaviour. `(transduce (halt-when neg?) conj [] [1 2 -1 3])` returns `-1`, and `(into [] (partitionv-all 2) [1 2 3])` returns `[[1 2] [3]]`. `partitionv` and `partitionv-all` are lazy and work on infinite input. (#3418)
-- `map-indexed`, `partition-by` and `partition-all` return a transducer when called without a collection, as in Clojure: `(into [] (partition-by odd?) [1 3 2 4 5])` returns `[[1 3] [2 4] [5]]`. `(partition-all 0)` throws, as `(partitionv-all 0)` does. `phel.core` has `replace`: `(replace {1 :a} [1 2 1])` returns `[:a 2 :a]`, a vector for a vector and a lazy seq for any other coll, and `(replace smap)` is a transducer. (#3437)
+Language:
+
+- `defmulti` takes Clojure's signature, `(defmulti name docstring? attr-map? dispatch-fn & options)`, with `:default` for the fallback dispatch value and `:hierarchy` for an atom or var holding a hierarchy. An unknown option fails with the supported list. (#3415)
+- A protocol extended to a PHP interface or parent class applies to every class that implements or extends it: `(extend-type \Countable Sized ...)` covers `\SplObjectStorage`. The exact class wins, then the nearest parent, then an interface, then `:default`. `\ArrayObject`, a `:use`d `ArrayObject` and `"ArrayObject"` register the same key; a symbol used to register under the current namespace and never dispatch. (#3413)
+- `reify` implements PHP interfaces, alone or next to protocols: `(reify \JsonSerializable (jsonSerialize [this] 5))`. It used to fail with a PHP parse error. Methods of `reify`, `defstruct` and `defenum` declare the interface's return type, so PHP no longer prints `Deprecated: Return type ... should either be compatible`. (#3412)
+- `phel.core` has `with-out-str`, `subs`, `list*`, `qualified-keyword?`, `qualified-symbol?`, `hash`, `comparator`, `load-string`, `pcalls`, `pvalues`, `inst?`, `halt-when`, `ensure-reduced`, `partitionv`, `partitionv-all` and `replace`, as in Clojure. Core `subs` throws on a nil index; `phel.string/subs` keeps reading nil as the bounds. (#3417 #3418 #3437)
+- `map-indexed`, `partition-by` and `partition-all` return a transducer when called without a collection: `(into [] (partition-by odd?) [1 3 2 4 5])` returns `[[1 3] [2 4] [5]]`. (#3437)
+
+Tooling:
+
+- `PHEL_OPTIMIZATION_LEVEL` sets the optimization level for every command of a process, over `phel-config.php`. `phel build -O` still wins for its build. (#3396)
+- A file whose first form is not `(ns ...)` fails with `'src/app.phel' does not start with an (ns ...) form`, instead of a `Cannot resolve symbol 'defn-'` hint. (#3373)
+- Lint rule `phel/shadowed-core-fn` warns when a `let`, `loop` or `fn` binding is named after a public `phel.core` fn, as in `(let [inc (fn [x] 99)] (inc 1))`. (#3374)
+- Editor completion after `(.method` knows a receiver built with `(new Foo)`, `(Foo.)` or `(Foo/make)`, bound or inline. `(new Fo` completes class names, and `(DateTimeImmutable/` completes static members without a `:use`. (#3398)
+
+PHP API:
+
+- **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::withoutDeprecations()` runs a callable with deprecation notices held back. (#3381)
+- Public PHP API: `Phel\Lang\Destructure`, `\Phel::fnSlot()`, `Phel\Lang\ForeignFn`, `Phel\Shared\OptimizationLevel`, `Phel\Shared\SourceMap\SupersededSourceMaps`, and the `MissingNsFormException` / `MissingNsFormHint` pair in `Phel\Shared\Exceptions`. (#3354 #3356 #3373 #3396 #3435)
 
 ### Performance
 
-- `phel --version`, `list`, `help` and `completion` no longer restart PHP to switch on the opcache file cache, since they compile nothing. On macOS, where a PHP startup costs about 37 ms, `phel` restarts only for `test`, `build`, `bench`, `mutate`, `profile` and `export`: `phel --version` drops from 125 ms to 87 ms and `phel run hello.phel` from 124 ms to 103 ms there. Linux keeps the restart for every command that compiles, where it saves 19 to 43 ms. `PHEL_OPCACHE_REEXEC=1` restarts for every command. `Phel\Shared\Performance\OpcacheReexec` has `compilesNothing()` and `loadsManyFiles()`, and `decide()` takes three new optional arguments. (#3425)
-- In a build, a call to a multi-arity fn at one of its fixed arities goes straight to that arity, now also when the fn has a variadic arity, as `+`, `<`, `str` and `conj` do: `(+ acc x)` in a loop is 1.6x faster. Nested calls such as `(-> m (get :a {}) (get :b {}))` compile to code that grows linearly with the nesting; it used to double at every level. (#3354)
-- `<`, `<=`, `>`, `>=`, `=`, `not=`, `zero?`, `pos?`, `neg?`, `inc` and `dec` on values of unknown type check for a native int (a scalar, for ordering) and answer inline, calling the core fn only for other values: `(< a b)` 7.9x faster in a loop, `(= x 3)` 8.8x, `(inc x)` 5.4x. (#3351)
-- `case` and `cond` over keywords look each keyword up once per fn instead of on every dispatch: a five-arm keyword `case` is 10x faster. (#3360)
-- A multi-arity fn built at runtime, such as the value `comp` or `partial` returns, no longer allocates a closure per arity: `(comp f g)` created and called is 2.3x faster and peak memory in that loop drops from 125MB to 20MB. The arity a call site knows is reached in one call. (#3355)
-- Sequential destructuring reads a vector by index: `(let [[a b] v] ...)` is 3.2x faster on a vector, and `[x & xs]` in a `loop` over a vector about 9% faster. Lists, lazy and infinite seqs, sets, maps, strings and `nil` keep the `first`/`next` walk and give the same results. (#3356)
-- `(not x)` on a value of any type compiles to an inline nil/false check instead of a call: 2.6x faster in a loop. An `if` over a `^bool` fn param skips the truthiness check (1.9x faster), and one over any other local checks it without a temporary (1.4x). (#3352 #3353)
+Compiler:
+
+- A build calls a multi-arity fn's fixed arity directly, also when the fn has a variadic arity: `(+ acc x)` in a loop is 1.6x faster. Nested calls such as `(-> m (get :a {}) (get :b {}))` grow linearly instead of doubling per level. (#3354)
+- Comparisons, `=`, `zero?`, `pos?`, `neg?`, `inc` and `dec` on values of unknown type answer inline for native ints: `(< a b)` 7.9x faster, `(= x 3)` 8.8x. (#3351)
+- `case` and `cond` over keywords look each keyword up once per fn: a five-arm keyword `case` is 10x faster. (#3360)
+- A multi-arity fn built at runtime, such as what `comp` or `partial` return, allocates one closure: `(comp f g)` created and called is 2.3x faster, with peak memory down from 125MB to 20MB. (#3355)
+- Sequential destructuring reads a vector by index: `(let [[a b] v] ...)` is 3.2x faster. (#3356)
+- `(not x)` compiles to an inline nil/false check, 2.6x faster; an `if` over a `^bool` param skips the truthiness check. (#3352 #3353)
+
+CLI:
+
+- `phel` restarts PHP for the opcache file cache only where it pays off: never for `--version`, `list`, `help` or `completion`, and on macOS only for `test`, `build`, `bench`, `mutate`, `profile` and `export`. `phel --version` on macOS drops from 125 ms to 87 ms. `PHEL_OPCACHE_REEXEC=1` restarts for every command. (#3425)
+- Commands that do not print the version start no `git` process, saving about 20 ms each. (#3407)
 
 ### Fixed
 
-- In a process that recompiles a file it loaded from the compiled cache, such as the REPL after `reload!`, `phel watch` or an nREPL session, a stack trace through a fn of the earlier version maps to the line that version had. It used to read the source map of the new code, so the line could be wrong once the edit shifted lines. Nothing extra is written to `.phel/cache/compiled/`. `Phel\Shared\SourceMap\SupersededSourceMaps` is public PHP API. (#3435)
-- **BREAKING**: `transduce` calls the reducing fn's 1-arity once on the final result, as Clojure does: `(transduce (map inc) (fn ([] []) ([r] (conj r :done)) ([r x] (conj r x))) [] [1 2])` returns `[2 3 :done]`. It used to skip that completion, including the one `(completing + inc)` supplies. A reducer with only a 2-arity, such as `(fn [a b] (max a b))`, now throws `ArgumentCountError`; wrap it in `completing`. `(transduce xf - 0 coll)` now negates its result, since `(- x)` is the completion. (#3433)
-- The `dedupe` transducer keeps a leading `:phel/none`: `(into [] (dedupe) [:phel/none :phel/none 1])` returns `[:phel/none 1]`. It used to take `:phel/none` as its "no value yet" marker and drop it, returning `[1]`. (#3437)
-- `partition-all` throws `InvalidArgumentException` for a size or step that is not a positive int. `(partition-all 0 coll)` used to return an empty seq, and a step of 0 built a seq that never ended. (#3437)
-- `with-output-buffer` closes its output buffer when the body throws. It used to leave the buffer open, so later output collected in it instead of reaching stdout. (#3417)
-- An edit to `phel-config-<env>.php`, or to any other `phel-config-<suffix>.php` Gacela reads for `APP_ENV` or a config dimension, takes effect on the next run. It used to be ignored until `phel cache:clear`, because only `phel-config.php` and `phel-config-local.php` were checked against the cached merged config. (#3426)
-- `build/preload.php` preloads the facade, factory, config and provider of every module under `src/php/`, found at startup. The hand-kept list was missing Lint, Lsp, Nrepl, Watch, Profile, Fiber, Mutate and Balance, and named three files that no longer exist, so `opcache.preload` skipped them without a message. (#3410)
-- After an edit to a file a namespace pulls in with `(load ...)`, a stack trace on the next run maps every frame to its `.phel` source. A frame in a file of that namespace loaded before the edited one used to show its compiled path under `.phel/cache/compiled/`, until the run after. (#3430)
+Compiler:
 
-- `#inst` accepts every prefix of the full timestamp, as the Clojure reader does: `#inst "2026"`, `#inst "2026-03"`, `#inst "2026-03-04"`, `#inst "2026-03-04T05"` and `#inst "2026-03-04T05:06"`. A missing field takes its minimum, in UTC unless an offset follows. An out-of-range field such as `2026-02-30` is still rejected. (#3416)
-- `phel --version` reports Phel's own commit when run inside another git repository. It used to read the version from the git repository in the current directory, so inside a project it printed that project's commit, as in `v0.53.0-beta#9e2895a`. Commands that do not print the version no longer start any `git` process; they used to start two, about 20 ms on every command. `Phel\Shared\VersionResolver` takes an optional Phel root directory. (#3407)
-- **BREAKING**: a map or set literal that repeats a constant key (keyword, string, number including ratios and big numbers, boolean or `nil`) fails with `[PHEL203] Duplicate key: :a` at the repeated key. It used to keep one entry and drop the other without a word: `{:a 1 :a 2}` read as `{:a 2}`. Symbol and call keys, `hash-map` and `hash-set` keep the last value. Lint rule `phel/duplicate-key` now reports only repeated symbol keys, so a constant key is not reported twice. (#3387)
-- **BREAKING**: the argument count check (`PHEL002`) covers calls to a fn in a namespace whose name has a `-`, such as `my-app.core`, and under `phel compile` calls to a fn defined earlier in the same file. It used to skip both, so `(defn sq [n] (* n n)) (sq 3 4)` compiled. Fix the call, or add the arity it needs. A `^:dynamic` or `^:redef` fn is not checked on any path, since `binding` and `with-redefs` may replace it with a fn of another arity. (#3394)
-- **BREAKING**: a call with more arguments than the fn accepts fails with `PHEL002`, like one with too few: `(defn sq [n] (* n n)) (sq 3 4)` reports `Got: 2. Expected: 1`. It used to run and drop the extra arguments. Remove them, or add an arity or a `& rest` param that takes them. Calls through `apply`, a higher-order fn or PHP stay unchecked. (#3384)
-- **BREAKING**: map destructuring reads namespaced keys as Clojure does. `{:my/keys [a]}` and `{:keys [my/a]}` bind `a` from `:my/a`, `{::keys [a]}` reads `::a`, `{:my/syms [a]}` reads `'my/a`, and `{:my/strs [a]}` still reads `"a"`. `{:my/keys [a]}` used to read `:a`, `{::keys [a]}` bound `nil`, and a qualified symbol in `:keys` failed with `Can't bind qualified name`. Write `{:keys [a]}` to keep reading `:a`. (#3414)
-- `extend-type` and `extend-protocol` register a PHP class symbol under its class name: `\ArrayObject`, `ArrayObject` imported with `(:use ArrayObject)`, and `"ArrayObject"` are the same key. A symbol used to be read as a struct of the current namespace, so `(extend-type \ArrayObject P ...)` was accepted and every later call failed with `No implementation of 'p' for type: ArrayObject`. (#3413)
-- A `^void` fn compiles and returns nil. It used to emit `return <value>` inside a PHP `: void` function, which PHP refuses to compile. (#3363)
-- A fn whose body contains `php/yield` compiles. Return-type inference used to give it the type of its tail, such as `: bool`, which PHP rejects on a generator. (#3365)
-- A call to a `^:dynamic` fn sees `binding`. In a build it used to cache the first value it saw, so a call made inside `binding` kept the bound fn after the binding ended, and at `-O2` a short `^:dynamic` fn was inlined past `binding` altogether. `^:redef` fns get the same treatment in builds. (#3367)
-- `(def- x "doc" 1)` binds `x` to `1` and keeps `"doc"` as its docstring, as `def` does. It used to bind `x` to `"doc"` and drop the value without a warning. (#3372)
-- `phel test` in parallel mode reads a worker's stderr as soon as it is written. On macOS a worker that wrote more than 16 KB to stderr, such as a burst of deprecation notices, used to wait on the full pipe and crawl at about 5 KB per second. (#3378)
-- `phel run` prints a backslash separator notice only for the files it loads, and each one once. It used to print one for every `.phel` file under the working directory whose `ns` uses `\`, store them in the cache entry of the script, and repeat them on every warm run. A deprecation notice names a file under the working directory by its relative path, as in `at src/main.phel:1`. (#3381)
-- `(let [a false] (if a a a))` returns `false`, and `(let [a true] (if a (not a) a))` returns `false`. When the other branch read the local again, the `let` was compiled away and that branch read an undefined PHP variable, returning `nil` with an `Undefined variable` warning. (#3383)
-- `phel doc --format json` and the API reference link special forms to their current guide sections, such as `/documentation/language/error-handling/#throwing` for `throw`. They used to point at pre-move paths that dropped the section anchor. `:see-also` entries that named no function, such as `values` on `kvs` and `phel\schema/validate` in the `phel.schema` sub-namespaces, now name `vals` and `schema/validate`. (#3371)
-- `format` and `printf` convert a ratio, bigint or bigdec before formatting: `(format "%.2f" (/ 250 100))` returns `"2.50"`. It used to print `"1.00"` with a PHP warning. `%d` and the other integer directives throw for a ratio, a bigdec, or a bigint outside the PHP int range. (#3386)
-- `(gensym "tmp")` returns a symbol named `tmp` plus a unique number, such as `tmp42`, as in Clojure. `(gensym)` keeps the `__phel_` prefix. It used to ignore the prefix and always return `__phel_<N>`. `(break)` no longer lists macro-generated locals, including `x#` names. (#3385)
-- `phel mutate` compiles the project and its tests at optimization level 0 whatever the config says, so a mutant is reached at every level. At level 2 a test namespace used to inline the fn under test, and every mutant survived with an MSI of 0%. `Phel\Shared\OptimizationLevel` is public PHP API. (#3396)
-- `(break)` hides the locals that `gensym`, `x#` and `#(...)` params create, and lists every local you bind yourself. It used to go by the name: it hid any local starting with `__phel_`, even one you bound, and listed `x#` locals and `%` params. (#3385)
-- `reify` implements PHP interfaces, alone or next to protocols: `(reify \JsonSerializable (jsonSerialize [this] 5))`, also with a name imported by `:use`. It used to fail with a PHP parse error. A header that is neither a protocol nor an interface fails at compile time with a message naming it. A method of `reify`, `defstruct` or `defenum` that implements an interface method declares that method's return type, so `(defstruct Box [n] \JsonSerializable (jsonSerialize [this] n))` no longer prints `Deprecated: Return type ... should either be compatible`, and a `void` method may end in `nil` or have an empty body. (#3412)
+- **BREAKING**: a map or set literal that repeats a constant key fails with `[PHEL203] Duplicate key: :a`. `{:a 1 :a 2}` used to read as `{:a 2}`. (#3387)
+- **BREAKING**: the argument count check (`PHEL002`) rejects too many arguments, as it does too few, and covers namespaces with a `-` and fns defined earlier in the same file under `phel compile`. `(defn sq [n] (* n n)) (sq 3 4)` used to run. `^:dynamic` and `^:redef` fns stay unchecked. (#3384 #3394)
+- **BREAKING**: map destructuring reads namespaced keys as Clojure does: `{:my/keys [a]}` and `{:keys [my/a]}` read `:my/a`, `{::keys [a]}` reads `::a`. `{:my/keys [a]}` used to read `:a`; write `{:keys [a]}` for that. (#3414)
+- A `^void` fn compiles and returns nil. It used to emit `return <value>` in a PHP `: void` function. (#3363)
+- A fn whose body contains `php/yield` compiles. It used to get its tail's return type, which PHP rejects on a generator. (#3365)
+- A call to a `^:dynamic` or `^:redef` fn in a build sees `binding`. It used to keep the first value it saw, and `-O2` inlined short `^:dynamic` fns past `binding`. (#3367)
+- `(def- x "doc" 1)` binds `x` to `1` with `"doc"` as its docstring. It used to bind `x` to `"doc"`. (#3372)
+- `(let [a false] (if a a a))` returns `false`. It used to return `nil` with an `Undefined variable` warning when the other branch read the local again. (#3383)
+- `#inst` accepts every prefix of the full timestamp, as Clojure does: `#inst "2026-03-04"`. An out-of-range field such as `2026-02-30` is still rejected. (#3416)
+
+Runtime:
+
+- **BREAKING**: `transduce` calls the reducing fn's completion once, as Clojure does: a reducer with a 1-arity finalizes the result. A reducer with only a 2-arity now throws `ArgumentCountError`; wrap it in `completing`. (#3433)
+- `partition-all` throws for a size or step that is not a positive int. A size of 0 used to return an empty seq, and a step of 0 never ended. (#3437)
+- The `dedupe` transducer keeps a leading `:phel/none`. It used to drop it. (#3437)
+- `with-output-buffer` closes its buffer when the body throws, and restores the buffer level it found. It used to leave the buffer open. (#3417)
+- `format` and `printf` convert a ratio, bigint or bigdec: `(format "%.2f" (/ 250 100))` returns `"2.50"`. It used to print `"1.00"` with a warning. (#3386)
+- `(gensym "tmp")` returns `tmp42`-style names, as in Clojure. It used to ignore the prefix. `(break)` hides the locals `gensym`, `x#` and `#(...)` create, and lists every local you bind. (#3385)
+
+Tooling:
+
+- `phel --version` reports Phel's own commit. Inside another git repository it used to print that repository's commit. (#3407)
+- An edit to `phel-config-<env>.php` takes effect on the next run. It used to be ignored until `phel cache:clear`. (#3426)
+- A stack trace maps every frame to its `.phel` source after an edit to a file loaded with `(load ...)`, and after a recompile in the REPL, `phel watch` or nREPL. Frames used to show `.phel/cache/compiled/` paths or the new code's lines. (#3430 #3435)
+- `phel test` in parallel mode reads worker stderr as it arrives. On macOS a worker writing over 16 KB to stderr used to crawl. (#3378)
+- `phel run` prints a backslash separator notice once per loaded file, with a relative path. It used to warn for every `.phel` file under the working directory, on every warm run. (#3381)
+- `phel mutate` compiles at optimization level 0 whatever the config says. At level 2 every mutant used to survive. (#3396)
+- `phel doc --format json` and the API reference link special forms to their current guide sections, and `:see-also` entries name real fns. (#3371)
+- `build/preload.php` preloads every module's pillars, found at startup. The hand-kept list missed eight modules and named three deleted files. (#3410)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 
