@@ -18,14 +18,13 @@ Tooling:
 
 - `PHEL_OPTIMIZATION_LEVEL` sets the optimization level for every command of a process, over `phel-config.php`. `phel build -O` still wins for its build. (#3396)
 - A file whose first form is not `(ns ...)` fails with `'src/app.phel' does not start with an (ns ...) form`, instead of a `Cannot resolve symbol 'defn-'` hint. (#3373)
-- `(Integer/parseInt "3")`, `(Math/abs -1)`, `(System/currentTimeMillis)`, `(Thread/sleep 1)` and `(String/valueOf 1)` end with a hint naming the Phel replacement: `hint: Integer is a Java class, not a PHP one: for Integer/parseInt use (parse-long s).` `(.toUpperCase "abc")` points at `phel.string` instead of leaving `Class "abc" not found` alone. Lint rule `phel/unknown-class` warns about a static call to a class it cannot autoload. (#3465)
 - Lint rule `phel/shadowed-core-fn` warns when a `let`, `loop` or `fn` binding is named after a public `phel.core` fn, as in `(let [inc (fn [x] 99)] (inc 1))`. (#3374)
 - Editor completion after `(.method` knows a receiver built with `(new Foo)`, `(Foo.)` or `(Foo/make)`, bound or inline. `(new Fo` completes class names, and `(DateTimeImmutable/` completes static members without a `:use`. (#3398)
 
 PHP API:
 
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::withoutDeprecations()` runs a callable with deprecation notices held back. (#3381)
-- Public PHP API: `Phel\Lang\Destructure`, `\Phel::fnSlot()`, `Phel\Lang\ForeignFn`, `Phel\Shared\OptimizationLevel`, `Phel\Shared\SourceMap\SupersededSourceMaps`, the `MissingNsFormException` / `MissingNsFormHint` pair and `ClassNotFoundHint` in `Phel\Shared\Exceptions`, and `LintRuleCodes::UNKNOWN_CLASS`. (#3354 #3356 #3373 #3396 #3435 #3465)
+- Public PHP API: `Phel\Lang\Destructure`, `\Phel::fnSlot()`, `Phel\Lang\ForeignFn`, `Phel\Shared\OptimizationLevel`, `Phel\Shared\SourceMap\SupersededSourceMaps`, and the `MissingNsFormException` / `MissingNsFormHint` pair in `Phel\Shared\Exceptions`. (#3354 #3356 #3373 #3396 #3435)
 
 ### Performance
 
