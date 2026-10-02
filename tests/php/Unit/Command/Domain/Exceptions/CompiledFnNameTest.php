@@ -47,6 +47,37 @@ final class CompiledFnNameTest extends TestCase
         self::assertSame('app.main/snake_case', $this->fnName()->displayName($fn::class));
     }
 
+    public function test_an_alias_bound_first_does_not_take_the_defining_name(): void
+    {
+        $fn = new class() extends AbstractFn {
+            public const BOUND_TO = 'app\\main\\add_it';
+
+            public function __invoke(): mixed
+            {
+                return null;
+            }
+        };
+        Registry::getInstance()->addDefinition('app.main', 'plus', $fn);
+        Registry::getInstance()->addDefinition('app.main', 'add-it', $fn);
+
+        self::assertSame('app.main/add-it', $this->fnName()->displayName($fn::class));
+    }
+
+    public function test_an_alias_alone_falls_back_to_the_compiled_name(): void
+    {
+        $fn = new class() extends AbstractFn {
+            public const BOUND_TO = 'app\\main\\add_it';
+
+            public function __invoke(): mixed
+            {
+                return null;
+            }
+        };
+        Registry::getInstance()->addDefinition('app.main', 'plus', $fn);
+
+        self::assertSame('app.main/add-it', $this->fnName()->displayName($fn::class));
+    }
+
     public function test_a_class_without_bound_to_has_no_name(): void
     {
         $fn = new class() extends AbstractFn {

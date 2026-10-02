@@ -81,7 +81,9 @@ final readonly class CompiledFnName
     /**
      * The name the fn was defined under. `BOUND_TO` writes `-` as `_`, so
      * `add-it` and `my_fn` both end in an underscore there, and only the
-     * registry still knows which one the source spelled.
+     * registry still knows which one the source spelled. A var that only
+     * aliases the fn, as `(def g f)` does, encodes to another name and is
+     * skipped.
      *
      * @param class-string $class
      */
@@ -94,8 +96,9 @@ final readonly class CompiledFnName
         }
 
         $registryNs = str_replace('\\', '.', substr($boundTo, 0, $lastSeparator));
+        $compiledName = substr($boundTo, $lastSeparator + 1);
         foreach (Registry::getInstance()->getDefinitionInNamespace($registryNs) as $name => $value) {
-            if ($value instanceof $class) {
+            if ($value instanceof $class && $this->munge->encodePhpNs((string) $name) === $compiledName) {
                 return (string) $name;
             }
         }
