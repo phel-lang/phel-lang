@@ -85,6 +85,7 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Con
 - `TopologicalNamespaceSorter` orders compilation to resolve dependencies. `ProjectCompiler` relies on this order: it tracks namespaces recompiled during a run and force-recompiles any dependent whose `getDependencies()` includes one of them (`dependsOnRecompiled`), even when the dependent's own source mtime is unchanged. Cascades transitively in one pass, which prevents a changed macro leaving a stale expansion baked into a dependent's compiled file.
 - Auto-detect main namespace: scans source dirs for `core.phel` or `main.phel`.
 - Output directory is pruned from extraction to prevent namespace shadowing.
+- Phel's own `src/php` is pruned from every scan (`ExcludedScanPaths`, even `none()`). The internal `src/` is the first source dir of every run, so without it each warm run recounted its ~1,200 PHP files to validate the scan index (#3467).
 
 ### Optimization level
 
