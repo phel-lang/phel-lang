@@ -173,7 +173,7 @@ final class NamespaceExtractorTest extends TestCase
             self::assertSame(2, $nested->getStartLocation()?->getLine());
             self::assertSame(
                 realpath(sys_get_temp_dir()),
-                realpath(dirname((string) $nested->getStartLocation()?->getFile())),
+                realpath(dirname($nested->getStartLocation()?->getFile())),
                 'macOS resolves /var to /private/var, so both sides are resolved',
             );
         }
