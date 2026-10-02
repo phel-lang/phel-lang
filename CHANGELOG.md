@@ -24,6 +24,7 @@ Tooling:
 PHP API:
 
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::withoutDeprecations()` runs a callable with deprecation notices held back. (#3381)
+- **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::rejectSupersededForms()` throws on a superseded form in a form the reader returned. (#3456)
 - Public PHP API: `Phel\Lang\Destructure`, `\Phel::fnSlot()`, `Phel\Lang\ForeignFn`, `Phel\Shared\OptimizationLevel`, `Phel\Shared\SourceMap\SupersededSourceMaps`, and the `MissingNsFormException` / `MissingNsFormHint` pair in `Phel\Shared\Exceptions`. (#3354 #3356 #3373 #3396 #3435)
 
 ### Performance
@@ -78,6 +79,7 @@ Tooling:
 - `phel mutate` compiles at optimization level 0 whatever the config says. At level 2 every mutant used to survive. (#3396)
 - `phel doc --format json` and the API reference link special forms to their current guide sections, and `:see-also` entries name real fns. (#3371)
 - `build/preload.php` preloads every module's pillars, found at startup. The hand-kept list missed eight modules and named three deleted files. (#3410)
+- `phel lint`, `phel analyze`, the LSP and the api-daemon report `(php/new \DateTime)`, `php/->`, `php/::` and `set-var` as `PHEL012`, as `phel run` does. They used to report the file as clean. (#3456)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 

@@ -11,10 +11,13 @@ use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Transfer\LintResult;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Api\ProjectIndex;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\LintRuleCodes;
 
 use function array_any;
+use function array_filter;
+use function array_values;
 use function file_get_contents;
 use function is_dir;
 
@@ -92,6 +95,11 @@ final readonly class LintRunner
             // the run reports the file as clean and exits 0 (#3292).
             if ($read->failed) {
                 $fileDiagnostics = [...$semantic, ...$fileDiagnostics];
+            } else {
+                // Like a syntax error, a superseded form stops `phel run`, so
+                // it is reported under the analyzer's code, with no rule to
+                // switch it off (#3456).
+                $fileDiagnostics = [...$this->supersededForms($semantic), ...$fileDiagnostics];
             }
 
             // A rule crash is a fact about the linter, not about the file, and
@@ -110,6 +118,19 @@ final readonly class LintRunner
         $this->cache?->flush();
 
         return new LintResult($allDiagnostics);
+    }
+
+    /**
+     * @param list<Diagnostic> $diagnostics
+     *
+     * @return list<Diagnostic>
+     */
+    private function supersededForms(array $diagnostics): array
+    {
+        return array_values(array_filter(
+            $diagnostics,
+            static fn(Diagnostic $diagnostic): bool => $diagnostic->code === ErrorCode::SUPERSEDED_FORM->value,
+        ));
     }
 
     /**

@@ -102,6 +102,14 @@ interface CompilerFacadeInterface
     public function read(NodeInterface $parseTree): ReaderResult;
 
     /**
+     * Rejects `php/new`, `php/->`, `php/::` and `set-var` written in a form
+     * the reader returned, as `phel run` and `phel eval` do (#3456).
+     *
+     * @throws AnalyzerException
+     */
+    public function rejectSupersededForms(mixed $form): void;
+
+    /**
      * Streams the top-level forms of a source buffer through lex -> parse ->
      * read, never throwing: a parse failure ends the stream, a read failure
      * skips that form, and everything already yielded stays valid.
