@@ -258,6 +258,26 @@ final class LazySeqTest extends TestCase
         self::assertSame(2, $next->first());
     }
 
+    public function test_next_seq_counts_its_tail_and_keeps_it_cached(): void
+    {
+        $pulls = 0;
+        $source = static function () use (&$pulls): Generator {
+            foreach ([1, 2, 3] as $value) {
+                ++$pulls;
+                yield $value;
+            }
+        };
+        $lazySeq = LazySeq::fromGenerator($this->hasher, $this->equalizer, $source());
+
+        $next = $lazySeq->nextSeq();
+
+        self::assertNotNull($next);
+        self::assertCount(2, $next);
+        self::assertCount(2, $next);
+        self::assertSame([2, 3], $next->toArray());
+        self::assertSame(3, $pulls);
+    }
+
     public function test_next_seq_returns_null_for_single_element_seq(): void
     {
         $lazySeq = LazySeq::fromArray($this->hasher, $this->equalizer, [42]);

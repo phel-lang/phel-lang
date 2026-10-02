@@ -527,9 +527,10 @@ final class Phel\Lang\Collections\LazySeq\ChunkedSeq extends Phel\Lang\AbstractT
   public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $array, int $chunkSize = 32, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?Phel\Lang\Collections\LazySeq\ChunkedSeq
   public static function fromGenerator(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, Generator $generator, int $chunkSize = 4, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?Phel\Lang\Collections\LazySeq\ChunkedSeq
 
-final class Phel\Lang\Collections\LazySeq\Cons extends Phel\Lang\AbstractType implements IteratorAggregate, Phel\Lang\SeqInterface
+final class Phel\Lang\Collections\LazySeq\Cons extends Phel\Lang\AbstractType implements Countable, IteratorAggregate, Phel\Lang\SeqInterface
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, mixed $first, Phel\Lang\Collections\LazySeq\LazySeqInterface $rest, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null)
   public function cdr(): Phel\Lang\Collections\LazySeq\LazySeqInterface
+  public function count(): int
   public function equals(mixed $other): bool
   public function first(): mixed
   public function getIterator(): Traversable
