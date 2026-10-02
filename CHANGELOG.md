@@ -24,6 +24,7 @@ Tooling:
 PHP API:
 
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::withoutDeprecations()` runs a callable with deprecation notices held back. (#3381)
+- **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::rejectSupersededForms()` throws on a superseded form in a form the reader returned. (#3456)
 - Public PHP API: `Phel\Lang\Destructure`, `\Phel::fnSlot()`, `Phel\Lang\ForeignFn`, `Phel\Shared\OptimizationLevel`, `Phel\Shared\SourceMap\SupersededSourceMaps`, and the `MissingNsFormException` / `MissingNsFormHint` pair in `Phel\Shared\Exceptions`. (#3354 #3356 #3373 #3396 #3435)
 
 ### Performance
@@ -61,6 +62,7 @@ Runtime:
 - Map destructuring reads a seq as keyword arguments and anything else through `get`, as Clojure does: `(let [{:keys [a]} '(:a 1)] a)` and the same over `(map identity [:a 1])` return `1`, and `(let [{:keys [a]} #{:a}] a)` returns `:a`. A set or a lazy seq used to fail with `Cannot use object ... as array`. A map keeps its inline lookup. (#3479)
 - **BREAKING**: `transduce` calls the reducing fn's completion once, as Clojure does: a reducer with a 1-arity finalizes the result. A reducer with only a 2-arity now throws `ArgumentCountError`; wrap it in `completing`. (#3433)
 - `seq` and `next` keep a lazy seq or list whose next element is nil, as in Clojure: `(next (map identity [1 nil 3]))` returns `(nil 3)`. They used to return nil and drop the rest, so `(reduce + (map :price items))` stopped silently at the first missing key. (#3451)
+- `count` counts the seq `next` returns for a lazy seq: `(count (next (map identity [1 2 3])))` returns `2`. It used to throw `count is not supported on a lazily consumed source`. (#3452)
 - `declare` keeps the value of a symbol that is already defined, as in Clojure. Loading a namespace again used to reset what it declares to nil, so a long-lived process (REPL, `phel watch`, nREPL) could fail with `Value of type null is not callable` while recompiling `phel.core`. (#3444)
 - `partition-all` throws for a size or step that is not a positive int. A size of 0 used to return an empty seq, and a step of 0 never ended. (#3437)
 - The `dedupe` transducer keeps a leading `:phel/none`. It used to drop it. (#3437)
@@ -79,6 +81,8 @@ Tooling:
 - `phel mutate` compiles at optimization level 0 whatever the config says. At level 2 every mutant used to survive. (#3396)
 - `phel doc --format json` and the API reference link special forms to their current guide sections, and `:see-also` entries name real fns. (#3371)
 - `build/preload.php` preloads every module's pillars, found at startup. The hand-kept list missed eight modules and named three deleted files. (#3410)
+- `phel lint`, `phel analyze`, the LSP and the api-daemon report `(php/new \DateTime)`, `php/->`, `php/::` and `set-var` as `PHEL012`, as `phel run` does. They used to report the file as clean. (#3456)
+- `phel lint` re-lints every file once after a Phel upgrade. A file cached as clean used to stay clean when the new release reports something more, until it changed or `--no-cache` was passed. (#3478)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 

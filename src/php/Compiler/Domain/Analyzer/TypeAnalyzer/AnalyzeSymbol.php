@@ -63,6 +63,10 @@ final class AnalyzeSymbol
             return $this->analyzer->analyze($memberForm, $env);
         }
 
+        if ($symbol->getFullName() === 'require') {
+            throw AnalyzerException::replOnlyRequire($symbol);
+        }
+
         $suggestions = $this->getSuggestionProvider()->findSimilar(
             $symbol->getName(),
             $this->analyzer->getAvailableSymbols(),

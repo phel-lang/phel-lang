@@ -7,6 +7,8 @@ namespace Phel\Build\Domain\Extractor;
 use RuntimeException;
 use Throwable;
 
+use function array_map;
+use function implode;
 use function sprintf;
 
 /**
@@ -54,9 +56,12 @@ final class ExtractorException extends RuntimeException
         );
     }
 
-    public static function cannotResolveRequiredNamespace(string $requiredNs, string $requiringNs): self
+    /**
+     * @param list<string> $suggestions
+     */
+    public static function cannotResolveRequiredNamespace(string $requiredNs, string $requiringNs, array $suggestions = []): self
     {
-        return new self(self::missingRequiredNamespaceMessage($requiredNs, $requiringNs));
+        return new self(self::missingRequiredNamespaceMessage($requiredNs, $requiringNs, $suggestions));
     }
 
     /**
@@ -64,9 +69,20 @@ final class ExtractorException extends RuntimeException
      * code, which has to construct the exception at the throw site itself: one
      * built in here reports this file and line, and the eval'd-code source map
      * cannot translate that back to the user's `:require`.
+     *
+     * @param list<string> $suggestions
      */
-    public static function missingRequiredNamespaceMessage(string $requiredNs, string $requiringNs): string
+    public static function missingRequiredNamespaceMessage(string $requiredNs, string $requiringNs, array $suggestions = []): string
     {
+        if ($suggestions !== []) {
+            return sprintf(
+                "Cannot find namespace '%s' required by '%s'. Did you mean %s?",
+                $requiredNs,
+                $requiringNs,
+                implode(', ', array_map(static fn(string $s): string => sprintf("'%s'", $s), $suggestions)),
+            );
+        }
+
         return sprintf(
             "Cannot find namespace '%s' required by '%s'. "
             . 'Check the spelling, or that its source file exists on the configured src/test/vendor dirs.',

@@ -202,8 +202,8 @@ final readonly class FileRunner
      * Whether a non-sibling dependency still resolves: a framework-provided
      * `phel.*`/`clojure.*` namespace (bundled stdlib loaded lazily, or a
      * clojure-compat shim), or a namespace already in the runtime registry.
-     * Mirrors the tolerance in {@see \Phel\Build\Application\DependenciesForNamespace}
-     * so both resolution paths agree on what counts as a broken require.
+     * A misspelled `phel.*`/`clojure.*` one passes here and fails at the
+     * script's own `ns` form, which checks it against what Phel ships.
      */
     private function isResolvableWithoutSibling(string $namespace): bool
     {

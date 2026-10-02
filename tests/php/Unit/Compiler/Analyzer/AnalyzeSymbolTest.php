@@ -132,6 +132,22 @@ final class AnalyzeSymbolTest extends TestCase
         );
     }
 
+    public function test_an_unresolved_require_names_the_ns_form_instead_of_a_suggestion(): void
+    {
+        $globalEnv = new GlobalEnvironment();
+        $globalEnv->setNs('test');
+        $globalEnv->addDefinition('test', Symbol::create('reduce'));
+
+        $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
+
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage(
+            "Cannot resolve symbol 'require': require is only available in the REPL; use (:require ...) inside ns",
+        );
+
+        $symbolAnalyzer->analyze(Symbol::create('require'), NodeEnvironment::empty());
+    }
+
     public function test_undefined_symbol_with_did_you_mean_suggestion(): void
     {
         $globalEnv = new GlobalEnvironment();

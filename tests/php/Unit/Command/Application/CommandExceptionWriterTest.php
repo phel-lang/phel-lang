@@ -10,11 +10,13 @@ use Phel\Command\Domain\ErrorLogInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
 use Phel\Command\Domain\Exceptions\InternalPathDetector;
+use Phel\Command\Domain\Exceptions\RuntimeArityMessage;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
+use Phel\Shared\Munge;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Phel\Shared\Printer\Printer;
 use PHPUnit\Framework\TestCase;
@@ -106,6 +108,7 @@ final class CommandExceptionWriterTest extends TestCase
                 new InternalPathDetector('/proj/vendor/phel-lang/phel-lang/src', '/proj/.phel/cache'),
                 $hintResolver,
                 Printer::readable(),
+                new RuntimeArityMessage(new Munge()),
                 'stale compiled output? try `rm -rf out /var/state/cache` and rebuild.',
             ),
         );

@@ -1,5 +1,5 @@
 (ns phel-test.core.basic-sequence-operation
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is thrown-with-msg?]))
 
 (deftest test-cons
   (is (= (php-indexed-array 1 2) (cons 1 (php-indexed-array 2))) "cons php array")
@@ -99,6 +99,10 @@
   (is (not (php/is_array (seq (int-array 3))))
       "seq of int-array does not return a raw PHP array"))
 
+(deftest test-seq-on-a-scalar-names-the-type
+  (is (thrown-with-msg? TypeError "Don't know how to create a seq from: int" (seq 5)))
+  (is (thrown-with-msg? TypeError "Don't know how to create a seq from: bool" (seq true))))
+
 (deftest test-nfirst
   (is (= [2] (nfirst [[1 2]])) "(nfirst [[1 2]])")
   (is (= [1] (nfirst {:a 1})) "nfirst of single-entry map is the rest of the entry")
@@ -123,3 +127,11 @@
   (is (= 1 (count (php-indexed-array "a"))) "count of one element php array")
   (is (= 1 (count {:a 1})) "count of one element hash map")
   (is (= 3 (count "str")) "strings are now supported"))
+
+(deftest test-count-of-the-seq-next-returns
+  (is (= 2 (count (next (map identity [1 2 3])))) "next of a lazy seq")
+  (is (= 1 (count (next (next (map identity [1 2 3]))))) "next of that next")
+  (is (= 4 (count (next (map inc (range 5))))) "next of a chunked seq")
+  (is (= 2 (count (next (lazy-seq [0 nil nil])))) "a nil head still counts")
+  (is (= 0 (count (next (map identity [1])))) "next of a single element is nil")
+  (is (false? (counted? (next (map identity [1 2 3])))) "still not counted in constant time"))

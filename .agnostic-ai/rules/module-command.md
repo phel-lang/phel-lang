@@ -45,6 +45,7 @@ Directory getters are `#[Cacheable]`.
 | `Application/TextExceptionPrinter` | syntax-highlighted render with source pointers |
 | `Domain/Exceptions/Extractor/FilePositionExtractor` | builds the compiled→Phel line map |
 | `Domain/Exceptions/InternalPathDetector` | tells Phel's own source and compiled artifacts from the user's project |
+| `Domain/Exceptions/RuntimeArityMessage` | rewrites PHP's `Too few arguments to function ...::__invoke()` as `Wrong number of args (N) passed to ns/fn, expected M` for the report headline |
 | `Domain/Exceptions/EvaluatedCodeLocation` | tells a frame of eval'd code from a file, and names it `repl` |
 | `Infrastructure/SourceMapExtractor` | maps compiled PHP back to Phel source locations |
 | `Infrastructure/ComposerVendorDirectoriesFinder` | enumerates vendor source dirs |

@@ -163,3 +163,10 @@
   (is (= :y (let [{y 1} [:x :y]] y)) "a vector reads by index")
   (is (= 1 (let [{:strs [a]} (php-associative-array "a" 1)] a)) "a php array reads by string key")
   (is (nil? (let [{:keys [a]} :a] a)) "a keyword has no keys"))
+
+(deftest destructure-hash-map-from-an-indexed-collection
+  (is (nil? (let [{:keys [a]} [1 2]] a)) "a vector has no :a, as with get")
+  (is (nil? (let [{:keys [a]} '(1 2)] a)) "nor does a list")
+  (is (nil? (let [{:keys [a]} (subvec [1 2 3] 1)] a)) "nor a subvector")
+  (is (= 5 (let [{:keys [a] :or {a 5}} [1 2]] a)) ":or applies")
+  (is (= 2 (let [{b 1} [1 2]] b)) "an int key still reads an index"))

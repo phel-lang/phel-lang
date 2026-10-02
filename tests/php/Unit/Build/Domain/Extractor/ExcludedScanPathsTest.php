@@ -110,6 +110,18 @@ final class ExcludedScanPathsTest extends TestCase
         self::assertTrue($paths->contains('/not/yet/built/phel/core.phel', '/scan'));
     }
 
+    public function test_phel_own_php_sources_are_pruned_at_descent(): void
+    {
+        $phelSrc = (string) realpath(__DIR__ . '/../../../../../../src');
+
+        self::assertTrue(ExcludedScanPaths::none()->shouldPruneDirectory('php', $phelSrc . '/php', $phelSrc));
+    }
+
+    public function test_a_user_php_directory_is_not_pruned(): void
+    {
+        self::assertFalse(ExcludedScanPaths::none()->shouldPruneDirectory('php', '/repo/src/php', '/repo/src'));
+    }
+
     public function test_is_always_excluded_matches_worktree_paths(): void
     {
         self::assertTrue(ExcludedScanPaths::isAlwaysExcluded(

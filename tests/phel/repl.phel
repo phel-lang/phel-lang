@@ -1,5 +1,5 @@
 (ns phel-test.repl
-  (:require phel.repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers ns-interns find-fn test-ns run-tests run-test reload! reload-all! eval-capturing compile-str eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns find-ns create-ns remove-ns intern])
+  (:require phel.repl :refer [apropos dir find-doc search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers ns-interns find-fn test-ns run-tests run-test reload! reload-all! eval-capturing compile-str eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns find-ns create-ns remove-ns intern])
   (:require phel.ai :as ai)
   (:require phel.string :as s)
   (:require phel-test.fixtures.tagged-tests)
@@ -56,6 +56,28 @@
 (deftest test-search-doc-searches-docstrings
   (let [out (with-output-buffer (search-doc "concatenat"))]
     (is (s/contains? out "str") "search-doc matches 'str' for 'concatenat'")))
+
+(deftest test-find-doc-prints-the-doc-of-every-matching-name
+  (let [out (with-output-buffer (find-doc "partition"))]
+    (is (s/contains? out "phel.core/partition\n") "partition")
+    (is (s/contains? out "phel.core/partition-all\n") "partition-all")
+    (is (s/contains? out "phel.core/partition-by\n") "partition-by")
+    (is (s/contains? out "Partitions `coll` into chunks of `n` elements.") "with its doc")))
+
+(deftest test-find-doc-matches-docstrings
+  (let [out (with-output-buffer (find-doc "concatenat"))]
+    (is (s/contains? out "phel.core/str\n") "str, by its docstring")))
+
+(deftest test-find-doc-takes-a-regex
+  (let [out (with-output-buffer (find-doc #"^partition-a"))]
+    (is (s/contains? out "phel.core/partition-all\n") "the anchored name")
+    (is (not (s/contains? out "phel.core/partition-by\n")) "not the others")))
+
+(deftest test-find-doc-prints-nothing-without-a-match
+  (let [result (atom :unset)
+        out    (with-output-buffer (reset! result (find-doc "zzz_nonexistent_zzz")))]
+    (is (= "" out) "no output")
+    (is (nil? (deref result)) "returns nil")))
 
 ;; -----------
 ;; symbol-info

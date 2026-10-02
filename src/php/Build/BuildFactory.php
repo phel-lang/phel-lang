@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Build\Application\BuildHealthCheck;
+use Phel\Build\Application\BundledNamespaceIndex;
 use Phel\Build\Application\CacheClearer;
 use Phel\Build\Application\CachedNamespaceExtractor;
 use Phel\Build\Application\DependenciesForNamespace;
@@ -68,6 +69,16 @@ final class BuildFactory extends AbstractFactory
     {
         return new DependenciesForNamespace(
             $this->createNamespaceExtractor(),
+            $this->createBundledNamespaceIndex(),
+        );
+    }
+
+    public function createBundledNamespaceIndex(): BundledNamespaceIndex
+    {
+        return new BundledNamespaceIndex(
+            $this->createNamespaceExtractor(),
+            $this->getCommandFacade(),
+            $this->getCompilerFacade(),
         );
     }
 
