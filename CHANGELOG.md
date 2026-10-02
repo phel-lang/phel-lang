@@ -41,7 +41,6 @@ CLI:
 
 - `phel` restarts PHP for the opcache file cache only where it pays off: never for `--version`, `list`, `help` or `completion`, and on macOS only for `test`, `build`, `bench`, `mutate`, `profile` and `export`. `phel --version` on macOS drops from 125 ms to 87 ms. `PHEL_OPCACHE_REEXEC=1` restarts for every command. (#3425)
 - Commands that do not print the version start no `git` process, saving about 20 ms each. (#3407)
-- A warm `phel run` or `phel test` no longer walks Phel's own PHP sources to validate the namespace scan cache: a one-file `phel run` drops from 110 ms to 103 ms. (#3467)
 
 ### Fixed
 
