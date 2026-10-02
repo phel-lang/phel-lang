@@ -171,11 +171,6 @@ parameters:
         -
             identifier: instanceof.alwaysTrue
             path: src/php/Lang/Collections/LazySeq/LazySeq.php
-        # LazySeqConfig sits in a directory named after it, so gacela reads it
-        # as a module's Config. It is a plain runtime settings holder.
-        -
-            identifier: gacela.suffixExtends
-            path: src/php/Lang/Collections/LazySeq/LazySeqConfig.php
         # Printer's dispatchers select a TypePrinterInterface<Concrete> per
         # runtime-matched type, which is sound by construction but an
         # existential type: generic invariance cannot relate it to the

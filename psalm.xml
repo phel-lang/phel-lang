@@ -96,25 +96,6 @@
                 <file name="src/php/Run/RunFacade.php" />
             </errorLevel>
         </PluginIssue>
-        <PluginIssue name="GacelaSuffixExtends">
-            <errorLevel type="suppress">
-                <file name="src/php/Compiler/Domain/Analyzer/SymbolSuggestionProvider.php" />
-                <file name="src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitterFactory.php" />
-                <file name="src/php/Compiler/Domain/Parser/ExpressionParserFactory.php" />
-                <file name="src/php/Compiler/Domain/Reader/ExpressionReaderFactory.php" />
-                <file name="src/php/Config/PhelBuildConfig.php" />
-                <file name="src/php/Config/PhelConfig.php" />
-                <file name="src/php/Config/PhelExportConfig.php" />
-                <file name="src/php/Lang/Collections/LazySeq/LazySeqConfig.php" />
-                <!-- Not in phpstan's list, which does not flag it. `Lang` is a
-                     leaf with no Gacela pillars at all (`.agnostic-ai/rules/module-map.md`), so
-                     this is the same category as the rest: a runtime type whose
-                     suffix collides with a pillar name. The two lists are not
-                     meant to match line for line; each analyser is pinned
-                     against what it actually reports. -->
-                <file name="src/php/Lang/TypeFactory.php" />
-            </errorLevel>
-        </PluginIssue>
 
         <!-- Mixed* handlers: what stays global and why.
 

@@ -12,6 +12,7 @@ use Phel\Config\PhelConfig;
 use Phel\Phel;
 use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 use function sys_get_temp_dir;
 use function uniqid;
@@ -65,17 +66,43 @@ final class MergedConfigCacheInvalidationTest extends TestCase
 
     public function test_editing_phel_config_invalidates_a_warmed_merged_cache(): void
     {
-        // `phel cache:warm` writes a cache Gacela trusts without checking any
-        // config file, so only Phel's fingerprint notices the edit.
+        // Users run `phel cache:warm` while they still edit config, so the
+        // warmed cache is a checked one, not a trusted deploy artifact.
         $this->writeConfig(['warm/dir']);
-        Phel::bootstrap($this->projectDir);
+        $this->bootstrapUntilCached();
+        $this->mergedConfigCache()->clear();
         Config::getInstance()->writeMergedConfigCache();
+        self::assertTrue($this->mergedConfigCache()->exists());
 
         $this->resetContainer();
         $this->writeConfig(['edited/dir']);
         Phel::bootstrap($this->projectDir);
 
         self::assertSame(['edited/dir'], Config::getInstance()->get(PhelConfig::SRC_DIRS));
+    }
+
+    public function test_a_changed_config_class_rebuilds_the_merged_cache(): void
+    {
+        // The cache holds what PhelConfig serialized, so a Phel upgrade that
+        // changes the class must not be answered by a cache from before it.
+        $configClass = (string) new ReflectionClass(PhelConfig::class)->getFileName();
+        $originalMtime = (int) filemtime($configClass);
+        $this->writeConfig(['stable/dir']);
+        $this->bootstrapUntilCached();
+        $before = (string) file_get_contents($this->mergedConfigCache()->filename());
+
+        try {
+            touch($configClass, $originalMtime - 7);
+            clearstatcache(true, $configClass);
+            $this->resetContainer();
+            Phel::bootstrap($this->projectDir);
+            Config::getInstance()->get(PhelConfig::SRC_DIRS);
+
+            self::assertNotSame($before, (string) file_get_contents($this->mergedConfigCache()->filename()));
+        } finally {
+            touch($configClass, $originalMtime);
+            clearstatcache(true, $configClass);
+        }
     }
 
     public function test_unchanged_config_keeps_returning_values_on_cache_hit(): void
@@ -119,8 +146,14 @@ final class MergedConfigCacheInvalidationTest extends TestCase
         clearstatcache();
         Phel::bootstrap($this->projectDir);
 
+        self::assertTrue($this->mergedConfigCache()->exists());
+    }
+
+    private function mergedConfigCache(): MergedConfigCache
+    {
         $config = Config::getInstance();
-        self::assertTrue(new MergedConfigCache($config->getCacheDir(), AppEnv::current(), $config->getAppRootDir())->exists());
+
+        return new MergedConfigCache($config->getCacheDir(), AppEnv::current(), $config->getAppRootDir());
     }
 
     /**
