@@ -155,6 +155,15 @@ opcache.file_cache_only=1
 | file cache, warm | 35ms | 84ms |
 | `php -r ''` on this machine | | 48ms |
 
+Without these settings, `bin/phel` restarts itself once with the file cache
+switched on (`pcntl_exec`), so warm runs still reuse compiled opcode. It skips
+that restart for commands that compile nothing (`--version`, `list`, `help`,
+`completion`, ...). On macOS, where a PHP startup costs about 37 ms against
+about 10 ms on Linux, it restarts only for `test`, `build`, `bench`, `mutate`,
+`profile` and `export`; set `PHEL_OPCACHE_REEXEC=1` to restart for every
+command, or `PHEL_NO_OPCACHE_REEXEC=1` to never restart. The php.ini settings
+above give the same cache without the restart.
+
 **3. PHP-FPM hosts: preload the same file.** FPM keeps opcache in shared memory
 across requests, so only the first request after a restart compiles the
 cached PHP. Point `opcache.preload` at the warm-up file and that request is
