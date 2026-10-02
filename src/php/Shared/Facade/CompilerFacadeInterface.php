@@ -243,4 +243,14 @@ interface CompilerFacadeInterface
      * @return T
      */
     public function withoutDeprecations(callable $work): mixed;
+
+    /**
+     * The "did you mean" candidates for `$typed`, most relevant first, as the
+     * analyzer ranks them for an unresolved symbol. Empty when nothing is close.
+     *
+     * @param list<string> $candidates
+     *
+     * @return list<string>
+     */
+    public function findSimilarNames(string $typed, array $candidates): array;
 }

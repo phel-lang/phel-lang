@@ -75,7 +75,7 @@ final class LintFactory extends AbstractFactory
     {
         return [
             new UnresolvedSymbolRule(),
-            new UnresolvedNamespaceRule(new ProjectKnownNamespaces($this->getRunFacade())),
+            new UnresolvedNamespaceRule(new ProjectKnownNamespaces($this->getRunFacade()), $this->getCompilerFacade()),
             new ArityMismatchRule(),
             new UnusedBindingRule(),
             new UnusedRequireRule(),

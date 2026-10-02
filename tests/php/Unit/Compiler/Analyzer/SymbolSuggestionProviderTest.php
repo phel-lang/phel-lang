@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Shared;
+namespace PhelTest\Unit\Compiler\Analyzer;
 
-use Phel\Shared\SymbolSuggestionProvider;
+use Phel\Compiler\Domain\Analyzer\SymbolSuggestionProvider;
 use PHPUnit\Framework\TestCase;
 
 use function count;

@@ -8,9 +8,9 @@ use Phel;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\FrameworkNamespaces;
 use Phel\Shared\Munge;
-use Phel\Shared\SymbolSuggestionProvider;
 
 use function array_keys;
 use function array_slice;
@@ -34,6 +34,7 @@ final class BundledNamespaceIndex
     public function __construct(
         private readonly NamespaceExtractorInterface $namespaceExtractor,
         private readonly CommandFacadeInterface $commandFacade,
+        private readonly CompilerFacadeInterface $compilerFacade,
     ) {}
 
     public function resolvesWithoutSource(string $namespace): bool
@@ -60,7 +61,7 @@ final class BundledNamespaceIndex
         $typed = FrameworkNamespaces::clojureTarget($required) ?? $required;
 
         $candidates = [...$knownNamespaces, ...array_keys($this->bundled())];
-        $suggestions = new SymbolSuggestionProvider()->findSimilar($typed, $candidates);
+        $suggestions = $this->compilerFacade->findSimilarNames($typed, $candidates);
 
         return ExtractorException::missingRequiredNamespaceMessage(
             $required,

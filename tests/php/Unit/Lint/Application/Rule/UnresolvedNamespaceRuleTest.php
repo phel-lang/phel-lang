@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application\Rule;
 
+use Phel\Compiler\CompilerFacade;
 use Phel\Lint\Application\Rule\UnresolvedNamespaceRule;
 use Phel\Lint\Domain\KnownNamespacesInterface;
 use Phel\Shared\Api\Diagnostic;
@@ -75,7 +76,7 @@ final class UnresolvedNamespaceRuleTest extends RuleTestCase
             {
                 return $this->known;
             }
-        });
+        }, new CompilerFacade());
     }
 
     /**

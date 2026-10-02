@@ -11,10 +11,10 @@ use Phel\Lang\Symbol;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\KnownNamespacesInterface;
 use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\FrameworkNamespaces;
 use Phel\Shared\LintRuleCodes;
 use Phel\Shared\Munge;
-use Phel\Shared\SymbolSuggestionProvider;
 
 use function array_flip;
 use function count;
@@ -32,6 +32,7 @@ final readonly class UnresolvedNamespaceRule implements LintRuleInterface
 {
     public function __construct(
         private KnownNamespacesInterface $knownNamespaces,
+        private CompilerFacadeInterface $compilerFacade,
     ) {}
 
     public function code(): string
@@ -108,7 +109,7 @@ final readonly class UnresolvedNamespaceRule implements LintRuleInterface
 
     private function message(string $name, string $phelName): string
     {
-        $suggestions = new SymbolSuggestionProvider()->findSimilar($phelName, $this->knownNamespaces->all());
+        $suggestions = $this->compilerFacade->findSimilarNames($phelName, $this->knownNamespaces->all());
         if ($suggestions === []) {
             return sprintf("Cannot find namespace '%s'.", $name);
         }

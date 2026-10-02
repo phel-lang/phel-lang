@@ -29,6 +29,8 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\FileNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 
+use function array_values;
+
 /**
  * @extends AbstractFacade<CompilerFactory>
  */
@@ -291,5 +293,12 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     {
         return $this->getFactory()
             ->withoutDeprecations($work);
+    }
+
+    public function findSimilarNames(string $typed, array $candidates): array
+    {
+        return array_values($this->getFactory()
+            ->createSymbolSuggestionProvider()
+            ->findSimilar($typed, $candidates));
     }
 }

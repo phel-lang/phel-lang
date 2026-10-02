@@ -78,6 +78,7 @@ final class BuildFactory extends AbstractFactory
         return new BundledNamespaceIndex(
             $this->createNamespaceExtractor(),
             $this->getCommandFacade(),
+            $this->getCompilerFacade(),
         );
     }
 

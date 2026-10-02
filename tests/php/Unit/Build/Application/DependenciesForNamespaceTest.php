@@ -8,6 +8,7 @@ use Phel\Build\Application\BundledNamespaceIndex;
 use Phel\Build\Application\DependenciesForNamespace;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
+use Phel\Compiler\CompilerFacade;
 use Phel\Lang\Registry;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\NamespaceInformation;
@@ -336,6 +337,6 @@ final class DependenciesForNamespaceTest extends TestCase
         $commandFacade->method('getSourceDirectories')->willReturn(['/phel/src']);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
-        return new DependenciesForNamespace($extractor, new BundledNamespaceIndex($bundledExtractor, $commandFacade));
+        return new DependenciesForNamespace($extractor, new BundledNamespaceIndex($bundledExtractor, $commandFacade, new CompilerFacade()));
     }
 }
