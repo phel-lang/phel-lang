@@ -45,6 +45,9 @@ final readonly class CompiledFnName
     }
 
     /**
+     * Every `_` reads as `-`. Phel resolves `my_app.core` and `my-app.core` to
+     * one namespace, so the hyphen spelling names the same var either way.
+     *
      * @param class-string $class
      */
     public function namespaceOf(string $class): ?string
