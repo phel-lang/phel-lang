@@ -79,7 +79,9 @@ final class ChangedLoadSiblingTest extends TestCase
         self::assertNotSame(0, $secondRun->exitCode, $output);
         self::assertStringContainsString('Vector index 5 out of bounds', $output);
         self::assertMatchesRegularExpression('~#\d+ \S*stale-sibling-main\.phel:4 : \(phel\\\\core\\\\nth~', $output);
-        self::assertStringNotContainsString('cache/compiled', $output);
+        // The `at` line may name the compiled file next to the source; a frame
+        // must not, or its source map was lost.
+        self::assertDoesNotMatchRegularExpression('~^#\d+ \S*/compiled/~m', $output);
     }
 
     private function writePart(string $form): void
@@ -95,7 +97,13 @@ final class ChangedLoadSiblingTest extends TestCase
         return Subprocess::run(
             [PHP_BINARY, '-d', 'memory_limit=256M', $this->repoRoot . '/bin/phel', 'run', 'src/stale-sibling-main.phel'],
             $this->projectDir,
-            env: [...array_diff_key(getenv(), ['PHEL_CACHE_DIR' => '']), 'PHEL_NO_OPCACHE_REEXEC' => '1'],
+            // A cache of its own: the shared test cache would let other tests
+            // and paratest workers rewrite the same compiled files mid-test.
+            env: [
+                ...array_diff_key(getenv(), ['PHEL_CACHE_DIR' => '', 'PHEL_TEST_SHARED_CACHE_DIR' => '']),
+                'PHEL_CACHE_DIR' => $this->projectDir . '/.phel-cache',
+                'PHEL_NO_OPCACHE_REEXEC' => '1',
+            ],
         );
     }
 }
