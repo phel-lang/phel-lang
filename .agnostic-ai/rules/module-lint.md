@@ -38,7 +38,7 @@ Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`
 ## Rule Set (v1)
 
 - Errors: `phel/unresolved-symbol`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`, `phel/duplicate-def`
-- Warnings: `phel/unused-binding`, `phel/unused-require`, `phel/unused-import`, `phel/shadowed-binding`, `phel/shadowed-core-fn`, `phel/redundant-do`, `phel/discouraged-var`, `phel/comment-style`
+- Warnings: `phel/unused-binding`, `phel/unused-require`, `phel/unused-import`, `phel/shadowed-binding`, `phel/shadowed-core-fn`, `phel/redundant-do`, `phel/discouraged-var`, `phel/comment-style`, `phel/unknown-class`
 
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
 
@@ -48,7 +48,7 @@ Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code con
 
 The code `RulePipeline` reports under when a rule's `apply()` throws. It is the
 one diagnostic the linter emits about itself, so it plays by different rules
-from the thirteen above:
+from the fourteen above:
 
 - **Always `error` severity**, never `RuleSettings::severityFor()`. A configured
   severity grades a finding about the linted code; a crash is a finding about
@@ -121,6 +121,10 @@ Docstring prose is never a marker: a docstring that documents a `:deprecated`
 map key, or warns about a deprecated PHP builtin, says nothing about the
 definition it documents. The defining form's own name symbol is skipped, so
 deprecating something does not flag its declaration.
+
+### `phel/unknown-class`
+
+Warns on a static call `(Foo/bar ...)` whose class cannot be autoloaded, after resolving `\Foo`, `Foo.Bar` and `:use` aliases. A warning because a class can be loaded at runtime. Lowercase namespaces, `:require` aliases and classes the file declares (`defstruct`, `definterface`, ...) are skipped. A Java class from `ClassNotFoundHint::javaClassHint()` adds its Phel replacement, the same text the runtime hint prints (#3465).
 
 ## Config File
 

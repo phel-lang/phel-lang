@@ -1,0 +1,7 @@
+(ns fixtures.unknown-class)
+
+(defn now []
+  (System/currentTimeMillis))
+
+(defn today []
+  (DateTimeImmutable/createFromFormat "Y-m-d" "2026-01-01"))

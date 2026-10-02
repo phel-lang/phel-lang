@@ -187,6 +187,36 @@ final class LintCommandTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_it_warns_about_a_static_call_to_a_class_it_cannot_autoload(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new LintCommand());
+        $exit = $tester->execute([
+            'paths' => [__DIR__ . '/Fixtures/unknown_class.phel'],
+            '--format' => 'json',
+            '--no-cache' => true,
+        ]);
+
+        $payload = json_decode(trim($tester->getDisplay()), true);
+        self::assertIsArray($payload);
+
+        $unknown = array_map(
+            static fn(array $d): array => [$d['severity'], $d['startLine'], $d['message']],
+            array_values(array_filter(
+                $payload,
+                static fn(array $d): bool => $d['code'] === 'phel/unknown-class',
+            )),
+        );
+
+        self::assertSame([
+            ['warning', 4, "Class 'System' in 'System/currentTimeMillis' cannot be autoloaded. System is a Java class, not a PHP one: for System/currentTimeMillis use (php/microtime true), which returns seconds as a float."],
+        ], $unknown);
+        self::assertSame(0, $exit, 'A class can still be loaded at runtime, so the command still succeeds');
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_github_format_emits_annotation_commands(): void
     {
         $this->bootstrap();

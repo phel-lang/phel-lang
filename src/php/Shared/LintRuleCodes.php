@@ -48,6 +48,8 @@ final class LintRuleCodes
 
     public const string COMMENT_STYLE = 'phel/comment-style';
 
+    public const string UNKNOWN_CLASS = 'phel/unknown-class';
+
     /**
      * Not a rule: the code `RulePipeline` reports under when a rule itself
      * throws. Deliberately absent from {@see self::allCodes()}: it has no
@@ -76,6 +78,7 @@ final class LintRuleCodes
             self::INVALID_DESTRUCTURING,
             self::DISCOURAGED_VAR,
             self::COMMENT_STYLE,
+            self::UNKNOWN_CLASS,
         ];
     }
 }

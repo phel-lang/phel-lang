@@ -30,6 +30,7 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
         yield 'uncaught ex-info' => ['ex-info-script.phel', 'boom'];
         yield 'interop type error' => ['interop-type-error-script.phel', 'must be of type int, string given'];
         yield 'division by zero' => ['division-by-zero-script.phel', 'Division by zero'];
+        yield 'java class call' => ['java-class-call-script.phel', 'Class "Integer" not found'];
     }
 
     #[DataProvider('runtimeErrorClassProvider')]
@@ -81,6 +82,16 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
         $output = $this->captureRunOutput(__DIR__ . '/Fixtures/' . $fixture);
 
         self::assertMatchesRegularExpression('~^\[' . $code . '\] \S~m', $output);
+    }
+
+    /**
+     * A call to a Java class names the Phel replacement (#3465).
+     */
+    public function test_a_java_class_call_hints_at_the_phel_replacement(): void
+    {
+        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/java-class-call-script.phel');
+
+        self::assertStringContainsString('hint: Integer is a Java class, not a PHP one: for Integer/parseInt use (parse-long s).', $output);
     }
 
     /**

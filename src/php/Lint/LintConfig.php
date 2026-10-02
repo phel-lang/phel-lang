@@ -40,6 +40,7 @@ final class LintConfig extends AbstractConfig
             LintRuleCodes::REDUNDANT_DO => Diagnostic::SEVERITY_WARNING,
             LintRuleCodes::DISCOURAGED_VAR => Diagnostic::SEVERITY_WARNING,
             LintRuleCodes::COMMENT_STYLE => Diagnostic::SEVERITY_WARNING,
+            LintRuleCodes::UNKNOWN_CLASS => Diagnostic::SEVERITY_WARNING,
         ];
     }
 
