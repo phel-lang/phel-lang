@@ -20,7 +20,6 @@ Tooling:
 - A file whose first form is not `(ns ...)` fails with `'src/app.phel' does not start with an (ns ...) form`, instead of a `Cannot resolve symbol 'defn-'` hint. (#3373)
 - Lint rule `phel/shadowed-core-fn` warns when a `let`, `loop` or `fn` binding is named after a public `phel.core` fn, as in `(let [inc (fn [x] 99)] (inc 1))`. (#3374)
 - Editor completion after `(.method` knows a receiver built with `(new Foo)`, `(Foo.)` or `(Foo/make)`, bound or inline. `(new Fo` completes class names, and `(DateTimeImmutable/` completes static members without a `:use`. (#3398)
-- `phel lint --format=json` and `phel analyze` report one error with the same fields. Each diagnostic adds `errorCode` (`PHEL001` behind `phel/unresolved-symbol`), `suggestions` (the "did you mean" names as a list) and `fix` (the catalog's advice). `phel analyze src` walks a directory and exits 1 on an error. `phel explain phel/unused-require` explains a lint rule, and `--format=json` prints any entry as JSON. A `docs/` path in a fix names the file from the project, `vendor/phel-lang/phel-lang/docs/...`. (#3464)
 
 PHP API:
 
