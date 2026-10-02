@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Application;
 
+use Phel;
 use Phel\Build\Application\BundledNamespaceIndex;
 use Phel\Build\Application\DependenciesForNamespace;
+use Phel\Build\Application\MissingRequireReporter;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Compiler\CompilerFacade;
 use Phel\Lang\Registry;
+use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\NamespaceInformation;
 use PHPUnit\Framework\TestCase;
@@ -97,6 +101,32 @@ final class DependenciesForNamespaceTest extends TestCase
         $this->expectExceptionMessage("Cannot find namespace 'some.missing.ns' required by 'app.main'");
 
         $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
+    }
+
+    public function test_a_missing_require_points_at_the_namespace_in_the_requiring_file(): void
+    {
+        Phel::bootstrap(__DIR__);
+        $file = (string) tempnam(sys_get_temp_dir(), 'phel-missing-ns');
+        file_put_contents($file, "(ns app.util\n  (:require [app.helpers :as h]))\n");
+
+        $extractor = $this->createStub(NamespaceExtractorInterface::class);
+        $extractor->method('getNamespacesFromDirectories')
+            ->willReturn([new NamespaceInformation($file, 'app.util', ['app.helpers'])]);
+
+        try {
+            $this->deps($extractor)->getDependenciesForNamespace(['/src'], ['app.util']);
+            self::fail('Expected a CompilerException.');
+        } catch (CompilerException $compilerException) {
+            $located = $compilerException->getNestedException();
+            self::assertSame(ErrorCode::MISSING_NAMESPACE, $located->getErrorCode());
+            self::assertStringStartsWith("Cannot find namespace 'app.helpers' required by 'app.util'", $located->getMessage());
+            self::assertSame($file, $located->getStartLocation()?->getFile());
+            self::assertSame(2, $located->getStartLocation()?->getLine());
+            self::assertSame(13, $located->getStartLocation()?->getColumn());
+            self::assertSame('searched: /src', $located->getRelatedLocationNote());
+        } finally {
+            unlink($file);
+        }
     }
 
     public function test_clojure_set_require_resolves_to_phel_core(): void
@@ -337,6 +367,10 @@ final class DependenciesForNamespaceTest extends TestCase
         $commandFacade->method('getSourceDirectories')->willReturn(['/phel/src']);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
-        return new DependenciesForNamespace($extractor, new BundledNamespaceIndex($bundledExtractor, $commandFacade, new CompilerFacade()));
+        return new DependenciesForNamespace(
+            $extractor,
+            new BundledNamespaceIndex($bundledExtractor, $commandFacade, new CompilerFacade()),
+            new MissingRequireReporter(new CompilerFacade()),
+        );
     }
 }

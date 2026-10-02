@@ -138,8 +138,8 @@ Core: `(str a b c)`, `(name :k)`, `(keyword "x")`, `(symbol "x")`.
 ## When unsure
 
 ```bash
-./vendor/bin/phel doc <fn>
-git grep 'defn <fn>' src/phel/core
+./vendor/bin/phel doc <fn> --format=json
+grep -rn '(defn <fn>' vendor/phel-lang/phel-lang/src/phel/core/
 ```
 
 ## Modern fn shape

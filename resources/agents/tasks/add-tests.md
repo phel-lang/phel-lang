@@ -131,4 +131,4 @@ Full: <https://phel-lang.org/documentation/testing/>.
 
 - `tasks/typed-defn.md` — typed fns under test
 - <https://phel-lang.org/documentation/testing/>
-- `src/phel/test.phel`, `tests/phel/*.phel`
+- `vendor/phel-lang/phel-lang/src/phel/test.phel`

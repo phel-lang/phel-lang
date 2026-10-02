@@ -14,11 +14,12 @@ Lisp dialect compiling to PHP. PHP interop via `php/` prefix.
 3. `.agents/index.md` — task map
 4. `.agents/tasks/<intent>.md` — recipe for current task
 5. `.agents/quick-syntax.md` — one-screen syntax cheatsheet
-6. `src/phel/` and `docs/` only when a recipe points there
+6. `vendor/phel-lang/phel-lang/src/phel/` and `vendor/phel-lang/phel-lang/docs/` only when a recipe points there
 
 ## Hard rules (skim, then load RULES.md)
 
-- Verify fn names with `(doc <fn>)` or grep `src/phel/core/`. Never invent.
+- Verify fn names with `./vendor/bin/phel doc <fn> --format=json`, `(doc <fn>)`, or grep `vendor/phel-lang/phel-lang/src/phel/core/`. Never invent.
+- Check loop after every edit: `./vendor/bin/phel lint <file> --format=json`, then `./vendor/bin/phel explain <PHELnnn>` for an unknown code, then `./vendor/bin/phel doc <fn> --format=json` for an unverified fn. Details in `.agents/RULES.md`.
 - Collections immutable. `(conj v x)` returns new; rebind via `def`/`let`/`atom`.
 - CLI args: `*argv*`, not `php/$argv`.
 - Side effects: `doseq`; building sequences: `for`.

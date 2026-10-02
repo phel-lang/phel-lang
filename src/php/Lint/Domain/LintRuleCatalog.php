@@ -85,6 +85,13 @@ final class LintRuleCatalog implements LintRuleExplainerInterface
                 fix: 'Fix the spelling, define the symbol, or require the namespace that defines it.',
             ),
             new LintRuleExplanation(
+                code: LintRuleCodes::UNRESOLVED_NAMESPACE,
+                title: 'Unresolved namespace',
+                summary: 'A (:require ...) names a phel.* namespace that no source, test or vendor directory declares. A clojure.* namespace is checked through its phel.* target.',
+                example: '(ns app' . "\n" . '  (:require phel.strng :as s))',
+                fix: 'Fix the spelling to the suggested namespace, or install the package that ships it.',
+            ),
+            new LintRuleExplanation(
                 code: LintRuleCodes::ARITY_MISMATCH,
                 title: 'Arity mismatch',
                 summary: 'A call passes a number of arguments the fn does not accept. The lint form of PHEL002.',

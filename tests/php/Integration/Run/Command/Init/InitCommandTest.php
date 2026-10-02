@@ -150,7 +150,7 @@ final class InitCommandTest extends TestCase
         $mainContent = (string) file_get_contents($this->testDir . '/main.phel');
 
         self::assertStringContainsString('(ns sandbox.main)', $mainContent);
-        self::assertStringContainsString('(defn greet [name]', $mainContent);
+        self::assertStringContainsString('(defn greet [who]', $mainContent);
     }
 
     public function test_minimal_test_file_references_main_namespace(): void

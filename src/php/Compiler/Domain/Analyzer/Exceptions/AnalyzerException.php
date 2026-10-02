@@ -110,10 +110,15 @@ final class AnalyzerException extends AbstractLocatedException
 
     /**
      * @param array<string> $suggestions Similar symbol names for "did you mean?" hint
+     * @param ?string       $advice      Where the symbol lives, or why its namespace does not resolve
      */
-    public static function cannotResolveSymbol(string $symbolName, TypeInterface $type, array $suggestions = []): self
+    public static function cannotResolveSymbol(string $symbolName, TypeInterface $type, array $suggestions = [], ?string $advice = null): self
     {
         $message = sprintf("Cannot resolve symbol '%s'", $symbolName);
+
+        if ($advice !== null) {
+            $message .= '. ' . $advice;
+        }
 
         if ($suggestions !== []) {
             $message .= sprintf('. Did you mean %s?', self::formatSuggestions($suggestions));
