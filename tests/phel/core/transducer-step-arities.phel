@@ -27,12 +27,8 @@
   (let [rf (completing + inc)]
     (is (= 8 (rf 7)) "one argument runs the supplied completion")
     (is (= 5 (rf 2 3)) "the step is unaffected by the completion"))
-  ;; Note: `transduce` wraps its reducing function in `completing` itself, so a
-  ;; completion supplied by the caller is shadowed by the wrapper's `identity`
-  ;; and `(transduce xf (completing + inc) 0 [1 2])` is 3, not 4. That is
-  ;; unchanged by this rewrite and diverges from Clojure, which does not
-  ;; re-wrap; it is asserted here only through the direct calls above.
-)
+  (is (= 4 (transduce (map identity) (completing + inc) 0 [1 2]))
+      "transduce runs the supplied completion"))
 
 (deftest test-transducer-step-answers-every-arity
   ;; `xf-step` builds the reducing function for map, filter, take, keep,

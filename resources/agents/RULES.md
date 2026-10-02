@@ -55,7 +55,7 @@ Defn-name tag propagates to every arity unless an arity vector overrides it. See
 See [`tasks/common-gotchas.md`](tasks/common-gotchas.md) for details. Quick summary:
 
 - **CLI args**: use `*argv*` (vec of strings after script path), not `php/$argv`.
-- **`transduce` + `max`/`min`**: these don't support 0-arity; pass explicit init: `(transduce xf (fn [a b] (max a b)) 0 coll)`.
+- **`transduce` + `max`/`min`**: these don't support 0-arity; pass explicit init: `(transduce xf max 0 coll)`. A hand-written 2-arity reducer needs `completing`.
 - **`for` vs `doseq`**: `for` builds a sequence (lazy); `doseq` is for side effects. Don't use `for` for `println` loops.
 - **`phel.string`**: was `phel.str` before v0.33.
 

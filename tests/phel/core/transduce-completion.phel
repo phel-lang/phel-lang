@@ -1,0 +1,66 @@
+(ns phel-test.core.transduce-completion
+  (:require phel.test :refer [deftest is thrown?]))
+
+(deftest test-transduce-calls-the-completion-once
+  (let [calls (atom 0)
+        rf    (fn
+                ([] [])
+                ([r] (swap! calls inc) (conj r :done))
+                ([r x] (conj r x)))]
+    (is (= [2 3 :done] (transduce (map inc) rf [] [1 2])) "the completion finalizes the result")
+    (is (= 1 @calls) "the completion runs exactly once")))
+
+(deftest test-transduce-completes-through-the-transducer
+  (let [calls (atom 0)
+        rf    (fn
+                ([] 0)
+                ([r] (swap! calls inc) (* 10 r))
+                ([r x] (+ r x)))]
+    (is (= 0 (transduce (map inc) rf [])) "an empty collection still completes the seed")
+    (is (= 40 (transduce (comp (filter odd?) (take 2)) rf [1 2 3 4 5])) "an early stop still completes")
+    (is (= 2 @calls))))
+
+(deftest test-transduce-with-core-reducers
+  (is (= [2 3 4] (transduce (map inc) conj [] [1 2 3])) "conj")
+  (is (= [2 3 4] (transduce (map inc) conj [1 2 3])) "conj seeds with (conj)")
+  (is (= 9 (transduce (map inc) + [1 2 3])) "+")
+  (is (= 24 (transduce (map inc) * [1 2 3])) "*")
+  (is (= 4 (transduce (map inc) max 0 [1 2 3])) "max")
+  (is (= 2 (transduce (map inc) min 10 [1 2 3])) "min")
+  (is (= "234" (transduce (map inc) str [1 2 3])) "str")
+  (is (= {:a 1 :b 2} (transduce (map identity) merge {} [{:a 1} {:b 2}])) "merge")
+  (is (= [1 2 3 4] (transduce (map identity) into [] [[1 2] [3 4]])) "into"))
+
+(deftest test-completing-with-an-explicit-completion
+  (is (= 4 (transduce (map identity) (completing + inc) 0 [1 2])) "the caller's completion is no longer shadowed")
+  (is (= [2 4] (transduce (filter even?) (completing conj) [] [1 2 3 4])) "the default completion is identity")
+  (is (= 3 (transduce (map identity) (completing (fn [a b] (+ a b))) 0 [1 2]))
+      "completing gives a two-arity reducer the arity it lacks"))
+
+(deftest test-reducer-without-a-completion-arity-throws
+  (let [rf (fn [a b] (+ a b))]
+    (is (thrown? \Throwable (transduce (map identity) rf 0 [1 2]))
+        "as in Clojure, a reducer needs a one-arity; wrap it in completing")))
+
+(defn- pairs
+  "A stateful transducer that buffers two inputs and flushes a short last chunk on completion."
+  []
+  (fn [rf]
+    (let [buf (volatile! [])]
+      (fn
+        ([] (rf))
+        ([result]
+         (let [chunk @buf]
+           (vreset! buf [])
+           (rf (if (empty? chunk) result (unreduced (rf result chunk))))))
+        ([result input]
+         (let [chunk (conj @buf input)]
+           (if (= 2 (count chunk))
+             (do (vreset! buf []) (rf result chunk))
+             (do (vreset! buf chunk) result))))))))
+
+(deftest test-stateful-transducers-flush-on-completion
+  (is (= [[1 2] [3 4] [5]] (transduce (pairs) conj [] [1 2 3 4 5])) "transduce flushes the last chunk")
+  (is (= [[1 2] [3]] (into [] (pairs) [1 2 3])) "into flushes the last chunk")
+  (is (= [[1 2] [3]] (sequence (pairs) [1 2 3])) "sequence flushes the last chunk")
+  (is (= [[1 2] [3]] (vec (eduction (pairs) [1 2 3]))) "eduction flushes the last chunk"))
