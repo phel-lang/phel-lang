@@ -104,6 +104,7 @@ final class CompiledCodeCacheTest extends TestCase
     {
         $cache = new CompiledCodeCache($this->cacheDir);
         $cache->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
+
         $servedPath = $cache->get($this->sourceFile, 'hash');
 
         $cache->invalidate($this->sourceFile);
