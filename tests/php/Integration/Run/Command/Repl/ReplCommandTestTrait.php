@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Run\Command\Repl;
 use Gacela\Framework\Gacela;
 use Phel\Command\Application\TextExceptionPrinter;
 use Phel\Command\Domain\ErrorLogInterface;
+use Phel\Command\Domain\Exceptions\CompiledFnName;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Infrastructure\SourceMapExtractor;
@@ -36,7 +37,7 @@ trait ReplCommandTestTrait
         $exceptionPrinter = new TextExceptionPrinter(
             new ExceptionArgsPrinter(Printer::readable()),
             ColorStyle::noStyles(),
-            new Munge(),
+            new CompiledFnName(new Munge()),
             new FilePositionExtractor(new SourceMapExtractor()),
             $this->createStub(ErrorLogInterface::class),
             self::COLLAPSED_TRACE_HINT,

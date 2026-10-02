@@ -155,15 +155,13 @@ final class NsEmitter implements NodeEmitterInterface
         // The rest (an already-loaded namespace, a bundled `phel.*` one, a
         // `clojure.*` remap) is Build's call, made only on this miss path.
         $this->outputEmitter->emitLine(sprintf(
-            "if (\$__phelNsInfos === [] && !\\Phel\\Build\\BuildFacade::isBuildMode() && (\$__phelMissingNs = \$__phelBuildFacade->unresolvedRequireMessage('%s', '%s')) !== null) {",
+            "if (\$__phelNsInfos === [] && !\\Phel\\Build\\BuildFacade::isBuildMode() && (\$__phelMissingNs = \$__phelBuildFacade->unresolvedRequireError('%s', '%s', '%s', \$__phelSrcDirs)) !== null) {",
             addslashes(Munge::canonicalNs($ns->getName())),
             addslashes(Munge::canonicalNs($node->getNamespace())),
+            addslashes($ns->getStartLocation()?->getFile() ?? ''),
         ));
         $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine(
-            'throw new \\Phel\\Build\\Domain\\Extractor\\ExtractorException($__phelMissingNs);',
-            $ns->getStartLocation(),
-        );
+        $this->outputEmitter->emitLine('throw $__phelMissingNs;', $ns->getStartLocation());
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}');
     }

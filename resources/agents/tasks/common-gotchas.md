@@ -101,6 +101,26 @@ lie:
 Reach for the wrapper first; keep the `php/` call when its behaviour is the
 one you actually need. See #2941.
 
+## 10. Clojure habits that do not work
+
+Phel runs on PHP, not the JVM. A Java class name resolves as a PHP class and fails with `Class "Math" not found`.
+
+| Clojure | Phel |
+|---------|------|
+| `(Integer/parseInt s)`, `(Long/parseLong s)` | `(parse-long s)` |
+| `(Double/parseDouble s)` | `(parse-double s)` |
+| `(Math/abs x)` | `(abs x)` |
+| `(Thread/sleep ms)` | `(php/usleep (* ms 1000))` |
+| `(System/currentTimeMillis)` | `(php/intval (* 1000 (php/microtime true)))`; `(php/microtime true)` alone is seconds as a float |
+| `(.toUpperCase s)`, any method on a string | `(phel.string/upper-case s)`; a PHP string has no methods |
+| `(:require [x :refer :all])` | `:refer [a b]` with each name, or `:as x` |
+| `(:import (java.time Instant))` | `(:use DateTimeImmutable)` for a PHP class |
+| `phel.str` | `phel.string` |
+| `clojure.set` | `union`, `intersection`, `difference` are in `phel.core` |
+| `(require ...)` at the top of a file | `(:require ...)` inside `ns`; `require` only exists in the REPL |
+
+`clojure.string` maps to `phel.string`, so `(:require clojure.string :as str)` works.
+
 ## See also
 
 - [`RULES.md`](../RULES.md) for the one-liner rule each gotcha references.

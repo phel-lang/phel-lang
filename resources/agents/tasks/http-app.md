@@ -22,8 +22,8 @@ Runnable: `.agents/examples/todo-app/`.
 (defn home   [_req] (h/response-from-map {:status 200 :body "<h1>Phel</h1>"}))
 (defn health [_req] (json-response 200 {:status "ok" :ts (php/time)}))
 (defn greet  [req]
-  (let [name (get-in req [:attributes :match :path-params :name] "World")]
-    (json-response 200 {:message (str "Hello, " name "!")})))
+  (let [user-name (get-in req [:attributes :match :path-params :name] "World")]
+    (json-response 200 {:message (str "Hello, " user-name "!")})))
 ```
 
 ## Routes
@@ -180,5 +180,5 @@ Swap `\Phel::run(...)` for `require` of compiled boot file.
 ## See also
 
 - `tasks/use-php-libs.md`, `tasks/add-tests.md`
-- `src/phel/router.phel`, `src/phel/http.phel`, `src/phel/http-client.phel`
+- `vendor/phel-lang/phel-lang/src/phel/router.phel`, `vendor/phel-lang/phel-lang/src/phel/http.phel`, `vendor/phel-lang/phel-lang/src/phel/http-client.phel`
 - <https://phel-lang.org/documentation/web/framework-integration/>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Command\Application;
 
 use Phel\Command\Application\RuntimeErrorReportFormatter;
+use Phel\Command\Domain\Exceptions\CompiledFnName;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
 use Phel\Command\Domain\Exceptions\InternalPathDetector;
@@ -343,7 +344,7 @@ final class RuntimeErrorReportFormatterTest extends TestCase
             new InternalPathDetector(self::PHEL_SRC_DIR, self::CACHE_DIR),
             $hintResolver ?? new ExceptionHintResolver([]),
             Printer::readable(),
-            new RuntimeArityMessage(new Munge()),
+            new RuntimeArityMessage(new CompiledFnName(new Munge())),
             self::STALE_OUTPUT_HINT,
         );
     }

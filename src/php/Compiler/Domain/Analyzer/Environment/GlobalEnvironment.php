@@ -176,6 +176,15 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return $this->defFnNodes[$namespace][$name->getName()] ?? null;
     }
 
+    public function addCompiledDefinitions(array $namesByNamespace): void
+    {
+        foreach ($namesByNamespace as $namespace => $names) {
+            foreach ($names as $name) {
+                $this->definitions[$namespace][$name] ??= true;
+            }
+        }
+    }
+
     public function hasDefinition(string $namespace, Symbol $name): bool
     {
         return (
@@ -411,6 +420,26 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         return array_keys($symbols);
+    }
+
+    public function getPublicDefinitionNames(string $namespace): array
+    {
+        $names = [
+            ...array_keys($this->definitions[$namespace] ?? []),
+            ...array_keys(Phel::getDefinitionInNamespace($this->mungeEncodeNs($namespace))),
+        ];
+
+        $public = [];
+        foreach ($names as $name) {
+            $meta = $this->getDefinition($namespace, Symbol::create((string) $name));
+            if ($meta instanceof PersistentMapInterface && $meta[Keyword::create('private')] === true) {
+                continue;
+            }
+
+            $public[(string) $name] = true;
+        }
+
+        return array_keys($public);
     }
 
     /**

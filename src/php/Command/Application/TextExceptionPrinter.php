@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command\Application;
 
 use Phel\Command\Domain\ErrorLogInterface;
+use Phel\Command\Domain\Exceptions\CompiledFnName;
 use Phel\Command\Domain\Exceptions\EvaluatedCodeLocation;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
@@ -15,12 +16,10 @@ use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Exceptions\ExceptionPrinterInterface;
-use Phel\Shared\MungeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use ReflectionClass;
 use Throwable;
 
-use function is_string;
 use function sprintf;
 use function strlen;
 
@@ -39,7 +38,7 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
     public function __construct(
         private ExceptionArgsPrinterInterface $exceptionArgsPrinter,
         private ColorStyleInterface $style,
-        private MungeInterface $munge,
+        private CompiledFnName $fnName,
         private FilePositionExtractorInterface $filePositionExtractor,
         private ErrorLogInterface $errorLog,
         private string $collapsedTraceHint,
@@ -214,8 +213,8 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
     }
 
     /**
-     * Returns the decoded Phel function name when the frame's class is a
-     * compiled Phel fn, or null for PHP-native frames.
+     * Returns the Phel function name, `app.main/add`, when the frame's class is
+     * a compiled Phel fn, or null for PHP-native frames.
      */
     private function phelFnName(?string $class): ?string
     {
@@ -228,13 +227,7 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
             return null;
         }
 
-        if (!$rf->hasConstant('BOUND_TO')) {
-            return '__invoke';
-        }
-
-        $boundTo = $rf->getConstant('BOUND_TO');
-
-        return is_string($boundTo) ? $this->munge->decodeNs($boundTo) : '__invoke';
+        return $this->fnName->displayName($class) ?? '__invoke';
     }
 
     private function renderTrace(Throwable $e): string

@@ -142,7 +142,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_not_enough_args_provided_then_error(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-global-fn". Got: 1. Expected: 2');
+        $this->expectExceptionMessage('Wrong number of arguments to function "user/my-global-fn". Got: 1. Expected: 2');
 
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-global-fn'),
@@ -155,7 +155,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_too_many_args_to_single_arity_fn_then_error(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-global-fn". Got: 3. Expected: 2');
+        $this->expectExceptionMessage('Wrong number of arguments to function "user/my-global-fn". Got: 3. Expected: 2');
 
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-global-fn'),
@@ -174,7 +174,7 @@ final class InvokeSymbolTest extends TestCase
         $this->analyzer->setCompileTimeMeta('user', $name, Phel::map('min-arity', 1, 'is-variadic', false));
 
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Wrong number of arguments to function "user\\analyzed-only-fn". Got: 2. Expected: 1');
+        $this->expectExceptionMessage('Wrong number of arguments to function "user/analyzed-only-fn". Got: 2. Expected: 1');
 
         $list = Phel::list([Symbol::createForNamespace('user', 'analyzed-only-fn'), '1arg', '2arg']);
 
@@ -217,7 +217,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_variadic_function_error_message(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-variadic-fn". Got: 0. Expected: at least 1');
+        $this->expectExceptionMessage('Wrong number of arguments to function "user/my-variadic-fn". Got: 0. Expected: at least 1');
 
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-variadic-fn'),
@@ -229,7 +229,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_bounded_function_too_few_args(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-bounded-fn". Got: 0. Expected: 1 or 2');
+        $this->expectExceptionMessage('Wrong number of arguments to function "user/my-bounded-fn". Got: 0. Expected: 1 or 2');
 
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-bounded-fn'),
@@ -241,7 +241,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_bounded_function_too_many_args(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-bounded-fn". Got: 3. Expected: 1 or 2');
+        $this->expectExceptionMessage('Wrong number of arguments to function "user/my-bounded-fn". Got: 3. Expected: 1 or 2');
 
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-bounded-fn'),
@@ -369,7 +369,7 @@ final class InvokeSymbolTest extends TestCase
             new InvokeSymbol($this->analyzer)->analyze($list, $env);
             self::fail('Expected AnalyzerException to be thrown');
         } catch (AnalyzerException $analyzerException) {
-            self::assertStringContainsString('Error in expanding macro "user\\my-failed-macro"', $analyzerException->getMessage());
+            self::assertStringContainsString('Error in expanding macro "user/my-failed-macro"', $analyzerException->getMessage());
             self::assertStringContainsString('Expanding: (user/my-failed-macro [1])', $analyzerException->getMessage());
             self::assertStringContainsString('Cause: my-failed-macro message', $analyzerException->getMessage());
         }

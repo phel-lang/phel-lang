@@ -15,6 +15,7 @@ use Phel\Shared\CompilerConstants;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\NamespaceInformation;
+use RuntimeException;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -139,13 +140,20 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
      * The error for a `(:require ...)` that matched no source file, or null
      * when it still resolves: already loaded, or a `phel.*` namespace (or the
      * target of a `clojure.*` remap) that Phel or an installed package ships.
-     * The emitted `ns` form calls it and throws at its own site.
+     * The emitted `ns` form calls it on its miss path and throws the result,
+     * located on the namespace in `$requiringFile` when that file is readable.
+     *
+     * @param list<string> $searchedDirectories
      */
-    public function unresolvedRequireMessage(string $requiredNs, string $requiringNs): ?string
-    {
+    public function unresolvedRequireError(
+        string $requiredNs,
+        string $requiringNs,
+        string $requiringFile = '',
+        array $searchedDirectories = [],
+    ): ?RuntimeException {
         return $this->getFactory()
-            ->createBundledNamespaceIndex()
-            ->unresolvedRequireMessage($requiredNs, $requiringNs);
+            ->createUnresolvedRequireError()
+            ->for($requiredNs, $requiringNs, $requiringFile, $searchedDirectories);
     }
 
     /**

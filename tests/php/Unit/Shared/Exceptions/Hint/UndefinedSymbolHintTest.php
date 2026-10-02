@@ -31,6 +31,20 @@ final class UndefinedSymbolHintTest extends TestCase
         self::assertStringContainsString("'nope' is not defined", $hint->hint($e));
     }
 
+    public function test_keeps_the_dots_of_a_qualified_name(): void
+    {
+        $e = new Error("Cannot resolve symbol 'nonexistent.ns/foo'. No namespace 'nonexistent.ns'");
+
+        self::assertStringContainsString("'nonexistent.ns/foo' is not defined", new UndefinedSymbolHint()->hint($e));
+    }
+
+    public function test_does_not_apply_when_the_message_names_the_require(): void
+    {
+        $e = new Error("Cannot resolve symbol 'upper-case'. upper-case is in phel.string: add (:require phel.string :refer [upper-case])");
+
+        self::assertFalse(new UndefinedSymbolHint()->appliesTo($e));
+    }
+
     public function test_extracts_undefined_function(): void
     {
         $hint = new UndefinedSymbolHint();

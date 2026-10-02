@@ -166,6 +166,13 @@ final class ErrorCodeCatalog
                 fix: 'Use the replacement the message names. The full table is in docs/migration/deprecated-surface.md.',
             ),
             new ErrorCodeExplanation(
+                code: ErrorCode::MISSING_NAMESPACE,
+                title: 'Missing namespace',
+                summary: 'A `(:require ...)` names a namespace that no source file declares on the searched directories, that is not loaded, and that Phel does not ship. The caret marks the namespace in the requiring file; the note lists the directories searched.',
+                example: "(ns app.main\n  (:require app.helpers))",
+                fix: 'Check the spelling against the `ns` form of the file you mean, or add its directory to the src, test or vendor dirs.',
+            ),
+            new ErrorCodeExplanation(
                 code: ErrorCode::UNTERMINATED_LIST,
                 title: 'Unterminated list',
                 summary: 'The parser reached the end of the file with a `(` still open. The reported line is where the list was opened, not where the file ran out.',
