@@ -4,7 +4,7 @@ One-screen cheatsheet. For exhaustive rules see [`RULES.md`](RULES.md); for typi
 
 ```phel
 ;; Define + call (^int :tag emits PHP int return-type and unlocks JIT-friendly call shape)
-(defn ^string greet [^string name] (str "Hello, " name "!"))
+(defn ^string greet [^string who] (str "Hello, " who "!"))
 (greet "World")
 
 ;; Multi-arity, name-tag propagates to every arity unless overridden

@@ -236,7 +236,7 @@
            :result result
            :state (outcome ok)}))
 
-(defn- report-binary! [ok loc form message pred expected actual result]
+(defn- report-binary! [ok loc form message type pred expected actual result]
   (report {:message message
            :location loc
            :pred pred
@@ -244,7 +244,7 @@
            :actual actual
            :form form
            :result result
-           :type :binary
+           :type type
            :state (outcome ok)}))
 
 (defn- report-thrown! [ok loc form message exception-name]
@@ -302,7 +302,8 @@
     `(let [~e ~expected
            ~a ~actual]
        (report-binary! ~(negate-when negated `(~pred ~e ~a))
-                       ~(location form) '~form ~message '~pred ~e '~actual ~a))))
+                       ~(location form) '~form ~message
+                       ~(if negated :binary-not :binary) '~pred ~e '~actual ~a))))
 
 (defn- assert-output [form message]
   (let [expected (second form)
@@ -526,72 +527,73 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   [coll]
   (sort-by readable-str coll))
 
-(defn- print-map-diff [expected actual]
+(declare diff-rows)
+
+(defn- map-diff-rows [path expected actual]
   (let [expected-keys (into (hash-set) (keys expected))
         actual-keys   (into (hash-set) (keys actual))
         removed       (sort-by-readable (vec (difference expected-keys actual-keys)))
         added         (sort-by-readable (vec (difference actual-keys expected-keys)))
         shared        (sort-by-readable (vec (intersection expected-keys actual-keys)))]
-    (dofor [k :in removed]
-      (print-diff-line "-" (str (readable-str k) " " (readable-str (get expected k)))))
-    (dofor [k :in added]
-      (print-diff-line "+" (str (readable-str k) " " (readable-str (get actual k)))))
-    (dofor [k :in shared
-            :when (not= (get expected k) (get actual k))]
-      (print-diff-line "~" (str (readable-str k) " "
-                                (readable-str (get expected k))
-                                " -> "
-                                (readable-str (get actual k)))))))
+    (concat
+     (for [k :in removed] [:removed (conj path k) (get expected k)])
+     (for [k :in added] [:added (conj path k) (get actual k)])
+     (apply concat
+            (for [k :in shared
+                  :when (not= (get expected k) (get actual k))]
+              (diff-rows (conj path k) (get expected k) (get actual k)))))))
 
-(defn- print-sequential-diff [expected actual]
+(defn- sequential-diff-rows [path expected actual]
   (let [exp-vec (vec expected)
         act-vec (vec actual)
-        n       (max (count exp-vec) (count act-vec))]
-    (dofor [i :range [0 n]]
-      (let [in-exp? (< i (count exp-vec))
-            in-act? (< i (count act-vec))
-            exp-v   (when in-exp? (nth exp-vec i))
-            act-v   (when in-act? (nth act-vec i))]
-        (cond
-          (and in-exp? (not in-act?))
-          (print-diff-line "-" (str "[" i "] " (readable-str exp-v)))
+        exp-n   (count exp-vec)
+        act-n   (count act-vec)]
+    (apply concat
+           (for [i :range [0 (max exp-n act-n)]]
+             (cond
+               (>= i act-n) [[:removed (conj path i) (nth exp-vec i)]]
+               (>= i exp-n) [[:added (conj path i) (nth act-vec i)]]
+               (= (nth exp-vec i) (nth act-vec i)) []
+               :else (diff-rows (conj path i) (nth exp-vec i) (nth act-vec i)))))))
 
-          (and (not in-exp?) in-act?)
-          (print-diff-line "+" (str "[" i "] " (readable-str act-v)))
+(defn- set-diff-rows [path expected actual]
+  (concat
+   (for [v :in (sort-by-readable (vec (difference expected actual)))] [:removed path v])
+   (for [v :in (sort-by-readable (vec (difference actual expected)))] [:added path v])))
 
-          (not= exp-v act-v)
-          (do
-            (print-diff-line "-" (str "[" i "] " (readable-str exp-v)))
-            (print-diff-line "+" (str "[" i "] " (readable-str act-v))))
-
-          :else
-          (print-diff-line " " (str "[" i "] " (readable-str exp-v))))))))
-
-(defn- print-set-diff [expected actual]
-  (let [removed (sort-by-readable (vec (difference expected actual)))
-        added   (sort-by-readable (vec (difference actual expected)))]
-    (dofor [v :in removed]
-      (print-diff-line "-" (readable-str v)))
-    (dofor [v :in added]
-      (print-diff-line "+" (readable-str v)))))
-
-(defn- print-collection-diff
-  "Prints a unified-diff-like block comparing the `expected` and `actual`
-  collections. Maps show added/removed/changed keys with `+`, `-`, `~`;
-  vectors and lists show index-aligned `+`, `-`, ` ` rows; sets show the
-  symmetric difference. Callers should invoke this only after checking
-  `same-shape?` and `diff-worth-rendering?`."
-  [expected actual]
-  (println "  Diff:")
+(defn- diff-rows
+  "Returns `[kind path value]` rows, or `[:changed path expected actual]`, that turn `expected` into `actual`. Descends through maps and sequentials of the same shape, so a row names the deepest path that changed instead of repeating its whole subtree."
+  [path expected actual]
   (cond
     (and (map? expected) (map? actual))
-    (print-map-diff expected actual)
+    (map-diff-rows path expected actual)
 
     (and (set? expected) (set? actual))
-    (print-set-diff expected actual)
+    (set-diff-rows path expected actual)
+
+    (and (sequential? expected) (sequential? actual))
+    (sequential-diff-rows path expected actual)
 
     :else
-    (print-sequential-diff expected actual)))
+    [[:changed path expected actual]]))
+
+(defn- diff-path-prefix
+  "The path a row starts with, `[:b :c 2] `, or nothing for the top-level collection itself (a set's own elements)."
+  [path]
+  (if (empty? path)
+    ""
+    (str "[" (s/join " " (map readable-str path)) "] ")))
+
+(defn- print-collection-diff
+  "Prints one row per difference between the `expected` and `actual` collections, each naming its path: `~ [:b :c 2] 3 -> 4` for a changed value, `+ [:b :e] 5` for an added one and `- [:x] 1` for a removed one. Callers should invoke this only after `collection-diff-applicable?`."
+  [expected actual]
+  (println "  Diff:")
+  (dofor [[kind path a b] :in (diff-rows [] expected actual)]
+    (let [prefix (diff-path-prefix path)]
+      (case kind
+        :removed (print-diff-line "-" (str prefix (readable-str a)))
+        :added   (print-diff-line "+" (str prefix (readable-str a)))
+        :changed (print-diff-line "~" (str prefix (readable-str a) " -> " (readable-str b)))))))
 
 (defn- collection-diff-applicable?
   "Returns true when a `=`/`not=` failure carries two same-shape collections that actually differ. Same-shape rules out scalar pairs (a `1`/`2` diff is noise); the `not=` check rules out a `not=` failure's equal pair, which would render an empty diff."
@@ -684,9 +686,15 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   (print-label "  but does satisfy" pred " (it shouldn't)"))
 
 (defn- print-binary-failure [{:pred pred, :expected expected, :form form, :result result}]
-  (print-form-evaluated "          Form" form
-                        "  evaluated to" result)
-  (print-label "    but is not" pred "to" (readable-str expected))
+  (if (= pred '=)
+    (do
+      (print-label "      Form" form)
+      (print-label "  expected" expected)
+      (print-label "    actual" result))
+    (do
+      (print-form-evaluated "          Form" form
+                            "  evaluated to" result)
+      (print-label "    but is not" pred "to" (readable-str expected))))
   (when (= pred '=)
     (when (collection-diff-applicable? expected result)
       (print-collection-diff expected result))

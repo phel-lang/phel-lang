@@ -139,7 +139,7 @@ final class NsEmitterTest extends TestCase
 
         self::assertStringContainsString(
             sprintf(
-                "\$__phelNsInfos === [] && !\\%s::isBuildMode() && (\$__phelMissingNs = \$__phelBuildFacade->unresolvedRequireMessage('totally.missing', 'my.app')) !== null",
+                "\$__phelNsInfos === [] && !\\%s::isBuildMode() && (\$__phelMissingNs = \$__phelBuildFacade->unresolvedRequireError('totally.missing', 'my.app', '', \$__phelSrcDirs)) !== null",
                 BuildFacade::class,
             ),
             $output,
@@ -147,7 +147,7 @@ final class NsEmitterTest extends TestCase
             . ' or when Build says it resolves anyway; the message names both namespaces in canonical form',
         );
         self::assertStringContainsString(
-            'throw new \\Phel\\Build\\Domain\\Extractor\\ExtractorException($__phelMissingNs);',
+            'throw $__phelMissingNs;',
             $output,
         );
     }
@@ -168,7 +168,7 @@ final class NsEmitterTest extends TestCase
         $this->nsEmitter->emit($node);
         $output = (string) ob_get_clean();
 
-        self::assertStringContainsString("unresolvedRequireMessage('clojure.set', 'my.app')", $output);
-        self::assertStringContainsString("unresolvedRequireMessage('phel.strng', 'my.app')", $output);
+        self::assertStringContainsString("unresolvedRequireError('clojure.set', 'my.app'", $output);
+        self::assertStringContainsString("unresolvedRequireError('phel.strng', 'my.app'", $output);
     }
 }

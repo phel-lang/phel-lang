@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
-use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Shared\FrameworkNamespaces;
 use Phel\Shared\Munge;
@@ -46,6 +45,7 @@ final class DependenciesForNamespace
     public function __construct(
         private readonly NamespaceExtractorInterface $namespaceExtractor,
         private readonly BundledNamespaceIndex $bundledNamespaces,
+        private readonly MissingRequireReporter $missingRequireReporter,
     ) {}
 
     /**
@@ -111,7 +111,7 @@ final class DependenciesForNamespace
                 && array_key_exists($currentNs, $index)
             ) {
                 foreach ($index[$currentNs]->getDependencies() as $depNs) {
-                    $queue->enqueue($this->resolveDependency($depNs, $currentNs, $index));
+                    $queue->enqueue($this->resolveDependency($depNs, $currentNs, $index, $directories));
                 }
             }
 
@@ -142,8 +142,9 @@ final class DependenciesForNamespace
      * typo'd or absent `(:require ...)` exited 0 with no feedback.
      *
      * @param array<string, NamespaceInformation> $index
+     * @param list<string>                        $directories
      */
-    private function resolveDependency(string $depNs, string $requiringNs, array $index): string
+    private function resolveDependency(string $depNs, string $requiringNs, array $index, array $directories): string
     {
         $depNs = Munge::canonicalNs($depNs);
 
@@ -160,11 +161,12 @@ final class DependenciesForNamespace
             return $target ?? $depNs;
         }
 
-        throw new ExtractorException($this->bundledNamespaces->missingNamespaceMessage(
+        throw $this->missingRequireReporter->error(
+            $this->bundledNamespaces->missingNamespaceMessage($depNs, $requiringNs, array_keys($index)),
             $depNs,
-            $requiringNs,
-            array_keys($index),
-        ));
+            $index[$requiringNs]->getFile(),
+            $directories,
+        );
     }
 
     /**

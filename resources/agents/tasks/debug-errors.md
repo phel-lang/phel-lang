@@ -2,21 +2,33 @@
 
 Errors print `file:line:col` when available. Re-read the snippet there.
 
+## Check loop
+
+Run it after every edit, and first when something fails:
+
+```bash
+./vendor/bin/phel lint src/main.phel --format=json   # every error and warning, with line and column
+./vendor/bin/phel explain PHEL001                    # what a PHELnnn code means and how to fix it
+./vendor/bin/phel doc partition --format=json        # signatures and doc of the fn you are calling
+```
+
+`./vendor/bin/phel analyze <file>` prints the analyzer's diagnostics alone, as JSON. `./vendor/bin/phel compile '<expr>'` prints the PHP a form compiles to, which settles most interop questions.
+
 ## Categories
 
 | Phase | Typical shape |
 |-------|---------------|
 | Lexer | Unbalanced paren, unterminated string |
 | Reader | Invalid literal, bad `#reader` form |
-| Analyzer | "Can not resolve symbol", arity mismatch, bad special form, `:tag` mismatch |
+| Analyzer | "Cannot resolve symbol", arity mismatch, bad special form, `:tag` mismatch |
 | Emitter | Rare; compiler bug, report upstream |
 | Runtime | PHP exception, nil method call, untyped `recur` arity mismatch |
 
 ## Common fixes
 
-### "Can not resolve symbol X"
+### "Cannot resolve symbol X"
 
-Missing `:require`/`:use`, typo, shadowed core fn, wrong `:as`/`:refer`.
+Missing `:require`/`:use`, typo, shadowed core fn, wrong `:as`/`:refer`. A Clojure name that Phel spells differently (`Math/abs`, `Integer/parseInt`) also lands here or fails with `Class "Math" not found`: see `tasks/common-gotchas.md`. `require` itself only exists in the REPL; in a file, write `(:require ...)` inside `ns`.
 
 ### "Cannot find namespace"
 
@@ -99,7 +111,8 @@ Check `~`, `` ` ``, auto-gensym `name#`.
 - `(require 'phel.pprint :refer [pprint])`, `(pprint x)`
 - `./vendor/bin/phel run --debug <file>`
 - `./vendor/bin/phel cache:clear` (stale cache after core/macro edits)
-- `./vendor/bin/phel doc <fn>` (no REPL needed)
+- `./vendor/bin/phel doc <fn> --format=json` (no REPL needed)
+- `./vendor/bin/phel lint <file> --format=json`, `./vendor/bin/phel explain <PHELnnn>`
 
 ## Gotchas
 

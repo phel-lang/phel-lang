@@ -35,6 +35,7 @@ final class FileEmitter implements FileEmitterInterface
         $this->outputEmitter->resetIndentLevel();
         $this->outputEmitter->resetSourceMapState();
         $this->outputEmitter->resetPhpNamespaceDeclaration();
+        $this->outputEmitter->getDeferredDefinitions()->reset();
 
         $this->source = $source;
         $this->phpCode = '';
@@ -44,8 +45,13 @@ final class FileEmitter implements FileEmitterInterface
     public function emitNode(AbstractNode $node): void
     {
         $this->lastEmittedOffset = strlen($this->phpCode);
+        $pendingRegistrations = $this->outputEmitter->getDeferredDefinitions()->enterTopLevelForm($node);
 
         ob_start();
+        if ($pendingRegistrations !== '') {
+            $this->outputEmitter->emitLine($pendingRegistrations);
+        }
+
         $this->outputEmitter->emitNode($node);
         $buffer = ob_get_clean();
 
@@ -82,6 +88,13 @@ final class FileEmitter implements FileEmitterInterface
         $sourceMap = $this->sourceMapGenerator->encode(
             $this->outputEmitter->getSourceMapState()->getMappings(),
         );
+
+        // Appended, not prepended: a leading line would shift every source map
+        // mapping, and PHP wants the file's `namespace` declaration first.
+        $pendingRegistrations = $this->outputEmitter->getDeferredDefinitions()->flush();
+        if ($pendingRegistrations !== '') {
+            $this->phpCode .= $pendingRegistrations . "\n";
+        }
 
         return new EmitterResult(
             $enableSourceMaps,
