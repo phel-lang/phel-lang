@@ -165,16 +165,16 @@
         },
         {
             "name": "gacela-project/gacela",
-            "version": "2.6.0",
+            "version": "2.6.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "312ae8964727885deb15e16cac4f1c0bb6b7d310"
+                "reference": "e3786206b9a0d62ac868f6dac13c064ca4341b95"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/312ae8964727885deb15e16cac4f1c0bb6b7d310",
-                "reference": "312ae8964727885deb15e16cac4f1c0bb6b7d310",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/e3786206b9a0d62ac868f6dac13c064ca4341b95",
+                "reference": "e3786206b9a0d62ac868f6dac13c064ca4341b95",
                 "shasum": ""
             },
             "require": {
@@ -263,7 +263,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/2.6.0"
+                "source": "https://github.com/gacela-project/gacela/tree/2.6.2"
             },
             "funding": [
                 {
@@ -271,7 +271,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-10-02T11:49:58+00:00"
+            "time": "2026-10-02T16:09:03+00:00"
         },
         {
             "name": "psr/container",
