@@ -131,6 +131,7 @@ final class Phel\Compiler\CompilerFacade extends Gacela\Framework\AbstractFacade
   public function parseNext(Phel\Compiler\Domain\Lexer\TokenStream $tokenStream): ?Phel\Shared\Parser\Node\NodeInterface
   public function read(Phel\Shared\Parser\Node\NodeInterface $parseTree): Phel\Compiler\Domain\Parser\ReadModel\ReaderResult
   public function readFormsBestEffort(string $code, string $source = 'string'): Generator
+  public function rejectSupersededForms(mixed $form): void
   public function replayDeprecations(array $records): void
   public function resetGlobalEnvironment(): void
   public function restoreNamespaceEnvironmentData(string $namespace, array $envData): void
@@ -1959,6 +1960,7 @@ interface Phel\Shared\Facade\CompilerFacadeInterface
   public function parseNext(Phel\Compiler\Domain\Lexer\TokenStream $tokenStream): ?Phel\Shared\Parser\Node\NodeInterface
   public function read(Phel\Shared\Parser\Node\NodeInterface $parseTree): Phel\Compiler\Domain\Parser\ReadModel\ReaderResult
   public function readFormsBestEffort(string $code, string $source = 'string'): Generator
+  public function rejectSupersededForms(mixed $form): void
   public function replayDeprecations(array $records): void
   public function resetGlobalEnvironment(): void
   public function restoreNamespaceEnvironmentData(string $namespace, array $envData): void
