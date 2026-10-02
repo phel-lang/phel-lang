@@ -11,6 +11,8 @@ use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
+use function func_num_args;
+
 final class CompiledPhpMethodBuilderTest extends TestCase
 {
     private CompiledPhpMethodBuilder $methodBuilder;
@@ -143,15 +145,15 @@ final class CompiledPhpMethodBuilderTest extends TestCase
 
     public function test_return_tag_from_meta_fills_docblock_for_untyped_invoke(): void
     {
-        // multi-arity fns compile to an untyped `__invoke(...$args)`; the return
-        // :tag survives only in the definition metadata
+        // multi-arity fns compile to an untyped `__invoke` over optional params;
+        // the return :tag survives only in the definition metadata
         $functionToExport = new FunctionToExport(
             new class() implements FnInterface {
                 public const BOUND_TO = 'test_ns\\multi_arity';
 
-                public function __invoke(...$args)
+                public function __invoke($a0 = null, $a1 = null)
                 {
-                    return $args[0] ?? null;
+                    return $a0;
                 }
             },
             null,
@@ -163,6 +165,27 @@ final class CompiledPhpMethodBuilderTest extends TestCase
         self::assertStringContainsString('public static function multiArity(...$args): mixed', $result);
         self::assertStringContainsString(' * @param mixed ...$args', $result);
         self::assertStringContainsString(' * @return int', $result);
+    }
+
+    public function test_optional_params_forward_the_arguments_as_given(): void
+    {
+        // the arity comes from `func_num_args()`, so passing `$a0, $a1` would
+        // always select the widest one
+        $functionToExport = new FunctionToExport(
+            new class() implements FnInterface {
+                public const BOUND_TO = 'test_ns\\two_arities';
+
+                public function __invoke($a0 = null, $a1 = null): int
+                {
+                    return func_num_args();
+                }
+            },
+        );
+
+        $result = $this->methodBuilder->build('test_ns', $functionToExport);
+
+        self::assertStringContainsString('public static function twoArities(...$args)', $result);
+        self::assertStringContainsString("'two-arities', ...\$args);", $result);
     }
 
     public function test_native_return_type_wins_over_return_tag_in_docblock(): void

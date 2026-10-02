@@ -12,6 +12,7 @@ use ReflectionMethod;
 use ReflectionParameter;
 use ReflectionType;
 
+use function array_any;
 use function array_map;
 use function implode;
 use function sprintf;
@@ -98,13 +99,8 @@ final readonly class CompiledPhpMethodBuilder
     private function buildArgs(ReflectionMethod $refInvoke): string
     {
         $args = array_map(
-            static function (ReflectionParameter $p): string {
-                $variadic = $p->isVariadic() ? '...' : '';
-                $param = '$' . $p->getName();
-
-                return $variadic . $param;
-            },
-            $refInvoke->getParameters(),
+            static fn(array $p): string => ($p['variadic'] ? '...' : '') . '$' . $p['name'],
+            $this->parameters($refInvoke),
         );
 
         return implode(', ', $args);
@@ -113,17 +109,40 @@ final readonly class CompiledPhpMethodBuilder
     private function buildSignatureArgs(ReflectionMethod $refInvoke): string
     {
         $args = array_map(
-            static function (ReflectionParameter $p): string {
-                $type = $p->getType();
-                $typePrefix = $type instanceof ReflectionType ? $type->__toString() . ' ' : '';
-                $variadic = $p->isVariadic() ? '...' : '';
+            static function (array $p): string {
+                $typePrefix = $p['type'] instanceof ReflectionType ? $p['type']->__toString() . ' ' : '';
+                $variadic = $p['variadic'] ? '...' : '';
 
-                return $typePrefix . $variadic . '$' . $p->getName();
+                return $typePrefix . $variadic . '$' . $p['name'];
             },
-            $refInvoke->getParameters(),
+            $this->parameters($refInvoke),
         );
 
         return implode(', ', $args);
+    }
+
+    /**
+     * A multi-arity fn's `__invoke` takes optional fixed params and picks the
+     * arity from `func_num_args()`, so its wrapper forwards `...$args` as
+     * given: passing every param would always select the widest arity.
+     *
+     * @return list<array{type: ?ReflectionType, variadic: bool, name: string}>
+     */
+    private function parameters(ReflectionMethod $refInvoke): array
+    {
+        $params = $refInvoke->getParameters();
+        if (array_any($params, static fn(ReflectionParameter $p): bool => $p->isOptional() && !$p->isVariadic())) {
+            return [['type' => null, 'variadic' => true, 'name' => 'args']];
+        }
+
+        return array_map(
+            static fn(ReflectionParameter $p): array => [
+                'type' => $p->getType(),
+                'variadic' => $p->isVariadic(),
+                'name' => $p->getName(),
+            ],
+            $params,
+        );
     }
 
     /**
@@ -135,11 +154,11 @@ final readonly class CompiledPhpMethodBuilder
         $docLines = [];
         $knowsAnyType = false;
 
-        foreach ($refInvoke->getParameters() as $param) {
-            $paramType = $this->typeToString($param->getType());
+        foreach ($this->parameters($refInvoke) as $param) {
+            $paramType = $this->typeToString($param['type']);
             $knowsAnyType = $knowsAnyType || $paramType !== 'mixed';
-            $variadicPrefix = $param->isVariadic() ? '...' : '';
-            $docLines[] = sprintf('@param %s %s$%s', $paramType, $variadicPrefix, $param->getName());
+            $variadicPrefix = $param['variadic'] ? '...' : '';
+            $docLines[] = sprintf('@param %s %s$%s', $paramType, $variadicPrefix, $param['name']);
         }
 
         $returnDocType = $this->returnDocType($refInvoke, $returnTag);
@@ -163,7 +182,7 @@ final readonly class CompiledPhpMethodBuilder
     {
         $reflected = $this->typeToString($refInvoke->getReturnType());
 
-        // Multi-arity fns compile to an untyped `__invoke(...$args)`; their return
+        // Multi-arity fns compile to an untyped `__invoke`; their return
         // `:tag` survives only in the definition metadata.
         if ($reflected === 'mixed' && $returnTag !== null) {
             return $returnTag;

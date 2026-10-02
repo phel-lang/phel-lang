@@ -31,6 +31,7 @@ PHP API:
 
 Compiler:
 
+- A multi-arity fn called as a value (passed to `reduce` or `map`, or called as `(f x)` on a local) takes its arguments as fixed params instead of packing them into an array: `(reduce + 0 v)` is 7% faster, `(f acc x)` on a local bound to `+` 18%. (#3469)
 - A build calls a multi-arity fn's fixed arity directly, also when the fn has a variadic arity: `(+ acc x)` in a loop is 1.6x faster. Nested calls such as `(-> m (get :a {}) (get :b {}))` grow linearly instead of doubling per level. (#3354)
 - Comparisons, `=`, `zero?`, `pos?`, `neg?`, `inc` and `dec` on values of unknown type answer inline for native ints: `(< a b)` 7.9x faster, `(= x 3)` 8.8x. (#3351)
 - `case` and `cond` over keywords look each keyword up once per fn: a five-arm keyword `case` is 10x faster. (#3360)

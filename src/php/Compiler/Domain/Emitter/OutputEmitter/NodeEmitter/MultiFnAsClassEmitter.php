@@ -15,6 +15,7 @@ use Phel\Lang\Symbol;
 use function assert;
 use function count;
 use function implode;
+use function max;
 use function str_starts_with;
 
 /**
@@ -113,15 +114,22 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
      * a single branchless table when every arm is a constant `int`, and the
      * variadic tail collapses into the `default` arm.
      *
+     * The params are optional and fixed, one per position of the widest fixed
+     * arity, and the arity is `func_num_args()`: a variadic `...$args` packed
+     * every call into an array (#3469). The variadic arm reads every argument
+     * back with `func_get_args()`. The trailing `...$rest` is never read: it
+     * keeps the signature variadic, which `variadic?` and `arity` report from
+     * reflection, and costs nothing when empty.
+     *
      * @param list<FnNode> $fnNodes
      */
     private function emitInvoke(MultiFnNode $node, array $fnNodes): void
     {
         $loc = $node->getStartSourceLocation();
 
-        $this->outputEmitter->emitLine('public function __invoke(...$args) {', $loc);
+        $this->outputEmitter->emitLine('public function __invoke(' . $this->invokeParams($fnNodes) . ') {', $loc);
         $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine('return match (\\count($args)) {', $loc);
+        $this->outputEmitter->emitLine('return match (\\func_num_args()) {', $loc);
         $this->outputEmitter->increaseIndentLevel();
 
         $variadic = null;
@@ -134,7 +142,7 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
             $arity = count($fnNode->getParams());
             $params = [];
             for ($p = 0; $p < $arity; ++$p) {
-                $params[] = '$args[' . $p . ']';
+                $params[] = '$a' . $p;
             }
 
             $this->outputEmitter->emitLine(
@@ -145,8 +153,8 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
 
         if ($variadic instanceof FnNode) {
             $this->outputEmitter->emitLine(
-                'default => \\count($args) >= ' . $variadic->getMinArity()
-                . ' ? $this->' . self::VARIADIC_METHOD . '(...$args)'
+                'default => \\func_num_args() >= ' . $variadic->getMinArity()
+                . ' ? $this->' . self::VARIADIC_METHOD . '(...\\func_get_args())'
                 . ' : throw new \\InvalidArgumentException("No matching function arity"),',
                 $loc,
             );
@@ -161,6 +169,28 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('};', $loc);
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}', $loc);
+    }
+
+    /**
+     * @param list<FnNode> $fnNodes
+     */
+    private function invokeParams(array $fnNodes): string
+    {
+        $width = 0;
+        foreach ($fnNodes as $fnNode) {
+            if (!$fnNode->isVariadic()) {
+                $width = max($width, count($fnNode->getParams()));
+            }
+        }
+
+        $params = [];
+        for ($p = 0; $p < $width; ++$p) {
+            $params[] = '$a' . $p . ' = null';
+        }
+
+        $params[] = '...$rest';
+
+        return implode(', ', $params);
     }
 
     /**

@@ -1,0 +1,42 @@
+(ns phel-test.core.multi-arity-fn-as-value
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; A multi-arity fn called as a value goes through its `__invoke`, which picks
+;; the arity from the number of arguments passed, not from which are nil
+;; (#3469).
+
+(defn- arities
+  ([] [:zero])
+  ([a] [:one a])
+  ([a b] [:two a b])
+  ([a b c & more] [:variadic a b c more]))
+
+(defn- fixed-only
+  ([a] [:one a])
+  ([a b] [:two a b]))
+
+(deftest test-each-arity-through-a-value
+  (let [f arities]
+    (is (= [:zero] (f)))
+    (is (= [:one 1] (f 1)))
+    (is (= [:two 1 2] (f 1 2)))
+    (is (= [:variadic 1 2 3 []] (f 1 2 3)))
+    (is (= [:variadic 1 2 3 [4 5]] (f 1 2 3 4 5)))))
+
+(deftest test-nil-arguments-count-as-arguments
+  (let [f arities]
+    (is (= [:one nil] (f nil)))
+    (is (= [:two nil nil] (f nil nil)))
+    (is (= [:variadic nil nil nil [nil]] (f nil nil nil nil)))))
+
+(deftest test-apply-and-higher-order-calls
+  (is (= [:two 1 2] (apply arities [1 2])))
+  (is (= [[:one 1] [:one 2]] (map arities [1 2])))
+  (is (= [:two [:two 0 1] 2] (reduce arities 0 [1 2])))
+  (is (= 10 (reduce + 0 [1 2 3 4]))))
+
+(deftest test-a-missing-arity-still-throws
+  (let [f fixed-only]
+    (is (thrown? \InvalidArgumentException (f)))
+    (is (thrown? \InvalidArgumentException (f 1 2 3)))
+    (is (= [:two nil 2] (f nil 2)))))
