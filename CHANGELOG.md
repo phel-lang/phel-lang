@@ -71,6 +71,7 @@ Tooling:
 - `phel --version` reports Phel's own commit. Inside another git repository it used to print that repository's commit. (#3407)
 - An edit to `phel-config-<env>.php` takes effect on the next run. It used to be ignored until `phel cache:clear`. (#3426)
 - A stack trace maps every frame to its `.phel` source after an edit to a file loaded with `(load ...)`, and after a recompile in the REPL, `phel watch` or nREPL. Frames used to show `.phel/cache/compiled/` paths or the new code's lines. (#3430 #3435)
+- The PHAR's precompiled stdlib names its sources inside the PHAR. It used to carry the release builder's absolute paths, so a deprecation raised inside the stdlib reached the user from the PHAR while a source checkout hid it. (#3448)
 - `phel test` in parallel mode reads worker stderr as it arrives. On macOS a worker writing over 16 KB to stderr used to crawl. (#3378)
 - `phel run` prints a backslash separator notice once per loaded file, with a relative path. It used to warn for every `.phel` file under the working directory, on every warm run. (#3381)
 - `phel mutate` compiles at optimization level 0 whatever the config says. At level 2 every mutant used to survive. (#3396)

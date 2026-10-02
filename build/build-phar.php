@@ -363,7 +363,11 @@ final class PharBuilder
             }
 
             $pharPath = 'src/phel/' . preg_replace('/\.(phel|cljc)$/i', '.php', $relative);
-            $code = $this->stripInlineSourceMap((string) file_get_contents($compiled));
+            $code = $this->relocateSourcePaths(
+                $this->stripInlineSourceMap((string) file_get_contents($compiled)),
+                $srcPhelDir,
+                substr_count($relative, '/'),
+            );
 
             $phar->addFromString($pharPath, $code);
             ++$this->stats['files_added'];
@@ -372,6 +376,25 @@ final class PharBuilder
         }
 
         echo "📦  Bundled {$count} precompiled stdlib file(s) as PHAR siblings\n";
+    }
+
+    /**
+     * Points the source paths baked into a compiled stdlib file at the copy
+     * inside the PHAR. They name the build's work dir, which leaks the
+     * builder's home directory and does not exist on the user's machine, so
+     * nothing at runtime recognised them as the bundled stdlib: a deprecation
+     * raised inside it reached the user. `dirname(__DIR__, n)` rather than
+     * `/..`, since `realpath()` does not resolve a `phar://` path.
+     */
+    private function relocateSourcePaths(string $php, string $srcPhelDir, int $depth): string
+    {
+        $root = $depth === 0 ? '__DIR__' : "\\dirname(__DIR__, {$depth})";
+
+        return (string) preg_replace_callback(
+            '~"' . preg_quote($srcPhelDir . '/', '~') . '([^"]*)"~',
+            static fn(array $match): string => $root . ' . "/' . $match[1] . '"',
+            $php,
+        );
     }
 
     private function isBundledStdlibSource(string $relativePath): bool
