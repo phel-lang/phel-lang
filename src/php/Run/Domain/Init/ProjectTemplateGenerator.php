@@ -42,8 +42,8 @@ PHP;
         return <<<PHEL
 (ns {$namespace})
 
-(defn greet [name]
-  (str "Hello, " name "!"))
+(defn greet [who]
+  (str "Hello, " who "!"))
 
 (defn main []
   (println (greet "Phel")))

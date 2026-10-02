@@ -63,7 +63,7 @@ final class ProjectTemplateGeneratorTest extends TestCase
         $main = $this->generator->generateMainFile('myapp.main');
 
         self::assertStringContainsString('(ns myapp.main)', $main);
-        self::assertStringContainsString('(defn greet [name]', $main);
+        self::assertStringContainsString('(defn greet [who]', $main);
         self::assertStringContainsString('(defn main []', $main);
         self::assertStringContainsString('println', $main);
         self::assertStringContainsString('(main)', $main);

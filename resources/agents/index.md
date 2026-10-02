@@ -7,22 +7,22 @@ Rules + CLI: [`RULES.md`](RULES.md).
 | Intent | Recipe | Deep reference |
 |--------|--------|----------------|
 | Scaffold new project | [`tasks/scaffold-project.md`](tasks/scaffold-project.md) | https://phel-lang.org/documentation/getting-started/ |
-| HTTP app or JSON API | [`tasks/http-app.md`](tasks/http-app.md) | `src/phel/router.phel`, `src/phel/http.phel` |
+| HTTP app or JSON API | [`tasks/http-app.md`](tasks/http-app.md) | `vendor/phel-lang/phel-lang/src/phel/router.phel`, `vendor/phel-lang/phel-lang/src/phel/http.phel` |
 | CLI tool | [`tasks/cli-tool.md`](tasks/cli-tool.md) | https://phel-lang.org/documentation/php-interop/ |
-| Add tests | [`tasks/add-tests.md`](tasks/add-tests.md) | `src/phel/test.phel`, https://phel-lang.org/documentation/testing/ |
-| REPL | [`tasks/repl-workflow.md`](tasks/repl-workflow.md) | `src/phel/repl.phel` |
+| Add tests | [`tasks/add-tests.md`](tasks/add-tests.md) | `vendor/phel-lang/phel-lang/src/phel/test.phel`, https://phel-lang.org/documentation/testing/ |
+| REPL | [`tasks/repl-workflow.md`](tasks/repl-workflow.md) | `vendor/phel-lang/phel-lang/src/phel/repl.phel` |
 | Find core fn | [`tasks/use-core-lib.md`](tasks/use-core-lib.md) | `phel doc <fn>`, https://phel-lang.org/documentation/guides/cookbook/ |
 | Type a fn (params + return) | [`tasks/typed-defn.md`](tasks/typed-defn.md) | https://phel-lang.org/documentation/getting-started/, https://phel-lang.org/documentation/libraries/schema/ |
 | Debug errors | [`tasks/debug-errors.md`](tasks/debug-errors.md) | https://phel-lang.org/documentation/guides/cookbook/ |
 | Profile hot paths | [`tasks/typed-defn.md`](tasks/typed-defn.md) § Find hot paths | `phel profile <path>` |
-| Async / fibers | [`tasks/async.md`](tasks/async.md) | https://phel-lang.org/documentation/language/async/, `src/phel/async.phel` |
+| Async / fibers | [`tasks/async.md`](tasks/async.md) | https://phel-lang.org/documentation/language/async/, `vendor/phel-lang/phel-lang/src/phel/async.phel` |
 | Memoize | [`tasks/memoize.md`](tasks/memoize.md) | `phel doc memoize`, `phel doc memoize-lru` |
 | Write macros | [`tasks/write-macros.md`](tasks/write-macros.md) | https://phel-lang.org/documentation/language/macros/ |
 | Common pitfalls | [`tasks/common-gotchas.md`](tasks/common-gotchas.md) | `RULES.md` § Gotchas |
 | Use a PHP library | [`tasks/use-php-libs.md`](tasks/use-php-libs.md) | https://phel-lang.org/documentation/php-interop/ |
-| Validate data | [`tasks/validate-with-schema.md`](tasks/validate-with-schema.md) | `src/phel/schema.phel`, https://phel-lang.org/documentation/libraries/schema/ |
-| Pattern match | [`tasks/pattern-match.md`](tasks/pattern-match.md) | `src/phel/match.phel`, https://phel-lang.org/documentation/language/control-flow/#match |
-| Lint code | — | https://phel-lang.org/documentation/tooling/cli-commands/ |
+| Validate data | [`tasks/validate-with-schema.md`](tasks/validate-with-schema.md) | `vendor/phel-lang/phel-lang/src/phel/schema.phel`, https://phel-lang.org/documentation/libraries/schema/ |
+| Pattern match | [`tasks/pattern-match.md`](tasks/pattern-match.md) | `vendor/phel-lang/phel-lang/src/phel/match.phel`, https://phel-lang.org/documentation/language/control-flow/#match |
+| Lint code | [`RULES.md`](RULES.md) § Check loop | `phel lint --format=json`, `phel explain <PHELnnn>` |
 | Editor / nREPL | — | https://phel-lang.org/documentation/tooling/editor-support/, https://phel-lang.org/documentation/tooling/repl/ |
 | Hot-reload | — | https://phel-lang.org/documentation/tooling/cli-commands/ |
 | Syntax reference | [`quick-syntax.md`](quick-syntax.md) | https://phel-lang.org/documentation/getting-started/, https://phel-lang.org/documentation/language/reader-shortcuts/ |

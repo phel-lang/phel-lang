@@ -78,6 +78,7 @@ Tooling:
 - `phel mutate` compiles at optimization level 0 whatever the config says. At level 2 every mutant used to survive. (#3396)
 - `phel doc --format json` and the API reference link special forms to their current guide sections, and `:see-also` entries name real fns. (#3371)
 - `build/preload.php` preloads every module's pillars, found at startup. The hand-kept list missed eight modules and named three deleted files. (#3410)
+- `phel init` writes `(defn greet [who] ...)`, so a fresh project passes `phel lint`. It used to warn that `name` shadows a core fn. The docs `phel agent-install` copies teach a check loop (`phel lint --format=json`, `phel explain`, `phel doc --format=json`), point at `vendor/phel-lang/phel-lang/src/phel/` instead of a `src/phel/core/` a project does not have, list the Clojure habits that do not work in Phel, and no longer append phel-lang's own commit rules. (#3463)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 
