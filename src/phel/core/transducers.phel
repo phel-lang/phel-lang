@@ -5,8 +5,9 @@
 (use Phel.Lang.Volatile)
 
 ;; Reduce / transduce pipeline plus the volatile reference cells that power
-;; transducer state: `reduced`, `reduced?`, `unreduced`, `reduce`,
-;; `completing`, `transduce`, `volatile!`, `vreset!`, `vswap!`, `volatile?`.
+;; transducer state: `reduced`, `reduced?`, `unreduced`, `ensure-reduced`,
+;; `reduce`, `completing`, `transduce`, `halt-when`, `volatile!`, `vreset!`,
+;; `vswap!`, `volatile?`.
 ;; Volatiles live here because their main role in Phel is as fast-mutable
 ;; accumulators inside transducers.
 
@@ -37,8 +38,10 @@
     (.deref x)
     x))
 
-(defn- ensure-reduced
-  "Wraps `x` in Reduced if it is not already reduced."
+(defn ensure-reduced
+  "Returns `x` if it is already reduced, otherwise wraps it in `reduced`. Never wraps twice."
+  {:example "(reduced? (ensure-reduced 1)) ; => true\n(unreduced (ensure-reduced (reduced 1))) ; => 1"
+   :see-also ["reduced" "reduced?" "unreduced"]}
   [x]
   (if (reduced? x) x (reduced x)))
 
@@ -130,6 +133,24 @@
    (let [rf  (xform (completing f))
          ret (reduce rf init coll)]
      (rf ret))))
+
+(defn halt-when
+  "Returns a transducer that ends the transduction at the first input for which `pred` is truthy. The whole transduction then returns that input, or `(retf (rf result) input)` when `retf` is given. Inputs that do not match pass through unchanged."
+  {:example "(transduce (halt-when neg?) conj [] [1 2 -1 3]) ; => -1\n(transduce (halt-when neg? (fn [r x] [r x])) conj [] [1 -1 2]) ; => [[1] -1]\n(into [] (halt-when neg?) [1 2]) ; => [1 2]"
+   :see-also ["transduce" "reduced" "take-while"]}
+  ([pred] (halt-when pred nil))
+  ([pred retf]
+   (fn [rf]
+     (fn
+       ([] (rf))
+       ([result]
+        (if (and (map? result) (contains? result ::halt))
+          (get result ::halt)
+          (rf result)))
+       ([result input]
+        (if (pred input)
+          (reduced {::halt (if retf (retf (rf result) input) input)})
+          (rf result input)))))))
 
 (defn volatile!
   "Creates a volatile mutable reference with initial value `val`. Use for transducer state that needs fast mutation without watches."
