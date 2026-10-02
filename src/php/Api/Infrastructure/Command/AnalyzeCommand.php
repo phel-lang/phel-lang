@@ -14,6 +14,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use UnexpectedValueException;
 
 use function file_get_contents;
 use function is_dir;
@@ -68,7 +69,13 @@ HELP)
                     return self::FAILURE;
                 }
 
-                $found = iterator_to_array(PhelFileIterator::iterate($path), false);
+                try {
+                    $found = iterator_to_array(PhelFileIterator::iterate($path), false);
+                } catch (UnexpectedValueException $unexpectedValueException) {
+                    $output->writeln(sprintf('<error>Unable to read directory: %s</error>', $unexpectedValueException->getMessage()));
+                    return self::FAILURE;
+                }
+
                 sort($found);
                 $files = [...$files, ...$found];
 
