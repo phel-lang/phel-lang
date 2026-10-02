@@ -80,6 +80,7 @@ Tooling:
 - `phel doc --format json` and the API reference link special forms to their current guide sections, and `:see-also` entries name real fns. (#3371)
 - `build/preload.php` preloads every module's pillars, found at startup. The hand-kept list missed eight modules and named three deleted files. (#3410)
 - `phel lint`, `phel analyze`, the LSP and the api-daemon report `(php/new \DateTime)`, `php/->`, `php/::` and `set-var` as `PHEL012`, as `phel run` does. They used to report the file as clean. (#3456)
+- `phel lint` re-lints every file once after a Phel upgrade. A file cached as clean used to stay clean when the new release reports something more, until it changed or `--no-cache` was passed. (#3478)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 

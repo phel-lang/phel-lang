@@ -7,6 +7,7 @@ namespace Phel\Lint;
 use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lint\Application\Cache\LintCache;
+use Phel\Lint\Application\Cache\LintCacheFingerprint;
 use Phel\Lint\Application\Config\ConfigLoader;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\FileCollector;
@@ -37,10 +38,7 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Shared\LintRuleCodes;
-
-use function implode;
-use function md5;
-use function sort;
+use Phel\Shared\VersionFinder;
 
 /**
  * @extends AbstractFactory<LintConfig>
@@ -144,15 +142,11 @@ final class LintFactory extends AbstractFactory
     }
 
     /**
-     * Deterministic fingerprint covering the rule set AND the resolved
-     * settings (severities + exclude patterns). Drives cache invalidation
-     * when rules are added/removed OR when phel-lint.phel is edited.
+     * Drives cache invalidation when Phel is upgraded, when rules are
+     * added or removed, or when phel-lint.phel is edited.
      */
     private function ruleFingerprint(RuleSettings $settings): string
     {
-        $codes = LintRuleCodes::allCodes();
-        sort($codes);
-
-        return md5(implode('|', $codes) . '|' . $settings->fingerprint());
+        return LintCacheFingerprint::of(VersionFinder::LATEST_VERSION, LintRuleCodes::allCodes(), $settings->fingerprint());
     }
 }
