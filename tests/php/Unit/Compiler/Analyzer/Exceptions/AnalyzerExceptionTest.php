@@ -34,7 +34,7 @@ final class AnalyzerExceptionTest extends TestCase
 
         $exception = $this->expandMacro($node);
 
-        self::assertStringContainsString('Error in expanding macro "user\my-macro"', $exception->getMessage());
+        self::assertStringContainsString('Error in expanding macro "user/my-macro"', $exception->getMessage());
         self::assertStringContainsString('Defined: /proj/src/macros.phel:12', $exception->getMessage());
     }
 

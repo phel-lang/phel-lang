@@ -13,6 +13,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\Munge;
 use Phel\Shared\Printer\Printer;
 use Throwable;
 
@@ -187,7 +188,7 @@ final class AnalyzerException extends AbstractLocatedException
         ?int $maxArity = null,
     ): self {
         $gotCount = count($list->rest());
-        $fnName = sprintf('%s\\%s', $f->getNamespace(), $f->getName()->getName());
+        $fnName = Munge::displayNs($f->getNamespace()) . '/' . $f->getName()->getName();
 
         return self::withLocation(
             sprintf(
@@ -211,7 +212,7 @@ final class AnalyzerException extends AbstractLocatedException
         int $maxArity,
     ): self {
         $gotCount = count($list->rest());
-        $fnName = sprintf('%s\\%s', $f->getNamespace(), $f->getName()->getName());
+        $fnName = Munge::displayNs($f->getNamespace()) . '/' . $f->getName()->getName();
 
         return self::withLocation(
             sprintf(
@@ -303,9 +304,9 @@ final class AnalyzerException extends AbstractLocatedException
         $formString = Printer::readable()->print($form);
 
         $message = sprintf(
-            "Error in expanding %s \"%s\\%s\"\n  Expanding: %s\n  Cause: %s",
+            "Error in expanding %s \"%s/%s\"\n  Expanding: %s\n  Cause: %s",
             $type,
-            $namespace,
+            Munge::displayNs($namespace),
             $name,
             $formString,
             $causeMessage,
