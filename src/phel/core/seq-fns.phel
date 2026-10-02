@@ -1847,15 +1847,18 @@ If map has duplicated values, some keys will be ignored."
   ([n step coll] (partition n step coll))
   ([n step pad coll] (partition n step pad coll)))
 
+(defn- assert-positive-partition-arg [fn-name arg-name value]
+  (when-not (and (php/is_int value) (php/> value 0))
+    (throw (new InvalidArgumentException
+                (str fn-name " expects a positive int " arg-name ", got " value)))))
+
 (defn partitionv-all
   "Like `partition-all`, but always returns each chunk as a vector, including an incomplete trailing chunk. Lazy, so it works on infinite input. `step` (default `n`) is how far to advance between chunks. When called with `n` only, returns a transducer."
   {:example "(partitionv-all 2 [1 2 3]) ; => ([1 2] [3])\n(partitionv-all 3 2 [0 1 2 3 4]) ; => ([0 1 2] [2 3 4] [4])\n(into [] (partitionv-all 2) [1 2 3]) ; => [[1 2] [3]]"
    :see-also ["partition-all" "partitionv" "splitv-at"]}
   ([n]
    ;; Without this, a chunk never reaches `n` and the buffer keeps every input.
-   (when-not (and (php/is_int n) (php/> n 0))
-     (throw (new InvalidArgumentException
-                 (str "partitionv-all expects a positive int chunk size, got " n))))
+   (assert-positive-partition-arg "partitionv-all" "chunk size" n)
    (fn [rf]
      (let [buf (volatile! [])]
        (fn
@@ -1873,7 +1876,13 @@ If map has duplicated values, some keys will be ignored."
               (do (vreset! buf [])
                   (rf result chunk))
               result)))))))
-  ([n coll] (partition-all n coll))
-  ([n step coll] (partition-all n step coll)))
+  ([n coll]
+   (assert-positive-partition-arg "partitionv-all" "chunk size" n)
+   (partition-all n coll))
+  ([n step coll]
+   ;; A step of 0 would repartition the same input forever.
+   (assert-positive-partition-arg "partitionv-all" "chunk size" n)
+   (assert-positive-partition-arg "partitionv-all" "step" step)
+   (partition-all n step coll)))
 
 ;; Functional core
