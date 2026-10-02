@@ -277,7 +277,7 @@ HELP)
      */
     private function printFunctionsAsTable(OutputInterface $output, array $phelFunctions): void
     {
-        $longestName = max(array_map(static fn(array $func): int => mb_strlen($func['name']), $phelFunctions));
+        $longestName = max([0, ...array_map(static fn(array $func): int => mb_strlen($func['name']), $phelFunctions)]);
         [$width1, $width2, $width3] = $this->calculateWithProportionalToCurrentScreen($longestName);
 
         $table = new Table($output)
