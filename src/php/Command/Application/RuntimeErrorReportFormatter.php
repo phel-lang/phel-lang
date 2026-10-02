@@ -9,6 +9,7 @@ use Phel\Command\Domain\Exceptions\EvaluatedCodeLocation;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
 use Phel\Command\Domain\Exceptions\InternalPathDetector;
+use Phel\Command\Domain\Exceptions\RuntimeArityMessage;
 use Phel\Lang\ExceptionInfo;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
@@ -54,6 +55,7 @@ final readonly class RuntimeErrorReportFormatter
         private InternalPathDetector $internalPathDetector,
         private ExceptionHintResolver $hintResolver,
         private PrinterInterface $printer,
+        private RuntimeArityMessage $arityMessage,
         private string $staleOutputHint,
     ) {}
 
@@ -102,7 +104,7 @@ final readonly class RuntimeErrorReportFormatter
 
     private function messageLine(Throwable $cause): string
     {
-        $message = $cause->getMessage();
+        $message = $this->arityMessage->rewrite($cause) ?? $cause->getMessage();
         if ($message === '') {
             return $this->errorCodePrefix($cause) . '*no message*';
         }
