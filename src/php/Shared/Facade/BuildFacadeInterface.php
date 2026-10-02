@@ -62,4 +62,11 @@ interface BuildFacadeInterface
      * Returns the module's health check for diagnostics (`phel doctor`).
      */
     public function getHealthCheck(): ModuleHealthCheckInterface;
+
+    /**
+     * The error for a `(:require ...)` that matched no source file, or null
+     * when it still resolves. The emitted `ns` form calls it and throws at its
+     * own site.
+     */
+    public function unresolvedRequireMessage(string $requiredNs, string $requiringNs): ?string;
 }

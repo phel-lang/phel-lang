@@ -53,6 +53,17 @@ final class BundledNamespaceIndex
     }
 
     /**
+     * Null when the require still resolves: already loaded, or shipped by Phel
+     * or an installed package.
+     */
+    public function unresolvedRequireMessage(string $required, string $requiring): ?string
+    {
+        return $this->resolvesWithoutSource($required)
+            ? null
+            : $this->missingNamespaceMessage($required, $requiring);
+    }
+
+    /**
      * @param list<string> $knownNamespaces namespaces the caller's own scan found
      */
     public function missingNamespaceMessage(string $required, string $requiring, array $knownNamespaces = []): string

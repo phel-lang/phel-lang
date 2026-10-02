@@ -143,12 +143,9 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
      */
     public function unresolvedRequireMessage(string $requiredNs, string $requiringNs): ?string
     {
-        $index = $this->getFactory()->createBundledNamespaceIndex();
-        if ($index->resolvesWithoutSource($requiredNs)) {
-            return null;
-        }
-
-        return $index->missingNamespaceMessage($requiredNs, $requiringNs);
+        return $this->getFactory()
+            ->createBundledNamespaceIndex()
+            ->unresolvedRequireMessage($requiredNs, $requiringNs);
     }
 
     /**

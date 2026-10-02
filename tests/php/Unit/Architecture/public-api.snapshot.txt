@@ -1918,6 +1918,7 @@ interface Phel\Shared\Facade\BuildFacadeInterface
   public function getHealthCheck(): Gacela\Framework\Health\ModuleHealthCheckInterface
   public function getNamespaceFromDirectories(array $directories): array
   public function getNamespaceFromFile(string $filename): Phel\Shared\NamespaceInformation
+  public function unresolvedRequireMessage(string $requiredNs, string $requiringNs): ?string
 
 interface Phel\Shared\Facade\CommandFacadeInterface
   public function getAllPhelDirectories(): array
