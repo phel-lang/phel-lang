@@ -71,8 +71,6 @@ final readonly class RuntimeArityMessage
     private function calledFnName(Throwable $e): ?string
     {
         $frame = $e->getTrace()[0] ?? null;
-        // Psalm's stub marks `function` optional, PHPStan's marks it required.
-        // @phpstan-ignore nullCoalesce.offset
         $function = $frame['function'] ?? '';
         $class = $frame['class'] ?? null;
 
