@@ -38,6 +38,8 @@ Compiler:
 - Sequential destructuring reads a vector by index: `(let [[a b] v] ...)` is 3.2x faster. (#3356)
 - `(not x)` compiles to an inline nil/false check, 2.6x faster; an `if` over a `^bool` param skips the truthiness check. (#3352 #3353)
 
+- A namespace loaded from the compiled-code cache registers its definitions with one call per file instead of a guarded block per `def`: loading a file of 500 `def`s takes 1.33 ms instead of 2.89 ms, and a warm `phel run` peaks 0.3 MB lower. The cache key hashes the source with `xxh128` instead of `md5`, 26x faster; existing caches rebuild once. (#3470)
+
 CLI:
 
 - `phel` restarts PHP for the opcache file cache only where it pays off: never for `--version`, `list`, `help` or `completion`, and on macOS only for `test`, `build`, `bench`, `mutate`, `profile` and `export`. `phel --version` on macOS drops from 125 ms to 87 ms. `PHEL_OPCACHE_REEXEC=1` restarts for every command. (#3425)

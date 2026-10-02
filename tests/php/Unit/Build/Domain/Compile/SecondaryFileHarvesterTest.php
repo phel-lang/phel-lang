@@ -16,7 +16,7 @@ use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
 use function file_get_contents;
-use function md5;
+use function hash;
 use function mkdir;
 use function sys_get_temp_dir;
 use function uniqid;
@@ -40,7 +40,7 @@ final class SecondaryFileHarvesterTest extends TestCase
 
     public function test_harvest_writes_secondary_compiled_at_optimization_level_2(): void
     {
-        // FileEvaluator stores -O2 entries under md5(code . '|O2'); the harvester
+        // FileEvaluator stores -O2 entries under hash('xxh128', code . '|O2'); the harvester
         // must look them up with the same key or every secondary is dropped and
         // the build ships a broken artifact (#2449 / #2631).
         $target = $this->harvestSecondary(
@@ -56,7 +56,7 @@ final class SecondaryFileHarvesterTest extends TestCase
     {
         $target = $this->harvestSecondary(
             optimizationLevel: 0,
-            storedHash: md5('(in-ns phel\\core\\meta)'),
+            storedHash: hash('xxh128', '(in-ns phel\\core\\meta)'),
         );
 
         self::assertFileExists($target);
