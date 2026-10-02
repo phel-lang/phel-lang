@@ -9,8 +9,10 @@ use ParseError;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
+use function array_flip;
 use function count;
 use function function_exists;
+
 use function token_get_all;
 
 use const TOKEN_PARSE;
@@ -59,6 +61,18 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      * @var array<string, true>
      */
     private array $touchedThisProcess = [];
+
+    /**
+     * Source paths whose compiled file this process was handed to `require`.
+     * Their fns stay defined after an invalidation, and an error report maps
+     * each frame through the file's inline source map, so `invalidate` and
+     * `clear` drop the entry but keep the file. The next `put` overwrites it.
+     * Keyed by source path, holding the compiled path, which `clear` needs
+     * after `invalidate` has removed the entry.
+     *
+     * @var array<string, string>
+     */
+    private array $servedThisProcess = [];
 
     private bool $loaded = false;
 
@@ -118,6 +132,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
 
         $this->entries[$sourcePath]['last_accessed'] = time();
         $this->touchedThisProcess[$sourcePath] = true;
+        $this->servedThisProcess[$sourcePath] = $compiledPath;
 
         return $compiledPath;
     }
@@ -229,8 +244,9 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
             return;
         }
 
-        $compiledPath = $this->getCompiledPath($sourcePath, $entry['namespace']);
-        FileCache::delete($compiledPath);
+        if (!isset($this->servedThisProcess[$sourcePath])) {
+            FileCache::delete($this->getCompiledPath($sourcePath, $entry['namespace']));
+        }
 
         unset($this->entries[$sourcePath], $this->touchedThisProcess[$sourcePath]);
         $this->tombstones[$sourcePath] = true;
@@ -238,16 +254,22 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
     }
 
     /**
-     * Clears every cached compiled file and every namespace env file.
+     * Clears every cached compiled file and every namespace env file, except
+     * the files this process already required, for the reason `invalidate`
+     * keeps them. The index forgets them all, so the next run recompiles.
      */
     public function clear(): void
     {
+        $served = array_flip($this->servedThisProcess);
+
         $compiledDir = $this->directory->compiledDir();
         if (is_dir($compiledDir)) {
             $files = glob($compiledDir . '/*.php');
             if ($files !== false) {
                 foreach ($files as $file) {
-                    FileCache::delete($file);
+                    if (!isset($served[$file])) {
+                        FileCache::delete($file);
+                    }
                 }
             }
         }
@@ -255,6 +277,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         $this->entries = [];
         $this->tombstones = [];
         $this->touchedThisProcess = [];
+        $this->servedThisProcess = [];
         $this->saveEntries();
         $this->clearFlushPending();
         $this->environmentStore->clearMemo();

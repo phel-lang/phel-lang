@@ -100,6 +100,50 @@ final class CompiledCodeCacheTest extends TestCase
         self::assertFileDoesNotExist($compiledPath);
     }
 
+    public function test_clear_keeps_a_file_this_process_was_served(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
+
+        $servedPath = $cache->get($this->sourceFile, 'hash');
+
+        $cache->clear();
+
+        self::assertIsString($servedPath);
+        self::assertFileExists($servedPath);
+        self::assertNull($cache->get($this->sourceFile, 'hash'));
+    }
+
+    public function test_clear_after_invalidate_keeps_a_file_this_process_was_served(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
+
+        $servedPath = $cache->get($this->sourceFile, 'hash');
+
+        $cache->invalidate($this->sourceFile);
+        $cache->clear();
+
+        self::assertIsString($servedPath);
+        self::assertFileExists($servedPath);
+    }
+
+    public function test_invalidate_keeps_a_file_this_process_was_served(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
+
+        $servedPath = $cache->get($this->sourceFile, 'hash');
+
+        $cache->invalidate($this->sourceFile);
+        $cache->save();
+
+        self::assertNotNull($servedPath);
+        self::assertFileExists($servedPath);
+        self::assertNull($cache->get($this->sourceFile, 'hash'));
+        self::assertNull(new CompiledCodeCache($this->cacheDir)->get($this->sourceFile, 'hash'));
+    }
+
     public function test_invalidate_only_removes_targeted_file(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
