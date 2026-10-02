@@ -59,6 +59,7 @@ Compiler:
 Runtime:
 
 - **BREAKING**: `transduce` calls the reducing fn's completion once, as Clojure does: a reducer with a 1-arity finalizes the result. A reducer with only a 2-arity now throws `ArgumentCountError`; wrap it in `completing`. (#3433)
+- `declare` keeps the value of a symbol that is already defined, as in Clojure. Loading a namespace again used to reset what it declares to nil, so a long-lived process (REPL, `phel watch`, nREPL) could fail with `Value of type null is not callable` while recompiling `phel.core`. (#3444)
 - `partition-all` throws for a size or step that is not a positive int. A size of 0 used to return an empty seq, and a step of 0 never ended. (#3437)
 - The `dedupe` transducer keeps a leading `:phel/none`. It used to drop it. (#3437)
 - `with-output-buffer` closes its buffer when the body throws, and restores the buffer level it found. It used to leave the buffer open. (#3417)
