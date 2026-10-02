@@ -14,6 +14,9 @@ abstract class AbstractLocatedException extends RuntimeException
 
     private ?string $relatedLocationNote = null;
 
+    /** @var list<string> */
+    private array $suggestions = [];
+
     public function __construct(
         string $message,
         private readonly ?SourceLocation $startLocation = null,
@@ -49,6 +52,17 @@ abstract class AbstractLocatedException extends RuntimeException
     }
 
     /**
+     * Names the error message offers as "did you mean", for a tool that wants
+     * them without parsing the message.
+     *
+     * @return list<string>
+     */
+    public function getSuggestions(): array
+    {
+        return $this->suggestions;
+    }
+
+    /**
      * Attaches a standardized error identifier to this exception. Subclasses
      * call this (typically from their constructor) to tag the located error
      * with its PHELxxx {@see ErrorCode} for reporting.
@@ -61,5 +75,13 @@ abstract class AbstractLocatedException extends RuntimeException
     protected function setRelatedLocationNote(string $relatedLocationNote): void
     {
         $this->relatedLocationNote = $relatedLocationNote;
+    }
+
+    /**
+     * @param list<string> $suggestions
+     */
+    protected function setSuggestions(array $suggestions): void
+    {
+        $this->suggestions = $suggestions;
     }
 }

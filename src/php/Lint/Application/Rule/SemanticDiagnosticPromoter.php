@@ -33,16 +33,7 @@ final class SemanticDiagnosticPromoter
                 continue;
             }
 
-            $result[] = new Diagnostic(
-                code: $ruleCode,
-                severity: $diagnostic->severity,
-                message: $diagnostic->message,
-                uri: $diagnostic->uri,
-                startLine: $diagnostic->startLine,
-                startCol: $diagnostic->startCol,
-                endLine: $diagnostic->endLine,
-                endCol: $diagnostic->endCol,
-            );
+            $result[] = $diagnostic->withCode($ruleCode);
         }
 
         return $result;

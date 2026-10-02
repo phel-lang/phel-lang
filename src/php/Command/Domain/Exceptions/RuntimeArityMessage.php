@@ -6,9 +6,6 @@ namespace Phel\Command\Domain\Exceptions;
 
 use ArgumentCountError;
 use Phel\Lang\FnInterface;
-use Phel\Lang\Registry;
-use Phel\Shared\MungeInterface;
-use ReflectionClass;
 use Throwable;
 
 use function class_exists;
@@ -17,10 +14,7 @@ use function is_subclass_of;
 use function preg_match;
 use function sprintf;
 use function str_contains;
-use function str_replace;
 use function str_starts_with;
-use function strrpos;
-use function substr;
 
 /**
  * PHP words a Phel fn called with too few arguments as a failed call to an
@@ -37,7 +31,7 @@ final readonly class RuntimeArityMessage
     private const string ANONYMOUS_FN = 'fn';
 
     public function __construct(
-        private MungeInterface $munge,
+        private CompiledFnName $fnName,
     ) {}
 
     public function rewrite(Throwable $e): ?string
@@ -84,22 +78,12 @@ final readonly class RuntimeArityMessage
             return null;
         }
 
-        $reflection = new ReflectionClass($class);
-        $boundTo = $reflection->hasConstant('BOUND_TO') ? $reflection->getConstant('BOUND_TO') : null;
-
-        if (!is_string($boundTo) || $boundTo === '') {
+        $namespace = $this->fnName->namespaceOf($class);
+        if ($namespace === null) {
             return self::ANONYMOUS_FN;
         }
 
-        $decoded = $this->munge->decodeNs($boundTo);
-        $lastSeparator = strrpos($decoded, '\\');
-
-        if ($lastSeparator === false) {
-            return $decoded;
-        }
-
-        $namespace = str_replace('\\', '.', substr($decoded, 0, $lastSeparator));
-        $definedName = $this->definedName($boundTo, $class);
+        $definedName = $this->fnName->definedName($class);
         if ($definedName !== null) {
             return $namespace . '/' . $definedName;
         }
@@ -107,32 +91,10 @@ final readonly class RuntimeArityMessage
         // Without the registry an underscore could be `-` or `_` in the
         // source, so name the namespace rather than guess. That happens under
         // `phel profile`, whose registry holds a wrapper around the fn.
-        $compiledName = substr($boundTo, (int) strrpos($boundTo, '\\') + 1);
+        $compiledName = $this->fnName->compiledName($class);
 
         return str_contains($compiledName, '_')
             ? 'a fn in ' . $namespace
             : $namespace . '/' . $compiledName;
-    }
-
-    /**
-     * The name the fn was defined under. `BOUND_TO` writes `-` as `_`, so
-     * `add-it` and `my_fn` both end in an underscore there, and only the
-     * registry still knows which one the source spelled.
-     */
-    private function definedName(string $boundTo, string $class): ?string
-    {
-        $lastSeparator = strrpos($boundTo, '\\');
-        if ($lastSeparator === false) {
-            return null;
-        }
-
-        $registryNs = str_replace('\\', '.', substr($boundTo, 0, $lastSeparator));
-        foreach (Registry::getInstance()->getDefinitionInNamespace($registryNs) as $name => $value) {
-            if ($value instanceof $class) {
-                return $name;
-            }
-        }
-
-        return null;
     }
 }

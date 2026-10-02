@@ -37,11 +37,14 @@ final class TestSuiteDependencyTest extends TestCase
     /**
      * Suite-local helper packages a suite may import across its own module
      * directories, e.g. `PhelTest\Integration\Util\*` from
-     * `PhelTest\Integration\Build\*`. Keyed by suite.
+     * `PhelTest\Integration\Build\*`. Keyed by suite. Benchmark input stays under
+     * `tests/php/Benchmark` because the bench job pins that tree to the pull
+     * request's revision for both its baseline and head runs.
      *
      * @var array<string, list<string>>
      */
     private const array SUITE_LOCAL_HELPERS = [
+        'Benchmark' => ['Fixtures'],
         'Integration' => ['Util'],
     ];
 

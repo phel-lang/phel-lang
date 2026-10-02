@@ -44,9 +44,22 @@ final class RunCommandTest extends AbstractTestCommand
             __DIR__ . '/Fixtures/missing-require-script.phel',
         );
 
-        self::assertStringContainsString("Cannot find namespace 'some.nonexistent.ns'", $output);
+        self::assertStringContainsString("[PHEL014] Cannot find namespace 'some.nonexistent.ns'", $output);
         self::assertStringContainsString("required by 'missing-require-script'", $output);
+        self::assertStringContainsString('missing-require-script.phel:2', $output);
+        self::assertStringContainsString('searched: ', $output);
         self::assertStringNotContainsString('must not reach here', $output);
+    }
+
+    public function test_an_alias_never_required_names_the_namespace_to_require(): void
+    {
+        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/unrequired-alias-script.phel');
+
+        self::assertStringContainsString(
+            "Cannot resolve symbol 'str/join'. No namespace or alias 'str'. Did you mean (:require phel.string :as str)?",
+            $output,
+        );
+        self::assertStringNotContainsString('juxt', $output);
     }
 
     public function test_requiring_a_misspelled_phel_namespace_fails_with_a_suggestion(): void
@@ -277,8 +290,8 @@ final class RunCommandTest extends AbstractTestCommand
 
         self::assertStringContainsString('boom from error-lib', $output);
         self::assertMatchesRegularExpression('~at .*error-lib\.phel:\d+~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-lib\\\\boom-fn~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-trace-script\\\\caller~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\.error-lib/boom-fn~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\.error-trace-script/caller~', $output);
         self::assertMatchesRegularExpression('~\.\.\. \d+ internal frames?~', $output);
     }
 
@@ -292,8 +305,8 @@ final class RunCommandTest extends AbstractTestCommand
         // cost the report its `at` line and leave the message alone (#3264).
         self::assertStringContainsString('Expected a number, got string', $output);
         self::assertMatchesRegularExpression('~at .*runtime-lib-error-script\.phel:4~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\runtime-lib-error-script\\\\add-boom~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\runtime-lib-error-script\\\\caller~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\.runtime-lib-error-script/add-boom~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\.runtime-lib-error-script/caller~', $output);
         self::assertMatchesRegularExpression('~\.\.\. \d+ internal frames?~', $output);
     }
 
@@ -333,8 +346,8 @@ final class RunCommandTest extends AbstractTestCommand
             rmdir($dir);
         }
 
-        self::assertMatchesRegularExpression('~#\d+ \S*recompiled-main\.phel:4 : \(phel\\\\core\\\\nth~', $firstReport);
-        self::assertMatchesRegularExpression('~#\d+ \S*recompiled-main\.phel:8 : \(phel\\\\core\\\\nth~', $secondReport);
+        self::assertMatchesRegularExpression('~#\d+ \S*recompiled-main\.phel:4 : \(phel\.core/nth~', $firstReport);
+        self::assertMatchesRegularExpression('~#\d+ \S*recompiled-main\.phel:8 : \(phel\.core/nth~', $secondReport);
     }
 
     public function test_uncaught_ex_info_prints_its_data(): void
@@ -358,7 +371,7 @@ final class RunCommandTest extends AbstractTestCommand
 
         self::assertStringContainsString('boom from error-lib', $output);
         self::assertMatchesRegularExpression('~at .*error-lib\.phel:\d+~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-lib\\\\boom-fn~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\.error-lib/boom-fn~', $output);
     }
 
     public function test_collapse_marker_names_the_flag_and_the_error_log(): void
