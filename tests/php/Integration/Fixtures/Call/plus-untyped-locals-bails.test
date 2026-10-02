@@ -3,5 +3,5 @@
 --PHP--
 (function($a, $b) {
   static $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($a, $b);
+  return (\is_int($a) && \is_int($b) && \is_int($__phel_guard_1 = $a + $b) ? $__phel_guard_1 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($a, $b));
 });
