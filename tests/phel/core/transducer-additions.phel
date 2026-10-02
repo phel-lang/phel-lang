@@ -106,3 +106,9 @@
 (deftest test-halt-when-keeps-a-result-map-with-its-old-marker-key
   (let [rf (fn ([] {}) ([r] r) ([r x] (assoc r :phel.core/halt x)))]
     (is (= {:phel.core/halt 2} (transduce (halt-when neg?) rf {} [1 2])))))
+
+(deftest test-partitionv-chunks-are-vectors
+  (is (every? vector? (partitionv 2 [1 2 3 4])))
+  (is (every? vector? (partitionv 2 1 [1 2 3])))
+  (is (every? vector? (partitionv 2 2 [:x] [1 2 3])))
+  (is (every? vector? (take 3 (partitionv 2 (range))))))
