@@ -78,6 +78,7 @@ Tooling:
 - `phel mutate` compiles at optimization level 0 whatever the config says. At level 2 every mutant used to survive. (#3396)
 - `phel doc --format json` and the API reference link special forms to their current guide sections, and `:see-also` entries name real fns. (#3371)
 - `build/preload.php` preloads every module's pillars, found at startup. The hand-kept list missed eight modules and named three deleted files. (#3410)
+- `phel eval` and `phel run` print values and errors without colour codes when stdout is not a terminal, as in `phel eval '#{1 2}' | cat`. `--ansi` forces colour; `--no-ansi` and `NO_COLOR` now remove it from printed values too. (#3462)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 

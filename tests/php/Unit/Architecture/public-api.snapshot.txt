@@ -2063,6 +2063,7 @@ final readonly class Phel\Shared\NamespaceInformation
   public function isPrimaryDefinition(): bool
 
 final class Phel\Shared\NoColor
+  public static function followOutput(?bool $decorated): void
   public static function isRequested(?array $env = null): bool
   public static function style(?array $env = null): Phel\Shared\ColorStyleInterface
 
