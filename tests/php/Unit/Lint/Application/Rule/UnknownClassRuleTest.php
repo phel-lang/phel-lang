@@ -93,6 +93,22 @@ final class UnknownClassRuleTest extends RuleTestCase
         self::assertSame([], $this->rule()->apply($this->buildAnalysis($source)));
     }
 
+    /**
+     * The reader expands a syntax quote into `(quote Integer/parseInt)`, so a
+     * macro template is quoted data the walker already skips.
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_skips_a_class_call_inside_a_syntax_quote(): void
+    {
+        $source = <<<'PHEL'
+            (ns app)
+            (defmacro parse [s] `(Integer/parseInt ~s))
+            PHEL;
+
+        self::assertSame([], $this->rule()->apply($this->buildAnalysis($source)));
+    }
+
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_it_resolves_a_top_level_use_in_a_file_opened_with_in_ns(): void
