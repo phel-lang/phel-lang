@@ -109,26 +109,26 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         }
 
         $allInfos = [];
-        $skippedInvalidNsForm = false;
+        $skippedFile = false;
         foreach ($this->findAllPhelFiles($directories) as $file) {
             try {
                 $allInfos[] = $this->getNamespaceFromFile($file);
-            } catch (ExtractorException|MissingNsFormException) {
-                // Skip files that cannot be parsed/lexed, or that start with
-                // no ns form, so one stray file in a scanned directory does
-                // not abort the whole scan (e.g. `phel eval` in a cwd holding
-                // unrelated Clojure checkouts, #3484).
-                continue;
-            } catch (CompilerException) {
-                $skippedInvalidNsForm = true;
+            } catch (ExtractorException|MissingNsFormException|CompilerException) {
+                // Skip a file that cannot be lexed, starts with no ns form, or
+                // has an ns form that does not analyse, so one stray file in a
+                // scanned directory does not abort the whole scan (e.g. `phel
+                // eval` in a cwd holding unrelated Clojure checkouts, #3484).
+                $skippedFile = true;
             }
         }
 
         $grouped = $this->grouper->groupAndSort($allInfos);
 
-        // Neither cache may hold a scan that skipped a bad `ns` form: a later
-        // build reading it would never see the file it has to fail on.
-        if ($skippedInvalidNsForm) {
+        // Neither cache may hold a scan that skipped a file. The fingerprint
+        // records only the files it read, so fixing a skipped file in place
+        // would go unseen, and a build would never see the bad `ns` form it
+        // has to fail on.
+        if ($skippedFile) {
             return $grouped;
         }
 
