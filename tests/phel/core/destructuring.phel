@@ -150,7 +150,10 @@
   (is (= 7 (let [{:keys [a] :or {a 7}} '(:b 1)] a)) ":or still fills a missing key")
   (is (thrown-with-msg? InvalidArgumentException "No value supplied for key: :b"
                         (let [{:keys [a]} '(:a 1 :b)] a))
-      "a dangling key that is not a map fails as in Clojure"))
+      "a dangling key that is not a map fails as in Clojure")
+  (is (thrown-with-msg? InvalidArgumentException "No value supplied for key: nil"
+                        (let [{:keys [a]} '(:a 1 nil)] a))
+      "so does a dangling nil"))
 
 (deftest destructure-map-pattern-over-a-set-reads-through-get
   (is (= :a (let [{:keys [a]} #{:a}] a)) "a member reads as itself")

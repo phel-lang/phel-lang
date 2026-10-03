@@ -77,9 +77,12 @@ final class Destructure
             return $items[0];
         }
 
-        $tail = count($items) % 2 === 1 ? array_pop($items) : null;
-        if ($tail !== null && !$tail instanceof PersistentMapInterface) {
-            throw new InvalidArgumentException(sprintf('No value supplied for key: %s', TypeStringifier::describe($tail)));
+        $tail = null;
+        if (count($items) % 2 === 1) {
+            $tail = array_pop($items);
+            if (!$tail instanceof PersistentMapInterface) {
+                throw new InvalidArgumentException(sprintf('No value supplied for key: %s', TypeStringifier::describe($tail)));
+            }
         }
 
         $map = TypeFactory::getInstance()->persistentMapFromKVs()->asTransient();
