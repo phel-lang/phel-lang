@@ -92,6 +92,6 @@ final class ApiFacadeReplCompletePreservesEnvTest extends TestCase
 
         $candidates = new ApiFacade()->replComplete('phel.html\\escape');
 
-        self::assertContains('phel.html\\escape-html', $candidates);
+        self::assertContains('phel.html/escape-html', $candidates);
     }
 }
