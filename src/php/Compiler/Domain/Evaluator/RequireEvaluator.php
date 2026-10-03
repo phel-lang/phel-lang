@@ -10,9 +10,11 @@ use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\FileException;
 use Phel\Shared\Facade\FilesystemFacadeInterface;
 
+use function bin2hex;
 use function getmypid;
 use function md5;
 use function md5_file;
+use function random_bytes;
 use function sprintf;
 
 /**
@@ -31,6 +33,8 @@ final class RequireEvaluator implements EvaluatorInterface
      * @var array<string, mixed>
      */
     private static array $processCache = [];
+
+    private static ?string $processToken = null;
 
     public function __construct(
         private readonly FilesystemFacadeInterface $filesystemFacade,
@@ -107,14 +111,25 @@ final class RequireEvaluator implements EvaluatorInterface
     private function buildFilename(string $phpCode): string
     {
         return sprintf(
-            '%s%s%s_%d_%s%s',
+            '%s%s%s_%s_%s%s',
             $this->filesystemFacade->getTempDir(),
             DIRECTORY_SEPARATOR,
             self::TEMP_PREFIX,
-            getmypid(),
+            self::processToken(),
             md5($phpCode),
             self::FILE_EXTENSION,
         );
+    }
+
+    /**
+     * The pid, read on every call so a forked child gets its own. Only when
+     * PHP cannot tell does a random token, fixed for the process, stand in.
+     */
+    private static function processToken(): string
+    {
+        $pid = getmypid();
+
+        return $pid === false ? self::$processToken ??= bin2hex(random_bytes(8)) : (string) $pid;
     }
 
     /**
