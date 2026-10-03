@@ -20,7 +20,6 @@ Tooling:
 - A file whose first form is not `(ns ...)` fails with `'src/app.phel' does not start with an (ns ...) form`, instead of a `Cannot resolve symbol 'defn-'` hint. (#3373)
 - Lint rule `phel/shadowed-core-fn` warns when a `let`, `loop` or `fn` binding is named after a public `phel.core` fn, as in `(let [inc (fn [x] 99)] (inc 1))`. (#3374)
 - Editor completion after `(.method` knows a receiver built with `(new Foo)`, `(Foo.)` or `(Foo/make)`, bound or inline. `(new Fo` completes class names, and `(DateTimeImmutable/` completes static members without a `:use`. (#3398)
-- `phel doc reduce-kv` prints the full doc of `reduce-kv`: signatures, docstring, example and see-also. A search with no exact name, such as `phel doc mapp`, says so before the table of candidates, and the table no longer wraps a function name mid-word. (#3474)
 
 PHP API:
 
