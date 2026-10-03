@@ -115,7 +115,7 @@ final class RequireEvaluator implements EvaluatorInterface
             $this->filesystemFacade->getTempDir(),
             DIRECTORY_SEPARATOR,
             self::TEMP_PREFIX,
-            self::processToken(),
+            $this->processToken(),
             md5($phpCode),
             self::FILE_EXTENSION,
         );
@@ -125,7 +125,7 @@ final class RequireEvaluator implements EvaluatorInterface
      * The pid, read on every call so a forked child gets its own. Only when
      * PHP cannot tell does a random token, fixed for the process, stand in.
      */
-    private static function processToken(): string
+    private function processToken(): string
     {
         $pid = getmypid();
 
