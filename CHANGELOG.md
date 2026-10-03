@@ -109,6 +109,7 @@ Tooling:
 - Errors and stack frames name a Phel var as `ns/name`: `Wrong number of arguments to function "bugs.arity/add"`, `(bugs.rt2/step [1 2])`, `(phel.core/* 2 nil)`. They used to print `bugs.arity\add` and `bugs\rt2\step`, which raise the backslash deprecation when pasted back into code. (#3460)
 - REPL and nREPL completion insert a qualified name as `phel.string/upper-case`. It used to insert `phel.string\upper-case`, which prints the backslash separator deprecation. A prefix typed with `\` still matches. (#3500)
 - `phel init` writes `(defn greet [who] ...)`, so a fresh project passes `phel lint`. It used to warn that `name` shadows a core fn. The docs `phel agent-install` copies teach a check loop (`phel lint --format=json`, `phel explain`, `phel doc --format=json`), point at `vendor/phel-lang/phel-lang/src/phel/` instead of a `src/phel/core/` a project does not have, list the Clojure habits that do not work in Phel, and no longer append phel-lang's own commit rules. (#3463)
+- Two `phel` processes that compile the same code at the same time, as `phel test --parallel` workers do, no longer see a defined fn as nil. They shared one temp file per compiled form, so one could read the other's empty or half-written file and fail with `Value of type null is not callable`. (#3495)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 

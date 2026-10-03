@@ -10,8 +10,11 @@ use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\FileException;
 use Phel\Shared\Facade\FilesystemFacadeInterface;
 
+use function bin2hex;
+use function getmypid;
 use function md5;
 use function md5_file;
+use function random_bytes;
 use function sprintf;
 
 /**
@@ -30,6 +33,8 @@ final class RequireEvaluator implements EvaluatorInterface
      * @var array<string, mixed>
      */
     private static array $processCache = [];
+
+    private static ?string $processNonce = null;
 
     public function __construct(
         private readonly FilesystemFacadeInterface $filesystemFacade,
@@ -96,18 +101,41 @@ final class RequireEvaluator implements EvaluatorInterface
     }
 
     /**
-     * Builds a deterministic filename based on the MD5 hash of the code.
+     * The temp dir is shared by every process on the machine, and the write is
+     * not atomic, while each process deletes its files at exit. Two processes
+     * evaluating the same code under one name could read each other's empty,
+     * half-written or deleted file: requiring an empty one defines nothing, so
+     * a registered var reads as nil (#3495). The process id keeps their files
+     * apart.
      */
     private function buildFilename(string $phpCode): string
     {
         return sprintf(
-            '%s%s%s_%s%s',
+            '%s%s%s_%s_%s%s',
             $this->filesystemFacade->getTempDir(),
             DIRECTORY_SEPARATOR,
             self::TEMP_PREFIX,
+            $this->processToken(),
             md5($phpCode),
             self::FILE_EXTENSION,
         );
+    }
+
+    /**
+     * Unique to this process on this machine and across containers that
+     * share the temp dir: the pid, read on every call so a forked child gets
+     * its own, plus a random nonce for PID namespaces that repeat a pid. When
+     * PHP cannot read the pid, a fresh random token per file; the process
+     * cache above already reuses a result for the same code.
+     */
+    private function processToken(): string
+    {
+        $pid = getmypid();
+        if ($pid === false) {
+            return bin2hex(random_bytes(8));
+        }
+
+        return $pid . '_' . (self::$processNonce ??= bin2hex(random_bytes(16)));
     }
 
     /**
