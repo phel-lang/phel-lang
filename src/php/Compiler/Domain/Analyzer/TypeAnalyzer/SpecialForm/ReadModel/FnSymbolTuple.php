@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReadModel;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Destructure;
 use Phel\Lang\Symbol;
 
 use function array_slice;
@@ -184,8 +187,29 @@ final class FnSymbolTuple
             $tempSym = Symbol::gen()->copyLocationFrom($this->parentList);
             $this->params[] = $tempSym;
             $this->lets[] = $param;
-            $this->lets[] = $tempSym;
+            $this->lets[] = $param instanceof PersistentMapInterface
+                ? $this->restKwargs($tempSym)
+                : $tempSym;
         }
+    }
+
+    /**
+     * `(Destructure/restKwargs rest)`: a map pattern after `&` reads the rest
+     * arguments as keyword arguments, as Clojure does (#3487).
+     *
+     * The class symbol carries no location on purpose: it is the compiler's
+     * spelling, and a located `\` symbol would announce the separator
+     * deprecation against the user's parameters.
+     *
+     * @return PersistentListInterface<mixed>
+     */
+    private function restKwargs(Symbol $rest): PersistentListInterface
+    {
+        return Phel::list([
+            Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL)->copyLocationFrom($rest),
+            Symbol::create('\\' . Destructure::class),
+            Phel::list([Symbol::create('restKwargs')->copyLocationFrom($rest), $rest])->copyLocationFrom($rest),
+        ])->copyLocationFrom($rest);
     }
 
     private function buildParamsDone(): never
