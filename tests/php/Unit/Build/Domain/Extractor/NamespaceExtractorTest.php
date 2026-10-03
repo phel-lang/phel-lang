@@ -171,6 +171,8 @@ final class NamespaceExtractorTest extends TestCase
 
         file_put_contents($goodPath, '(ns good.ns)');
         file_put_contents($strayPath, "(defn x [] 1)\n");
+        $badLetPath = $dir . '/sub/bad-let.cljc';
+        file_put_contents($badLetPath, "(let [a] a)\n");
 
         $nsExtractor = new NamespaceExtractor(
             new CompilerFacade(),
@@ -183,6 +185,7 @@ final class NamespaceExtractorTest extends TestCase
         } finally {
             unlink($goodPath);
             unlink($strayPath);
+            unlink($badLetPath);
             rmdir($dir . '/sub');
             rmdir($dir);
         }

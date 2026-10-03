@@ -68,33 +68,21 @@ final class Destructure
             return $value;
         }
 
-        $items = [];
-        foreach ($value as $item) {
-            $items[] = $item;
-        }
+        return self::kwargsOf(self::items($value));
+    }
 
-        if (count($items) === 1) {
-            return $items[0];
-        }
+    /**
+     * What a map pattern after `&` reads: Phel's rest arguments are a vector,
+     * not a seq, so they are read as keyword arguments here instead of by
+     * {@see self::kwargs()}. No arguments read as nil, as in Clojure (#3487).
+     *
+     * @param iterable<mixed>|null $rest
+     */
+    public static function restKwargs(?iterable $rest): mixed
+    {
+        $items = $rest === null ? [] : self::items($rest);
 
-        $tail = null;
-        if (count($items) % 2 === 1) {
-            $tail = array_pop($items);
-            if (!$tail instanceof PersistentMapInterface) {
-                throw new InvalidArgumentException(sprintf('No value supplied for key: %s', TypeStringifier::describe($tail)));
-            }
-        }
-
-        $map = TypeFactory::getInstance()->persistentMapFromKVs()->asTransient();
-        for ($i = 0, $n = count($items); $i < $n; $i += 2) {
-            $map = $map->put($items[$i], $items[$i + 1]);
-        }
-
-        foreach ($tail ?? [] as $key => $entry) {
-            $map = $map->put($key, $entry);
-        }
-
-        return $map->persistent();
+        return $items === [] ? null : self::kwargsOf($items);
     }
 
     /**
@@ -121,6 +109,50 @@ final class Destructure
         }
 
         return null;
+    }
+
+    /**
+     * @param iterable<mixed> $values
+     *
+     * @return list<mixed>
+     */
+    private static function items(iterable $values): array
+    {
+        $items = [];
+        foreach ($values as $item) {
+            $items[] = $item;
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param list<mixed> $items
+     */
+    private static function kwargsOf(array $items): mixed
+    {
+        if (count($items) === 1) {
+            return $items[0];
+        }
+
+        $tail = null;
+        if (count($items) % 2 === 1) {
+            $tail = array_pop($items);
+            if (!$tail instanceof PersistentMapInterface) {
+                throw new InvalidArgumentException(sprintf('No value supplied for key: %s', TypeStringifier::describe($tail)));
+            }
+        }
+
+        $map = TypeFactory::getInstance()->persistentMapFromKVs()->asTransient();
+        for ($i = 0, $n = count($items); $i < $n; $i += 2) {
+            $map = $map->put($items[$i], $items[$i + 1]);
+        }
+
+        foreach ($tail ?? [] as $key => $entry) {
+            $map = $map->put($key, $entry);
+        }
+
+        return $map->persistent();
     }
 
     /**
