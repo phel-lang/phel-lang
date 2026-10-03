@@ -325,6 +325,60 @@ final class LintCommandTest extends TestCase
         self::assertSame(0, $exit, 'Output: ' . $display);
     }
 
+    /**
+     * The bad file sits on the configured src dir, so the namespace load that
+     * precedes linting used to throw before any file was linted, as a bare
+     * console error with no file, line or JSON (#3457).
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_bad_ns_form_is_reported_as_a_diagnostic_and_the_other_files_still_lint(): void
+    {
+        $root = realpath(sys_get_temp_dir()) . '/phel-lint-bad-ns-' . uniqid();
+        mkdir($root . '/src', 0777, true);
+        file_put_contents($root . '/src/bad.phel', "(ns app.bad\n  (:require [phel.string :refer :all]))\n");
+        file_put_contents($root . '/src/main.phel', "(ns app.main)\n\n(defn f [] (let [unused 1] 2))\n");
+
+        try {
+            Phel::bootstrap($root);
+            Phel::clear();
+            Symbol::resetGen();
+            GlobalEnvironmentSingleton::initializeNew();
+
+            $tester = new CommandTester(new LintCommand());
+            $exit = $tester->execute([
+                'paths' => [$root . '/src'],
+                '--format' => 'json',
+                '--no-cache' => true,
+            ]);
+        } finally {
+            $this->removeDir($root);
+        }
+
+        self::assertSame(1, $exit, $tester->getDisplay());
+        $payload = json_decode(trim($tester->getDisplay()), true);
+        self::assertIsArray($payload, $tester->getDisplay());
+
+        $byCode = [];
+        foreach ($payload as $diagnostic) {
+            $byCode[$diagnostic['code']] = $diagnostic;
+        }
+
+        self::assertArrayHasKey('PHEL007', $byCode);
+        self::assertStringEndsWith('/src/bad.phel', $byCode['PHEL007']['uri']);
+        self::assertSame(2, $byCode['PHEL007']['startLine']);
+        self::assertStringContainsString(':refer :all is not supported', (string) $byCode['PHEL007']['message']);
+        self::assertArrayHasKey('phel/unused-binding', $byCode, 'the other file is still linted');
+    }
+
+    private function bootstrap(): void
+    {
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+    }
+
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_it_reports_a_refer_of_a_name_the_required_namespace_does_not_define(): void
@@ -357,13 +411,5 @@ final class LintCommandTest extends TestCase
             [['phel/unresolved-refer', "'nope' is referred from app.util, which does not define it.", 2]],
             array_map(static fn(array $d): array => [$d['code'], $d['message'], $d['startLine']], $payload),
         );
-    }
-
-    private function bootstrap(): void
-    {
-        Phel::bootstrap(__DIR__);
-        Phel::clear();
-        Symbol::resetGen();
-        GlobalEnvironmentSingleton::initializeNew();
     }
 }

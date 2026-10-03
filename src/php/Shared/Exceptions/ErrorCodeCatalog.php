@@ -86,7 +86,7 @@ final class ErrorCodeCatalog
                 title: 'Undefined symbol',
                 summary: 'The analyzer reached a symbol that is bound nowhere: not in the current namespace, not in a required namespace, and not in a local binding.',
                 example: '(undefined-fn 1 2)',
-                fix: 'Check the spelling, require the namespace that defines it, or define it before the call.',
+                fix: 'Check the spelling, require the namespace that defines it, or define it before the call. `require` itself is a REPL helper: in a file, write `(:require ...)` inside the `ns` form.',
             ),
             new ErrorCodeExplanation(
                 code: ErrorCode::ARITY_ERROR,
@@ -171,6 +171,13 @@ final class ErrorCodeCatalog
                 summary: 'A `:refer` in an `ns` form names something the required namespace does not define, or keeps private. Phel checks it when the namespace is already loaded, which it is for every file a run, test or build loads in dependency order.',
                 example: "(ns app.main\n  (:require phel.string :refer [upper-case shout]))",
                 fix: 'Check the spelling against the namespace, or drop the name from the `:refer` vector.',
+            ),
+            new ErrorCodeExplanation(
+                code: ErrorCode::MISSING_NAMESPACE,
+                title: 'Missing namespace',
+                summary: 'A `(:require ...)` names a namespace that no source file declares on the searched directories, that is not loaded, and that Phel does not ship. The caret marks the namespace in the requiring file; the note lists the directories searched.',
+                example: "(ns app.main\n  (:require app.helpers))",
+                fix: 'Check the spelling against the `ns` form of the file you mean, or add its directory to the src, test or vendor dirs.',
             ),
             new ErrorCodeExplanation(
                 code: ErrorCode::UNTERMINATED_LIST,

@@ -102,6 +102,14 @@ interface CompilerFacadeInterface
     public function read(NodeInterface $parseTree): ReaderResult;
 
     /**
+     * Rejects `php/new`, `php/->`, `php/::` and `set-var` written in a form
+     * the reader returned, as `phel run` and `phel eval` do (#3456).
+     *
+     * @throws AnalyzerException
+     */
+    public function rejectSupersededForms(mixed $form): void;
+
+    /**
      * Streams the top-level forms of a source buffer through lex -> parse ->
      * read, never throwing: a parse failure ends the stream, a read failure
      * skips that form, and everything already yielded stays valid.
@@ -243,4 +251,14 @@ interface CompilerFacadeInterface
      * @return T
      */
     public function withoutDeprecations(callable $work): mixed;
+
+    /**
+     * The "did you mean" candidates for `$typed`, most relevant first, as the
+     * analyzer ranks them for an unresolved symbol. Empty when nothing is close.
+     *
+     * @param list<string> $candidates
+     *
+     * @return list<string>
+     */
+    public function findSimilarNames(string $typed, array $candidates): array;
 }

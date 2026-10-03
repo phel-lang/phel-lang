@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
@@ -140,46 +139,36 @@ final class NsEmitterTest extends TestCase
 
         self::assertStringContainsString(
             sprintf(
-                "\$__phelNsInfos === [] && !\\%s::isBuildMode() && !\\%s::isNamespaceLoaded('totally.missing')",
+                "\$__phelNsInfos === [] && !\\%s::isBuildMode() && (\$__phelMissingNs = \$__phelBuildFacade->unresolvedRequireError('totally.missing', 'my.app', '', \$__phelSrcDirs)) !== null",
                 BuildFacade::class,
-                Phel::class,
             ),
             $output,
             'An unresolved require must raise, except during a build (which resolves dependencies itself)'
-            . ' or when the namespace is already loaded and so has no file to find',
+            . ' or when Build says it resolves anyway; the message names both namespaces in canonical form',
         );
         self::assertStringContainsString(
-            "missingRequiredNamespaceMessage('totally.missing', 'my.app')",
+            'throw $__phelMissingNs;',
             $output,
-            'The error must name both the missing namespace and the one requiring it, in canonical form',
         );
     }
 
     /**
-     * `clojure.set` has no Phel counterpart and no source file, and the
-     * clojure-test-suite requires it. The bundled stdlib is equally absent from
-     * a downstream scan index. Neither may be reported as missing.
+     * A misspelled `phel.*` or `clojure.*` require used to carry no guard at
+     * all, so it surfaced later as an unresolved symbol (#3454). Build decides
+     * on the miss path whether it ships the namespace.
      */
-    public function test_ns_does_not_guard_a_required_framework_namespace(): void
+    public function test_ns_guards_a_required_framework_namespace(): void
     {
         $node = new NsNode('my\\app', [
             Symbol::create('clojure\\set'),
-            Symbol::create('phel\\json'),
+            Symbol::create('phel\\strng'),
         ], []);
 
         ob_start();
         $this->nsEmitter->emit($node);
         $output = (string) ob_get_clean();
 
-        self::assertStringNotContainsString(
-            'missingRequiredNamespaceMessage',
-            $output,
-            'A phel.*/clojure.* require resolves at runtime, so it must carry no missing-namespace guard',
-        );
-        self::assertStringContainsString(
-            sprintf("getDependenciesForNamespace(\$__phelSrcDirs, ['%s'])", addslashes('clojure\\set')),
-            $output,
-            'It must still be resolved and loaded like any other require',
-        );
+        self::assertStringContainsString("unresolvedRequireError('clojure.set', 'my.app'", $output);
+        self::assertStringContainsString("unresolvedRequireError('phel.strng', 'my.app'", $output);
     }
 }

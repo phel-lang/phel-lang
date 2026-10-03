@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Lang\Collections\Vector;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\TransientVector;
+use Phel\Lang\Keyword;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
@@ -260,5 +261,14 @@ final class TransientVectorTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Transient used after persistent! call');
         $v->persistent();
+    }
+
+    public function test_a_non_int_offset_is_absent(): void
+    {
+        $vector = TransientVector::empty(new ModuloHasher(), new SimpleEqualizer());
+        $vector->append(1);
+
+        $this->assertFalse($vector->contains(Keyword::create('a')));
+        $this->assertNull($vector[Keyword::create('a')] ?? null);
     }
 }

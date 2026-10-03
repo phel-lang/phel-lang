@@ -141,7 +141,7 @@ final readonly class FileRunner
         $seen = $alreadyResolved + [$scriptInfo->getNamespace() => true];
 
         foreach ($scriptInfo->getDependencies() as $dep) {
-            $this->collectAdHocDep($dep, $scriptInfo->getNamespace(), $fallbackDir, $seen, $found);
+            $this->collectAdHocDep($dep, $fallbackDir, $seen, $found);
         }
 
         return $found;
@@ -153,7 +153,6 @@ final readonly class FileRunner
      */
     private function collectAdHocDep(
         string $namespace,
-        string $scriptNamespace,
         string $fallbackDir,
         array &$seen,
         array &$found,
@@ -165,15 +164,10 @@ final readonly class FileRunner
         $seen[$namespace] = true;
 
         $path = $this->namespaceToFile($fallbackDir, $namespace);
+        // Not a sibling of the script. A require that resolves nowhere fails
+        // when the requiring file's `ns` form runs, which points at it in that
+        // file; failing here could only name the two namespaces.
         if ($path === null) {
-            // Not a sibling of the script. Tolerate it only when it resolves
-            // some other way (bundled `phel.*`, a `clojure.*` remap, or an
-            // already-loaded namespace); a require that resolves nowhere is
-            // broken and previously exited 0 with no feedback.
-            if (!$this->isResolvableWithoutSibling($namespace)) {
-                throw ExtractorException::cannotResolveRequiredNamespace($namespace, $scriptNamespace);
-            }
-
             return;
         }
 
@@ -192,18 +186,16 @@ final readonly class FileRunner
         }
 
         foreach ($info->getDependencies() as $dep) {
-            $this->collectAdHocDep($dep, $info->getNamespace(), $fallbackDir, $seen, $found);
+            $this->collectAdHocDep($dep, $fallbackDir, $seen, $found);
         }
 
         $found[] = $info;
     }
 
     /**
-     * Whether a non-sibling dependency still resolves: a framework-provided
-     * `phel.*`/`clojure.*` namespace (bundled stdlib loaded lazily, or a
-     * clojure-compat shim), or a namespace already in the runtime registry.
-     * Mirrors the tolerance in {@see \Phel\Build\Application\DependenciesForNamespace}
-     * so both resolution paths agree on what counts as a broken require.
+     * Whether a sibling that fails to parse can be passed over because its
+     * namespace resolves some other way: a framework-provided `phel.*`/
+     * `clojure.*` namespace, or one already in the runtime registry.
      */
     private function isResolvableWithoutSibling(string $namespace): bool
     {

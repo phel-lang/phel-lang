@@ -12,6 +12,7 @@ use Phel\Shared\Api\Completion;
 use Phel\Shared\Api\Definition;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Api\ProjectIndex;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -51,6 +52,29 @@ final class SemanticAnalysisTest extends TestCase
 
         $codes = array_map(static fn(Diagnostic $d): string => $d->code, $diagnostics);
         self::assertContains('PHEL001', $codes);
+    }
+
+    #[DataProvider('providerSupersededForms')]
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_reports_a_superseded_form_written_in_source(string $form): void
+    {
+        $this->bootstrap();
+        $facade = new ApiFacade();
+
+        $diagnostics = $facade->analyzeSource("(ns user)\n(def v 1)\n" . $form, 'user.phel');
+
+        self::assertCount(1, $diagnostics);
+        self::assertSame('PHEL012', $diagnostics[0]->code);
+        self::assertSame(3, $diagnostics[0]->startLine);
+    }
+
+    public static function providerSupersededForms(): iterable
+    {
+        yield 'php/new' => ['(php/new \\DateTime)'];
+        yield 'php/->' => ['(php/-> (new \\DateTime) (format "Y"))'];
+        yield 'php/::' => ['(php/:: \\DateTime createFromFormat "Y" "2024")'];
+        yield 'set-var' => ['(set-var (var v) 2)'];
     }
 
     #[PreserveGlobalState(false)]

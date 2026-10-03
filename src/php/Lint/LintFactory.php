@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Lint;
 
+use Composer\InstalledVersions;
 use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lint\Application\Cache\LintCache;
+use Phel\Lint\Application\Cache\LintCacheFingerprint;
 use Phel\Lint\Application\Config\ConfigLoader;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\FileCollector;
@@ -24,6 +26,7 @@ use Phel\Lint\Application\Rule\InvalidDestructuringRule;
 use Phel\Lint\Application\Rule\RedundantDoRule;
 use Phel\Lint\Application\Rule\ShadowedBindingRule;
 use Phel\Lint\Application\Rule\ShadowedCoreFnRule;
+use Phel\Lint\Application\Rule\UnresolvedNamespaceRule;
 use Phel\Lint\Application\Rule\UnresolvedReferRule;
 use Phel\Lint\Application\Rule\UnresolvedSymbolRule;
 use Phel\Lint\Application\Rule\UnusedBindingRule;
@@ -31,17 +34,17 @@ use Phel\Lint\Application\Rule\UnusedImportRule;
 use Phel\Lint\Application\Rule\UnusedRequireRule;
 use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Application\SourceReader;
+use Phel\Lint\Domain\LintRuleCatalog;
 use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Lint\Infrastructure\ProjectKnownNamespaces;
 use Phel\Lint\Infrastructure\RegistryCoreFunctionNames;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\Lint\LintRuleExplainerInterface;
 use Phel\Shared\LintRuleCodes;
-
-use function implode;
-use function md5;
-use function sort;
+use Phel\Shared\VersionFinder;
 
 /**
  * @extends AbstractFactory<LintConfig>
@@ -51,6 +54,8 @@ use function sort;
 #[ServiceMap(method: 'getConfig', className: LintConfig::class)]
 final class LintFactory extends AbstractFactory
 {
+    private const string PHEL_PACKAGE = 'phel-lang/phel-lang';
+
     public function createLintRunner(?LintCache $cache = null): LintRunner
     {
         return new LintRunner(
@@ -74,6 +79,7 @@ final class LintFactory extends AbstractFactory
     {
         return [
             new UnresolvedSymbolRule(),
+            new UnresolvedNamespaceRule(new ProjectKnownNamespaces($this->getRunFacade()), $this->getCompilerFacade()),
             new UnresolvedReferRule(),
             new ArityMismatchRule(),
             new UnusedBindingRule(),
@@ -120,6 +126,11 @@ final class LintFactory extends AbstractFactory
         return new FileCollector();
     }
 
+    public function createRuleExplainer(): LintRuleExplainerInterface
+    {
+        return new LintRuleCatalog();
+    }
+
     public function createLintCache(string $cacheDir, RuleSettings $settings): LintCache
     {
         return new LintCache($cacheDir, $this->ruleFingerprint($settings));
@@ -146,15 +157,25 @@ final class LintFactory extends AbstractFactory
     }
 
     /**
-     * Deterministic fingerprint covering the rule set AND the resolved
-     * settings (severities + exclude patterns). Drives cache invalidation
-     * when rules are added/removed OR when phel-lint.phel is edited.
+     * Drives cache invalidation when Phel is upgraded, when rules are
+     * added or removed, or when phel-lint.phel is edited.
      */
     private function ruleFingerprint(RuleSettings $settings): string
     {
-        $codes = LintRuleCodes::allCodes();
-        sort($codes);
+        return LintCacheFingerprint::of($this->installedPhelVersion(), LintRuleCodes::allCodes(), $settings->fingerprint());
+    }
 
-        return md5(implode('|', $codes) . '|' . $settings->fingerprint());
+    /**
+     * The release tag plus the installed commit, so moving between
+     * development commits of the same release counts as an upgrade too.
+     * Read from Composer's metadata rather than `git`, which costs a process.
+     */
+    private function installedPhelVersion(): string
+    {
+        $reference = InstalledVersions::isInstalled(self::PHEL_PACKAGE)
+            ? InstalledVersions::getReference(self::PHEL_PACKAGE)
+            : null;
+
+        return VersionFinder::LATEST_VERSION . '@' . ($reference ?? '');
     }
 }

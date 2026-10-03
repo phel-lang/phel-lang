@@ -132,6 +132,22 @@ final class AnalyzeSymbolTest extends TestCase
         );
     }
 
+    public function test_an_unresolved_require_names_the_ns_form_instead_of_a_suggestion(): void
+    {
+        $globalEnv = new GlobalEnvironment();
+        $globalEnv->setNs('test');
+        $globalEnv->addDefinition('test', Symbol::create('reduce'));
+
+        $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
+
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage(
+            "Cannot resolve symbol 'require': require is only available in the REPL; use (:require ...) inside ns",
+        );
+
+        $symbolAnalyzer->analyze(Symbol::create('require'), NodeEnvironment::empty());
+    }
+
     public function test_undefined_symbol_with_did_you_mean_suggestion(): void
     {
         $globalEnv = new GlobalEnvironment();
@@ -160,6 +176,46 @@ final class AnalyzeSymbolTest extends TestCase
 
         $env = NodeEnvironment::empty();
         $symbolAnalyzer->analyze(Symbol::create('zzzzzzzzzzz'), $env);
+    }
+
+    public function test_unknown_alias_suggests_the_bundled_namespace_to_require(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("Cannot resolve symbol 'str/join'. No namespace or alias 'str'. Did you mean (:require phel.string :as str)?");
+
+        $this->symbolAnalyzer->analyze(Symbol::createForNamespace('str', 'join'), NodeEnvironment::empty());
+    }
+
+    public function test_unknown_namespace_never_suggests_core_names(): void
+    {
+        $globalEnv = new GlobalEnvironment();
+        $globalEnv->setNs('test');
+        $globalEnv->addDefinition('phel.core', Symbol::create('for'));
+
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessageMatches("~^Cannot resolve symbol 'nonexistent.ns/foo'. No namespace 'nonexistent.ns'$~");
+
+        new AnalyzeSymbol(new Analyzer($globalEnv))->analyze(Symbol::createForNamespace('nonexistent.ns', 'foo'), NodeEnvironment::empty());
+    }
+
+    public function test_known_alias_suggests_names_from_its_namespace(): void
+    {
+        $globalEnv = new GlobalEnvironment();
+        $globalEnv->setNs('test');
+        $globalEnv->addRequireAlias('test', Symbol::create('s'), Symbol::create('phel.string'));
+
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("Cannot resolve symbol 's/uper-case'. Did you mean 's/upper-case'");
+
+        new AnalyzeSymbol(new Analyzer($globalEnv))->analyze(Symbol::createForNamespace('s', 'uper-case'), NodeEnvironment::empty());
+    }
+
+    public function test_bare_name_of_a_bundled_namespace_names_the_require(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("Cannot resolve symbol 'upper-case'. upper-case is in phel.string: add (:require phel.string :refer [upper-case])");
+
+        $this->symbolAnalyzer->analyze(Symbol::create('upper-case'), NodeEnvironment::empty());
     }
 
     public function test_fqn_class_slash_member_shorthand_expands_to_static_call(): void

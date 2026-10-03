@@ -16,6 +16,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Equalizer;
 use Phel\Lang\Hasher;
+use Phel\Lang\Keyword;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
@@ -293,5 +294,13 @@ final class PersistentListTest extends TestCase
         $this->assertTrue($list->contains(0));
         $this->assertTrue($list->contains(1));
         $this->assertFalse($list->contains(2));
+    }
+
+    public function test_a_non_int_offset_is_absent(): void
+    {
+        $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
+
+        $this->assertFalse($list->contains(Keyword::create('a')));
+        $this->assertNull($list[Keyword::create('a')] ?? null);
     }
 }

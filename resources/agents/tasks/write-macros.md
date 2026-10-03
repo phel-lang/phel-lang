@@ -33,14 +33,14 @@ Phel macros are **non-hygienic**. Two failure modes:
 
 ```phel
 ;; BAD: local `memoize-lru` shadows core fn
-(defmacro defn-builder [name meta & fdecl]
+(defmacro defn-builder [fn-name meta & fdecl]
   (let [memoize-lru (php/aget meta :memoize-lru)]
-    `(def ~name ~meta (memoize-lru (fn ~@fdecl) ~memoize-lru))))
+    `(def ~fn-name ~meta (memoize-lru (fn ~@fdecl) ~memoize-lru))))
 
 ;; GOOD: role-suffix local names
-(defmacro defn-builder [name meta & fdecl]
+(defmacro defn-builder [fn-name meta & fdecl]
   (let [memoize-lru-arg (php/aget meta :memoize-lru)]
-    `(def ~name ~meta (memoize-lru (fn ~@fdecl) ~memoize-lru-arg))))
+    `(def ~fn-name ~meta (memoize-lru (fn ~@fdecl) ~memoize-lru-arg))))
 ```
 
 Convention: suffix macro-local bindings with `-arg`, `-flag`, `-val`, `-sym`, `-form`.

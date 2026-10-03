@@ -107,7 +107,7 @@ final readonly class ProjectCompiler
             || $this->storedStripSymbolMeta($dest) !== $stripSymbolMeta
             || $this->storedCacheEnvFingerprint($dest) !== $this->cacheEnvFingerprint;
 
-        $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
+        $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories, failOnInvalidNsForm: true);
         /** @var list<CompiledFile> $result */
         $result = [];
         // Dependency-ordered, so checking direct requires against this set

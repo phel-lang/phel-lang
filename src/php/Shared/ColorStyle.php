@@ -15,7 +15,7 @@ final class ColorStyle implements ColorStyleInterface
         'green' => "\033[0;32m%s\033[0m",
         'red' => "\033[31;31m%s\033[0m",
         'yellow' => "\033[33;33m%s\033[0m",
-        'blue' => "\033[33;34m%s\033[0m",
+        'blue' => "\033[34m%s\033[0m",
     ];
 
     /**

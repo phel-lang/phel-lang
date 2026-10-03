@@ -37,8 +37,8 @@
 
 (deftest test-small-primitive-failure-skips-diff-block
   (let [out (run-default-reporter 1 2)]
-    (is (php/preg_match "/but is not: = to 1/" out)
-        "summary line still rendered for primitive `=` failure")
+    (is (php/preg_match "/expected: 1\n +actual: 2/" out)
+        "summary lines still rendered for primitive `=` failure")
     (is (= 0 (php/preg_match "/Diff:/" out))
         "no Diff block for non-collection values")))
 
@@ -46,8 +46,8 @@
   (let [out (run-default-reporter [1 2] [3 4])]
     (is (php/preg_match "/Diff:/" out)
         "even a 2-entry vector renders a diff when it differs")
-    (is (php/preg_match "/- \\[0\\] 1/" out) "differing index marked with -")
-    (is (php/preg_match "/\\+ \\[0\\] 3/" out) "differing index marked with +")))
+    (is (php/preg_match "/~ \\[0\\] 1 -> 3/" out) "differing index marked with ~")
+    (is (php/preg_match "/~ \\[1\\] 2 -> 4/" out) "every differing index gets a row")))
 
 ;; ---------------------------------------------------------------------------
 ;; Map diff: + added, - removed, ~ changed (sorted by key)
@@ -58,23 +58,22 @@
              {:a 1 :b 2 :c 3 :d 4}
              {:a 1 :b 99 :c 3 :e 5})]
     (is (php/preg_match "/Diff:/" out) "Diff block is rendered")
-    (is (php/preg_match "/- :d 4/" out) "removed key is prefixed with -")
-    (is (php/preg_match "/\\+ :e 5/" out) "added key is prefixed with +")
-    (is (php/preg_match "/~ :b 2 -> 99/" out)
+    (is (php/preg_match "/- \\[:d\\] 4/" out) "removed key is prefixed with -")
+    (is (php/preg_match "/\\+ \\[:e\\] 5/" out) "added key is prefixed with +")
+    (is (php/preg_match "/~ \\[:b\\] 2 -> 99/" out)
         "changed key is prefixed with ~ and shows old -> new")))
 
 ;; ---------------------------------------------------------------------------
-;; Vector diff: index-aligned, with - / + for differing rows and a leading
-;; space for matching ones
+;; Vector diff: index-aligned, ~ for a differing index, - / + past the end
+;; of the shorter side, nothing for matching ones
 ;; ---------------------------------------------------------------------------
 
 (deftest test-vector-diff-shows-index-aligned-rows
   (let [out (run-default-reporter [1 2 3 4 5] [1 2 99 4 5 6])]
     (is (php/preg_match "/Diff:/" out) "Diff block is rendered")
-    (is (php/preg_match "/- \\[2\\] 3/" out) "differing index marked with -")
-    (is (php/preg_match "/\\+ \\[2\\] 99/" out) "differing index marked with +")
+    (is (php/preg_match "/~ \\[2\\] 3 -> 99/" out) "differing index marked with ~")
     (is (php/preg_match "/\\+ \\[5\\] 6/" out) "extra trailing entry marked with +")
-    (is (php/preg_match "/  \\[0\\] 1/" out) "matching row keeps a leading space")))
+    (is (= 0 (php/preg_match "/\\[0\\]/" out)) "matching rows are left out")))
 
 ;; ---------------------------------------------------------------------------
 ;; Set diff: items only on each side, no order alignment
@@ -107,10 +106,25 @@
              {:a {:x 1 :y 99 :z 3} :b 2 :c [1 2 9 4] :d "kept"})]
     (is (php/preg_match "/Diff:/" out)
         "outer Diff block is rendered for the top-level map")
-    (is (php/preg_match "/~ :a/" out)
-        "differing nested map shows up as a changed key")
-    (is (php/preg_match "/~ :c/" out)
-        "differing nested vector shows up as a changed key")))
+    (is (php/preg_match "/~ \\[:a :y\\] 2 -> 99/" out)
+        "a nested map change names the full path to the changed value")
+    (is (php/preg_match "/~ \\[:c 2\\] 3 -> 9/" out)
+        "a nested vector change names the full path to the changed index")
+    (is (= 0 (php/preg_match "/:x 1/" (php/strstr out "Diff:")))
+        "the unchanged rest of the subtree is not repeated")))
+
+(deftest test-diff-recurses-and-names-added-and-removed-paths
+  (let [out (run-default-reporter
+             {:b {:c [1 2 3] :d "x"} :x 1}
+             {:b {:c [1 2 4] :d "x" :e 5}})]
+    (is (php/str_contains out "~ [:b :c 2] 3 -> 4") "changed leaf")
+    (is (php/str_contains out "+ [:b :e] 5") "added nested key")
+    (is (php/str_contains out "- [:x] 1") "removed top-level key")))
+
+(deftest test-diff-shows-a-changed-type-at-its-path
+  (let [out (run-default-reporter {:a [1 2]} {:a {:k 1}})]
+    (is (php/str_contains out "~ [:a] [1 2] -> {:k 1}")
+        "a value that changes shape is shown whole at its path")))
 
 ;; ---------------------------------------------------------------------------
 ;; not=: the diff trigger only fires when the failure proves inequality
@@ -154,7 +168,7 @@
              {:a 1 "b" 99 3 :three :other 7})]
     (is (php/preg_match "/Diff:/" out)
         "diff renders for maps with mixed-type keys")
-    (is (php/preg_match "/~ \"b\" 2 -> 99/" out)
+    (is (php/preg_match "/~ \\[\"b\"\\] 2 -> 99/" out)
         "string-keyed change is reported")))
 
 ;; ---------------------------------------------------------------------------

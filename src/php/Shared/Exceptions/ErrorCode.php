@@ -31,6 +31,7 @@ enum ErrorCode: string
     case NOT_CALLABLE = 'PHEL011';
     case SUPERSEDED_FORM = 'PHEL012';
     case UNRESOLVED_REFER = 'PHEL013';
+    case MISSING_NAMESPACE = 'PHEL014';
 
     // Parser errors (PHEL100-199)
     case UNTERMINATED_LIST = 'PHEL100';

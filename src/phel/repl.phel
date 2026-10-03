@@ -67,7 +67,7 @@
 (defn- clean-doc [str]
   (s/trim (s/replace (s/replace str "```phel\n" "") "```" "")))
 
-(defn- find-doc [namespace name]
+(defn- doc-text [namespace name]
   (let [meta (Phel/getDefinitionMetaData namespace name)]
     (when meta
       (let [doc        (or (get meta :doc) "")
@@ -87,7 +87,7 @@
   [sym]
   (let [resolved-sym (resolve sym)]
     (when resolved-sym
-      `(println (find-doc ~(namespace resolved-sym) ~(name resolved-sym))))))
+      `(println (doc-text ~(namespace resolved-sym) ~(name resolved-sym))))))
 
 (defn- unquote-sym [sym]
   (if (and (list? sym) (= 'quote (first sym)))
@@ -333,6 +333,29 @@ Returns nil. Prints one name per line, sorted alphabetically."
               (conj results (str (Munge/displayNs (.decodeNs munge ns))
                                  "/" decoded)))))))
     (sort (persistent results))))
+
+(defn find-doc
+  "Prints the documentation of every public definition whose name or docstring matches `re-string-or-pattern`, across all loaded namespaces, sorted by name. A plain string is read as a regex, as in Clojure. Returns nil."
+  {:example "(find-doc \"partition\")\n(find-doc #\"^re-\")"
+   :see-also ["doc" "apropos" "search-doc"]}
+  [re-string-or-pattern]
+  (let [re      (re-pattern re-string-or-pattern)
+        munge   munge-instance
+        matches (transient [])]
+    (foreach [ns (Phel/getNamespaces)]
+      (foreach [fn-name (php/array_keys (Phel/getDefinitionInNamespace ns))]
+        (let [meta    (Phel/getDefinitionMetaData ns fn-name)
+              decoded (.decodeNs munge fn-name)]
+          (when (and (not (get meta :private))
+                     (or (re-find re decoded)
+                         (re-find re (or (get meta :doc) ""))))
+            (conj matches [(str (Munge/displayNs (.decodeNs munge ns)) "/" decoded)
+                           (doc-text ns fn-name)])))))
+    (foreach [[full-name text] (sort-by first (persistent matches))]
+      (println "-------------------------")
+      (println full-name)
+      (println text))
+    nil))
 
 (defn find-fn
   "Searches for functions whose name or docstring contains the search string. Returns a vector of maps with :ns, :name, :doc, :private, :min-arity, :max-arity, :is-variadic."

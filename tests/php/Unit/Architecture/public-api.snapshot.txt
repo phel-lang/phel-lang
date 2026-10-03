@@ -79,6 +79,7 @@ final class Phel\Build\BuildFacade extends Gacela\Framework\AbstractFacade imple
   public function getNamespaceFromDirectories(array $directories): array
   public function getNamespaceFromFile(string $filename): Phel\Shared\NamespaceInformation
   public function getOutputDirectory(): string
+  public function unresolvedRequireError(string $requiredNs, string $requiringNs, string $requiringFile = '', array $searchedDirectories = []): ?RuntimeException
   public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\CompilerException $e): void
   public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e): void
   public static function disableBuildMode(): void
@@ -118,6 +119,7 @@ final class Phel\Compiler\CompilerFacade extends Gacela\Framework\AbstractFacade
   public function encodeNs(string $namespace): string
   public function eval(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): mixed
   public function evalForm(mixed $form, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): mixed
+  public function findSimilarNames(string $typed, array $candidates): array
   public function getGlobalEnvironment(): Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface
   public function getNamespaceEnvironmentData(string $namespace): array
   public function hasBalancedParentheses(string $code): bool
@@ -131,6 +133,7 @@ final class Phel\Compiler\CompilerFacade extends Gacela\Framework\AbstractFacade
   public function parseNext(Phel\Compiler\Domain\Lexer\TokenStream $tokenStream): ?Phel\Shared\Parser\Node\NodeInterface
   public function read(Phel\Shared\Parser\Node\NodeInterface $parseTree): Phel\Compiler\Domain\Parser\ReadModel\ReaderResult
   public function readFormsBestEffort(string $code, string $source = 'string'): Generator
+  public function rejectSupersededForms(mixed $form): void
   public function replayDeprecations(array $records): void
   public function resetGlobalEnvironment(): void
   public function restoreNamespaceEnvironmentData(string $namespace, array $envData): void
@@ -526,9 +529,10 @@ final class Phel\Lang\Collections\LazySeq\ChunkedSeq extends Phel\Lang\AbstractT
   public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $array, int $chunkSize = 32, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?Phel\Lang\Collections\LazySeq\ChunkedSeq
   public static function fromGenerator(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, Generator $generator, int $chunkSize = 4, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?Phel\Lang\Collections\LazySeq\ChunkedSeq
 
-final class Phel\Lang\Collections\LazySeq\Cons extends Phel\Lang\AbstractType implements IteratorAggregate, Phel\Lang\SeqInterface
+final class Phel\Lang\Collections\LazySeq\Cons extends Phel\Lang\AbstractType implements Countable, IteratorAggregate, Phel\Lang\SeqInterface
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, mixed $first, Phel\Lang\Collections\LazySeq\LazySeqInterface $rest, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null)
   public function cdr(): Phel\Lang\Collections\LazySeq\LazySeqInterface
+  public function count(): int
   public function equals(mixed $other): bool
   public function first(): mixed
   public function getIterator(): Traversable
@@ -618,7 +622,7 @@ final class Phel\Lang\Collections\LinkedList\PersistentList extends Phel\Lang\Ab
   public function getMeta(): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function hash(): int
   public function isList(): bool
-  public function offsetExists($offset): bool
+  public function offsetExists(mixed $offset): bool
   public function offsetGet($offset): mixed
   public function offsetSet($offset, $value): void
   public function offsetUnset($offset): void
@@ -908,7 +912,7 @@ abstract class Phel\Lang\Collections\Vector\AbstractPersistentVector extends Phe
   public function first()
   public function getMeta(): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function hash(): int
-  public function offsetExists($offset): bool
+  public function offsetExists(mixed $offset): bool
   public function offsetGet($offset): mixed
   public function offsetSet($offset, $value): void
   public function offsetUnset($offset): void
@@ -973,7 +977,7 @@ final class Phel\Lang\Collections\Vector\TransientVector implements Phel\Lang\Co
   public function contains($key): bool
   public function count(): int
   public function get(int $i)
-  public function offsetExists($offset): bool
+  public function offsetExists(mixed $offset): bool
   public function offsetGet($offset): mixed
   public function offsetSet($offset, $value): void
   public function offsetUnset($offset): void
@@ -1535,6 +1539,7 @@ final class Phel\Lint\LintFacade extends Gacela\Framework\AbstractFacade
   public function formatters(): Phel\Lint\Application\Formatter\FormatterRegistry
   public function lint(array $paths, Phel\Lint\Application\Config\RuleSettings $settings, ?Phel\Lint\Application\Cache\LintCache $cache = null): Phel\Lint\Transfer\LintResult
   public function loadSettings(string $configPath, Phel\Lint\Application\Config\RuleSettings $defaults): Phel\Lint\Application\Config\RuleSettings
+  public function ruleExplainer(): Phel\Shared\Lint\LintRuleExplainerInterface
 
 final class Phel\Lsp\LspFacade extends Gacela\Framework\AbstractFacade
   public function createServer($output): Phel\Lsp\Application\Rpc\LspServer
@@ -1638,6 +1643,9 @@ final readonly class Phel\Shared\Api\Diagnostic
   public const string SEVERITY_HINT = 'hint'
   public const string SEVERITY_INFO = 'info'
   public const string SEVERITY_WARNING = 'warning'
+  public readonly ?string $errorCode
+  public readonly ?string $fix
+  public readonly array $suggestions
   public readonly int $endCol
   public readonly int $endLine
   public readonly int $startCol
@@ -1646,8 +1654,12 @@ final readonly class Phel\Shared\Api\Diagnostic
   public readonly string $message
   public readonly string $severity
   public readonly string $uri
-  public function __construct(string $code, string $severity, string $message, string $uri, int $startLine, int $startCol, int $endLine, int $endCol)
+  public function __construct(string $code, string $severity, string $message, string $uri, int $startLine, int $startCol, int $endLine, int $endCol, ?string $errorCode = null, array $suggestions = [], ?string $fix = null)
   public function toArray(): array
+  public function withCode(string $code): Phel\Shared\Api\Diagnostic
+  public function withFix(?string $fix): Phel\Shared\Api\Diagnostic
+  public function withSeverity(string $severity): Phel\Shared\Api\Diagnostic
+  public static function fromLocatedException(Phel\Shared\Exceptions\AbstractLocatedException $e, Phel\Shared\Exceptions\ErrorCode $fallbackCode, string $uri): Phel\Shared\Api\Diagnostic
 
 final readonly class Phel\Shared\Api\Location
   public readonly int $col
@@ -1784,11 +1796,13 @@ final readonly class Phel\Shared\Eval\StackFrame
 abstract class Phel\Shared\Exceptions\AbstractLocatedException extends RuntimeException
   protected function setErrorCode(Phel\Shared\Exceptions\ErrorCode $errorCode): void
   protected function setRelatedLocationNote(string $relatedLocationNote): void
+  protected function setSuggestions(array $suggestions): void
   public function __construct(string $message, ?Phel\Lang\SourceLocation $startLocation = null, ?Phel\Lang\SourceLocation $endLocation = null, ?Throwable $nestedException = null)
   public function getEndLocation(): ?Phel\Lang\SourceLocation
   public function getErrorCode(): ?Phel\Shared\Exceptions\ErrorCode
   public function getRelatedLocationNote(): ?string
   public function getStartLocation(): ?Phel\Lang\SourceLocation
+  public function getSuggestions(): array
 
 final class Phel\Shared\Exceptions\CompiledCodeIsMalformedException extends RuntimeException
   public static function fromThrowable(Throwable $e): Phel\Shared\Exceptions\CompiledCodeIsMalformedException
@@ -1811,6 +1825,7 @@ enum Phel\Shared\Exceptions\ErrorCode: string
   case INVALID_SPLICE = 'PHEL202'
   case LEXER_ERROR = 'PHEL310'
   case MACRO_EXPANSION_ERROR = 'PHEL005'
+  case MISSING_NAMESPACE = 'PHEL014'
   case NOT_CALLABLE = 'PHEL011'
   case PARSER_ERROR = 'PHEL120'
   case READER_ERROR = 'PHEL210'
@@ -1947,6 +1962,7 @@ interface Phel\Shared\Facade\CompilerFacadeInterface
   public function encodeNs(string $namespace): string
   public function eval(string $phelCode, Phel\Shared\CompileOptions $compileOptions): mixed
   public function evalForm(mixed $form, Phel\Shared\CompileOptions $compileOptions): mixed
+  public function findSimilarNames(string $typed, array $candidates): array
   public function getGlobalEnvironment(): Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface
   public function getNamespaceEnvironmentData(string $namespace): array
   public function hasBalancedParentheses(string $code): bool
@@ -1960,6 +1976,7 @@ interface Phel\Shared\Facade\CompilerFacadeInterface
   public function parseNext(Phel\Compiler\Domain\Lexer\TokenStream $tokenStream): ?Phel\Shared\Parser\Node\NodeInterface
   public function read(Phel\Shared\Parser\Node\NodeInterface $parseTree): Phel\Compiler\Domain\Parser\ReadModel\ReaderResult
   public function readFormsBestEffort(string $code, string $source = 'string'): Generator
+  public function rejectSupersededForms(mixed $form): void
   public function replayDeprecations(array $records): void
   public function resetGlobalEnvironment(): void
   public function restoreNamespaceEnvironmentData(string $namespace, array $envData): void
@@ -2017,6 +2034,8 @@ final readonly class Phel\Shared\Formatter\FormatResult
 final class Phel\Shared\FrameworkNamespaces
   public const string CLOJURE_PREFIX = 'clojure.'
   public const string PHEL_PREFIX = 'phel.'
+  public static function clojureTarget(string $namespace): ?string
+  public static function isPhel(string $namespace): bool
   public static function matches(string $namespace): bool
 
 final readonly class Phel\Shared\Interop\Wrapper
@@ -2035,12 +2054,17 @@ final class Phel\Shared\LintRuleCodes
   public const string REDUNDANT_DO = 'phel/redundant-do'
   public const string SHADOWED_BINDING = 'phel/shadowed-binding'
   public const string SHADOWED_CORE_FN = 'phel/shadowed-core-fn'
+  public const string UNRESOLVED_NAMESPACE = 'phel/unresolved-namespace'
   public const string UNRESOLVED_REFER = 'phel/unresolved-refer'
   public const string UNRESOLVED_SYMBOL = 'phel/unresolved-symbol'
   public const string UNUSED_BINDING = 'phel/unused-binding'
   public const string UNUSED_IMPORT = 'phel/unused-import'
   public const string UNUSED_REQUIRE = 'phel/unused-require'
   public static function allCodes(): array
+
+interface Phel\Shared\Lint\LintRuleExplainerInterface
+  public function explainRule(string $code): ?array
+  public function ruleExplanations(): array
 
 final readonly class Phel\Shared\Munge implements Phel\Shared\MungeInterface
   public function __construct(array $mapping = ['-' => '_', '.' => '_DOT_', ':' => '_COLON_', '+' => '_PLUS_', '>' => '_GT_', '<' => '_LT_', '=' => '_EQ_', '~' => '_TILDE_', '!' => '_BANG_', '@' => '_CIRCA_', '#' => '_SHARP_', '\'' => '_SINGLEQUOTE_', '"' => '_DOUBLEQUOTE_', '%' => '_PERCENT_', '^' => '_CARET_', '&' => '_AMPERSAND_', '*' => '_STAR_', '|' => '_BAR_', '{' => '_LBRACE_', '}' => '_RBRACE_', '[' => '_LBRACK_', ']' => '_RBRACK_', '/' => '_SLASH_', '\\' => '_BSLASH_', '?' => '_QMARK_', '$' => '_DOLLAR_'], array $nsMapping = ['-' => '_'])
@@ -2065,6 +2089,7 @@ final readonly class Phel\Shared\NamespaceInformation
   public function isPrimaryDefinition(): bool
 
 final class Phel\Shared\NoColor
+  public static function followOutput(?bool $decorated): void
   public static function isRequested(?array $env = null): bool
   public static function style(?array $env = null): Phel\Shared\ColorStyleInterface
 

@@ -4,7 +4,7 @@ Single source for every skill adapter.
 
 ## Rules
 
-1. Verify fn names with `(doc <fn>)` or grep `src/phel/core/`. No invention.
+1. Verify fn names with `phel doc <fn> --format=json`, `(doc <fn>)`, or grep `vendor/phel-lang/phel-lang/src/phel/core/`. No invention.
 2. Collections immutable. `(conj v x)` returns new; rebind with `def`/`let`, or use `atom`.
 3. Top-level side effects break `phel build`. Guard with `(when-not *build-mode* ...)`.
 4. PHP interop: `(new Class args)`, `(.method obj args)`, `(.-prop obj)`, `(Class/method args)`, `Class/CONST`. A static property reads as `Class/$prop` and assigns as `(set! Class/prop v)`; the sigil belongs to the read only. Host functions keep the prefix: `(php/strlen s)`. `php/new`, `php/->` and `php/::` are rejected as source.
@@ -58,6 +58,16 @@ See [`tasks/common-gotchas.md`](tasks/common-gotchas.md) for details. Quick summ
 - **`transduce` + `max`/`min`**: these don't support 0-arity; pass explicit init: `(transduce xf max 0 coll)`. A hand-written 2-arity reducer needs `completing`.
 - **`for` vs `doseq`**: `for` builds a sequence (lazy); `doseq` is for side effects. Don't use `for` for `println` loops.
 - **`phel.string`**: was `phel.str` before v0.33.
+- **Clojure habits**: no JVM classes (`Math/abs` is `abs`, `Integer/parseInt` is `parse-long`), no `:refer :all`, no `:import`, no top-level `require` in a file. Table in `tasks/common-gotchas.md`.
+
+## Check loop
+
+After every edit to a `.phel` file, before running it:
+
+1. `./vendor/bin/phel lint <file> --format=json`. Fix every `error`; read every `warning`.
+2. `./vendor/bin/phel explain <code>` for a `PHELnnn` code you do not recognise, from lint or any error.
+3. `./vendor/bin/phel doc <fn> --format=json` before calling a fn you have not verified.
+4. `./vendor/bin/phel test` once lint is clean.
 
 ## CLI
 
@@ -69,7 +79,11 @@ See [`tasks/common-gotchas.md`](tasks/common-gotchas.md) for details. Quick summ
 | REPL | `./vendor/bin/phel repl` |
 | Test | `./vendor/bin/phel test [path]` |
 | Build | `./vendor/bin/phel build` |
-| Doc | `./vendor/bin/phel doc <fn>` |
+| Doc | `./vendor/bin/phel doc <fn> [--format=json]` |
+| Lint | `./vendor/bin/phel lint [paths] [--format=json]` (exit 1 on errors) |
+| Analyze | `./vendor/bin/phel analyze <file>` (analyzer diagnostics as JSON) |
+| Explain error | `./vendor/bin/phel explain <PHELnnn>` (no code lists every one) |
+| Show emitted PHP | `./vendor/bin/phel compile '<expr>'` |
 | Format | `./vendor/bin/phel format <file>` (`--dry-run` to check; `--exclude='<glob>'` or `format-exclude` config skips generated files) |
 | Fix parens | `./vendor/bin/phel balance <file> --fix` |
 | Profile | `./vendor/bin/phel profile <path> [--format=text\|json\|both] [--output=<file>]` |
@@ -78,17 +92,14 @@ See [`tasks/common-gotchas.md`](tasks/common-gotchas.md) for details. Quick summ
 ## Workflow
 
 1. `phel init` if empty.
-2. Unknowns → REPL `(doc <fn>)` before guessing.
+2. Unknowns → `phel doc <fn> --format=json` or REPL `(doc <fn>)` before guessing.
 3. Code `src/<ns>.phel` (flat) or `src/phel/<ns>.phel` (`--nested`).
-4. `phel.test`: `deftest`, `is`. Run `phel test`.
-5. `phel run` or web entry.
-6. Hot loops: add `:tag` to params + return; `phel profile` to find them.
+4. Run the check loop above on every file you touch.
+5. `phel.test`: `deftest`, `is`. Run `phel test`.
+6. `phel run` or web entry.
+7. Hot loops: add `:tag` to params + return; `phel profile` to find them.
 
 After writing or editing a `.phel` file, `phel balance <file> --fix` appends any
 closing delimiter you dropped. It only appends: a surplus or mismatched closer
 and an unterminated string are reported and left for you to fix, since each has
 more than one plausible repair.
-
-## Commits
-
-Conventional (`feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`). No AI/LLM references.

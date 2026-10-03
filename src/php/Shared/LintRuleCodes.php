@@ -24,6 +24,7 @@ final class LintRuleCodes
 {
     public const string UNRESOLVED_SYMBOL = 'phel/unresolved-symbol';
 
+    public const string UNRESOLVED_NAMESPACE = 'phel/unresolved-namespace';
     public const string UNRESOLVED_REFER = 'phel/unresolved-refer';
 
     public const string ARITY_MISMATCH = 'phel/arity-mismatch';
@@ -66,6 +67,7 @@ final class LintRuleCodes
     {
         return [
             self::UNRESOLVED_SYMBOL,
+            self::UNRESOLVED_NAMESPACE,
             self::UNRESOLVED_REFER,
             self::ARITY_MISMATCH,
             self::UNUSED_BINDING,

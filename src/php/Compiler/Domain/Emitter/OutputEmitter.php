@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\ConstantScope;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\DeferredDefinitionRegistrations;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
@@ -52,6 +53,8 @@ final class OutputEmitter implements OutputEmitterInterface
     /** @var list<ConstantScope> */
     private array $constantScopes = [];
 
+    private readonly DeferredDefinitionRegistrations $deferredDefinitions;
+
     public function __construct(
         private readonly bool $enableSourceMaps,
         private readonly NodeEmitterFactory $nodeEmitterFactory,
@@ -59,7 +62,9 @@ final class OutputEmitter implements OutputEmitterInterface
         private readonly PrinterInterface $printer,
         private readonly SourceMapState $sourceMapState,
         private readonly OutputEmitterOptions $options,
-    ) {}
+    ) {
+        $this->deferredDefinitions = new DeferredDefinitionRegistrations();
+    }
 
     /**
      * Pushes a new constant-cache scope onto the stack.
@@ -113,6 +118,11 @@ final class OutputEmitter implements OutputEmitterInterface
     public function getOptions(): OutputEmitterOptions
     {
         return $this->options;
+    }
+
+    public function getDeferredDefinitions(): DeferredDefinitionRegistrations
+    {
+        return $this->deferredDefinitions;
     }
 
     public function resetIndentLevel(): void
