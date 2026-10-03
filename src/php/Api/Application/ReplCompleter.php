@@ -149,14 +149,14 @@ final class ReplCompleter implements ReplCompleterInterface
         // Referred symbol completion and fully qualified completion. A
         // qualified name completes as `ns/name`; the input still matches when
         // typed with the `\` separator.
-        $dottedInput = self::dotted($input);
+        $dottedInput = $this->dotted($input);
         foreach (Phel::getNamespaces() as $namespace) {
             foreach (Phel::getDefinitionInNamespace($namespace) as $name => $definition) {
                 $qualifiedName = $namespace === 'phel.core'
                     ? $name
                     : Munge::displayNs($namespace) . '/' . $name;
 
-                if (str_starts_with(self::dotted($qualifiedName), $dottedInput)) {
+                if (str_starts_with($this->dotted($qualifiedName), $dottedInput)) {
                     $type = $this->resolveDefinitionType($namespace, $name, $definition);
                     $matches[$qualifiedName] = new CompletionResultTransfer($qualifiedName, $type);
                 }
@@ -232,7 +232,7 @@ final class ReplCompleter implements ReplCompleterInterface
         return 'var';
     }
 
-    private static function dotted(string $symbol): string
+    private function dotted(string $symbol): string
     {
         return str_replace(['\\', '/'], '.', $symbol);
     }
