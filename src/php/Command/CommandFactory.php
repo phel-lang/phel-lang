@@ -25,6 +25,7 @@ use Phel\Command\Infrastructure\ErrorLog;
 use Phel\Command\Infrastructure\SourceMapExtractor;
 use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ArgumentCountHint;
+use Phel\Shared\Exceptions\Hint\ClassNotFoundHint;
 use Phel\Shared\Exceptions\Hint\ExceptionHintInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Exceptions\Hint\MissingNsFormHint;
@@ -84,6 +85,7 @@ final class CommandFactory extends AbstractFactory
             new NotCallableHint(),
             new ArgumentCountHint(),
             new UndefinedSymbolHint(),
+            new ClassNotFoundHint(),
         ];
     }
 

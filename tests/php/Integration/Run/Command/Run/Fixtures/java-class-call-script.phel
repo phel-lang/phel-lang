@@ -1,0 +1,6 @@
+(ns java-class-call-script)
+
+(defn parse [s]
+  (Integer/parseInt s))
+
+(parse "3")
