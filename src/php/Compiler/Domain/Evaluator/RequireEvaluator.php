@@ -135,7 +135,7 @@ final class RequireEvaluator implements EvaluatorInterface
             return bin2hex(random_bytes(8));
         }
 
-        return $pid . '_' . (self::$processNonce ??= bin2hex(random_bytes(4)));
+        return $pid . '_' . (self::$processNonce ??= bin2hex(random_bytes(16)));
     }
 
     /**
