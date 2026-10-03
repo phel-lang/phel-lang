@@ -120,6 +120,9 @@ final class Destructure
         return null;
     }
 
+    /**
+     * @phpstan-assert-if-true PersistentListInterface<mixed>|LazySeqInterface<mixed>|Cons<mixed> $value
+     */
     private static function isSeq(mixed $value): bool
     {
         return $value instanceof PersistentListInterface
