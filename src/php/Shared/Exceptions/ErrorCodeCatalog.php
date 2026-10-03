@@ -166,6 +166,13 @@ final class ErrorCodeCatalog
                 fix: 'Use the replacement the message names. The full table is in docs/migration/deprecated-surface.md.',
             ),
             new ErrorCodeExplanation(
+                code: ErrorCode::UNRESOLVED_REFER,
+                title: 'Unresolved refer',
+                summary: 'A `:refer` in an `ns` form names something the required namespace does not define, or keeps private. Phel checks it when the namespace is already loaded, which it is for every file a run, test or build loads in dependency order.',
+                example: "(ns app.main\n  (:require phel.string :refer [upper-case shout]))",
+                fix: 'Check the spelling against the namespace, or drop the name from the `:refer` vector.',
+            ),
+            new ErrorCodeExplanation(
                 code: ErrorCode::MISSING_NAMESPACE,
                 title: 'Missing namespace',
                 summary: 'A `(:require ...)` names a namespace that no source file declares on the searched directories, that is not loaded, and that Phel does not ship. The caret marks the namespace in the requiring file; the note lists the directories searched.',

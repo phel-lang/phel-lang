@@ -432,6 +432,26 @@ PHEL);
         self::assertMatchesRegularExpression('~Defined: .*macro-error-script\.phel:3~', $output);
     }
 
+    public function test_referring_a_name_the_required_namespace_does_not_define_fails_at_the_ns_form(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-unresolved-refer-' . uniqid();
+        mkdir($dir);
+        file_put_contents($dir . '/refer-util.phel', "(ns refer-util)\n\n(defn f [] 1)\n");
+        file_put_contents($dir . '/main.phel', "(ns refer-main\n  (:require refer-util :refer [f nope]))\n\n(println \"must not reach here\")\n");
+
+        try {
+            $output = $this->captureRunOutput($dir . '/main.phel');
+        } finally {
+            unlink($dir . '/refer-util.phel');
+            unlink($dir . '/main.phel');
+            rmdir($dir);
+        }
+
+        self::assertStringContainsString("[PHEL013] 'nope' is referred from refer-util, which does not define it.", $output);
+        self::assertStringContainsString('main.phel:2', $output);
+        self::assertStringNotContainsString('must not reach here', $output);
+    }
+
     private function runtimeErrorReport(mixed $readFifth): string
     {
         self::assertIsCallable($readFifth);

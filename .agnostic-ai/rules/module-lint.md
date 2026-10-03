@@ -38,7 +38,7 @@ Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`
 
 ## Rule Set (v1)
 
-- Errors: `phel/unresolved-symbol`, `phel/unresolved-namespace`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`, `phel/duplicate-def`
+- Errors: `phel/unresolved-symbol`, `phel/unresolved-namespace`, `phel/unresolved-refer`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`, `phel/duplicate-def`
 - Warnings: `phel/unused-binding`, `phel/unused-require`, `phel/unused-import`, `phel/shadowed-binding`, `phel/shadowed-core-fn`, `phel/redundant-do`, `phel/discouraged-var`, `phel/comment-style`, `phel/unknown-class`
 
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
@@ -85,6 +85,15 @@ known set comes from `RunFacadeInterface::getAllNamespaces()`
 (`Infrastructure\ProjectKnownNamespaces`), read once per run. A user namespace
 is out of scope: linting a file outside the configured dirs would flag its
 siblings, and the runtime already names a missing one.
+
+### `phel/unresolved-refer`
+
+Promotes the analyzer's `PHEL013`, raised by `NsSymbol` when a `:refer` names
+something the required namespace does not define or keeps private. The analyzer
+can only check a namespace that is loaded; the Api analysis stage loads the
+linted file's dependencies first, so the rule sees every project and stdlib
+require. `definterface` and `defstruct` names count as defined through their PHP
+class.
 
 ### `phel/duplicate-def`
 

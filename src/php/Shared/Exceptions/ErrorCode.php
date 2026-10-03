@@ -30,6 +30,7 @@ enum ErrorCode: string
     case RECUR_ERROR = 'PHEL010';
     case NOT_CALLABLE = 'PHEL011';
     case SUPERSEDED_FORM = 'PHEL012';
+    case UNRESOLVED_REFER = 'PHEL013';
     case MISSING_NAMESPACE = 'PHEL014';
 
     // Parser errors (PHEL100-199)

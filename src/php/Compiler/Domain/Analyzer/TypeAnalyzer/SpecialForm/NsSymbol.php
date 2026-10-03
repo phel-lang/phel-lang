@@ -8,14 +8,18 @@ use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\PhpClassLike;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\FrameworkNamespaces;
+use Phel\Shared\Munge;
 
 use function count;
 use function explode;
@@ -387,7 +391,70 @@ TXT;
             $this->analyzer->addRequireAlias($ns, $requireSymbol, $resolvedSymbol);
         }
 
+        // After registering, so a tool that reports this and reads on still
+        // resolves the names that are defined.
+        $this->assertRefersAreDefined($resolvedSymbol->getName(), $referSymbols, $referValue, $import);
+
         return $resolvedSymbol;
+    }
+
+    /**
+     * Only a loaded namespace can be checked. A file's dependencies load
+     * before it compiles, so this covers `run`, `test` and `build`; a
+     * namespace the emitted `ns` form has yet to load is left alone.
+     *
+     * @param list<Symbol>                          $referSymbols
+     * @param PersistentVectorInterface<mixed>|null $referValue
+     * @param PersistentListInterface<mixed>        $import
+     */
+    private function assertRefersAreDefined(
+        string $requiredNs,
+        array $referSymbols,
+        ?PersistentVectorInterface $referValue,
+        PersistentListInterface $import,
+    ): void {
+        $registry = Registry::getInstance();
+        $munge = new Munge();
+        $mungedNs = $munge->encodeRegistryKey($requiredNs);
+        if ($referSymbols === [] || !$registry->hasNamespace($mungedNs)) {
+            return;
+        }
+
+        foreach ($referSymbols as $refer) {
+            $name = $refer->getName();
+            if ($this->isPhpClassOf($munge, $requiredNs, $name)) {
+                continue;
+            }
+
+            if (!$registry->isDefined($mungedNs, $name)) {
+                $message = sprintf("'%s' is referred from %s, which does not define it.", $name, $requiredNs);
+            } elseif ($this->isPrivate($registry->getDefinitionMetaData($mungedNs, $name))) {
+                $message = sprintf("'%s' is referred from %s, which keeps it private.", $name, $requiredNs);
+            } else {
+                continue;
+            }
+
+            throw AnalyzerException::withLocation(
+                $message,
+                $refer->getStartLocation() instanceof SourceLocation ? $refer : ($referValue ?? $import),
+                errorCode: ErrorCode::UNRESOLVED_REFER,
+            );
+        }
+    }
+
+    /**
+     * `definterface` and `defstruct` names are PHP classes, not registry
+     * definitions.
+     */
+    private function isPhpClassOf(Munge $munge, string $ns, string $name): bool
+    {
+        return PhpClassLike::exists('\\' . $munge->encodePhpNs($ns) . '\\' . $munge->encode($name));
+    }
+
+    private function isPrivate(mixed $meta): bool
+    {
+        return $meta instanceof PersistentMapInterface
+            && $meta->find(Keyword::create('private')) === true;
     }
 
     /**

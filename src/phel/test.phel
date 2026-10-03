@@ -375,6 +375,28 @@
 (defmethod assert-expr 'output? [message form]
   (assert-output form message))
 
+(defn- outside-is [form usage]
+  (throw (new InvalidArgumentException
+              (str "(" form " ...) only works as an assertion inside is: " usage))))
+
+(defmacro thrown?
+  "Assertion form for `is`: passes when `body` throws an instance of `exception-class`, or of a subclass. It has no meaning outside `is`, and fails there."
+  {:example "(is (thrown? InvalidArgumentException (throw (new InvalidArgumentException \"bad\"))))"}
+  [exception-class & body]
+  (outside-is 'thrown? "(is (thrown? Exception body))"))
+
+(defmacro thrown-with-msg?
+  "Assertion form for `is`: passes when `body` throws an instance of `exception-class` whose message matches `regex`. It has no meaning outside `is`, and fails there."
+  {:example "(is (thrown-with-msg? InvalidArgumentException #\"bad\" (throw (new InvalidArgumentException \"bad input\"))))"}
+  [exception-class regex & body]
+  (outside-is 'thrown-with-msg? "(is (thrown-with-msg? Exception #\"message\" body))"))
+
+(defmacro output?
+  "Assertion form for `is`: passes when `body` prints exactly `expected`. It has no meaning outside `is`, and fails there."
+  {:example "(is (output? \"hi\" (print \"hi\")))"}
+  [expected body]
+  (outside-is 'output? "(is (output? \"expected\" body))"))
+
 (def- assert-expr-special-forms
   ;; Special forms and structured-syntax macros that must not be treated as
   ;; regular function calls when dispatching `is` assertions.

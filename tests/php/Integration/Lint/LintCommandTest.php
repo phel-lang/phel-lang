@@ -401,6 +401,40 @@ final class LintCommandTest extends TestCase
         self::assertArrayHasKey('phel/unused-binding', $byCode, 'the other file is still linted');
     }
 
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_reports_a_refer_of_a_name_the_required_namespace_does_not_define(): void
+    {
+        $root = realpath(sys_get_temp_dir()) . '/phel-lint-refer-' . uniqid();
+        mkdir($root . '/src/app', 0777, true);
+        file_put_contents($root . '/src/app/util.phel', "(ns app.util)\n\n(defn f [] 1)\n");
+        file_put_contents($root . '/src/app/u4.phel', "(ns app.u4\n  (:require app.util :refer [f nope]))\n\n(f)\n");
+
+        try {
+            Phel::bootstrap($root);
+            Phel::clear();
+            Symbol::resetGen();
+            GlobalEnvironmentSingleton::initializeNew();
+
+            $tester = new CommandTester(new LintCommand());
+            $exit = $tester->execute([
+                'paths' => [$root . '/src/app/u4.phel'],
+                '--format' => 'json',
+                '--no-cache' => true,
+            ]);
+        } finally {
+            $this->removeDir($root);
+        }
+
+        self::assertSame(1, $exit, $tester->getDisplay());
+        $payload = json_decode(trim($tester->getDisplay()), true);
+        self::assertIsArray($payload, $tester->getDisplay());
+        self::assertSame(
+            [['phel/unresolved-refer', "'nope' is referred from app.util, which does not define it.", 2]],
+            array_map(static fn(array $d): array => [$d['code'], $d['message'], $d['startLine']], $payload),
+        );
+    }
+
     private function bootstrap(): void
     {
         Phel::bootstrap(__DIR__);

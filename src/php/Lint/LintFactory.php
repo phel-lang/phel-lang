@@ -28,6 +28,7 @@ use Phel\Lint\Application\Rule\ShadowedBindingRule;
 use Phel\Lint\Application\Rule\ShadowedCoreFnRule;
 use Phel\Lint\Application\Rule\UnknownClassRule;
 use Phel\Lint\Application\Rule\UnresolvedNamespaceRule;
+use Phel\Lint\Application\Rule\UnresolvedReferRule;
 use Phel\Lint\Application\Rule\UnresolvedSymbolRule;
 use Phel\Lint\Application\Rule\UnusedBindingRule;
 use Phel\Lint\Application\Rule\UnusedImportRule;
@@ -81,6 +82,7 @@ final class LintFactory extends AbstractFactory
         return [
             new UnresolvedSymbolRule(),
             new UnresolvedNamespaceRule(new ProjectKnownNamespaces($this->getRunFacade()), $this->getCompilerFacade()),
+            new UnresolvedReferRule(),
             new ArityMismatchRule(),
             new UnusedBindingRule(),
             new UnusedRequireRule(),

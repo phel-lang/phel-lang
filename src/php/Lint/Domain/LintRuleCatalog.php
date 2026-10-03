@@ -92,6 +92,13 @@ final class LintRuleCatalog implements LintRuleExplainerInterface
                 fix: 'Fix the spelling to the suggested namespace, or install the package that ships it.',
             ),
             new LintRuleExplanation(
+                code: LintRuleCodes::UNRESOLVED_REFER,
+                title: 'Unresolved refer',
+                summary: 'A :refer in an ns form names something the required namespace does not define, or keeps private. The lint form of PHEL013.',
+                example: '(ns app' . "\n" . '  (:require phel.string :refer [upper-case shout]))',
+                fix: 'Check the spelling against the namespace, or drop the name from the :refer vector.',
+            ),
+            new LintRuleExplanation(
                 code: LintRuleCodes::ARITY_MISMATCH,
                 title: 'Arity mismatch',
                 summary: 'A call passes a number of arguments the fn does not accept. The lint form of PHEL002.',
