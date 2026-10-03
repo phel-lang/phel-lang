@@ -59,7 +59,6 @@ Compiler:
 
 Runtime:
 
-- Map destructuring reads a seq as keyword arguments and anything else through `get`, as Clojure does: `(let [{:keys [a]} '(:a 1)] a)` and the same over `(map identity [:a 1])` return `1`, and `(let [{:keys [a]} #{:a}] a)` returns `:a`. A set or a lazy seq used to fail with `Cannot use object ... as array`. A map keeps its inline lookup. (#3479)
 - **BREAKING**: `transduce` calls the reducing fn's completion once, as Clojure does: a reducer with a 1-arity finalizes the result. A reducer with only a 2-arity now throws `ArgumentCountError`; wrap it in `completing`. (#3433)
 - `seq` and `next` keep a lazy seq or list whose next element is nil, as in Clojure: `(next (map identity [1 nil 3]))` returns `(nil 3)`. They used to return nil and drop the rest, so `(reduce + (map :price items))` stopped silently at the first missing key. (#3451)
 - `count` counts the seq `next` returns for a lazy seq: `(count (next (map identity [1 2 3])))` returns `2`. It used to throw `count is not supported on a lazily consumed source`. (#3452)
