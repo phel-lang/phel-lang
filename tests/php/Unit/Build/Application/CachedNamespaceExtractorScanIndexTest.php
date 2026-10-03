@@ -262,6 +262,36 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $extractor->getNamespacesFromDirectories([$this->dir], failOnInvalidNsForm: true);
     }
 
+    /**
+     * The fingerprint records only the files a scan read, so a stored scan
+     * that skipped a file with no ns form would keep hiding it after the file
+     * gains one in place (#3484).
+     */
+    public function test_a_scan_that_skipped_a_file_with_no_ns_form_is_not_persisted(): void
+    {
+        Phel::bootstrap(__DIR__);
+        $this->writePhel('main.phel', '(ns app.main)');
+        $this->writePhel('stray.phel', "(defn x [] 1)\n");
+
+        $cache = new PhpScanIndexCache($this->cacheFile);
+        $extractor = new CachedNamespaceExtractor(
+            new NamespaceExtractor(new CompilerFacade(), new TopologicalNamespaceSorter(), new SystemFileIo()),
+            new NullNamespaceCache(),
+            new TopologicalNamespaceSorter(),
+            null,
+            $cache,
+        );
+
+        $infos = $extractor->getNamespacesFromDirectories([$this->dir]);
+        $cache->save();
+
+        self::assertSame(['app.main'], array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $infos));
+
+        $callCount = 0;
+        $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)->getNamespacesFromDirectories([$this->dir]);
+        self::assertSame(2, $callCount, 'The next process must walk again, not serve the skipping scan.');
+    }
+
     public function test_a_strict_scan_reads_a_file_broken_in_the_same_second_as_the_cached_scan(): void
     {
         Phel::bootstrap(__DIR__);

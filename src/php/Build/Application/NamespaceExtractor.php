@@ -58,7 +58,8 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
     /**
      * @throws ExtractorException
-     * @throws CompilerException  when the file's ns form does not analyze
+     * @throws CompilerException      when the file's ns form does not analyze
+     * @throws MissingNsFormException when the file does not start with an ns form
      */
     public function getNamespaceFromFile(string $path): NamespaceInformation
     {
@@ -215,11 +216,12 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
                 try {
                     $result[] = $this->getNamespaceFromFile($file[0]);
-                } catch (ExtractorException) {
-                    // Skip files that cannot be parsed/lexed so one malformed
-                    // .phel file in a scanned directory does not abort the
-                    // whole scan (e.g. REPL starting in a cwd that contains
-                    // unrelated broken Phel files).
+                } catch (ExtractorException|MissingNsFormException) {
+                    // Skip files that cannot be parsed/lexed, or that start
+                    // with no ns form, so one stray file in a scanned
+                    // directory does not abort the whole scan (e.g. `phel
+                    // eval` in a cwd holding unrelated Clojure checkouts,
+                    // #3484). Asking for one specific file still throws.
                     continue;
                 } catch (CompilerException $compilerException) {
                     if ($failOnInvalidNsForm) {
