@@ -58,7 +58,8 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
     /**
      * @throws ExtractorException
-     * @throws CompilerException  when the file's ns form does not analyze
+     * @throws CompilerException      when the file's ns form does not analyze
+     * @throws MissingNsFormException when the file does not start with an ns form
      */
     public function getNamespaceFromFile(string $path): NamespaceInformation
     {
