@@ -1012,6 +1012,8 @@ final class Phel\Lang\Delay
   public function isRealized(): bool
 
 final class Phel\Lang\Destructure
+  public static function kwargs(mixed $value): mixed
+  public static function lookupSource(mixed $value): mixed
   public static function nthNext(Phel\Lang\Collections\Vector\PersistentVectorInterface $vector, int $n): mixed
 
 final class Phel\Lang\DynamicScope
@@ -1877,6 +1879,11 @@ final class Phel\Shared\Exceptions\Hint\ArgumentCountHint implements Phel\Shared
   public function appliesTo(Throwable $e): bool
   public function hint(Throwable $e): string
 
+final class Phel\Shared\Exceptions\Hint\ClassNotFoundHint implements Phel\Shared\Exceptions\Hint\ExceptionHintInterface
+  public function appliesTo(Throwable $e): bool
+  public function hint(Throwable $e): string
+  public function javaClassHint(string $class): ?string
+
 interface Phel\Shared\Exceptions\Hint\ExceptionHintInterface
   public function appliesTo(Throwable $e): bool
   public function hint(Throwable $e): string
@@ -2054,6 +2061,7 @@ final class Phel\Shared\LintRuleCodes
   public const string REDUNDANT_DO = 'phel/redundant-do'
   public const string SHADOWED_BINDING = 'phel/shadowed-binding'
   public const string SHADOWED_CORE_FN = 'phel/shadowed-core-fn'
+  public const string UNKNOWN_CLASS = 'phel/unknown-class'
   public const string UNRESOLVED_NAMESPACE = 'phel/unresolved-namespace'
   public const string UNRESOLVED_REFER = 'phel/unresolved-refer'
   public const string UNRESOLVED_SYMBOL = 'phel/unresolved-symbol'

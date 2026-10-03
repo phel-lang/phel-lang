@@ -183,6 +183,13 @@ final class LintRuleCatalog implements LintRuleExplainerInterface
                 fix: 'Start a whole-line comment with ;;.',
             ),
             new LintRuleExplanation(
+                code: LintRuleCodes::UNKNOWN_CLASS,
+                title: 'Unknown class',
+                summary: 'A static call names a class that cannot be autoloaded. A Java class such as Integer gets its Phel replacement. A warning, since a class can be loaded at runtime.',
+                example: '(ns app)' . "\n" . '(Integer/parseInt "42")',
+                fix: 'Fix the class name or its :use, install the package that ships it, or call the Phel replacement the message names.',
+            ),
+            new LintRuleExplanation(
                 code: LintRuleCodes::INTERNAL_ERROR,
                 title: 'Lint rule crashed',
                 summary: 'A lint rule threw while checking the file. The finding is about the linter, not about your code.',

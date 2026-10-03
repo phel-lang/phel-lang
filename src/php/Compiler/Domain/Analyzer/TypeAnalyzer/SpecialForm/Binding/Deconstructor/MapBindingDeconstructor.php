@@ -8,10 +8,12 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\DeconstructorInterface;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReturnTypeInferrer;
 use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Destructure;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -29,6 +31,16 @@ use function sprintf;
 final class MapBindingDeconstructor implements BindingDeconstructorInterface
 {
     private const array LOOKUP_DIRECTIVES = ['keys' => true, 'strs' => true, 'syms' => true];
+
+    private const string INSTANCEOF_SYMBOL_NAME = 'php/instanceof';
+
+    private const string MAP_CLASS_NAME = '\\' . PersistentMapInterface::class;
+
+    private const string DESTRUCTURE_CLASS_NAME = '\\' . Destructure::class;
+
+    private const string KWARGS_METHOD_NAME = 'kwargs';
+
+    private const string LOOKUP_SOURCE_METHOD_NAME = 'lookupSource';
 
     /** @psalm-suppress PropertyNotSetInConstructor */
     private Symbol $mapSymbol;
@@ -81,11 +93,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
             }
         }
 
-        $this->mapSymbol = $asSymbol instanceof Symbol
-            ? $asSymbol
-            : Symbol::gen()->copyLocationFrom($binding);
-
-        $bindings[] = [$this->mapSymbol, $value];
+        $this->bindLookupSource($bindings, $binding, $value, $asSymbol instanceof Symbol ? $asSymbol : null);
 
         foreach ($directives as [$directive, $entries]) {
             foreach ($entries as $entry) {
@@ -101,6 +109,88 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
             /** @var bool|float|int|string|TypeInterface|null $bindTo */
             $this->bindingIteration($bindings, $binding, $key, $bindTo);
         }
+    }
+
+    /**
+     * Binds what the lookups index into, and `:as` when there is one. A map
+     * literal is bound as is; any other value goes through
+     * {@see self::readUnlessMap()}. A symbol is read twice at no cost, any
+     * other form is bound first so it is evaluated once.
+     *
+     * @param list<BindingTuple>                   $bindings
+     * @param PersistentMapInterface<mixed, mixed> $binding
+     */
+    private function bindLookupSource(
+        array &$bindings,
+        PersistentMapInterface $binding,
+        mixed $value,
+        ?Symbol $asSymbol,
+    ): void {
+        if ($value instanceof PersistentMapInterface) {
+            if ($asSymbol instanceof Symbol) {
+                $bindings[] = [$asSymbol, $value];
+                $this->mapSymbol = $asSymbol;
+            } else {
+                $this->mapSymbol = Symbol::gen()->copyLocationFrom($binding);
+                $bindings[] = [$this->mapSymbol, $value];
+            }
+
+            return;
+        }
+
+        $source = $value;
+        if (!$source instanceof Symbol) {
+            $source = $this->synthetic(Symbol::gen()->copyLocationFrom($binding));
+            $bindings[] = [$source, $value];
+        }
+
+        if ($asSymbol instanceof Symbol) {
+            $bindings[] = [$asSymbol, $this->readUnlessMap($binding, $source, self::KWARGS_METHOD_NAME)];
+            $source = $asSymbol;
+        }
+
+        $this->mapSymbol = Symbol::gen()->copyLocationFrom($binding);
+        $bindings[] = [$this->mapSymbol, $this->readUnlessMap($binding, $source, self::LOOKUP_SOURCE_METHOD_NAME)];
+    }
+
+    /**
+     * `(if (php/instanceof v PersistentMapInterface) v (Destructure/method v))`:
+     * a map keeps the inline `php/aget` lookups with no call, anything else is
+     * read the way Clojure reads it first (#3479).
+     *
+     * The class symbols carry no location on purpose: they are the compiler's
+     * spelling, and a located `\` symbol would announce the separator
+     * deprecation against the user's pattern.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $binding
+     *
+     * @return PersistentListInterface<mixed>
+     */
+    private function readUnlessMap(PersistentMapInterface $binding, Symbol $value, string $method): PersistentListInterface
+    {
+        return Phel::list([
+            Symbol::create(Symbol::NAME_IF)->copyLocationFrom($binding),
+            Phel::list([
+                Symbol::create(self::INSTANCEOF_SYMBOL_NAME)->copyLocationFrom($binding),
+                $value,
+                Symbol::create(self::MAP_CLASS_NAME),
+            ])->copyLocationFrom($binding),
+            $value,
+            Phel::list([
+                Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL)->copyLocationFrom($binding),
+                Symbol::create(self::DESTRUCTURE_CLASS_NAME),
+                Phel::list([Symbol::create($method)->copyLocationFrom($binding), $value])->copyLocationFrom($binding),
+            ])->copyLocationFrom($binding),
+        ])->copyLocationFrom($binding);
+    }
+
+    /**
+     * Marks a binding the expansion adds as compiler plumbing, see
+     * {@see ReturnTypeInferrer::SYNTHETIC_BINDING}.
+     */
+    private function synthetic(Symbol $symbol): Symbol
+    {
+        return $symbol->withMeta(Phel::map(Keyword::create(ReturnTypeInferrer::SYNTHETIC_BINDING), true));
     }
 
     /**

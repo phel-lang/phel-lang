@@ -11,6 +11,7 @@ use Phel\Api\Application\Analysis\PreloadDependenciesStage;
 use Phel\Api\Application\Analysis\ReadAndAnalyzeStage;
 use Phel\Api\Application\CompletionDocFormatter;
 use Phel\Api\Application\CompletionDocResolver;
+use Phel\Api\Application\DocViewFormatter;
 use Phel\Api\Application\LocalBindingResolver;
 use Phel\Api\Application\PhelFnGroupKeyGenerator;
 use Phel\Api\Application\PhelFnNormalizer;
@@ -67,6 +68,11 @@ final class ApiFactory extends AbstractFactory
             $this->createSymbolMetadataFinder(),
             new CompletionDocFormatter(),
         );
+    }
+
+    public function createDocViewFormatter(): DocViewFormatter
+    {
+        return new DocViewFormatter();
     }
 
     public function createPhelFnNormalizer(): PhelFnNormalizerInterface

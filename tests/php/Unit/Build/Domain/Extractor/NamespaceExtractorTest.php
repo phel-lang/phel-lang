@@ -161,6 +161,36 @@ final class NamespaceExtractorTest extends TestCase
         rmdir($dir);
     }
 
+    public function test_scan_skips_a_file_that_does_not_start_with_an_ns_form(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-extractor-test-' . uniqid();
+        mkdir($dir . '/sub', 0777, true);
+
+        $goodPath = $dir . '/good.phel';
+        $strayPath = $dir . '/sub/stray.cljc';
+
+        file_put_contents($goodPath, '(ns good.ns)');
+        file_put_contents($strayPath, "(defn x [] 1)\n");
+
+        $nsExtractor = new NamespaceExtractor(
+            new CompilerFacade(),
+            new TopologicalNamespaceSorter(),
+            new SystemFileIo(),
+        );
+
+        try {
+            $infos = $nsExtractor->getNamespacesFromDirectories([$dir]);
+        } finally {
+            unlink($goodPath);
+            unlink($strayPath);
+            rmdir($dir . '/sub');
+            rmdir($dir);
+        }
+
+        self::assertCount(1, $infos, 'A file with no ns form is not a namespace; the scan goes on without it.');
+        self::assertSame('good.ns', $infos[0]->getNamespace());
+    }
+
     public function test_an_ns_form_that_does_not_analyse_is_located_in_its_file(): void
     {
         try {

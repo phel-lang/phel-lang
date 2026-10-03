@@ -26,7 +26,7 @@ $__phel_1_6 = \Phel::map(
 $__phel_2_7 = (($__phel_1_6)[(\Phel\Lang\Keyword::create("name"))] ?? null);
 $n_8 = $__phel_2_7;
 $__phel_3_9 = (($__phel_1_6)[(\Phel\Lang\Keyword::create("address"))] ?? null);
-$__phel_4_10 = $__phel_3_9;
+$__phel_4_10 = ((($__phel_3_9 instanceof \Phel\Lang\Collections\Map\PersistentMapInterface)) ? $__phel_3_9 : (\Phel\Lang\Destructure::lookupSource($__phel_3_9)));
 $__phel_5_11 = (($__phel_4_10)[(\Phel\Lang\Keyword::create("city"))] ?? null);
 $city_12 = $__phel_5_11;
 \Phel::vector([$n_8, $city_12]);

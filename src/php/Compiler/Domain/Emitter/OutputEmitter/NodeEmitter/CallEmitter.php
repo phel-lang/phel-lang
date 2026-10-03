@@ -230,8 +230,8 @@ final readonly class CallEmitter implements NodeEmitterInterface
      * A call is eligible for the fixed-arity shortcut when the callee is a
      * multi-arity global fn and the argument count has a dedicated
      * `invokeArityN` slot. Only multi-arity targets are shortcut: their
-     * `__invoke` packs `...$args` and re-indexes `$args[N]`, which the
-     * per-arity methods skip. Single-arity fns already emit a lean positional
+     * `__invoke` dispatches on `func_num_args()` before it reaches the
+     * per-arity method, a hop the slot skips. Single-arity fns already emit a lean positional
      * `__invoke`, so shortcutting them would only add overhead.
      *
      * A multi-arity def stamps a `max-arity` key, `nil` when one arity is

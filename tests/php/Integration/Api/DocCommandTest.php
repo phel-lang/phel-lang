@@ -86,20 +86,50 @@ final class DocCommandTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
-    public function test_a_search_with_matches_still_prints_the_table(): void
+    public function test_a_search_without_an_exact_match_says_so_and_prints_the_table(): void
     {
         $this->bootstrap();
 
         $tester = new CommandTester(new DocCommand());
-        $exitCode = $tester->execute(['search' => 'map-indexed']);
+        $exitCode = $tester->execute(['search' => 'mapp']);
         $display = $tester->getDisplay();
 
         self::assertSame(Command::SUCCESS, $exitCode);
-        // The table wraps long names across lines, so match on the header plus
-        // the wrapped halves of `core/map-indexed` rather than the whole name.
+        self::assertStringContainsString('No exact match for "mapp". Closest:', $display);
         self::assertStringContainsString('| function', $display);
-        self::assertStringContainsString('core/map-ind', $display);
+        self::assertStringContainsString('| core/map ', $display);
         self::assertStringNotContainsString('No function matches', $display);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_an_exact_name_prints_the_full_doc(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new DocCommand());
+        $exitCode = $tester->execute(['search' => 'reduce-kv']);
+        $display = $tester->getDisplay();
+
+        self::assertSame(Command::SUCCESS, $exitCode);
+        self::assertStringStartsWith("core/reduce-kv\n(reduce-kv f init coll)\n\n", $display);
+        self::assertStringContainsString('Reduces an associative collection', $display);
+        self::assertStringContainsString("Example:\n  (reduce-kv", $display);
+        self::assertStringContainsString('See also: ', $display);
+        self::assertStringNotContainsString('| function', $display);
+        self::assertStringNotContainsString('core/reduced', $display);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_namespaced_exact_name_prints_the_full_doc(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new DocCommand());
+        $tester->execute(['search' => 'string/upper-case']);
+
+        self::assertStringStartsWith("string/upper-case\n(upper-case s)\n", $tester->getDisplay());
     }
 
     /**
