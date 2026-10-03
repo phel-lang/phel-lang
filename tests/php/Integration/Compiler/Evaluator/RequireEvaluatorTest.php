@@ -13,6 +13,8 @@ use Phel\Filesystem\Infrastructure\RealFilesystem;
 use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
+use function sprintf;
+
 final class RequireEvaluatorTest extends TestCase
 {
     use RemoveDirTrait;
