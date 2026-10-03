@@ -17,31 +17,40 @@ Language:
 Tooling:
 
 - `PHEL_OPTIMIZATION_LEVEL` sets the optimization level for every command of a process, over `phel-config.php`. `phel build -O` still wins for its build. (#3396)
-- A file whose first form is not `(ns ...)` fails with `'src/app.phel' does not start with an (ns ...) form`, instead of a `Cannot resolve symbol 'defn-'` hint. (#3373)
+- A file whose first form is not `(ns ...)` fails with `'src/app.phel' does not start with an (ns ...) form`, instead of a `Cannot resolve symbol 'defn-'` hint. A directory scan, such as the one `phel eval` runs over the working directory, skips such a file. (#3373 #3484 #3515)
 - Lint rule `phel/shadowed-core-fn` warns when a `let`, `loop` or `fn` binding is named after a public `phel.core` fn, as in `(let [inc (fn [x] 99)] (inc 1))`. (#3374)
 - Editor completion after `(.method` knows a receiver built with `(new Foo)`, `(Foo.)` or `(Foo/make)`, bound or inline. `(new Fo` completes class names, and `(DateTimeImmutable/` completes static members without a `:use`. (#3398)
+- `phel doc reduce-kv` prints the full doc of `reduce-kv`: signatures, docstring, example and see-also. A search with no exact name, such as `phel doc mapp`, says so before the table of candidates, and the table no longer wraps a function name mid-word. (#3474)
+- `find-doc` in the REPL prints the doc of every public definition whose name or docstring matches a string or regex, as in Clojure: `(find-doc "partition")` lists `partition`, `partition-all` and `partition-by`. (#3473)
+- `phel doc --format=json` names the namespace to require: `upper-case` carries `"requireNs": "phel.string"` and `"require": "(:require phel.string :refer [upper-case])"`. A `phel.core` fn carries `requireNs` and a null `require`. (#3466)
+- `phel lint --format=json` and `phel analyze` report one error with the same fields. Each diagnostic adds `errorCode` (`PHEL001` behind `phel/unresolved-symbol`), `suggestions` (the "did you mean" names as a list) and `fix` (the catalog's advice). `phel analyze src` walks a directory and exits 1 on an error. `phel explain phel/unused-require` explains a lint rule, and `--format=json` prints any entry as JSON. A `docs/` path in a fix names the file from the project, `vendor/phel-lang/phel-lang/docs/...`. (#3464)
 
 PHP API:
 
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::withoutDeprecations()` runs a callable with deprecation notices held back. (#3381)
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::rejectSupersededForms()` throws on a superseded form in a form the reader returned. (#3456)
-- Public PHP API: `Phel\Lang\Destructure`, `\Phel::fnSlot()`, `Phel\Lang\ForeignFn`, `Phel\Shared\OptimizationLevel`, `Phel\Shared\SourceMap\SupersededSourceMaps`, and the `MissingNsFormException` / `MissingNsFormHint` pair in `Phel\Shared\Exceptions`. (#3354 #3356 #3373 #3396 #3435)
+- **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::findSimilarNames()` returns the analyzer's "did you mean" candidates for a name. (#3454)
+- Public PHP API: `Phel\Lang\Destructure` (with `kwargs()`, `lookupSource()` and `restKwargs()`), `\Phel::fnSlot()`, `Phel\Lang\ForeignFn`, `Phel\Shared\OptimizationLevel`, `Phel\Shared\SourceMap\SupersededSourceMaps`, the `MissingNsFormException` / `MissingNsFormHint` pair and `ClassNotFoundHint` in `Phel\Shared\Exceptions`, and `LintRuleCodes::UNKNOWN_CLASS`, `UNRESOLVED_NAMESPACE` and `UNRESOLVED_REFER`. (#3354 #3356 #3373 #3396 #3435 #3454 #3455 #3465 #3479 #3487)
 
 ### Performance
 
 Compiler:
 
+- A multi-arity fn called as a value (passed to `reduce` or `map`, or called as `(f x)` on a local) takes its arguments as fixed params instead of packing them into an array: `(reduce + 0 v)` is 7% faster, `(f acc x)` on a local bound to `+` 18%. (#3469)
 - A build calls a multi-arity fn's fixed arity directly, also when the fn has a variadic arity: `(+ acc x)` in a loop is 1.6x faster. Nested calls such as `(-> m (get :a {}) (get :b {}))` grow linearly instead of doubling per level. (#3354)
 - Comparisons, `=`, `zero?`, `pos?`, `neg?`, `inc` and `dec` on values of unknown type answer inline for native ints: `(< a b)` 7.9x faster, `(= x 3)` 8.8x. (#3351)
 - `case` and `cond` over keywords look each keyword up once per fn: a five-arm keyword `case` is 10x faster. (#3360)
 - A multi-arity fn built at runtime, such as what `comp` or `partial` return, allocates one closure: `(comp f g)` created and called is 2.3x faster, with peak memory down from 125MB to 20MB. (#3355)
 - Sequential destructuring reads a vector by index: `(let [[a b] v] ...)` is 3.2x faster. (#3356)
 - `(not x)` compiles to an inline nil/false check, 2.6x faster; an `if` over a `^bool` param skips the truthiness check. (#3352 #3353)
+- A namespace loaded from the compiled-code cache registers its definitions with one call per file instead of a guarded block per `def`: loading a file of 500 `def`s takes 1.33 ms instead of 2.89 ms, and a warm `phel run` peaks 0.3 MB lower. The cache key hashes the source with `xxh128` instead of `md5`, 26x faster; existing caches rebuild once. (#3470)
+- Binary `+`, `-` and `*` on values of unknown type answer inline for native ints: `(+ a b)` is 4x faster, `(* a b)` 6x. An overflow still promotes to `BigInt`, and floats, `BigInt` and nil take the runtime fn as before. (#3468)
 
 CLI:
 
 - `phel` restarts PHP for the opcache file cache only where it pays off: never for `--version`, `list`, `help` or `completion`, and on macOS only for `test`, `build`, `bench`, `mutate`, `profile` and `export`. `phel --version` on macOS drops from 125 ms to 87 ms. `PHEL_OPCACHE_REEXEC=1` restarts for every command. (#3425)
 - Commands that do not print the version start no `git` process, saving about 20 ms each. (#3407)
+- A warm `phel run` or `phel test` no longer walks Phel's own PHP sources to validate the namespace scan cache: a one-file `phel run` drops from 110 ms to 103 ms. (#3467)
 
 ### Fixed
 
@@ -50,17 +59,23 @@ Compiler:
 - **BREAKING**: a map or set literal that repeats a constant key fails with `[PHEL203] Duplicate key: :a`. `{:a 1 :a 2}` used to read as `{:a 2}`. (#3387)
 - **BREAKING**: the argument count check (`PHEL002`) rejects too many arguments, as it does too few, and covers namespaces with a `-` and fns defined earlier in the same file under `phel compile`. `(defn sq [n] (* n n)) (sq 3 4)` used to run. `^:dynamic` and `^:redef` fns stay unchecked. (#3384 #3394)
 - **BREAKING**: map destructuring reads namespaced keys as Clojure does: `{:my/keys [a]}` and `{:keys [my/a]}` read `:my/a`, `{::keys [a]}` reads `::a`. `{:my/keys [a]}` used to read `:a`; write `{:keys [a]}` for that. (#3414)
+- **BREAKING**: a `:refer` of a name the required namespace does not define fails at the `ns` form: `(:require app.util :refer [f nope])` reports `[PHEL013] 'nope' is referred from app.util, which does not define it.`, and a private name fails the same way. Drop the name from `:refer`, or define it. Lint rule `phel/unresolved-refer` reports it. It used to surface only when `nope` was called, or never. `phel.test` defines `thrown?`, `thrown-with-msg?` and `output?` so `(:require phel.test :refer [is thrown?])` keeps working; outside `is` they fail with a message naming `is`. (#3455)
 - A `^void` fn compiles and returns nil. It used to emit `return <value>` in a PHP `: void` function. (#3363)
 - A fn whose body contains `php/yield` compiles. It used to get its tail's return type, which PHP rejects on a generator. (#3365)
 - A call to a `^:dynamic` or `^:redef` fn in a build sees `binding`. It used to keep the first value it saw, and `-O2` inlined short `^:dynamic` fns past `binding`. (#3367)
 - `(def- x "doc" 1)` binds `x` to `1` with `"doc"` as its docstring. It used to bind `x` to `"doc"`. (#3372)
 - `(let [a false] (if a a a))` returns `false`. It used to return `nil` with an `Undefined variable` warning when the other branch read the local again. (#3383)
+- A symbol that does not resolve gets suggestions from where it says it lives. `(str/join "," [1 2])` with no require fails with `No namespace or alias 'str'. Did you mean (:require phel.string :as str)?`, `(s/uper-case "a")` suggests `s/upper-case`, and a bare `upper-case` names `(:require phel.string :refer [upper-case])`. A qualified symbol used to get unrelated core names, or no suggestion at all. (#3458)
 - `#inst` accepts every prefix of the full timestamp, as Clojure does: `#inst "2026-03-04"`. An out-of-range field such as `2026-02-30` is still rejected. (#3416)
 
 Runtime:
 
 - **BREAKING**: `transduce` calls the reducing fn's completion once, as Clojure does: a reducer with a 1-arity finalizes the result. A reducer with only a 2-arity now throws `ArgumentCountError`; wrap it in `completing`. (#3433)
+- Map destructuring reads a seq as keyword arguments and anything else through `get`, as Clojure does: `(let [{:keys [a]} '(:a 1)] a)` and the same over `(map identity [:a 1])` return `1`, and `(let [{:keys [a]} #{:a}] a)` returns `:a`. A set or a lazy seq used to fail with `Cannot use object ... as array`. A map keeps its inline lookup. (#3479)
 - `seq` and `next` keep a lazy seq or list whose next element is nil, as in Clojure: `(next (map identity [1 nil 3]))` returns `(nil 3)`. They used to return nil and drop the rest, so `(reduce + (map :price items))` stopped silently at the first missing key. (#3451)
+- Map destructuring of a vector or list returns nil for a key that is not an index, as `get` does: `(let [{:keys [a]} [1 2]] a)` returns nil. It used to print a notice and throw a `TypeError`. `(contains? [1 2] :a)` returns `false`; it used to return `true`. (#3475)
+- `(seq 5)` fails with `Don't know how to create a seq from: int`. It used to blame `apply`, which the user never called. (#3459)
+- A runtime arity error names the Phel fn: `[PHEL401] Wrong number of args (1) passed to app.main/add, expected 2`. It used to print PHP's `Too few arguments to function Phel\Lang\AbstractFn@anonymous::__invoke()` with the path of the PHP file that made the call. (#3459)
 - `count` counts the seq `next` returns for a lazy seq: `(count (next (map identity [1 2 3])))` returns `2`. It used to throw `count is not supported on a lazily consumed source`. (#3452)
 - `declare` keeps the value of a symbol that is already defined, as in Clojure. Loading a namespace again used to reset what it declares to nil, so a long-lived process (REPL, `phel watch`, nREPL) could fail with `Value of type null is not callable` while recompiling `phel.core`. (#3444)
 - `partition-all` throws for a size or step that is not a positive int. A size of 0 used to return an empty seq, and a step of 0 never ended. (#3437)
@@ -68,6 +83,7 @@ Runtime:
 - `with-output-buffer` closes its buffer when the body throws, and restores the buffer level it found. It used to leave the buffer open. (#3417)
 - `format` and `printf` convert a ratio, bigint or bigdec: `(format "%.2f" (/ 250 100))` returns `"2.50"`. It used to print `"1.00"` with a warning. (#3386)
 - `(gensym "tmp")` returns `tmp42`-style names, as in Clojure. It used to ignore the prefix. `(break)` hides the locals `gensym`, `x#` and `#(...)` create, and lists every local you bind. (#3385)
+- A map pattern after `&` reads the rest arguments as keyword arguments, as Clojure does: `((fn [& {:keys [a]}] a) :a 1)` and `((fn [& {:keys [a]}] a) {:a 1})` return `1`, and a trailing map merges over the pairs. It used to look the keys up in the rest vector and fail. (#3487)
 
 Tooling:
 
@@ -80,8 +96,19 @@ Tooling:
 - `phel mutate` compiles at optimization level 0 whatever the config says. At level 2 every mutant used to survive. (#3396)
 - `phel doc --format json` and the API reference link special forms to their current guide sections, and `:see-also` entries name real fns. (#3371)
 - `build/preload.php` preloads every module's pillars, found at startup. The hand-kept list missed eight modules and named three deleted files. (#3410)
+- A top-level `(require phel.string :as s)` in a file fails with `require is only available in the REPL; use (:require ...) inside ns`. It used to suggest `Did you mean 'reduce'?`. (#3476)
+- `phel init` writes a `composer.json` requiring the running Phel, such as `"phel-lang/phel-lang": "^1.0.0-rc1"`, so the `composer install` step it prints works. An existing `composer.json` is kept, even with `--force`. (#3472)
+- A failing `(is (= expected actual))` prints `expected:` and `actual:`, and its diff names the path of each change inside nested maps and vectors: `~ [:b :c 2] 3 -> 4`, `+ [:b :e] 5`, `- [:x] 1`. The diff used to repeat the whole subtree under the top-level key. A failing `(is (not (= a b)))` now says `but is: = to` instead of `but is not: = to`. (#3471)
+- `phel eval` and `phel run` print values and errors without colour codes when stdout is not a terminal, as in `phel eval '#{1 2}' | cat`. `--ansi` forces colour; `--no-ansi` and `NO_COLOR` now remove it from printed values too. (#3462)
 - `phel lint`, `phel analyze`, the LSP and the api-daemon report `(php/new \DateTime)`, `php/->`, `php/::` and `set-var` as `PHEL012`, as `phel run` does. They used to report the file as clean. (#3456)
 - `phel lint` re-lints every file once after a Phel upgrade. A file cached as clean used to stay clean when the new release reports something more, until it changed or `--no-cache` was passed. (#3478)
+- A require of a `phel.*` or `clojure.*` namespace that Phel does not ship fails at the `ns` form: `(:require phel.strng)` reports `Cannot find namespace 'phel.strng' required by 'app.main'. Did you mean 'phel.string'?`, and lint rule `phel/unresolved-namespace` flags it. It used to load nothing and fail later with `Cannot resolve symbol`. `clojure.set` resolves to `phel.core`, so `(set/union #{1} #{2})` returns `#{1 2}`. (#3454)
+- A file whose `ns` form does not analyse no longer breaks every command. `phel lint` reports it as a diagnostic (`PHEL007 :refer :all is not supported...`, in JSON with `--format=json`) and lints the other files, `phel run` of a file that does not require it works, and `phel build` fails naming the file and line. All three used to stop with a bare `Refer must be a vector` and no file. (#3457)
+- `(Integer/parseInt "3")`, `(Math/abs -1)`, `(System/currentTimeMillis)`, `(Thread/sleep 1)` and `(String/valueOf 1)` end with a hint naming the Phel replacement: `hint: Integer is a Java class, not a PHP one: for Integer/parseInt use (parse-long s).` `(.toUpperCase "abc")` points at `phel.string` instead of leaving `Class "abc" not found` alone. Lint rule `phel/unknown-class` warns about a static call to a class it cannot autoload. (#3465)
+- A require of a missing namespace reports `[PHEL014]` with the requiring file, line and a caret on the namespace, plus the directories searched. It used to point at Phel's own `ExtractorException.php`. `phel explain PHEL014` describes it. (#3461)
+- Errors and stack frames name a Phel var as `ns/name`: `Wrong number of arguments to function "bugs.arity/add"`, `(bugs.rt2/step [1 2])`, `(phel.core/* 2 nil)`. They used to print `bugs.arity\add` and `bugs\rt2\step`, which raise the backslash deprecation when pasted back into code. (#3460)
+- REPL and nREPL completion insert a qualified name as `phel.string/upper-case`. It used to insert `phel.string\upper-case`, which prints the backslash separator deprecation. A prefix typed with `\` still matches. (#3500)
+- `phel init` writes `(defn greet [who] ...)`, so a fresh project passes `phel lint`. It used to warn that `name` shadows a core fn. The docs `phel agent-install` copies teach a check loop (`phel lint --format=json`, `phel explain`, `phel doc --format=json`), point at `vendor/phel-lang/phel-lang/src/phel/` instead of a `src/phel/core/` a project does not have, list the Clojure habits that do not work in Phel, and no longer append phel-lang's own commit rules. (#3463)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 
