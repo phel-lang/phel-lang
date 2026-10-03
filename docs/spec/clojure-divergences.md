@@ -80,7 +80,7 @@ These return `nil` or a benign value where Clojure throws.
 
 | Function | Behaviour |
 |---|---|
-| `first`, `ffirst` | `nil` for a non-seqable scalar. A keyword still throws |
+| `first`, `ffirst` | `nil` for a non-seqable scalar: `(first 5)` and `(first true)` are `nil`. A keyword still throws |
 | `last` | `nil` for a non-seqable scalar |
 | `nth` | `(nth nil _)` is `nil` for any index. Out of bounds on a real vector still throws |
 | `key` | `nil` for empty or non-pair collections; the first element for sequential pairs |
@@ -95,6 +95,16 @@ These return `nil` or a benign value where Clojure throws.
 | `realized?` | anything not a pending delay, promise or future is "realized", including `nil` |
 | `intern` | auto-creates an unknown target namespace |
 | `keyword`, `symbol` | accept symbols and keywords for the ns/name arguments, coercing to their string names |
+
+`(first 5)` is the case a Clojure reader hits first: Clojure throws
+`Don't know how to create ISeq from: java.lang.Long`. Phel keeps `nil` through
+1.x. Code that passes a scalar to `first` today reads the `nil` as "nothing
+there", and turning that into a throw would break it, which the
+[language stability promise](../stability.md#two-promises) rules out inside a
+major. The leniency stops at the accessors in this table: `(seq 5)`, `(rest 5)` and
+`(next 5)` throw, as in Clojure, so do not read a `nil` from `first` as proof that
+the argument was a collection
+([#3477](https://github.com/phel-lang/phel-lang/issues/3477)).
 
 `drop`, `take`, `nthnext` and `take-nth` treat a `nil` count as `0` rather than
 throwing, matching ClojureScript. For `take` this is the transducer arity only;
