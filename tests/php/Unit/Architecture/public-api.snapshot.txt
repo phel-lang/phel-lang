@@ -1012,6 +1012,8 @@ final class Phel\Lang\Delay
   public function isRealized(): bool
 
 final class Phel\Lang\Destructure
+  public static function kwargs(mixed $value): mixed
+  public static function lookupSource(mixed $value): mixed
   public static function nthNext(Phel\Lang\Collections\Vector\PersistentVectorInterface $vector, int $n): mixed
 
 final class Phel\Lang\DynamicScope
