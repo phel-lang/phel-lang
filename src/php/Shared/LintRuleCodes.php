@@ -25,6 +25,7 @@ final class LintRuleCodes
     public const string UNRESOLVED_SYMBOL = 'phel/unresolved-symbol';
 
     public const string UNRESOLVED_NAMESPACE = 'phel/unresolved-namespace';
+
     public const string UNRESOLVED_REFER = 'phel/unresolved-refer';
 
     public const string ARITY_MISMATCH = 'phel/arity-mismatch';
