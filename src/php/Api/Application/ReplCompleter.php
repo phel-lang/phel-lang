@@ -12,8 +12,10 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Shared\Api\CompletionResultTransfer;
+use Phel\Shared\Munge;
 
 use function array_keys;
+use function str_replace;
 use function str_starts_with;
 use function trim;
 
@@ -144,14 +146,17 @@ final class ReplCompleter implements ReplCompleterInterface
             }
         }
 
-        // Referred symbol completion and fully qualified completion
+        // Referred symbol completion and fully qualified completion. A
+        // qualified name completes as `ns/name`; the input still matches when
+        // typed with the `\` separator.
+        $dottedInput = $this->dotted($input);
         foreach (Phel::getNamespaces() as $namespace) {
             foreach (Phel::getDefinitionInNamespace($namespace) as $name => $definition) {
                 $qualifiedName = $namespace === 'phel.core'
                     ? $name
-                    : $namespace . '\\' . $name;
+                    : Munge::displayNs($namespace) . '/' . $name;
 
-                if (str_starts_with($qualifiedName, $input)) {
+                if (str_starts_with($this->dotted($qualifiedName), $dottedInput)) {
                     $type = $this->resolveDefinitionType($namespace, $name, $definition);
                     $matches[$qualifiedName] = new CompletionResultTransfer($qualifiedName, $type);
                 }
@@ -225,5 +230,10 @@ final class ReplCompleter implements ReplCompleterInterface
         }
 
         return 'var';
+    }
+
+    private function dotted(string $symbol): string
+    {
+        return str_replace(['\\', '/'], '.', $symbol);
     }
 }
