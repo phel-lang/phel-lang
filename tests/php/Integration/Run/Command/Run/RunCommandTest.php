@@ -432,19 +432,6 @@ PHEL);
         self::assertMatchesRegularExpression('~Defined: .*macro-error-script\.phel:3~', $output);
     }
 
-    private function runtimeErrorReport(mixed $readFifth): string
-    {
-        self::assertIsCallable($readFifth);
-
-        try {
-            $readFifth(TypeFactory::getInstance()->persistentVectorFromArray([]));
-        } catch (Throwable $throwable) {
-            return new CommandFacade()->getRuntimeErrorReport($throwable);
-        }
-
-        self::fail('read-fifth did not throw');
-    }
-
     public function test_referring_a_name_the_required_namespace_does_not_define_fails_at_the_ns_form(): void
     {
         $dir = sys_get_temp_dir() . '/phel-unresolved-refer-' . uniqid();
@@ -463,5 +450,18 @@ PHEL);
         self::assertStringContainsString("[PHEL013] 'nope' is referred from refer-util, which does not define it.", $output);
         self::assertStringContainsString('main.phel:2', $output);
         self::assertStringNotContainsString('must not reach here', $output);
+    }
+
+    private function runtimeErrorReport(mixed $readFifth): string
+    {
+        self::assertIsCallable($readFifth);
+
+        try {
+            $readFifth(TypeFactory::getInstance()->persistentVectorFromArray([]));
+        } catch (Throwable $throwable) {
+            return new CommandFacade()->getRuntimeErrorReport($throwable);
+        }
+
+        self::fail('read-fifth did not throw');
     }
 }

@@ -371,14 +371,6 @@ final class LintCommandTest extends TestCase
         self::assertArrayHasKey('phel/unused-binding', $byCode, 'the other file is still linted');
     }
 
-    private function bootstrap(): void
-    {
-        Phel::bootstrap(__DIR__);
-        Phel::clear();
-        Symbol::resetGen();
-        GlobalEnvironmentSingleton::initializeNew();
-    }
-
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_it_reports_a_refer_of_a_name_the_required_namespace_does_not_define(): void
@@ -411,5 +403,13 @@ final class LintCommandTest extends TestCase
             [['phel/unresolved-refer', "'nope' is referred from app.util, which does not define it.", 2]],
             array_map(static fn(array $d): array => [$d['code'], $d['message'], $d['startLine']], $payload),
         );
+    }
+
+    private function bootstrap(): void
+    {
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
     }
 }
