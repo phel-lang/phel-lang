@@ -22,6 +22,16 @@ use function array_map;
 
 final class DependenciesForNamespaceTest extends TestCase
 {
+    /**
+     * A missing-namespace message asks the real CompilerFacade for "did you
+     * mean" names, which needs Gacela; without this the tests pass only after
+     * another test happened to bootstrap it.
+     */
+    protected function setUp(): void
+    {
+        Phel::bootstrap(__DIR__);
+    }
+
     protected function tearDown(): void
     {
         Registry::getInstance()->clear();
@@ -105,7 +115,6 @@ final class DependenciesForNamespaceTest extends TestCase
 
     public function test_a_missing_require_points_at_the_namespace_in_the_requiring_file(): void
     {
-        Phel::bootstrap(__DIR__);
         $file = (string) tempnam(sys_get_temp_dir(), 'phel-missing-ns');
         file_put_contents($file, "(ns app.util\n  (:require [app.helpers :as h]))\n");
 
