@@ -34,6 +34,8 @@ final class RequireEvaluator implements EvaluatorInterface
      */
     private static array $processCache = [];
 
+    private static ?string $processNonce = null;
+
     public function __construct(
         private readonly FilesystemFacadeInterface $filesystemFacade,
     ) {}
@@ -120,15 +122,20 @@ final class RequireEvaluator implements EvaluatorInterface
     }
 
     /**
-     * The pid, read on every call so a forked child gets its own. When PHP
-     * cannot tell, a fresh random token per file: nothing is shared, and the
-     * process cache above already reuses a result for the same code.
+     * Unique to this process on this machine and across containers that
+     * share the temp dir: the pid, read on every call so a forked child gets
+     * its own, plus a random nonce for PID namespaces that repeat a pid. When
+     * PHP cannot read the pid, a fresh random token per file; the process
+     * cache above already reuses a result for the same code.
      */
     private function processToken(): string
     {
         $pid = getmypid();
+        if ($pid === false) {
+            return bin2hex(random_bytes(8));
+        }
 
-        return $pid === false ? bin2hex(random_bytes(8)) : (string) $pid;
+        return $pid . '_' . (self::$processNonce ??= bin2hex(random_bytes(4)));
     }
 
     /**

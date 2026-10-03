@@ -74,9 +74,13 @@ final class RequireEvaluatorTest extends TestCase
         });
 
         $hash = md5("<?php\nreturn 42;");
-        file_put_contents(sprintf('%s/__phel_%d_%s.php', $this->tempDir, getmypid() + 1, $hash), '');
+        $sharedName = sprintf('%s/__phel_%s.php', $this->tempDir, $hash);
+        $samePidOtherProcess = sprintf('%s/__phel_%d_00000000_%s.php', $this->tempDir, getmypid(), $hash);
+        file_put_contents($sharedName, '');
+        file_put_contents($samePidOtherProcess, '');
 
         self::assertSame(42, $this->evaluator->eval('return 42;'));
-        self::assertFileExists(sprintf('%s/__phel_%d_%s.php', $this->tempDir, getmypid(), $hash));
+        self::assertSame('', file_get_contents($sharedName), 'the pre-#3495 shared name is not used');
+        self::assertSame('', file_get_contents($samePidOtherProcess), 'a process with the same pid in another container keeps its file');
     }
 }
