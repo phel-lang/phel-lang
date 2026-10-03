@@ -106,6 +106,24 @@ final class UnknownClassRuleTest extends RuleTestCase
     }
 
     /**
+     * A required namespace is skipped whatever its case. Unrequired, Phel
+     * compiles `(MyApp.Util/run)` as a PHP static call, so the warning is
+     * what the runtime would say.
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_skips_a_required_namespace_that_starts_with_an_uppercase_letter(): void
+    {
+        $source = <<<'PHEL'
+            (ns app
+              (:require MyApp.Util))
+            (MyApp.Util/run)
+            PHEL;
+
+        self::assertSame([], $this->rule()->apply($this->buildAnalysis($source)));
+    }
+
+    /**
      * The reader expands a syntax quote into `(quote Integer/parseInt)`, so a
      * macro template is quoted data the walker already skips.
      */
