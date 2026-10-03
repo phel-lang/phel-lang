@@ -71,7 +71,6 @@ Runtime:
 
 Tooling:
 
-- A `:refer` of a name the required namespace does not define fails at the `ns` form: `(:require app.util :refer [f nope])` reports `[PHEL013] 'nope' is referred from app.util, which does not define it.`, and a private name fails the same way. Lint rule `phel/unresolved-refer` reports it. It used to surface only when `nope` was called, or never. `phel.test` defines `thrown?`, `thrown-with-msg?` and `output?` so `(:require phel.test :refer [is thrown?])` keeps working; outside `is` they fail with a message naming `is`. (#3455)
 - `phel --version` reports Phel's own commit. Inside another git repository it used to print that repository's commit. (#3407)
 - An edit to `phel-config-<env>.php` takes effect on the next run. It used to be ignored until `phel cache:clear`. (#3426)
 - A stack trace maps every frame to its `.phel` source after an edit to a file loaded with `(load ...)`, and after a recompile in the REPL, `phel watch` or nREPL. Frames used to show `.phel/cache/compiled/` paths or the new code's lines. (#3430 #3435)
