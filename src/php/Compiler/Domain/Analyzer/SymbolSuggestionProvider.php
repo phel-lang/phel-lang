@@ -31,7 +31,7 @@ final class SymbolSuggestionProvider
      * @param string        $undefinedSymbol  The symbol that could not be resolved
      * @param array<string> $availableSymbols List of available symbols to search through
      *
-     * @return array<string> List of suggested symbols, most relevant first
+     * @return list<string> List of suggested symbols, most relevant first
      */
     public function findSimilar(string $undefinedSymbol, array $availableSymbols): array
     {

@@ -44,9 +44,67 @@ final class RunCommandTest extends AbstractTestCommand
             __DIR__ . '/Fixtures/missing-require-script.phel',
         );
 
-        self::assertStringContainsString("Cannot find namespace 'some.nonexistent.ns'", $output);
+        self::assertStringContainsString("[PHEL014] Cannot find namespace 'some.nonexistent.ns'", $output);
         self::assertStringContainsString("required by 'missing-require-script'", $output);
+        self::assertStringContainsString('missing-require-script.phel:2', $output);
+        self::assertStringContainsString('searched: ', $output);
         self::assertStringNotContainsString('must not reach here', $output);
+    }
+
+    public function test_an_alias_never_required_names_the_namespace_to_require(): void
+    {
+        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/unrequired-alias-script.phel');
+
+        self::assertStringContainsString(
+            "Cannot resolve symbol 'str/join'. No namespace or alias 'str'. Did you mean (:require phel.string :as str)?",
+            $output,
+        );
+        self::assertStringNotContainsString('juxt', $output);
+    }
+
+    public function test_requiring_a_misspelled_phel_namespace_fails_with_a_suggestion(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/misspelled-phel-require-script.phel',
+        );
+
+        self::assertStringContainsString(
+            "Cannot find namespace 'phel.strng' required by 'misspelled-phel-require-script'. Did you mean 'phel.string'?",
+            $output,
+        );
+        self::assertStringNotContainsString('must not reach here', $output);
+    }
+
+    public function test_requiring_a_clojure_namespace_with_no_phel_target_fails(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/unknown-clojure-require-script.phel',
+        );
+
+        self::assertStringContainsString("Cannot find namespace 'clojure.nothere'", $output);
+        self::assertStringNotContainsString('must not reach here', $output);
+    }
+
+    /**
+     * A sibling whose `ns` form does not analyse is not this script's
+     * dependency, so it must not stop the run (#3457).
+     */
+    public function test_a_bad_ns_form_in_an_unrelated_sibling_does_not_stop_the_run(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-bad-sibling-' . uniqid();
+        mkdir($dir);
+        file_put_contents($dir . '/bad.phel', "(ns bad-sibling.bad\n  (:require [phel.string :refer :all]))\n");
+        file_put_contents($dir . '/main.phel', "(ns bad-sibling.main)\n\n(println \"sibling run ok\")\n");
+
+        try {
+            $output = $this->captureRunOutput($dir . '/main.phel');
+        } finally {
+            unlink($dir . '/bad.phel');
+            unlink($dir . '/main.phel');
+            rmdir($dir);
+        }
+
+        self::assertStringContainsString('sibling run ok', $output);
     }
 
     /**
@@ -73,6 +131,32 @@ final class RunCommandTest extends AbstractTestCommand
             $output,
         );
         self::assertStringNotContainsString('add (:require ...)', $output);
+        self::assertStringNotContainsString('must not reach here', $output);
+    }
+
+    /**
+     * `require` is a `phel.repl` macro, so in a file it used to fall through to
+     * "Did you mean 'reduce'?" (#3476).
+     */
+    public function test_a_top_level_require_points_at_the_ns_form(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-top-level-require-' . uniqid();
+        mkdir($dir);
+        $path = $dir . '/top-level-require-script.phel';
+        file_put_contents($path, "(ns top-level-require-script)\n\n(require phel.string :as s)\n\n(println \"must not reach here\")\n");
+
+        try {
+            $output = $this->captureRunOutput($path);
+        } finally {
+            unlink($path);
+            rmdir($dir);
+        }
+
+        self::assertStringContainsString(
+            "[PHEL001] Cannot resolve symbol 'require': require is only available in the REPL; use (:require ...) inside ns",
+            $output,
+        );
+        self::assertStringNotContainsString('Did you mean', $output);
         self::assertStringNotContainsString('must not reach here', $output);
     }
 
@@ -206,8 +290,8 @@ final class RunCommandTest extends AbstractTestCommand
 
         self::assertStringContainsString('boom from error-lib', $output);
         self::assertMatchesRegularExpression('~at .*error-lib\.phel:\d+~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-lib\\\\boom-fn~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-trace-script\\\\caller~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\.error-lib/boom-fn~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\.error-trace-script/caller~', $output);
         self::assertMatchesRegularExpression('~\.\.\. \d+ internal frames?~', $output);
     }
 
@@ -221,8 +305,8 @@ final class RunCommandTest extends AbstractTestCommand
         // cost the report its `at` line and leave the message alone (#3264).
         self::assertStringContainsString('Expected a number, got string', $output);
         self::assertMatchesRegularExpression('~at .*runtime-lib-error-script\.phel:4~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\runtime-lib-error-script\\\\add-boom~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\runtime-lib-error-script\\\\caller~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\.runtime-lib-error-script/add-boom~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\.runtime-lib-error-script/caller~', $output);
         self::assertMatchesRegularExpression('~\.\.\. \d+ internal frames?~', $output);
     }
 
@@ -262,8 +346,8 @@ final class RunCommandTest extends AbstractTestCommand
             rmdir($dir);
         }
 
-        self::assertMatchesRegularExpression('~#\d+ \S*recompiled-main\.phel:4 : \(phel\\\\core\\\\nth~', $firstReport);
-        self::assertMatchesRegularExpression('~#\d+ \S*recompiled-main\.phel:8 : \(phel\\\\core\\\\nth~', $secondReport);
+        self::assertMatchesRegularExpression('~#\d+ \S*recompiled-main\.phel:4 : \(phel\.core/nth~', $firstReport);
+        self::assertMatchesRegularExpression('~#\d+ \S*recompiled-main\.phel:8 : \(phel\.core/nth~', $secondReport);
     }
 
     public function test_uncaught_ex_info_prints_its_data(): void
@@ -287,7 +371,7 @@ final class RunCommandTest extends AbstractTestCommand
 
         self::assertStringContainsString('boom from error-lib', $output);
         self::assertMatchesRegularExpression('~at .*error-lib\.phel:\d+~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-lib\\\\boom-fn~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\.error-lib/boom-fn~', $output);
     }
 
     public function test_collapse_marker_names_the_flag_and_the_error_log(): void

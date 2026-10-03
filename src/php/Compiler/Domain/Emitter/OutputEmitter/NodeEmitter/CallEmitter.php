@@ -77,7 +77,7 @@ final readonly class CallEmitter implements NodeEmitterInterface
         // writes the callee the way the generic path does.
         $this->guardedCoreCallEmitter = new GuardedCoreCallEmitter(
             $outputEmitter,
-            $this->emitDynamicFunctionName(...),
+            $this->emitGuardedFallbackCallee(...),
         );
     }
 
@@ -275,6 +275,22 @@ final readonly class CallEmitter implements NodeEmitterInterface
             $fn->getName()->getName(),
             $argCount,
         );
+    }
+
+    /**
+     * Writes the callee of a guarded call's runtime fallback and returns the
+     * method to call on it: the fixed arity where the shortcut applies, so a
+     * float or a `BigInt` that fails the guard pays no `__invoke` packing.
+     */
+    private function emitGuardedFallbackCallee(CallNode $node): string
+    {
+        if ($this->isMultiArityArityShortcut($node)) {
+            $this->emitFnSlotCallee($node);
+            return 'invokeArity' . count($node->getArguments());
+        }
+
+        $this->emitDynamicFunctionName($node);
+        return '__invoke';
     }
 
     /**

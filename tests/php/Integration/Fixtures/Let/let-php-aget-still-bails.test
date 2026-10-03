@@ -3,5 +3,5 @@
 --PHP--
 (function(float $angle, int $n, $offsets) {
   static $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($angle, (($offsets)[($n)] ?? null));
+  return (\is_int($angle) & \is_int(($__phel_guard_1 = (($offsets)[($n)] ?? null))) && \is_int($__phel_guard_2 = $angle + $__phel_guard_1) ? $__phel_guard_2 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($angle, $__phel_guard_1));
 });

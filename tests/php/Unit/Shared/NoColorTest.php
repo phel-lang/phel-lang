@@ -7,8 +7,16 @@ namespace PhelTest\Unit\Shared;
 use Phel\Shared\NoColor;
 use PHPUnit\Framework\TestCase;
 
+use function getenv;
+use function putenv;
+
 final class NoColorTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        NoColor::followOutput(null);
+    }
+
     public function test_absent_variable_keeps_colour(): void
     {
         self::assertFalse(NoColor::isRequested([]));
@@ -35,5 +43,32 @@ final class NoColorTest extends TestCase
     public function test_style_carries_colour_by_default(): void
     {
         self::assertNotSame('x', NoColor::style([])->red('x'));
+    }
+
+    public function test_plain_output_decision_overrides_the_environment(): void
+    {
+        NoColor::followOutput(false);
+
+        self::assertSame('x', NoColor::style()->red('x'));
+    }
+
+    public function test_decorated_output_decision_overrides_no_color(): void
+    {
+        $previous = getenv('NO_COLOR');
+        putenv('NO_COLOR=1');
+        NoColor::followOutput(true);
+
+        try {
+            self::assertFalse(NoColor::isRequested());
+        } finally {
+            putenv($previous === false ? 'NO_COLOR' : 'NO_COLOR=' . $previous);
+        }
+    }
+
+    public function test_an_explicit_environment_ignores_the_output_decision(): void
+    {
+        NoColor::followOutput(false);
+
+        self::assertFalse(NoColor::isRequested([]));
     }
 }

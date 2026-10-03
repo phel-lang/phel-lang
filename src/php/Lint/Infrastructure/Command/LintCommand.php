@@ -140,12 +140,12 @@ HELP)
 
         $cache = $this->maybeCache($input, $settings);
 
-        // Load phel core so analyzeSource() resolves core symbols like
-        // `defn`, `let`, etc. Without this the linter's first diagnostic
-        // on any well-formed file is "cannot resolve symbol defn".
-        $this->getFactory()->getRunFacade()->loadPhelNamespaces();
-
         try {
+            // Load phel core so analyzeSource() resolves core symbols like
+            // `defn`, `let`, etc. Without this the linter's first diagnostic
+            // on any well-formed file is "cannot resolve symbol defn".
+            $this->getFactory()->getRunFacade()->loadPhelNamespaces();
+
             $result = $this->getFacade()->lint($paths, $settings, $cache);
         } catch (Throwable $throwable) {
             $output->writeln(sprintf('<error>Lint failed: %s</error>', $throwable->getMessage()));

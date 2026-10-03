@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
-use Phel;
-use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Shared\FrameworkNamespaces;
 use Phel\Shared\Munge;
@@ -14,11 +12,9 @@ use Phel\Shared\NamespaceInformation;
 use SplQueue;
 
 use function array_key_exists;
+use function array_keys;
 use function array_map;
 use function in_array;
-use function str_starts_with;
-use function strlen;
-use function substr;
 
 /**
  * @internal
@@ -48,6 +44,8 @@ final class DependenciesForNamespace
 
     public function __construct(
         private readonly NamespaceExtractorInterface $namespaceExtractor,
+        private readonly BundledNamespaceIndex $bundledNamespaces,
+        private readonly MissingRequireReporter $missingRequireReporter,
     ) {}
 
     /**
@@ -92,6 +90,20 @@ final class DependenciesForNamespace
             }
         }
 
+        // A `clojure.*` seed stands for its `phel.*` target, as a declared
+        // dependency does; the emitted `ns` form hands one over as is.
+        foreach ($ns as $seed) {
+            $target = FrameworkNamespaces::clojureTarget($seed);
+            if ($target !== null
+                && !isset($index[$seed])
+                && isset($index[$target])
+                && !isset($seenInQueue[$target])
+            ) {
+                $queue->enqueue($target);
+                $seenInQueue[$target] = true;
+            }
+        }
+
         $requiredNamespaces = [];
         while (!$queue->isEmpty()) {
             $currentNs = $queue->dequeue();
@@ -99,7 +111,7 @@ final class DependenciesForNamespace
                 && array_key_exists($currentNs, $index)
             ) {
                 foreach ($index[$currentNs]->getDependencies() as $depNs) {
-                    $queue->enqueue($this->resolveDependency($depNs, $currentNs, $index));
+                    $queue->enqueue($this->resolveDependency($depNs, $currentNs, $index, $directories));
                 }
             }
 
@@ -125,13 +137,14 @@ final class DependenciesForNamespace
 
     /**
      * Resolves a declared dependency of `$requiringNs` to the namespace the walk
-     * should enqueue, throwing when a *user* namespace points at nothing
-     * loadable. Such a dependency was previously enqueued and then silently
-     * dropped, so a typo'd or absent `(:require ...)` exited 0 with no feedback.
+     * should enqueue, throwing when it points at nothing loadable. Such a
+     * dependency was previously enqueued and then silently dropped, so a
+     * typo'd or absent `(:require ...)` exited 0 with no feedback.
      *
      * @param array<string, NamespaceInformation> $index
+     * @param list<string>                        $directories
      */
-    private function resolveDependency(string $depNs, string $requiringNs, array $index): string
+    private function resolveDependency(string $depNs, string $requiringNs, array $index, array $directories): string
     {
         $depNs = Munge::canonicalNs($depNs);
 
@@ -139,29 +152,21 @@ final class DependenciesForNamespace
             return $depNs;
         }
 
-        // `clojure.X` resolves to a bundled `phel.X` source (same remap the
-        // analyzer and FileRunner apply); enqueue the phel.* target.
-        if (str_starts_with($depNs, FrameworkNamespaces::CLOJURE_PREFIX)) {
-            $phelNs = FrameworkNamespaces::PHEL_PREFIX
-                . substr($depNs, strlen(FrameworkNamespaces::CLOJURE_PREFIX));
-            if (array_key_exists($phelNs, $index)) {
-                return $phelNs;
-            }
+        $target = FrameworkNamespaces::clojureTarget($depNs);
+        if ($target !== null && array_key_exists($target, $index)) {
+            return $target;
         }
 
-        // Already in the runtime registry: a lazily loaded bundled module that
-        // has no source file in this scan but is still resolvable.
-        if (Phel::isNamespaceLoaded($depNs)) {
-            return $depNs;
+        if ($this->bundledNamespaces->resolvesWithoutSource($depNs)) {
+            return $target ?? $depNs;
         }
 
-        // Only genuinely-missing user namespaces error; see FrameworkNamespaces
-        // for why a `phel.*`/`clojure.*` require is tolerated instead.
-        if (FrameworkNamespaces::matches($depNs)) {
-            return $depNs;
-        }
-
-        throw ExtractorException::cannotResolveRequiredNamespace($depNs, $requiringNs);
+        throw $this->missingRequireReporter->error(
+            $this->bundledNamespaces->missingNamespaceMessage($depNs, $requiringNs, array_keys($index)),
+            $depNs,
+            $index[$requiringNs]->getFile(),
+            $directories,
+        );
     }
 
     /**

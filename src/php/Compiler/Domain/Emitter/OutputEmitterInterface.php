@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\ConstantScope;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\DeferredDefinitionRegistrations;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Lang\SourceLocation;
@@ -43,6 +44,8 @@ interface OutputEmitterInterface
     public function getSourceMapState(): SourceMapState;
 
     public function getOptions(): OutputEmitterOptions;
+
+    public function getDeferredDefinitions(): DeferredDefinitionRegistrations;
 
     public function emitNode(AbstractNode $node): void;
 

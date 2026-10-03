@@ -79,6 +79,9 @@ final class LintCache
                 startCol: ScalarCoercion::toInt($data['startCol'] ?? null, 1),
                 endLine: ScalarCoercion::toInt($data['endLine'] ?? null, 1),
                 endCol: ScalarCoercion::toInt($data['endCol'] ?? null, 1),
+                errorCode: isset($data['errorCode']) ? ScalarCoercion::toString($data['errorCode']) : null,
+                suggestions: ScalarCoercion::toStringList($data['suggestions'] ?? null),
+                fix: isset($data['fix']) ? ScalarCoercion::toString($data['fix']) : null,
             );
         }
 

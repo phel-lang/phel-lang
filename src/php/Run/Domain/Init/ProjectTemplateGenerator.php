@@ -6,6 +6,13 @@ namespace Phel\Run\Domain\Init;
 
 use Phel\Config\ProjectLayout;
 
+use function json_encode;
+use function ltrim;
+
+use const JSON_PRETTY_PRINT;
+use const JSON_THROW_ON_ERROR;
+use const JSON_UNESCAPED_SLASHES;
+
 /**
  * @internal
  */
@@ -42,8 +49,8 @@ PHP;
         return <<<PHEL
 (ns {$namespace})
 
-(defn greet [name]
-  (str "Hello, " name "!"))
+(defn greet [who]
+  (str "Hello, " who "!"))
 
 (defn main []
   (println (greet "Phel")))
@@ -67,6 +74,16 @@ PHEL;
   (is (= "Hello, Alice!" (greet "Alice"))))
 
 PHEL;
+    }
+
+    /**
+     * Enough for `composer install` to fetch the Phel that wrote it.
+     */
+    public function generateComposerJson(string $phelVersion): string
+    {
+        $payload = ['require' => ['phel-lang/phel-lang' => '^' . ltrim($phelVersion, 'v')]];
+
+        return json_encode($payload, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
     }
 
     public function generateGitignore(ProjectLayout $layout = ProjectLayout::Flat): string

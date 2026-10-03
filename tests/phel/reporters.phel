@@ -285,15 +285,17 @@
   (let [out (default-reporter-failure-output (fn [] (is (= 1 2))))]
     (is (php/str_contains out "Form: (= 1 2)")
         (str "the Form line carries the whole asserted form, got: " out))
-    (is (php/str_contains out "evaluated to: 2")
-        "the evaluated-to line still carries the computed value")))
+    (is (php/str_contains out "expected: 1\n    actual: 2")
+        "an `=` failure names the expected and the actual value")))
 
 (deftest test-default-reporter-binary-not-failure-shows-the-asserted-form
   (let [out (default-reporter-failure-output (fn [] (is (not (= 2 2)))))]
     (is (php/str_contains out "Form: (= 2 2)")
         (str "the Form line carries the negated form, got: " out))
     (is (php/str_contains out "evaluated to: 2")
-        "the evaluated-to line still carries the computed value")))
+        "the evaluated-to line still carries the computed value")
+    (is (php/str_contains out "but is: = to 2 (it shouldn't be)")
+        (str "a negated `=` says the values were equal, got: " out))))
 
 (deftest test-default-reporter-predicate-failure-shows-the-asserted-form
   (let [out (default-reporter-failure-output (fn [] (is (pos? -3))))]
@@ -600,7 +602,7 @@
               (rep {:type :end-test-ns :ns "dx.lib-test"}))]
     (is (= (str "::group::dx.lib-test\n"
                 "::error file=tests/dx/lib_test.phel,line=12,title=FAIL dx.lib-test/clamp-mid"
-                "::Form: (= 5 (clamp 1 10 12))%0Aevaluated to: 6%0Abut is not: = to 5\n"
+                "::Form: (= 5 (clamp 1 10 12))%0Aexpected: 5%0Aactual: 6\n"
                 "::endgroup::\n")
            out)
         "a passing assertion prints nothing; a failure is one ::error line inside the namespace group")))
@@ -680,7 +682,7 @@
     ;; `=` and not truthiness: a non-matching `preg_match` returns 0, which is truthy in Phel.
     (is (= 1 (php/preg_match (str "/^::error file=tests\\/phel\\/reporters\\.phel,line=[1-9][0-9]*,"
                                   "title=FAIL test-github-reporter-reports-a-real-failing-assertion-against-its-file"
-                                  "::real failure%0AForm: \\(= 1 2\\)%0Aevaluated to: 2%0Abut is not: = to 1\n$/")
+                                  "::real failure%0AForm: \\(= 1 2\\)%0Aexpected: 1%0Aactual: 2\n$/")
                              out))
         (str "file is relative to the working directory and the line is the assertion's own, got: " out))))
 

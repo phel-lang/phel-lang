@@ -89,7 +89,7 @@ final class ExceptionHandlerTest extends TestCase
         self::assertSame(255, $exitCode, 'the exit code PHP uses for an uncaught exception');
         self::assertStringContainsString('RuntimeException: boom', $output);
         self::assertStringContainsString('main.phel', $output, 'the report names the Phel source');
-        self::assertStringContainsString('app\\main\\boom', $output, 'and the Phel call form per frame');
+        self::assertStringContainsString('(app.main/boom)', $output, 'and the Phel call form per frame');
     }
 
     public function test_the_response_body_stays_clean_when_display_errors_is_off(): void

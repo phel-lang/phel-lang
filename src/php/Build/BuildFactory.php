@@ -8,13 +8,16 @@ use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Build\Application\BuildHealthCheck;
+use Phel\Build\Application\BundledNamespaceIndex;
 use Phel\Build\Application\CacheClearer;
 use Phel\Build\Application\CachedNamespaceExtractor;
 use Phel\Build\Application\DependenciesForNamespace;
 use Phel\Build\Application\FileCompiler;
 use Phel\Build\Application\FileEvaluator;
+use Phel\Build\Application\MissingRequireReporter;
 use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Application\ProjectCompiler;
+use Phel\Build\Application\UnresolvedRequireError;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Cache\ScanIndexCacheInterface;
 use Phel\Build\Domain\Compile\CompiledSecondaryStore;
@@ -68,6 +71,30 @@ final class BuildFactory extends AbstractFactory
     {
         return new DependenciesForNamespace(
             $this->createNamespaceExtractor(),
+            $this->createBundledNamespaceIndex(),
+            $this->createMissingRequireReporter(),
+        );
+    }
+
+    public function createUnresolvedRequireError(): UnresolvedRequireError
+    {
+        return new UnresolvedRequireError(
+            $this->createBundledNamespaceIndex(),
+            $this->createMissingRequireReporter(),
+        );
+    }
+
+    public function createMissingRequireReporter(): MissingRequireReporter
+    {
+        return new MissingRequireReporter($this->getCompilerFacade());
+    }
+
+    public function createBundledNamespaceIndex(): BundledNamespaceIndex
+    {
+        return new BundledNamespaceIndex(
+            $this->createNamespaceExtractor(),
+            $this->getCommandFacade(),
+            $this->getCompilerFacade(),
         );
     }
 

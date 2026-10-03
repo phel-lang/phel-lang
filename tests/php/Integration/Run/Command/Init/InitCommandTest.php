@@ -6,12 +6,18 @@ namespace PhelTest\Integration\Run\Command\Init;
 
 use Iterator;
 use Phel\Run\Infrastructure\Command\InitCommand;
+use Phel\Shared\VersionFinder;
 use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+
+use function json_decode;
+use function ltrim;
+
+use const JSON_THROW_ON_ERROR;
 
 final class InitCommandTest extends TestCase
 {
@@ -47,6 +53,31 @@ final class InitCommandTest extends TestCase
         self::assertFileExists($this->testDir . '/src/main.phel');
         self::assertFileExists($this->testDir . '/tests/main_test.phel');
         self::assertFileExists($this->testDir . '/.gitignore');
+    }
+
+    public function test_writes_a_composer_json_requiring_the_running_version(): void
+    {
+        chdir($this->testDir);
+        $result = new InitCommand()->run(new ArrayInput(['project-name' => 'my-app']), new BufferedOutput());
+
+        self::assertSame(Command::SUCCESS, $result);
+        $composer = json_decode((string) file_get_contents($this->testDir . '/composer.json'), true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame(
+            ['phel-lang/phel-lang' => '^' . ltrim(VersionFinder::LATEST_VERSION, 'v')],
+            $composer['require'] ?? null,
+        );
+    }
+
+    public function test_keeps_an_existing_composer_json_even_with_force(): void
+    {
+        chdir($this->testDir);
+        file_put_contents($this->testDir . '/composer.json', '{"name": "me/app"}');
+        $output = new BufferedOutput();
+
+        new InitCommand()->run(new ArrayInput(['project-name' => 'my-app', '--force' => true]), $output);
+
+        self::assertSame('{"name": "me/app"}', file_get_contents($this->testDir . '/composer.json'));
+        self::assertStringContainsString('composer.json already exists, keeping it', $output->fetch());
     }
 
     public function test_creates_nested_layout_structure(): void
@@ -119,7 +150,7 @@ final class InitCommandTest extends TestCase
         $mainContent = (string) file_get_contents($this->testDir . '/main.phel');
 
         self::assertStringContainsString('(ns sandbox.main)', $mainContent);
-        self::assertStringContainsString('(defn greet [name]', $mainContent);
+        self::assertStringContainsString('(defn greet [who]', $mainContent);
     }
 
     public function test_minimal_test_file_references_main_namespace(): void

@@ -38,12 +38,15 @@ use function is_string;
  *   native type (two ints, a string against a string literal).
  * - `zero?`, `inc`, `dec`: a native int. `(zero? 0.0)` is true and `0.0 ===
  *   0` is not; `inc` at the int bound promotes to `BigInt`.
+ * - binary `+` `-` `*`: two native ints whose native result is still an int.
+ *   PHP answers with a float exactly when int arithmetic overflows, which
+ *   the runtime fn promotes to `BigInt` instead, so that case falls back.
  *
  * Operands are read more than once, so the emitter spills any operand that
  * is not a local or a literal into a temporary on its first read. Literals
  * are limited to the types each guard reasons about: numbers for ordering,
- * ints and strings for equality. Quoted forms and collection literals
- * decline: they can never pass a scalar guard. Unlike a family in {@see CallSpecialization::isSpecialized()},
+ * ints for arithmetic, ints and strings for equality. Quoted forms and
+ * collection literals decline: they can never pass a scalar guard. Unlike a family in {@see CallSpecialization::isSpecialized()},
  * the lowered shape still calls the runtime fn on the fallback path, so the
  * call keeps its `$__phel_call_N` slot.
  *
@@ -56,6 +59,12 @@ final readonly class GuardedCoreCallSpecialization
         '<=' => '<=',
         '>' => '>',
         '>=' => '>=',
+    ];
+
+    private const array ARITHMETIC_OPS = [
+        '+' => '+',
+        '-' => '-',
+        '*' => '*',
     ];
 
     /** The native comparison each numeric predicate reduces to. */
@@ -78,6 +87,9 @@ final readonly class GuardedCoreCallSpecialization
         'dec' => '\\is_int',
         '=' => '\\is_int',
         'not=' => '\\is_int',
+        '+' => '\\is_int',
+        '-' => '\\is_int',
+        '*' => '\\is_int',
     ];
 
     private function __construct() {}
@@ -96,6 +108,10 @@ final readonly class GuardedCoreCallSpecialization
 
         if (isset(self::ORDERING_OPS[$name])) {
             return self::isOrderingEligible($node, $args) ? $name : null;
+        }
+
+        if (isset(self::ARITHMETIC_OPS[$name])) {
+            return self::isArithmeticEligible($node, $args) ? $name : null;
         }
 
         if ($name === '=' || $name === 'not=') {
@@ -122,18 +138,23 @@ final readonly class GuardedCoreCallSpecialization
      * `if` can take it as its test without the truthy adapter. The fallback
      * is the runtime fn, whose fixed arity is tagged `^bool` (and PHP checks
      * it on return) for the comparisons; `pos?` and `neg?` answer with `>`
-     * and `<`. `inc` and `dec` produce numbers.
+     * and `<`. `inc`, `dec` and the arithmetic produce numbers.
      */
     public static function isBoolReturning(CallNode $node): bool
     {
         $name = self::nameOf($node);
 
-        return !in_array($name, [null, 'inc', 'dec'], true);
+        return !in_array($name, [null, 'inc', 'dec', '+', '-', '*'], true);
     }
 
     public static function orderingOperator(string $name): ?string
     {
         return self::ORDERING_OPS[$name] ?? null;
+    }
+
+    public static function arithmeticOperator(string $name): ?string
+    {
+        return self::ARITHMETIC_OPS[$name] ?? null;
     }
 
     /**
@@ -176,6 +197,29 @@ final readonly class GuardedCoreCallSpecialization
         foreach ($args as $arg) {
             if (self::isNonScalarConstant($arg)
                 || ($arg instanceof LiteralNode && !self::isIntLiteral($arg) && !self::isFloatLiteral($arg))
+            ) {
+                return false;
+            }
+        }
+
+        return self::hasNonLiteralOperand($args);
+    }
+
+    /**
+     * Any operands but a pair of literals, with a literal operand an int: a
+     * float literal makes the native result a float, which never passes.
+     *
+     * @param list<AbstractNode> $args
+     */
+    private static function isArithmeticEligible(CallNode $node, array $args): bool
+    {
+        if (count($args) !== 2 || NumericOperationSpecialization::isTypedBinaryOp($node)) {
+            return false;
+        }
+
+        foreach ($args as $arg) {
+            if (self::isNonScalarConstant($arg)
+                || ($arg instanceof LiteralNode && !self::isIntLiteral($arg))
             ) {
                 return false;
             }

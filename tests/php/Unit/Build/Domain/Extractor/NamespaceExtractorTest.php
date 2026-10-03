@@ -14,6 +14,7 @@ use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Phel;
+use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Exceptions\MissingNsFormException;
 use Phel\Shared\NamespaceInformation;
@@ -21,7 +22,10 @@ use PhelTest\Support\CapturesDeprecationsTrait;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
+use function array_map;
 use function basename;
+use function dirname;
+use function realpath;
 use function sprintf;
 
 final class NamespaceExtractorTest extends TestCase
@@ -185,6 +189,44 @@ final class NamespaceExtractorTest extends TestCase
 
         self::assertCount(1, $infos, 'A file with no ns form is not a namespace; the scan goes on without it.');
         self::assertSame('good.ns', $infos[0]->getNamespace());
+    }
+
+    public function test_an_ns_form_that_does_not_analyse_is_located_in_its_file(): void
+    {
+        try {
+            $this->extractNamespace("(ns app.bad\n  (:require [phel.string :refer :all]))");
+            self::fail('Expected a CompilerException.');
+        } catch (CompilerException $compilerException) {
+            $nested = $compilerException->getNestedException();
+            self::assertStringContainsString(':refer :all is not supported', $nested->getMessage());
+            self::assertSame(ErrorCode::INVALID_SPECIAL_FORM, $nested->getErrorCode());
+            self::assertSame(2, $nested->getStartLocation()?->getLine());
+            self::assertSame(
+                realpath(sys_get_temp_dir()),
+                realpath(dirname($nested->getStartLocation()?->getFile())),
+                'macOS resolves /var to /private/var, so both sides are resolved',
+            );
+        }
+    }
+
+    public function test_scan_skips_a_file_whose_ns_form_does_not_analyse_unless_asked_to_fail(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-extractor-test-' . uniqid();
+        mkdir($dir, 0777, true);
+        file_put_contents($dir . '/good.phel', '(ns good.ns)');
+        file_put_contents($dir . '/bad.phel', '(ns bad.ns (:require [phel.string :refer :all]))');
+
+        try {
+            $infos = $this->newExtractor()->getNamespacesFromDirectories([$dir]);
+            self::assertSame(['good.ns'], array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $infos));
+
+            $this->expectException(CompilerException::class);
+            $this->newExtractor()->getNamespacesFromDirectories([$dir], failOnInvalidNsForm: true);
+        } finally {
+            unlink($dir . '/good.phel');
+            unlink($dir . '/bad.phel');
+            rmdir($dir);
+        }
     }
 
     public function test_primary_ns_file_comes_before_its_in_ns_siblings(): void

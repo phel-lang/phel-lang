@@ -19,6 +19,7 @@ The analyzer walks the parsed forms and resolves every symbol, arity and binding
 | [PHEL010](#phel010-invalid-recur) | Invalid recur |
 | [PHEL011](#phel011-value-in-call-position-is-not-callable) | Value in call position is not callable |
 | [PHEL012](#phel012-superseded-form) | Superseded form |
+| [PHEL014](#phel014-missing-namespace) | Missing namespace |
 
 ## PHEL001: Undefined symbol
 
@@ -30,7 +31,7 @@ The analyzer reached a symbol that is bound nowhere: not in the current namespac
 (undefined-fn 1 2)
 ```
 
-**Fix:** Check the spelling, require the namespace that defines it, or define it before the call.
+**Fix:** Check the spelling, require the namespace that defines it, or define it before the call. `require` itself is a REPL helper: in a file, write `(:require ...)` inside the `ns` form.
 
 ## PHEL002: Wrong number of arguments
 
@@ -167,6 +168,19 @@ A form Phel already says another way, kept as the compiler's own target but no l
 ```
 
 **Fix:** Use the replacement the message names. The full table is in docs/migration/deprecated-surface.md.
+
+## PHEL014: Missing namespace
+
+Enum case: `ErrorCode::MISSING_NAMESPACE`
+
+A `(:require ...)` names a namespace that no source file declares on the searched directories, that is not loaded, and that Phel does not ship. The caret marks the namespace in the requiring file; the note lists the directories searched.
+
+```phel
+(ns app.main
+  (:require app.helpers))
+```
+
+**Fix:** Check the spelling against the `ns` form of the file you mean, or add its directory to the src, test or vendor dirs.
 
 ---
 

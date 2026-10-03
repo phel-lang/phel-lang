@@ -86,7 +86,7 @@ final class ErrorCodeCatalog
                 title: 'Undefined symbol',
                 summary: 'The analyzer reached a symbol that is bound nowhere: not in the current namespace, not in a required namespace, and not in a local binding.',
                 example: '(undefined-fn 1 2)',
-                fix: 'Check the spelling, require the namespace that defines it, or define it before the call.',
+                fix: 'Check the spelling, require the namespace that defines it, or define it before the call. `require` itself is a REPL helper: in a file, write `(:require ...)` inside the `ns` form.',
             ),
             new ErrorCodeExplanation(
                 code: ErrorCode::ARITY_ERROR,
@@ -164,6 +164,13 @@ final class ErrorCodeCatalog
                 summary: "A form Phel already says another way, kept as the compiler's own target but no longer accepted in source. `php/new`, `php/->` and `php/::` name what `new`, `.method` and `Class/member` say, and `set-var` is what `alter-var-root` does.",
                 example: '(php/new \\DateTime)',
                 fix: 'Use the replacement the message names. The full table is in docs/migration/deprecated-surface.md.',
+            ),
+            new ErrorCodeExplanation(
+                code: ErrorCode::MISSING_NAMESPACE,
+                title: 'Missing namespace',
+                summary: 'A `(:require ...)` names a namespace that no source file declares on the searched directories, that is not loaded, and that Phel does not ship. The caret marks the namespace in the requiring file; the note lists the directories searched.',
+                example: "(ns app.main\n  (:require app.helpers))",
+                fix: 'Check the spelling against the `ns` form of the file you mean, or add its directory to the src, test or vendor dirs.',
             ),
             new ErrorCodeExplanation(
                 code: ErrorCode::UNTERMINATED_LIST,

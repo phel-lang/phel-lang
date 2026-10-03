@@ -16,6 +16,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\SourcePathResolver;
+use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\MissingNsFormException;
 use Phel\Shared\NamespaceInformation;
 use RecursiveCallbackFilterIterator;
@@ -78,8 +79,15 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
      *
      * @return list<NamespaceInformation>
      */
-    public function getNamespacesFromDirectories(array $directories): array
+    public function getNamespacesFromDirectories(array $directories, bool $failOnInvalidNsForm = false): array
     {
+        // A strict scan (`phel build`) reads every file. Both caches validate
+        // by whole-second mtime, so an `ns` form broken in the same second as
+        // the cached read would be served stale and left out of the build.
+        if ($failOnInvalidNsForm) {
+            return $this->innerExtractor->getNamespacesFromDirectories($directories, true);
+        }
+
         $cacheKey = $this->scanCacheKey($directories);
 
         // First-level, intra-process cache: an exact dir-set repeat within the
@@ -101,6 +109,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         }
 
         $allInfos = [];
+        $skippedInvalidNsForm = false;
         foreach ($this->findAllPhelFiles($directories) as $file) {
             try {
                 $allInfos[] = $this->getNamespaceFromFile($file);
@@ -110,10 +119,19 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
                 // not abort the whole scan (e.g. `phel eval` in a cwd holding
                 // unrelated Clojure checkouts, #3484).
                 continue;
+            } catch (CompilerException) {
+                $skippedInvalidNsForm = true;
             }
         }
 
         $grouped = $this->grouper->groupAndSort($allInfos);
+
+        // Neither cache may hold a scan that skipped a bad `ns` form: a later
+        // build reading it would never see the file it has to fail on.
+        if ($skippedInvalidNsForm) {
+            return $grouped;
+        }
+
         $this->scanIndexCache->put($cacheKey, $this->perDirFingerprint($directories), $grouped);
 
         return $this->directoriesScanCache[$cacheKey] = $grouped;
