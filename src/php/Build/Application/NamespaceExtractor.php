@@ -20,6 +20,7 @@ use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Exceptions\MissingNsFormException;
 use Phel\Shared\Facade\CompilerFacadeInterface;
@@ -57,6 +58,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
     /**
      * @throws ExtractorException
+     * @throws CompilerException  when the file's ns form does not analyze
      */
     public function getNamespaceFromFile(string $path): NamespaceInformation
     {
@@ -87,11 +89,11 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
      *
      * @return list<NamespaceInformation>
      */
-    public function getNamespacesFromDirectories(array $directories): array
+    public function getNamespacesFromDirectories(array $directories, bool $failOnInvalidNsForm = false): array
     {
         $allInfos = [];
         foreach ($directories as $directory) {
-            foreach ($this->findAllNs($directory) as $info) {
+            foreach ($this->findAllNs($directory, $failOnInvalidNsForm) as $info) {
                 $allInfos[] = $info;
             }
         }
@@ -101,6 +103,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
     /**
      * @throws ExtractorException
+     * @throws CompilerException
      */
     private function extractFromContent(string $content, string $path): NamespaceInformation
     {
@@ -122,11 +125,17 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             try {
                 $node = $this->compilerFacade->analyze($ast, $this->compilerFacade->emptyNodeEnvironment());
             } catch (AnalyzerException $analyzerException) {
-                if ($analyzerException->getErrorCode() === ErrorCode::UNDEFINED_SYMBOL && !$this->isNsForm($ast)) {
-                    throw MissingNsFormException::inFile($path, $analyzerException);
+                if (!$this->isNsForm($ast)) {
+                    if ($analyzerException->getErrorCode() === ErrorCode::UNDEFINED_SYMBOL) {
+                        throw MissingNsFormException::inFile($path, $analyzerException);
+                    }
+
+                    throw $analyzerException;
                 }
 
-                throw $analyzerException;
+                // With its snippet, so it prints with the file and line of the
+                // `ns` form wherever it surfaces, and a scan can tell it apart.
+                throw new CompilerException($analyzerException, $readerResult->getCodeSnippet());
             }
 
             if ($node instanceof NsNode) {
@@ -177,7 +186,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
      *
      * @return list<NamespaceInformation>
      */
-    private function findAllNs(string $directory): array
+    private function findAllNs(string $directory, bool $failOnInvalidNsForm): array
     {
         $realpath = SourcePathResolver::resolve($directory);
         if ($realpath === null) {
@@ -211,6 +220,12 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                     // .phel file in a scanned directory does not abort the
                     // whole scan (e.g. REPL starting in a cwd that contains
                     // unrelated broken Phel files).
+                    continue;
+                } catch (CompilerException $compilerException) {
+                    if ($failOnInvalidNsForm) {
+                        throw $compilerException;
+                    }
+
                     continue;
                 }
             }

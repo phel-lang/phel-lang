@@ -86,6 +86,28 @@ final class RunCommandTest extends AbstractTestCommand
     }
 
     /**
+     * A sibling whose `ns` form does not analyse is not this script's
+     * dependency, so it must not stop the run (#3457).
+     */
+    public function test_a_bad_ns_form_in_an_unrelated_sibling_does_not_stop_the_run(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-bad-sibling-' . uniqid();
+        mkdir($dir);
+        file_put_contents($dir . '/bad.phel', "(ns bad-sibling.bad\n  (:require [phel.string :refer :all]))\n");
+        file_put_contents($dir . '/main.phel', "(ns bad-sibling.main)\n\n(println \"sibling run ok\")\n");
+
+        try {
+            $output = $this->captureRunOutput($dir . '/main.phel');
+        } finally {
+            unlink($dir . '/bad.phel');
+            unlink($dir . '/main.phel');
+            rmdir($dir);
+        }
+
+        self::assertStringContainsString('sibling run ok', $output);
+    }
+
+    /**
      * Written to a temp dir at run time: a committed copy under tests/ is
      * reached by other tests' source scans and fails them all.
      */
