@@ -34,8 +34,6 @@ final class RequireEvaluator implements EvaluatorInterface
      */
     private static array $processCache = [];
 
-    private static ?string $processToken = null;
-
     public function __construct(
         private readonly FilesystemFacadeInterface $filesystemFacade,
     ) {}
@@ -122,14 +120,15 @@ final class RequireEvaluator implements EvaluatorInterface
     }
 
     /**
-     * The pid, read on every call so a forked child gets its own. Only when
-     * PHP cannot tell does a random token, fixed for the process, stand in.
+     * The pid, read on every call so a forked child gets its own. When PHP
+     * cannot tell, a fresh random token per file: nothing is shared, and the
+     * process cache above already reuses a result for the same code.
      */
     private function processToken(): string
     {
         $pid = getmypid();
 
-        return $pid === false ? self::$processToken ??= bin2hex(random_bytes(8)) : (string) $pid;
+        return $pid === false ? bin2hex(random_bytes(8)) : (string) $pid;
     }
 
     /**
