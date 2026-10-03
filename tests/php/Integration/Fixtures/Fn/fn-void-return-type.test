@@ -10,10 +10,10 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\log_it";
 
-    public function __invoke(...$args) {
-      return match (\count($args)) {
+    public function __invoke($a0 = null, ...$rest) {
+      return match (\func_num_args()) {
         0 => $this->invokeArity0(),
-        1 => $this->phelArity1($args[0]),
+        1 => $this->phelArity1($a0),
         default => throw new \InvalidArgumentException("No matching function arity"),
       };
     }

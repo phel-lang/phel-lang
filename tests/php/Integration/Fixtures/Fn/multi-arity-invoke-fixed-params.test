@@ -1,0 +1,27 @@
+--PHEL--
+(fn ([] 0) ([x] x) ([x y & more] (php/count more)))
+--PHP--
+new class() extends \Phel\Lang\AbstractFn {
+  public const BOUND_TO = "";
+
+  public function __invoke($a0 = null, ...$rest) {
+    return match (\func_num_args()) {
+      0 => $this->invokeArity0(),
+      1 => $this->invokeArity1($a0),
+      default => \func_num_args() >= 2 ? $this->phelArityVariadic(...\func_get_args()) : throw new \InvalidArgumentException("No matching function arity"),
+    };
+  }
+
+  public function invokeArity0(): mixed {
+    return 0;
+  }
+
+  public function invokeArity1($x): mixed {
+    return $x;
+  }
+
+  public function phelArityVariadic($x, $y, ...$more): int {
+    $more = \Phel::vector($more);
+    return count($more);
+  }
+};
