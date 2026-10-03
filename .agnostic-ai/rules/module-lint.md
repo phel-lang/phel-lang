@@ -135,7 +135,7 @@ deprecating something does not flag its declaration.
 
 ### `phel/unknown-class`
 
-Warns on a static call `(Foo/bar ...)` whose class cannot be autoloaded, after resolving `\Foo`, `Foo.Bar` and `:use` aliases. A warning because a class can be loaded at runtime. Lowercase namespaces, `:require` aliases and classes the file declares (`defstruct`, `definterface`, ...) are skipped. A Java class from `ClassNotFoundHint::javaClassHint()` adds its Phel replacement, the same text the runtime hint prints (#3465).
+Warns on a static call `(Foo/bar ...)` whose class cannot be autoloaded, after resolving `\Foo`, `Foo.Bar` and `:use` aliases. A warning because a class can be loaded at runtime. Lowercase namespaces without a leading `\` (`\vendor\Foo/run` is checked), `:require` aliases and classes the file declares (`defstruct`, `definterface`, ...) are skipped. A Java class from `ClassNotFoundHint::javaClassHint()` adds its Phel replacement, the same text the runtime hint prints (#3465).
 
 ## Config File
 

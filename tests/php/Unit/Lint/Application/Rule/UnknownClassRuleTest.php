@@ -93,6 +93,18 @@ final class UnknownClassRuleTest extends RuleTestCase
         self::assertSame([], $this->rule()->apply($this->buildAnalysis($source)));
     }
 
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_flags_a_fully_qualified_class_with_lowercase_namespace_segments(): void
+    {
+        $diagnostics = $this->rule()->apply($this->buildAnalysis("(ns app)\n(\\vendor\\pkg\\Missing/run)\n(vendor.pkg/run)\n"));
+
+        self::assertSame(
+            ["Class 'vendor\\pkg\\Missing' in '\\vendor\\pkg\\Missing/run' cannot be autoloaded."],
+            $this->messages($diagnostics),
+        );
+    }
+
     /**
      * The reader expands a syntax quote into `(quote Integer/parseInt)`, so a
      * macro template is quoted data the walker already skips.

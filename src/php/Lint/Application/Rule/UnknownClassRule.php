@@ -98,9 +98,10 @@ final readonly class UnknownClassRule implements LintRuleInterface
             return null;
         }
 
-        // Only a class reference: `\Foo`, `Foo` or `Foo.Bar`. A lowercase
-        // namespace is a Phel namespace, which `phel/unresolved-symbol` covers.
-        if (preg_match('/^\\\\?[A-Z][\w.\\\\]*$/', $namespace) !== 1) {
+        // Only a class reference: `\Foo`, `\vendor\Foo`, `Foo` or `Foo.Bar`.
+        // Without a leading `\`, a lowercase namespace is a Phel namespace,
+        // which `phel/unresolved-symbol` covers.
+        if (preg_match('/^(\\\\[A-Za-z_][\w\\\\]*|[A-Z][\w.\\\\]*)$/', $namespace) !== 1) {
             return null;
         }
 
