@@ -132,7 +132,7 @@ final class Atom extends AbstractType
 
     public function hash(): int
     {
-        return crc32(spl_object_hash($this));
+        return spl_object_id($this);
     }
 
     /**

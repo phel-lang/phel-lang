@@ -11,9 +11,18 @@ Tooling:
 - A `phel build` output finds the files its namespaces `(load ...)`. A loaded file used to be written by its path under the source dir while the built primary looked next to itself, so a project in the flat layout `phel init` creates, or one requiring phel-sql, built fine and then failed with `Cannot locate main_extra for (load ...)`. (#3528)
 - A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
 
+PHP API:
+
+- **BREAKING (PHP API)**: `Phel\Lang\LoadClasspath::NAMESPACE` is now `LoadClasspath::NS`. PHP 8.6 deprecates a class constant named `namespace`, and declaring one is what warns, so no alias can keep the old name. (#3522)
+
 Compiler:
 
 - **BREAKING**: `recur` inside a `foreach`, `doseq`, `dotimes` or `dofor` body fails with `PHEL010`. It used to rebind the enclosing `loop` or fn and keep iterating the inner loop instead of restarting: `(loop [i 0] (doseq [x [:a :b :c]] (when (< i 1) (recur 10))))` printed every element. Write the `loop` inside the body, or collect with `reduce`. (#3523)
+- A radix literal past `PHP_INT_MAX` reads as a float: `36rZZZZZZZZZZZZZZ` used to read as `PHP_INT_MAX`. Hex, binary and octal literals past `PHP_INT_MAX`, such as `-0x8000000000000000`, no longer raise a notice on PHP 8.6. (#3522)
+
+Runtime:
+
+- On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. (#3522)
 
 ## [0.54.0](https://github.com/phel-lang/phel-lang/compare/v0.53.0...v0.54.0) - 2026-10-04
 

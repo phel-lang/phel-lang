@@ -175,7 +175,7 @@
        (defstruct* ~name ~keys ~@implementations)
        (defn ~name ~(php/. "Creates a new " name " struct.") ~keys (new ~class-name-str ~@keys))
        (swap! *type-tag-registry* assoc ~name ~class-name-str)
-       (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " struct.") [x] (php/is_a x ~class-name-str)))))
+       (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " struct.") [x] (and (php/is_object x) (php/is_a x ~class-name-str))))))
 
 (defmacro defexception
   "Define a new exception. Optionally pass a parent class to extend (defaults to
@@ -191,7 +191,7 @@
        (defexception* ~name ~@(if parent [parent] []))
        (defn ~name ~(php/. "Creates a new " name " exception.") [& args]
          (.newInstanceArgs (new ReflectionClass ~class-name-str) (to-php-array args)))
-       (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " exception.") [x] (php/is_a x ~class-name-str)))))
+       (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " exception.") [x] (and (php/is_object x) (php/is_a x ~class-name-str))))))
 
 (defmacro defenum
   "Defines a native PHP enum. Each case is named by a keyword followed by an
@@ -217,7 +217,7 @@
         is-name        (Symbol/create (php/. name-str "?"))]
     `(do
        (defenum* ~name ~@cases)
-       (defn ~is-name ~(php/. "Checks if `x` is a case of the " name " enum.") [x] (php/is_a x ~class-name-str)))))
+       (defn ~is-name ~(php/. "Checks if `x` is a case of the " name " enum.") [x] (and (php/is_object x) (php/is_a x ~class-name-str))))))
 
 (defmacro comment
   "Ignores the body of the comment."
