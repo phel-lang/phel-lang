@@ -4,10 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-### Added
-
-- Public PHP API: `SequenceGenerator::numericRange()`, and `Seq::range()` takes any Phel number, where it took only `int|float`. (#3557)
-
 ### Fixed
 
 Tooling:
@@ -21,6 +17,7 @@ Tooling:
 PHP API:
 
 - **BREAKING (PHP API)**: `Phel\Lang\LoadClasspath::NAMESPACE` is now `LoadClasspath::NS`. PHP 8.6 deprecates a class constant named `namespace`, and declaring one is what warns, so no alias can keep the old name. (#3522)
+- `Seq::range()` takes any Phel number, where it took only `int|float`, and `SequenceGenerator::numericRange()` is public. (#3557)
 
 Compiler:
 
