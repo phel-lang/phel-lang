@@ -98,8 +98,8 @@ flag gated this notice: the switch is opt-in by design
 ([ADR 0006](../adr/0006-one-opt-in-deprecation-channel.md)), so the cycle could
 never start and a removal would have landed on users who were never warned.
 
-That is now settled the other way. The separator announces without the flag from
-`1.0.0` ([ADR 0014](../adr/0014-announce-the-separator-deprecation.md)), so the
+That is now settled the other way. The separator announces without the flag
+since `0.50.0` ([ADR 0014](../adr/0014-announce-the-separator-deprecation.md)), so the
 notice period is running for everyone, and the removal at the next major follows
 a warning people actually saw.
 

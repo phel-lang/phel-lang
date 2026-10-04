@@ -41,3 +41,11 @@
 (deftest test-reduce
   (is (= 6 (for [x :in [1 2 3] :reduce [acc 0]] (+ acc x))) "for loop reduce sum")
   (is (= "123" (for [x :in [1 2 3] :reduce [acc ""]] (str acc x))) "for loop reduce str"))
+
+(deftest test-clojure-pair-binding-form-is-rejected
+  ;; Divergence: `for` takes `binding :verb expr` triples, not Clojure pairs.
+  (let [err (try
+              (eval '(for [x [1 2 3]] x))
+              nil
+              (catch Throwable e (.getMessage e)))]
+    (is (s/contains? err "Error in expanding macro \"phel.core/for\""))))
