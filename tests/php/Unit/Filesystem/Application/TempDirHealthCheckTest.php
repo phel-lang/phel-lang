@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Filesystem\Application;
 
+use Closure;
 use Phel\Filesystem\Application\TempDirHealthCheck;
 use PHPUnit\Framework\TestCase;
+
+use function function_exists;
 
 final class TempDirHealthCheckTest extends TestCase
 {
@@ -25,7 +28,7 @@ final class TempDirHealthCheckTest extends TestCase
 
     public function test_it_is_healthy_when_temp_dir_exists_and_is_writable(): void
     {
-        mkdir($this->tempDir, 0777, true);
+        mkdir($this->tempDir, 0o700, true);
 
         $healthCheck = new TempDirHealthCheck($this->tempDir);
         $status = $healthCheck->checkHealth();
@@ -66,7 +69,8 @@ final class TempDirHealthCheckTest extends TestCase
             self::markTestSkipped('Cannot test permission failures when running as root.');
         }
 
-        mkdir($this->tempDir, 0555, true);
+        mkdir($this->tempDir, 0o700, true);
+        chmod($this->tempDir, 0o500);
 
         $healthCheck = new TempDirHealthCheck($this->tempDir);
         $status = $healthCheck->checkHealth();
@@ -74,5 +78,72 @@ final class TempDirHealthCheckTest extends TestCase
         self::assertFalse($status->isHealthy());
 
         chmod($this->tempDir, 0755);
+    }
+
+    public function test_it_closes_a_temp_dir_other_users_can_open(): void
+    {
+        if (!function_exists('posix_geteuid')) {
+            self::markTestSkipped('needs POSIX permissions');
+        }
+
+        mkdir($this->tempDir, 0o700, true);
+        chmod($this->tempDir, 0o755);
+
+        $status = new TempDirHealthCheck($this->tempDir)->checkHealth();
+        clearstatcache(true, $this->tempDir);
+
+        self::assertTrue($status->isHealthy());
+        self::assertSame(0o700, fileperms($this->tempDir) & 0o777);
+    }
+
+    public function test_it_is_unhealthy_when_others_can_still_write_after_the_close(): void
+    {
+        if (!function_exists('posix_geteuid')) {
+            self::markTestSkipped('needs POSIX permissions');
+        }
+
+        mkdir($this->tempDir, 0o700, true);
+        chmod($this->tempDir, 0o777);
+
+        $status = new TempDirHealthCheck($this->tempDir, $this->mountThatIgnoresChmod())->checkHealth();
+        chmod($this->tempDir, 0o700);
+
+        self::assertFalse($status->isHealthy());
+        self::assertStringContainsString('can replace', $status->message);
+    }
+
+    public function test_it_is_unhealthy_when_others_can_still_read_after_the_close(): void
+    {
+        if (!function_exists('posix_geteuid')) {
+            self::markTestSkipped('needs POSIX permissions');
+        }
+
+        mkdir($this->tempDir, 0o700, true);
+        chmod($this->tempDir, 0o755);
+
+        $status = new TempDirHealthCheck($this->tempDir, $this->mountThatIgnoresChmod())->checkHealth();
+
+        self::assertFalse($status->isHealthy());
+        self::assertStringContainsString('can open', $status->message);
+    }
+
+    public function test_it_is_unhealthy_when_another_user_owns_the_temp_dir(): void
+    {
+        if (!function_exists('posix_geteuid') || posix_geteuid() === 0 || fileowner('/usr') === posix_geteuid()) {
+            self::markTestSkipped('needs a directory owned by another user');
+        }
+
+        $status = new TempDirHealthCheck('/usr')->checkHealth();
+
+        self::assertFalse($status->isHealthy());
+        self::assertStringContainsString('owned by another user', $status->message);
+    }
+
+    /**
+     * @return Closure(string): void
+     */
+    private function mountThatIgnoresChmod(): Closure
+    {
+        return static function (string $dir): void {};
     }
 }

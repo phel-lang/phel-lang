@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Public PHP API: `PhelConfig::defaultTempDir()` and `Phel\Shared\CurrentUser`, which finds the effective uid also on a PHP built without the posix extension. (#3532)
+
 ### Fixed
 
 Tooling:
@@ -11,6 +15,7 @@ Tooling:
 - `phel run --stack-trace --debug app.phel` runs `app.phel`. It used to read `--debug` as the namespace, because `phel run` only knew `-t`, `--with-time` and `--clear-opcache` before the path. Every option `run` declares now works there, and `--warn-deprecations` after the path reaches the script instead of being stripped. (#3537)
 - `phel mutate` works on a project that prints when it loads, such as the `src/main.phel` `phel init` writes, and does not hang when a worker raises a PHP notice. Both used to land on the worker's stdout, which carries its answers: the first failed with `Failed to decode worker frame: Syntax error`, the second waited forever, which every run on PHP 8.6 did. A worker's stdout now carries answers only, and anything else there fails the run with the stray text. (#3526)
 - Two `phel` processes on one project (an editor's LSP and `phel test`, or `phel watch` and a manual run) no longer crash with a `ParseError` in `.phel/cache/namespace-cache.php`. The namespace cache, the scan index and the compiled-code index (`compiled-index.php`) were rewritten in place, so a reader could include a half-written file, and a run killed mid-write left it torn. They are now replaced by a rename, and a torn file left by an older version reads as empty. (#3553)
+- The temp dir for generated PHP is per user and owner-only: the default is `<system temp>/phel-<uid>/tmp`, created 0700. One Phel owns that other users can open is tightened to 0700 (by `phel doctor` too), and one another user owns, or could replace through a parent directory, is refused. It used to be a shared `/tmp/phel/tmp` created 0777, so on Linux any local user could read the PHP being compiled. `phel cache:clear` on a temp dir that is a symlink removes the link instead of emptying its target. `phel nrepl --host` with an address other than loopback warns that nREPL has no authentication. (#3532)
 - `phel build` in a project that installs Phel with Composer no longer warns that every stdlib namespace is defined in multiple locations, listing one file twice. Phel's own source dir is both a source and a vendor dir there, and since 0.54 the build read each of its files twice. (#3549)
 - `phel doc` and the API reference link `apply`, `definterface`, `ns` and the `php/` array, object, class, callable and reference forms to sections that exist. The guides moved PHP interop under `/documentation/language/` and renamed several sections, so these links opened the top of a page or a redirect.
 - A `phel build` output finds the files its namespaces `(load ...)`. A loaded file used to be written by its path under the source dir while the built primary looked next to itself, so a project in the flat layout `phel init` creates, or one requiring phel-sql, built fine and then failed with `Cannot locate main_extra for (load ...)`. (#3528)

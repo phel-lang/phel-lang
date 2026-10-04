@@ -22,4 +22,19 @@ final class FileException extends RuntimeException
     {
         return new self('Directory is not writable: ' . $directory);
     }
+
+    public static function directoryCanBeReplacedByAnotherUser(string $directory): self
+    {
+        return new self('Directory can be replaced by another user: ' . $directory);
+    }
+
+    public static function directoryIsOwnedByAnotherUser(string $directory): self
+    {
+        return new self('Directory is owned by another user: ' . $directory);
+    }
+
+    public static function currentUserIsUnknown(string $directory): self
+    {
+        return new self('Cannot tell which user runs PHP, so cannot check who owns: ' . $directory);
+    }
 }
