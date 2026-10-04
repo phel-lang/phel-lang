@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Infrastructure\Cache;
 
 use Gacela\Framework\Cache\FileCache;
+use ParseError;
 use Phel\Build\Domain\Cache\ScanIndexCacheInterface;
 use Phel\Build\Domain\Cache\ScanIndexEntry;
 
@@ -105,7 +106,13 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
             return [];
         }
 
-        $data = @include $this->cacheFile;
+        try {
+            $data = @include $this->cacheFile;
+        } catch (ParseError) {
+            // Torn by a writer from before writes were atomic.
+            return [];
+        }
+
         if (!is_array($data) || ($data['version'] ?? null) !== self::VERSION) {
             return [];
         }

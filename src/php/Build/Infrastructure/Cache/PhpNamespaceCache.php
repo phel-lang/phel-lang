@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Cache;
 
+use ParseError;
 use Phel\Build\Domain\Cache\NamespaceCacheEntry;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Extractor\ExcludedScanPaths;
@@ -93,7 +94,13 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
             return [];
         }
 
-        $data = @include $this->cacheFile;
+        try {
+            $data = @include $this->cacheFile;
+        } catch (ParseError) {
+            // Torn by a writer from before writes were atomic.
+            return [];
+        }
+
         if (!is_array($data) || !isset($data['version']) || $data['version'] !== self::VERSION) {
             return [];
         }
