@@ -68,7 +68,8 @@ final class TempDirHealthCheckTest extends TestCase
             self::markTestSkipped('Cannot test permission failures when running as root.');
         }
 
-        mkdir($this->tempDir, 0555, true);
+        mkdir($this->tempDir, 0o700, true);
+        chmod($this->tempDir, 0o500);
 
         $healthCheck = new TempDirHealthCheck($this->tempDir);
         $status = $healthCheck->checkHealth();
@@ -78,15 +79,20 @@ final class TempDirHealthCheckTest extends TestCase
         chmod($this->tempDir, 0755);
     }
 
-    public function test_it_is_unhealthy_when_other_users_can_open_the_temp_dir(): void
+    public function test_it_closes_a_temp_dir_other_users_can_open(): void
     {
+        if (!function_exists('posix_geteuid')) {
+            self::markTestSkipped('needs POSIX permissions');
+        }
+
         mkdir($this->tempDir, 0o700, true);
         chmod($this->tempDir, 0o755);
 
         $status = new TempDirHealthCheck($this->tempDir)->checkHealth();
+        clearstatcache(true, $this->tempDir);
 
-        self::assertFalse($status->isHealthy());
-        self::assertStringContainsString('other users can open it', $status->message);
+        self::assertTrue($status->isHealthy());
+        self::assertSame(0o700, fileperms($this->tempDir) & 0o777);
     }
 
     public function test_it_is_unhealthy_when_another_user_owns_the_temp_dir(): void

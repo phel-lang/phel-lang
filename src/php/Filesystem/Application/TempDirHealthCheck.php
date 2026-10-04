@@ -54,7 +54,7 @@ final readonly class TempDirHealthCheck implements ModuleHealthCheckInterface
             );
         }
 
-        if (TempDirPolicy::isOpenToOthers($this->tempDir)) {
+        if (TempDirPolicy::isOpenToOthers($this->tempDir) && !TempDirPolicy::closeToOthers($this->tempDir)) {
             return HealthStatus::unhealthy(
                 sprintf('Temp dir holds generated PHP, but other users can open it: %s (chmod 700 it)', $this->tempDir),
                 ['path' => $this->tempDir],

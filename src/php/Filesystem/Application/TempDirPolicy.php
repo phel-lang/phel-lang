@@ -9,6 +9,8 @@ use Phel\Shared\Exceptions\FileException;
 use function dirname;
 use function fileowner;
 use function fileperms;
+use function chmod;
+use function clearstatcache;
 use function function_exists;
 use function posix_geteuid;
 
@@ -55,5 +57,13 @@ final class TempDirPolicy
     public static function isOpenToOthers(string $dir): bool
     {
         return function_exists('posix_geteuid') && ((int) @fileperms($dir) & 0o077) !== 0;
+    }
+
+    public static function closeToOthers(string $dir): bool
+    {
+        $closed = @chmod($dir, 0o700);
+        clearstatcache(true, $dir);
+
+        return $closed;
     }
 }

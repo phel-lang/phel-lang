@@ -96,7 +96,7 @@ final class TempDirFinder
         }
 
         if (TempDirPolicy::isOpenToOthers($tempDir)) {
-            @chmod($tempDir, 0o700);
+            TempDirPolicy::closeToOthers($tempDir);
         }
     }
 }
