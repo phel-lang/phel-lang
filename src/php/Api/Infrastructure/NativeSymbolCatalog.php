@@ -273,7 +273,7 @@ Defines the namespace for the current file and adds imports to the environment. 
 (php/aget arr index)
 ```
 Equivalent to PHP\'s `arr[index] ?? null`.',
-            'docUrl' => '/documentation/language/php-interop/#get-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#read-and-write-a-php-array-in-place',
             'signatures' => ['(php/aget arr index)'],
             'desc' => "Equivalent to PHP's `arr[index] ?? null`.",
             'example' => '(php/aget (php/array "a" "b" "c") 1) ; => "b"',
@@ -283,7 +283,7 @@ Equivalent to PHP\'s `arr[index] ?? null`.',
 (php/aget-in arr ks)
 ```
 Equivalent to PHP\'s `arr[k1][k2][k...] ?? null`.',
-            'docUrl' => '/documentation/language/php-interop/#get-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#read-and-write-a-php-array-in-place',
             'signatures' => ['(php/aget-in arr ks)'],
             'desc' => "Equivalent to PHP's `arr[k1][k2][k...] ?? null`.",
             'example' => '(php/aget-in nested-arr ["users" 0 "name"])',
@@ -293,7 +293,7 @@ Equivalent to PHP\'s `arr[k1][k2][k...] ?? null`.',
 (php/aset arr index value)
 ```
 Equivalent to PHP\'s `arr[index] = value`.',
-            'docUrl' => '/documentation/language/php-interop/#set-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#read-and-write-a-php-array-in-place',
             'signatures' => ['(php/aset arr index value)'],
             'desc' => "Equivalent to PHP's `arr[index] = value`.",
             'example' => '(php/aset arr 0 "new-value")',
@@ -303,7 +303,7 @@ Equivalent to PHP\'s `arr[index] = value`.',
 (php/aset-in arr ks value)
 ```
 Equivalent to PHP\'s `arr[k1][k2][k...] = value`.',
-            'docUrl' => '/documentation/language/php-interop/#set-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#read-and-write-a-php-array-in-place',
             'signatures' => ['(php/aset-in arr ks value)'],
             'desc' => "Equivalent to PHP's `arr[k1][k2][k...] = value`.",
             'example' => '(php/aset-in arr ["users" 0 "name"] "Alice")',
@@ -313,7 +313,7 @@ Equivalent to PHP\'s `arr[k1][k2][k...] = value`.',
 (php/apush arr value)
 ```
 Equivalent to PHP\'s `arr[] = value`.',
-            'docUrl' => '/documentation/language/php-interop/#append-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#read-and-write-a-php-array-in-place',
             'signatures' => ['(php/apush arr value)'],
             'desc' => "Equivalent to PHP's arr[] = value.",
             'example' => '(php/apush arr "new-item")',
@@ -323,7 +323,7 @@ Equivalent to PHP\'s `arr[] = value`.',
 (php/apush-in arr ks value)
 ```
 Equivalent to PHP\'s `arr[k1][k2][k...][] = value`.',
-            'docUrl' => '/documentation/language/php-interop/#append-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#read-and-write-a-php-array-in-place',
             'signatures' => ['(php/apush-in arr ks value)'],
             'desc' => "Equivalent to PHP's `arr[k1][k2][k...][] = value`.",
             'example' => '(php/apush-in arr ["users"] {:name "Bob"})',
@@ -333,7 +333,7 @@ Equivalent to PHP\'s `arr[k1][k2][k...][] = value`.',
 (php/aunset arr index)
 ```
 Equivalent to PHP\'s `unset(arr[index])`.',
-            'docUrl' => '/documentation/language/php-interop/#unset-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#read-and-write-a-php-array-in-place',
             'signatures' => ['(php/aunset arr index)'],
             'desc' => "Equivalent to PHP's `unset(arr[index])`.",
             'example' => '(php/aunset arr "key-to-remove")',
@@ -343,7 +343,7 @@ Equivalent to PHP\'s `unset(arr[index])`.',
 (php/aunset-in arr ks)
 ```
 Equivalent to PHP\'s `unset(arr[k1][k2][k...])`.',
-            'docUrl' => '/documentation/language/php-interop/#unset-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#read-and-write-a-php-array-in-place',
             'signatures' => ['(php/aunset-in arr ks)'],
             'desc' => "Equivalent to PHP's `unset(arr[k1][k2][k...])`.",
             'example' => '(php/aunset-in arr ["users" 0])',
