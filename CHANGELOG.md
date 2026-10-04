@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 Tooling:
 
+- `phel debug:container`, `debug:dependencies`, `debug:modules`, `profile:report`, `validate:config` and `cache:warm` show `phel ...` usage examples in `--help`. They used to point at `bin/gacela` and a `gacela.php` file. (#3537)
 - `phel build` in a project that installs Phel with Composer no longer warns that every stdlib namespace is defined in multiple locations, listing one file twice. Phel's own source dir is both a source and a vendor dir there, and since 0.54 the build read each of its files twice. (#3549)
 - A `phel build` output finds the files its namespaces `(load ...)`. A loaded file used to be written by its path under the source dir while the built primary looked next to itself, so a project in the flat layout `phel init` creates, or one requiring phel-sql, built fine and then failed with `Cannot locate main_extra for (load ...)`. (#3528)
 - A `phel build` output finds a classpath-absolute `(load "/extra")`. The lookup searched only the load classpath, which nothing publishes in a built app, so it failed with "Cannot locate extra for (load ...)" where `phel run` worked. (#3542)
