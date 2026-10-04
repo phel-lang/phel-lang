@@ -32,4 +32,9 @@ final class FileException extends RuntimeException
     {
         return new self('Directory is owned by another user: ' . $directory);
     }
+
+    public static function currentUserIsUnknown(string $directory): self
+    {
+        return new self('Cannot tell which user runs PHP, so cannot check who owns: ' . $directory);
+    }
 }

@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 use function chmod;
 use function function_exists;
 use function mkdir;
+use function posix_geteuid;
 use function rmdir;
 use function sys_get_temp_dir;
 use function uniqid;
@@ -52,5 +53,20 @@ final class TempDirPolicyTest extends TestCase
 
         self::assertSame($open, TempDirPolicy::isOpenToOthers($this->dir));
         self::assertSame($writable, TempDirPolicy::isWritableByOthers($this->dir));
+    }
+
+    public function test_an_unknown_user_fails_closed(): void
+    {
+        // A PHP without the posix extension that cannot create a probe file
+        // does not know its uid; skipping the checks would trust any dir.
+        $violation = TempDirPolicy::violationFor($this->dir, null);
+
+        self::assertNotNull($violation);
+        self::assertStringContainsString('Cannot tell which user runs PHP', $violation->getMessage());
+    }
+
+    public function test_a_dir_the_current_user_owns_passes(): void
+    {
+        self::assertNull(TempDirPolicy::violationFor($this->dir, posix_geteuid()));
     }
 }

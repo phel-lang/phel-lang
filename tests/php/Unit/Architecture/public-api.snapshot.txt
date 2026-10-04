@@ -1763,6 +1763,7 @@ interface Phel\Shared\CompilerConstants
   public const string PHEL_CORE_NAMESPACE = 'phel.core'
 
 final class Phel\Shared\CurrentUser
+  public static function hasPosixOwners(): bool
   public static function id(): ?int
   public static function ownerOfANewFile(): ?int
 
@@ -1879,6 +1880,7 @@ interface Phel\Shared\Exceptions\ExceptionPrinterInterface
 final class Phel\Shared\Exceptions\FileException extends RuntimeException
   public static function canNotCreateDirectory(string $directory): Phel\Shared\Exceptions\FileException
   public static function canNotCreateFile(string $filename): Phel\Shared\Exceptions\FileException
+  public static function currentUserIsUnknown(string $directory): Phel\Shared\Exceptions\FileException
   public static function directoryCanBeReplacedByAnotherUser(string $directory): Phel\Shared\Exceptions\FileException
   public static function directoryIsNotWritable(string $directory): Phel\Shared\Exceptions\FileException
   public static function directoryIsOwnedByAnotherUser(string $directory): Phel\Shared\Exceptions\FileException

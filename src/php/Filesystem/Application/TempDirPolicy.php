@@ -26,13 +26,24 @@ final class TempDirPolicy
 {
     /**
      * What makes `$dir` unsafe, or null. Windows has no POSIX owners, and its
-     * temp dir is per user already.
+     * temp dir is per user already. Elsewhere an unknown user fails closed.
      */
     public static function violation(string $dir): ?FileException
     {
-        $uid = CurrentUser::id();
-        if ($uid === null) {
+        if (!CurrentUser::hasPosixOwners()) {
             return null;
+        }
+
+        return self::violationFor($dir, CurrentUser::id());
+    }
+
+    /**
+     * {@see violation()} for a given uid, null when it could not be found.
+     */
+    public static function violationFor(string $dir, ?int $uid): ?FileException
+    {
+        if ($uid === null) {
+            return FileException::currentUserIsUnknown($dir);
         }
 
         if (@fileowner($dir) !== $uid) {
@@ -55,12 +66,12 @@ final class TempDirPolicy
 
     public static function isOpenToOthers(string $dir): bool
     {
-        return CurrentUser::id() !== null && ((int) @fileperms($dir) & 0o077) !== 0;
+        return CurrentUser::hasPosixOwners() && ((int) @fileperms($dir) & 0o077) !== 0;
     }
 
     public static function isWritableByOthers(string $dir): bool
     {
-        return CurrentUser::id() !== null && ((int) @fileperms($dir) & 0o022) !== 0;
+        return CurrentUser::hasPosixOwners() && ((int) @fileperms($dir) & 0o022) !== 0;
     }
 
     public static function closeToOthers(string $dir): void

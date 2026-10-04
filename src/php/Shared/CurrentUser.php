@@ -18,21 +18,20 @@ final class CurrentUser
 {
     private static ?int $id = null;
 
-    private static bool $resolved = false;
-
     /**
-     * The effective uid, or null on Windows, which has no POSIX owners.
-     * PHP built without the posix extension (common in Alpine images) still
-     * gets one, from the owner of a file it creates.
+     * The effective uid, or null when it is unknown: always on Windows, which
+     * has no POSIX owners, and on another OS only when PHP has no posix
+     * extension (common in Alpine images) and cannot create a probe file to
+     * read the owner of. A failed probe is retried on the next call.
      */
     public static function id(): ?int
     {
-        if (!self::$resolved) {
-            self::$id = self::resolve();
-            self::$resolved = true;
-        }
+        return self::$id ??= self::resolve();
+    }
 
-        return self::$id;
+    public static function hasPosixOwners(): bool
+    {
+        return PHP_OS_FAMILY !== 'Windows';
     }
 
     public static function ownerOfANewFile(): ?int
@@ -50,7 +49,7 @@ final class CurrentUser
 
     private static function resolve(): ?int
     {
-        if (PHP_OS_FAMILY === 'Windows') {
+        if (!self::hasPosixOwners()) {
             return null;
         }
 
