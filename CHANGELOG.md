@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 Tooling:
 
+- The `phellang/repl` Docker image installs the release its tag names, where it used to install `main`, and a pre-release tag no longer moves `latest`. It is built for `linux/arm64` too. (#3536)
 Tooling:
 
 - `phel build` in a project that installs Phel with Composer no longer warns that every stdlib namespace is defined in multiple locations, listing one file twice. Phel's own source dir is both a source and a vendor dir there, and since 0.54 the build read each of its files twice. (#3549)

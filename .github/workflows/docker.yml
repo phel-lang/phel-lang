@@ -3,7 +3,7 @@ name: Publish docker images
 on:
   push:
     tags:
-      - '*'
+      - 'v*'
 
 jobs:
   repl:
@@ -11,14 +11,49 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
-    - name: docker login
-      env:
-        DOCKER_USER: ${{secrets.DOCKER_USER}}
-        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
-      run: |
-        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-    - name: Build the Docker image
-      run: cd docker/repl && docker build . --file Dockerfile --tag phellang/repl:${{github.ref_name}} && docker tag phellang/repl:${{github.ref_name}} phellang/repl:latest
 
-    - name: Docker Push
-      run: docker push -a phellang/repl
+    - name: Resolve the version and tags
+      id: version
+      env:
+        TAG: ${{ github.ref_name }}
+      run: |
+        version="${TAG#v}"
+        tags="phellang/repl:${TAG}"
+        # A pre-release tag (v1.0.0-rc1) must not move `latest`.
+        if [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          tags="${tags},phellang/repl:latest"
+        fi
+        echo "version=${version}" >> "$GITHUB_OUTPUT"
+        echo "tags=${tags}" >> "$GITHUB_OUTPUT"
+
+    # The image installs the release from Packagist, which picks up a new tag
+    # within minutes of the push.
+    - name: Wait for Packagist to list the version
+      env:
+        TAG: ${{ github.ref_name }}
+      run: |
+        for attempt in $(seq 1 30); do
+          if curl -fsS https://repo.packagist.org/p2/phel-lang/phel-lang.json \
+            | jq -e --arg tag "$TAG" '.packages["phel-lang/phel-lang"][] | select(.version == $tag)' > /dev/null; then
+            exit 0
+          fi
+          sleep 20
+        done
+        echo "Packagist does not list phel-lang/phel-lang ${TAG}" >&2
+        exit 1
+
+    - uses: docker/setup-qemu-action@v4
+    - uses: docker/setup-buildx-action@v4
+
+    - uses: docker/login-action@v4
+      with:
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - uses: docker/build-push-action@v7
+      with:
+        context: docker/repl
+        platforms: linux/amd64,linux/arm64
+        build-args: PHEL_VERSION=${{ steps.version.outputs.version }}
+        tags: ${{ steps.version.outputs.tags }}
+        push: true
