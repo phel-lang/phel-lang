@@ -43,7 +43,7 @@ final class PhpScanIndexCacheTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach ([$this->cacheFile, $this->liveFile] as $file) {
+        foreach ([$this->cacheFile, $this->cacheFile . '.lock', $this->liveFile] as $file) {
             if (file_exists($file)) {
                 unlink($file);
             }
@@ -54,6 +54,13 @@ final class PhpScanIndexCacheTest extends TestCase
                 rmdir($dir);
             }
         }
+    }
+
+    public function test_a_torn_cache_file_reads_as_empty(): void
+    {
+        file_put_contents($this->cacheFile, "<?php return ['version' => 1, 'entries' => ['");
+
+        self::assertNull(new PhpScanIndexCache($this->cacheFile)->get('any'));
     }
 
     public function test_put_then_get_returns_entry(): void

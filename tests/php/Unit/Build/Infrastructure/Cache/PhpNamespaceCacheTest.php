@@ -8,8 +8,11 @@ use Phel\Build\Domain\Cache\NamespaceCacheEntry;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
 use PHPUnit\Framework\TestCase;
 
+use function clearstatcache;
 use function file_exists;
 use function file_put_contents;
+use function fileinode;
+use function glob;
 use function is_dir;
 use function mkdir;
 use function rmdir;
@@ -33,8 +36,10 @@ final class PhpNamespaceCacheTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (file_exists($this->cacheFile)) {
-            unlink($this->cacheFile);
+        foreach ([$this->cacheFile, $this->cacheFile . '.lock'] as $file) {
+            if (file_exists($file)) {
+                unlink($file);
+            }
         }
 
         if (is_dir($this->tmpDir)) {
@@ -47,6 +52,30 @@ final class PhpNamespaceCacheTest extends TestCase
         $cache = new PhpNamespaceCache($this->cacheFile);
 
         self::assertNull($cache->get('/anything'));
+    }
+
+    public function test_a_torn_cache_file_reads_as_empty(): void
+    {
+        file_put_contents($this->cacheFile, "<?php return ['version' => 1, 'entries' => ['/x.phel' => ['mtime' => 1, 'isPrima");
+
+        self::assertNull(new PhpNamespaceCache($this->cacheFile)->get('/x.phel'));
+    }
+
+    public function test_save_replaces_the_file_instead_of_rewriting_it(): void
+    {
+        // A reader includes the cache without a lock, so it must only ever
+        // see a whole file: the old one or the new one.
+        $cache = new PhpNamespaceCache($this->cacheFile);
+        $cache->put(__FILE__, new NamespaceCacheEntry(__FILE__, 1, 'a', [], true));
+        $cache->save();
+        $before = fileinode($this->cacheFile);
+
+        $cache->put(__FILE__, new NamespaceCacheEntry(__FILE__, 2, 'a', [], true));
+        $cache->save();
+        clearstatcache();
+
+        self::assertNotSame($before, fileinode($this->cacheFile));
+        self::assertSame([], glob($this->tmpDir . '/*.tmp'));
     }
 
     public function test_put_then_get_returns_entry(): void
