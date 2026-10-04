@@ -56,8 +56,9 @@ next major. It is not a general escape from the opt-in rule.
 
 ## Consequences
 
-- A project on the backslash form sees the notice from `1.0.0` without opting in,
-  which is what makes a `2.0` removal defensible instead of abrupt.
+- A project on the backslash form sees the notice without opting in, from
+  `0.50.0`, the first release carrying this change. That is what makes a `2.0`
+  removal defensible instead of abrupt.
 - Phel's own integration fixtures pin the deprecated syntax on purpose, so the
   integration suite reports many notices where it used to report none. They are
   first-party and correct: those fixtures really do use the deprecated form.

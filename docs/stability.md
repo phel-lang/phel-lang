@@ -60,11 +60,13 @@ matched on by a program:
 | Lint rule codes | `Phel\Shared\LintRuleCodes` | `phel/unused-require`, `phel/arity-mismatch`, ... |
 | Compile and runtime codes | `Phel\Shared\Exceptions\ErrorCode` | `PHEL012`, `PHEL401`, ... |
 
-`phel lint --format=json` writes a rule code into its `code` field, and
-`phel explain <code>` asks people to type an error code. Both are contracts with
-something other than a human reader, so renaming or removing one is a breaking
-change and needs a major. Both namespaces are covered by rule 4 above and pinned
-by `PublicApiSurfaceTest`, so a rename fails CI rather than an editor.
+`phel lint --format=json` writes a lint rule code into its `code` field, or the
+error code when a file does not read (`PHEL100` for an unclosed list, `PHEL301`
+for an unclosed string), and `phel explain <code>` asks people to type an error
+code. Both are contracts with something other than a human reader, so renaming
+or removing one is a breaking change and needs a major. Both namespaces are
+covered by rule 4 above and pinned by `PublicApiSurfaceTest`, so a rename fails CI
+rather than an editor.
 
 What is *not* promised is the message text beside the code. Match on the code.
 
@@ -86,7 +88,7 @@ Breaking for a public symbol, major only:
 - removing a class, interface, method, constant or public property
 - narrowing a parameter type, adding a required parameter, reordering parameters
 - widening a return type, or changing it to an unrelated type
-- adding a method to an interface, or making an existing method abstract
+- adding a method to an interface outside `Phel\Shared\Facade\`, or making an existing method abstract
 - changing a class from non-`final` to `final`, or removing a public constructor
 
 Not breaking, fine in a minor or patch:
@@ -94,11 +96,15 @@ Not breaking, fine in a minor or patch:
 - adding a class, or a method to a `final` class
 - adding an optional parameter at the end of a signature
 - widening a parameter type, narrowing a return type
+- adding a method to an interface under `Phel\Shared\Facade\`
 - any change to an `@internal` symbol
 
-Interfaces under `Phel\Shared\Facade\` are the one place where adding a method
-bites implementers rather than callers. The changelog labels those
-**BREAKING (PHP API, implementers only)**.
+Interfaces under `Phel\Shared\Facade\` are a contract for callers and type
+hints, not for implementers. Every cross-module call goes through them (ADR
+0003), so they gain methods in most minor releases, and each one is implemented
+only by Phel's own facade. Implementing one outside Phel is unsupported. The
+changelog still labels such an addition **BREAKING (PHP API, implementers
+only)**, so anyone who implemented one anyway sees it.
 
 ### How it is enforced
 
@@ -127,15 +133,17 @@ are where to look.
 ## What a deployment loads
 
 `phel build` emits PHP, and the emitted PHP is what production runs. Measured on
-a stock `phel init` project, `require`-ing the built entry point declares classes
-from four places and no others:
+a stock `phel init` project at `0.54.0-beta`, `require`-ing the built entry point
+declares classes from these places and no others, Composer's autoloader aside:
 
 | Namespace | Classes | Why |
 |---|---|---|
-| `Phel\Lang\` | ~690 | the runtime: persistent collections, `AbstractFn`, `Registry` |
-| `Phel\Compiler\` | 7 | `GlobalEnvironmentSingleton` and the environment it resolves through. The emitter bakes that FQN into every compiled file, so it is an ABI shim rather than the compiler running |
-| `Phel\Shared\` | 3 | `Munge` and the printer reached from generated code |
-| `Phel\Phel` | 1 | `addDefinition()` / `getDefinition()`, which every compiled file calls |
+| `Phel\Lang\` | 731 | 702 compiled fns, one anonymous `AbstractFn` subclass each, almost all from the standard library. The other 29 are the runtime: persistent collections, `AbstractFn`, `Registry` |
+| `Gacela\` | 49 | `\Phel::bootstrap()`, which the entry point calls so that core fns such as `read-string`, `eval` and `promise` can reach Phel's facades |
+| `Phel\Compiler\` | 8 | `GlobalEnvironmentSingleton`, the environment and registry it resolves through, and the two resolvers and three warners that environment builds. The emitter bakes that FQN into every compiled file, so it is an ABI shim rather than the compiler running |
+| `Phel\Config\` | 5 | `PhelConfig` and its reader, loaded by the bootstrap to read `phel-config.php` |
+| `Phel\Shared\` | 5 | `Munge` and the printer reached from generated code, plus two helpers the bootstrap uses |
+| `\Phel`, `Phel\Phel` | 2 | `\Phel` carries `addDefinition()` / `getDefinition()`, which every compiled file calls. It extends `Phel\Phel`, which carries `bootstrap()` and `setupRuntimeArgs()`, the two calls the entry point makes |
 
 Nothing from `Run`, `Console`, `Api`, `Lsp`, `Nrepl`, `Build`, `Formatter` or
 `Lint` is loaded by a built application. Those are build-time and tooling
@@ -143,7 +151,7 @@ surfaces: they ship in the package, and a request never touches them.
 
 Two consequences worth stating, because both come up in review:
 
-- **A deployed app does load compiler classes**, seven of them. "Production needs
+- **A deployed app does load compiler classes**, eight of them. "Production needs
   only `Lang`" is the intuitive answer and it is wrong. The reason is the
   singleton whose fully-qualified name is compiled into build artifacts, which is
   also why it cannot be renamed.
@@ -153,8 +161,10 @@ Two consequences worth stating, because both come up in review:
   is *reachable* is broader than what is *loaded*, and the table says which is
   which.
 
-The numbers come from counting declared classes before and after requiring the
-entry point, so they follow the code rather than an intention.
+The numbers come from diffing `get_declared_classes()` before and after requiring
+`out/index.php`, grouped by namespace prefix; interfaces and traits are not
+counted. They follow the code rather than an intention. Without the bootstrap call
+the `Gacela\` and `Phel\Config\` rows drop out and `Phel\Shared\` falls to 3.
 
 ## Deprecation policy for 1.x
 
@@ -218,12 +228,12 @@ tool may rely on `.phel/cache/` and `.phel/repl-history` being where they are.
 
 ## Explicitly not covered
 
-Not under semver, and not before `1.0`:
+Not under semver, in any release:
 
 - The exact PHP source the emitter produces. Only its *behaviour* is promised;
   the test suite pins the text so changes are reviewed, not forbidden.
 - Compiler diagnostic *wording*, and the layout of human-facing error output.
-  The machine-readable parts are covered: see "Diagnostic codes" below.
+  The machine-readable parts are covered: see "Diagnostic codes" above.
 - The `.phel/cache/` file format. Keyed by source hash plus optimization level,
   Phel version and the fingerprint of the declared `cache-env-vars`, so a
   version bump invalidates it by design.
@@ -240,13 +250,13 @@ Not under semver, and not before `1.0`:
 | Special-form list | `LanguageSurfaceSpecTest` | the spec and the analyzer disagree |
 | Static analysis | `quality.yml` | PHPStan level 9 or Psalm level 1 reports anything |
 | Coverage floor | `coverage.yml` (nightly) | line coverage drops below the floor |
-| Benchmark regression | `tests.yml` | a benchmark is >25% slower than the base revision (`phpbench.json` uses 17% locally, where the machine is quiet) |
+| Benchmark regression | `tests.yml` | a benchmark is >25% slower than the base revision, the tolerance `phpbench.json` sets for CI and local runs alike |
 | Mutation score | `mutation.yml` (weekly) | MSI over `Lang/` and the analyzer drops below the floor |
 | Clojure divergences | `run-clojure-test-suite.yml` (nightly) | behaviour changes without the suite being updated |
 
 The coverage and MSI floors are ratchets: raised when a real run clears them
 comfortably, never lowered to make a red build green. Currently line coverage
-**86.9%** (floor 85) and mutation score **83%** (floor 80) over `Lang/` and the
+**86.36%** (floor 85) and mutation score **82%** (floor 80) over `Lang/` and the
 analyzer; both jobs print the figure to their run summary.
 
 Neither runs per pull request. Coverage takes ~22 minutes and mutation longer, so
