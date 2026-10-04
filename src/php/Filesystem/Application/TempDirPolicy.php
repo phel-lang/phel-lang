@@ -6,11 +6,11 @@ namespace Phel\Filesystem\Application;
 
 use Phel\Shared\Exceptions\FileException;
 
+use function chmod;
+use function clearstatcache;
 use function dirname;
 use function fileowner;
 use function fileperms;
-use function chmod;
-use function clearstatcache;
 use function function_exists;
 use function posix_geteuid;
 
