@@ -5,10 +5,12 @@ a decision, and this page is the record. **If a behaviour is listed here, it is
 not a bug.** Anything unlisted that differs is worth
 [an issue](https://github.com/phel-lang/phel-lang/issues).
 
-Every entry is pinned by a `:phel` reader conditional in
+Every entry is pinned by a test: most by a `:phel` reader conditional in
 [phel-lang/clojure-test-suite](https://github.com/phel-lang/clojure-test-suite),
 run against `main` nightly. That suite characterises Clojure JVM behaviour across
 dialects; a `:phel` branch is Phel saying "here, deliberately, something else".
+The few rows the suite has no file for are pinned by tests in this repository,
+named under each such section.
 
 ## Why they exist
 
@@ -328,8 +330,9 @@ would break working interop code with no way to opt out.
 | `for` | each binding is a `binding :verb expr` triple, with `:in`, `:range`, `:keys` or `:pairs`. The Clojure pair form `(for [x [1 2 3]] x)` fails to expand with `PHEL005`; write `(for [x :in [1 2 3]] x)`. `doseq` accepts the pair form |
 
 The suite has no file for `cond`, `for` or the string reader, so these rows are
-not pinned there. `tests/phel/core/control-structures.phel` pins the `cond` row;
-the other two have no test yet.
+pinned in this repository instead: `tests/phel/core/control-structures.phel`
+(`cond`), `tests/phel/reader.phel` (string escapes) and
+`tests/phel/core/for-loop.phel` (`for`).
 
 ## 10. Absent concepts
 
