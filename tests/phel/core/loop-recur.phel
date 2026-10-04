@@ -58,3 +58,10 @@
   (let [ran (atom false)]
     (is (nil? (while false (reset! ran true))) "while returns nil")
     (is (false? @ran) "while never runs the body when the test starts false")))
+
+(deftest test-loop-inside-doseq-recurs-its-own-loop
+  (let [sums (atom [])]
+    (doseq [n [1 2 3]]
+      (swap! sums conj (loop [i 0 acc 0]
+                         (if (< i n) (recur (inc i) (+ acc i)) acc))))
+    (is (= [0 1 3] @sums) "recur inside a loop inside doseq targets that loop")))

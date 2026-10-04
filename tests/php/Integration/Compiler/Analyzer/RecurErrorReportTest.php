@@ -47,6 +47,37 @@ final class RecurErrorReportTest extends AbstractCompilerRuntimeTestCase
         self::assertSame($expected, $this->report('(loop [x 1] (recur))'));
     }
 
+    public function test_a_recur_in_a_foreach_body_cannot_target_the_enclosing_loop(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL010] Can't call 'recur here. See more: https://phel-lang.org/blog/loop-and-recur
+            in recur.phel:1
+
+            1| (loop [i 0] (foreach [x [1 2]] (recur 10)))
+                                               ^^^^^
+
+            REPORT;
+
+        self::assertSame($expected, $this->report('(loop [i 0] (foreach [x [1 2]] (recur 10)))'));
+    }
+
+    public function test_a_recur_in_a_doseq_body_cannot_target_the_enclosing_fn(): void
+    {
+        $report = $this->report('(fn [i] (doseq [x [1 2]] (when (< i 1) (recur 10))))');
+
+        self::assertStringStartsWith("[PHEL010] Can't call 'recur here.", $report);
+    }
+
+    public function test_a_loop_inside_a_foreach_body_keeps_its_own_recur(): void
+    {
+        $result = $this->compilerFacade->compile(
+            '(foreach [x [1 2]] (loop [i 0] (if (< i x) (recur (inc i)) i)))',
+            new CompileOptions()->setSource(self::SOURCE),
+        );
+
+        self::assertStringContainsString('foreach', $result->getPhpCode());
+    }
+
     private function report(string $phelCode): string
     {
         try {

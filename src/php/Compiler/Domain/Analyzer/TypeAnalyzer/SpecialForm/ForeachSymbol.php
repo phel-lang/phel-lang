@@ -40,7 +40,9 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
 
         $bodyExpr = $this->analyzer->analyze(
             $this->buildTupleBody($foreachSymbolTuple->lets(), $list),
-            $foreachSymbolTuple->bodyEnv()->withStatementContext(),
+            // The body is a PHP loop of its own: a `continue` emitted for an
+            // enclosing loop or fn's `recur` would step this one instead.
+            $foreachSymbolTuple->bodyEnv()->withStatementContext()->withDisallowRecurFrame(),
         );
 
         return new ForeachNode(

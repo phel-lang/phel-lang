@@ -83,9 +83,9 @@ final class ForeachSymbolTest extends TestCase
             new ForeachNode(
                 $env,
                 new DoNode(
-                    $env->withLocals([Symbol::create('x')]),
+                    $env->withLocals([Symbol::create('x')])->withDisallowRecurFrame(),
                     [],
-                    new LocalVarNode($env->withLocals([Symbol::create('x')]), Symbol::create('x')),
+                    new LocalVarNode($env->withLocals([Symbol::create('x')])->withDisallowRecurFrame(), Symbol::create('x')),
                 ),
                 new VectorNode($env->withExpressionContext(), []),
                 Symbol::create('x'),
@@ -129,9 +129,9 @@ final class ForeachSymbolTest extends TestCase
             new ForeachNode(
                 $env,
                 new DoNode(
-                    $env->withLocals([Symbol::create('value'), Symbol::create('key')]),
+                    $env->withLocals([Symbol::create('value'), Symbol::create('key')])->withDisallowRecurFrame(),
                     [],
-                    new LocalVarNode($env->withLocals([Symbol::create('value'), Symbol::create('key')]), Symbol::create('key')),
+                    new LocalVarNode($env->withLocals([Symbol::create('value'), Symbol::create('key')])->withDisallowRecurFrame(), Symbol::create('key')),
                 ),
                 new MapNode($env->withExpressionContext(), []),
                 Symbol::create('value'),
