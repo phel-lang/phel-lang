@@ -41,6 +41,9 @@ final class StreamTransport
 
     private const array REDIRECT_STATUSES = [301, 302, 303, 307, 308];
 
+    /** Headers that describe a body; a redirect that drops the body drops them too. */
+    private const array BODY_HEADERS = ['content-length', 'content-type', 'content-encoding'];
+
     /** Headers a redirect to another origin keeps; it drops the rest, credentials included. */
     private const array CROSS_ORIGIN_HEADERS = ['accept', 'accept-encoding', 'accept-language', 'user-agent', 'content-type'];
 
@@ -79,6 +82,11 @@ final class StreamTransport
             if ($response['status'] === 303 || ($response['status'] <= 302 && strtoupper($method) === 'POST')) {
                 $method = 'GET';
                 $body = null;
+                $headers = array_filter(
+                    $headers,
+                    static fn(string $name): bool => !in_array(strtolower($name), self::BODY_HEADERS, true),
+                    ARRAY_FILTER_USE_KEY,
+                );
             }
 
             if (self::origin($next) !== self::origin($url)) {

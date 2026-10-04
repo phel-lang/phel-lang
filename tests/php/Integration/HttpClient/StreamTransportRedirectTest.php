@@ -88,6 +88,22 @@ final class StreamTransportRedirectTest extends TestCase
         self::assertSame('', $echo['body']);
     }
 
+    public function test_a_redirect_that_drops_the_body_drops_its_headers(): void
+    {
+        $result = StreamTransport::send(
+            'POST',
+            $this->redirectTo('/echo', 303),
+            ['content-type' => 'application/json', 'content-length' => '7'],
+            '{"a":1}',
+            ['timeout' => 5],
+        );
+
+        /** @var array{headers: array<string, string>} $echo */
+        $echo = json_decode($result['body'], true, flags: JSON_THROW_ON_ERROR);
+        self::assertArrayNotHasKey('content-length', $echo['headers']);
+        self::assertArrayNotHasKey('content-type', $echo['headers']);
+    }
+
     public function test_a_307_keeps_the_method_and_the_body(): void
     {
         $echo = $this->send('POST', $this->redirectTo('/echo', 307), '{"a":1}');
