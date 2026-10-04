@@ -98,5 +98,11 @@ final class TempDirFinder
         if (TempDirPolicy::isOpenToOthers($tempDir)) {
             TempDirPolicy::closeToOthers($tempDir);
         }
+
+        // Some mounts ignore chmod. Read access there only leaks source, which
+        // `phel doctor` reports; write access would let others swap the PHP.
+        if (TempDirPolicy::isWritableByOthers($tempDir)) {
+            throw FileException::directoryCanBeReplacedByAnotherUser($tempDir);
+        }
     }
 }

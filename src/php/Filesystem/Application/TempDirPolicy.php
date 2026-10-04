@@ -59,6 +59,11 @@ final class TempDirPolicy
         return function_exists('posix_geteuid') && ((int) @fileperms($dir) & 0o077) !== 0;
     }
 
+    public static function isWritableByOthers(string $dir): bool
+    {
+        return function_exists('posix_geteuid') && ((int) @fileperms($dir) & 0o022) !== 0;
+    }
+
     public static function closeToOthers(string $dir): bool
     {
         $closed = @chmod($dir, 0o700);
