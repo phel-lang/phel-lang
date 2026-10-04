@@ -145,6 +145,6 @@ final class AtomTest extends TestCase
     {
         $v1 = new Atom(null, 10);
 
-        $this->assertSame(crc32(spl_object_hash($v1)), $v1->hash());
+        $this->assertSame(spl_object_id($v1), $v1->hash());
     }
 }

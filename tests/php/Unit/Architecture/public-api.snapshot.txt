@@ -1175,7 +1175,7 @@ final class Phel\Lang\Keyword extends Phel\Lang\AbstractType implements Phel\Lan
 
 final class Phel\Lang\LoadClasspath
   public const string NAME = '*load-classpath*'
-  public const string NAMESPACE = 'phel.core'
+  public const string NS = 'phel.core'
   public static function publish(array $directories): void
   public static function read(): array
 

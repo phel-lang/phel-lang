@@ -21,6 +21,7 @@ use Phel\Shared\Parser\Node\SymbolNode;
 use Phel\Shared\Parser\Node\Token;
 
 use function is_float;
+use function is_int;
 use function ord;
 use function sprintf;
 use function strlen;
@@ -206,7 +207,7 @@ final readonly class AtomParser
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
         $unsignedInteger = (string) ($matches[2] ?? $word);
-        $value = bindec(str_replace('_', '', $unsignedInteger));
+        $value = $this->unsignedInBase(str_replace('_', '', $unsignedInteger), 2);
 
         if ($sign === -1) {
             $value = $this->normalizeNegativeOverflow(-$value);
@@ -222,7 +223,7 @@ final readonly class AtomParser
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
         $unsignedInteger = (string) ($matches[2] ?? $word);
-        $value = hexdec(str_replace('_', '', $unsignedInteger));
+        $value = $this->unsignedInBase(str_replace('_', '', $unsignedInteger), 16);
 
         if ($sign === -1) {
             $value = $this->normalizeNegativeOverflow(-$value);
@@ -238,7 +239,7 @@ final readonly class AtomParser
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
         $unsignedInteger = (string) ($matches[2] ?? $word);
-        $value = octdec(str_replace('_', '', $unsignedInteger));
+        $value = $this->unsignedInBase(str_replace('_', '', $unsignedInteger), 8);
 
         if ($sign === -1) {
             $value = $this->normalizeNegativeOverflow(-$value);
@@ -260,13 +261,7 @@ final readonly class AtomParser
         $base = (int) $matches[2];
         $digits = str_replace('_', '', (string) $matches[3]);
 
-        // `base_convert` returns a string; for values that fit, this is the
-        // decimal integer representation. For values that overflow PHP_INT_MAX
-        // it falls back to a scientific-notation string (cast to float below).
-        $decimal = base_convert($digits, $base, 10);
-        $value = str_contains($decimal, '.') || str_contains($decimal, 'E')
-            ? (float) $decimal
-            : (int) $decimal;
+        $value = $this->unsignedInBase($digits, $base);
 
         if ($sign === -1) {
             $value = $this->normalizeNegativeOverflow(-$value);
@@ -300,6 +295,29 @@ final readonly class AtomParser
         }
 
         return true;
+    }
+
+    /**
+     * The value of `$digits` in `$base`, as an int while it fits and a float
+     * past `PHP_INT_MAX`, the way `hexdec()` answers. Computed by hand: PHP
+     * 8.6's `bindec`/`hexdec`/`octdec`/`base_convert` raise a notice past
+     * `PHP_INT_MAX`, which the `PHP_INT_MIN` literals reach, and
+     * `base_convert` gives a digit string there that an `(int)` cast clamps.
+     */
+    private function unsignedInBase(string $digits, int $base): int|float
+    {
+        $value = 0;
+        foreach (str_split(strtolower($digits)) as $digit) {
+            $digitValue = (int) base_convert($digit, 36, 10);
+            if (is_int($value) && $value <= intdiv(PHP_INT_MAX - $digitValue, $base)) {
+                $value = $value * $base + $digitValue;
+                continue;
+            }
+
+            $value = (float) $value * (float) $base + (float) $digitValue;
+        }
+
+        return $value;
     }
 
     /**

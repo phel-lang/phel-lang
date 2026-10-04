@@ -39,7 +39,7 @@
                                    munged-fn-name (.encode munge fn-name-str)
                                    dot-call-symbol (Symbol/create (str "." munged-fn-name))]]
                          `(defn ~fn-name {:doc ~doc} ~args
-                            (if (php/is_a ~(first args) ~class-name-str)
+                            (if (and (php/is_object ~(first args)) (php/is_a ~(first args) ~class-name-str))
                               (~dot-call-symbol ~@args)
                               (throw (new InvalidArgumentException ~(str "Value doesn't implement interface " name))))))]
     `(do

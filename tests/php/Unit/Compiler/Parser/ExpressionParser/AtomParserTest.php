@@ -506,6 +506,30 @@ final class AtomParserTest extends TestCase
         self::assertSame(1295, $node->getValue());
     }
 
+    public function test_parse_radix_number_past_php_int_max_is_a_float(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 17);
+
+        $node = $parser->parse(new Token(Token::T_ATOM, '36rZZZZZZZZZZZZZZ', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(36.0 ** 14 - 1, $node->getValue());
+    }
+
+    public function test_parse_hexadecimal_past_php_int_max_is_a_float(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 18);
+
+        $node = $parser->parse(new Token(Token::T_ATOM, '0xFFFFFFFFFFFFFFFF', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(hexdec('FFFFFFFFFFFFFFFF'), $node->getValue());
+    }
+
     public function test_parse_radix_number_is_case_insensitive(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());

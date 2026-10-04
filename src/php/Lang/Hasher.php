@@ -73,7 +73,7 @@ final class Hasher implements HasherInterface
         }
 
         if (is_object($value)) {
-            return crc32(spl_object_hash($value));
+            return spl_object_id($value);
         }
 
         throw new RuntimeException('This type is not hashable: ' . gettype($value));

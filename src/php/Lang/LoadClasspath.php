@@ -20,7 +20,7 @@ use function is_array;
  */
 final class LoadClasspath
 {
-    public const string NAMESPACE = 'phel.core';
+    public const string NS = 'phel.core';
 
     public const string NAME = '*load-classpath*';
 
@@ -41,7 +41,7 @@ final class LoadClasspath
     public static function publish(array $directories): void
     {
         self::$cached = null;
-        Registry::getInstance()->addDefinition(self::NAMESPACE, self::NAME, $directories);
+        Registry::getInstance()->addDefinition(self::NS, self::NAME, $directories);
     }
 
     /**
@@ -53,7 +53,7 @@ final class LoadClasspath
             return self::$cached;
         }
 
-        $value = Registry::getInstance()->getDefinition(self::NAMESPACE, self::NAME);
+        $value = Registry::getInstance()->getDefinition(self::NS, self::NAME);
 
         /** @var list<string> $result */
         $result = is_array($value) ? $value : [];
