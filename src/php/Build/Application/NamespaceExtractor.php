@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
+use Closure;
 use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
@@ -51,8 +52,9 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         NamespaceSorterInterface $namespaceSorter,
         private FileContentsIoInterface $fileIo,
         ?ExcludedScanPaths $excludedPaths = null,
+        ?Closure $warningWriter = null,
     ) {
-        $this->grouper = new NamespaceFileGrouper($namespaceSorter);
+        $this->grouper = new NamespaceFileGrouper($namespaceSorter, $warningWriter);
         $this->excludedPaths = $excludedPaths ?? ExcludedScanPaths::none();
     }
 
@@ -93,14 +95,16 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
      */
     public function getNamespacesFromDirectories(array $directories, bool $failOnInvalidNsForm = false): array
     {
+        // Source and vendor dirs overlap in a Composer install (Phel's own
+        // stdlib is in both), so the same file can be reached twice.
         $allInfos = [];
         foreach ($directories as $directory) {
             foreach ($this->findAllNs($directory, $failOnInvalidNsForm) as $info) {
-                $allInfos[] = $info;
+                $allInfos[$info->getFile()] ??= $info;
             }
         }
 
-        return $this->grouper->groupAndSort($allInfos);
+        return $this->grouper->groupAndSort(array_values($allInfos));
     }
 
     /**
