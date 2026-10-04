@@ -44,6 +44,7 @@ Compiler:
 
 Runtime:
 
+- **BREAKING**: `set`, `frequencies`, `group-by`, `distinct` and `union` see the `[key value]` entries of a map or struct, as in Clojure and as `vec`, `seq` and `(into #{} ...)` already do. They used to see the values: `(set {:a 1 :b 2})` was `#{1 2}` and is now `#{[:a 1] [:b 2]}`, `(frequencies {:a 1 :b 1})` was `{1 2}`, and `group-by` passed `f` a bare value. Use `(vals m)` where you relied on the values. (#3556 #3570)
 - **BREAKING**: `phel.http-client` accepts only `http` and `https` URLs, including redirect targets. `(hc/get "file:///etc/hosts")` and `php://` or `data://` URLs used to read local data through `file_get_contents`. A redirect to another origin keeps only `accept`, `accept-encoding`, `accept-language`, `user-agent` and `content-type`: custom headers such as the `x-api-key` `phel.ai` sends used to follow it. More than 20 redirects throw. (#3531)
 - On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. (#3522)
 - `range` accepts a ratio, `BigInt` or `BigDecimal` bound or step, so `(repeat 1/2 :x)`, `(repeatedly 5/2 f)`, `(dotimes [i 5/2] ...)` and `(for [i :range [5/2]] i)` run as they do with a float. They used to fail with a `TypeError` from `Seq::range()`. (#3557)

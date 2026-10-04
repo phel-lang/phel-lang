@@ -295,6 +295,14 @@
   (is (= [1 2 3] (distinct [1 1 2 3 2 2 3 1])) "distinct: array")
   (is (= [1 2 3] (distinct (php-indexed-array 1 1 2 3 2 2 3 1))) "distinct: php array"))
 
+(defstruct distinct-point [x y])
+
+(deftest test-distinct-of-associatives-yields-entries
+  (is (= [[:a 1] [:b 1]] (distinct {:a 1 :b 1})) "a map yields [key value] entries, not values")
+  (is (= [[:a 1] [:b 2]] (distinct (sorted-map :b 2 :a 1))) "a sorted map keeps its order")
+  (is (= [] (distinct {})) "an empty map")
+  (is (= [[:x 1] [:y 2]] (distinct (distinct-point 1 2))) "a struct yields one entry per field"))
+
 (deftest test-distinct?
   (is (true? (distinct? 1)) "distinct? of a single argument")
   (is (true? (distinct? 1 2 3)) "distinct? when all arguments differ")
