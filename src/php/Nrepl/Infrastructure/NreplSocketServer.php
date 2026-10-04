@@ -39,6 +39,8 @@ final class NreplSocketServer
 
     private bool $running = false;
 
+    private bool $inRun = false;
+
     private readonly ClientFiberPool $fiberPool;
 
     /** @var (Closure(string): void)|null */
@@ -97,15 +99,17 @@ final class NreplSocketServer
         $this->log(sprintf('nREPL server listening on %s:%d', $this->host, $this->port()));
     }
 
+    /**
+     * Inside run(), only asks the loop to end: a signal handler calls this
+     * between any two statements, and closing the socket under
+     * stream_socket_accept() made it throw a TypeError. The loop closes it.
+     */
     public function stop(): void
     {
         $this->running = false;
-        /** @psalm-suppress InvalidPropertyAssignmentValue */
-        if (is_resource($this->server)) {
-            @fclose($this->server);
+        if (!$this->inRun) {
+            $this->close();
         }
-
-        $this->server = null;
     }
 
     /**
@@ -119,17 +123,25 @@ final class NreplSocketServer
         }
 
         $iter = 0;
-        /** @psalm-suppress RedundantConditionGivenDocblockType */
-        while ($this->running && is_resource($this->server)) {
-            $this->acceptOnce();
-            $this->stepFibers();
+        $this->inRun = true;
+        try {
+            /** @psalm-suppress RedundantConditionGivenDocblockType */
+            while ($this->running && is_resource($this->server)) {
+                $this->acceptOnce();
+                $this->stepFibers();
 
-            ++$iter;
-            if ($maxIterations > 0 && $iter >= $maxIterations) {
-                break;
+                ++$iter;
+                if ($maxIterations > 0 && $iter >= $maxIterations) {
+                    break;
+                }
+
+                usleep(1000);
             }
-
-            usleep(1000);
+        } finally {
+            $this->inRun = false;
+            if (!$this->running) {
+                $this->close();
+            }
         }
     }
 
@@ -161,6 +173,16 @@ final class NreplSocketServer
     public function stepFibers(): void
     {
         $this->fiberPool->step();
+    }
+
+    private function close(): void
+    {
+        /** @psalm-suppress InvalidPropertyAssignmentValue */
+        if (is_resource($this->server)) {
+            @fclose($this->server);
+        }
+
+        $this->server = null;
     }
 
     private function serveClient(ClientConnection $connection): void

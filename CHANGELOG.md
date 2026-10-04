@@ -18,6 +18,7 @@ Tooling:
 - Two `phel` processes on one project (an editor's LSP and `phel test`, or `phel watch` and a manual run) no longer crash with a `ParseError` in `.phel/cache/namespace-cache.php`. The namespace cache, the scan index and the compiled-code index (`compiled-index.php`) were rewritten in place, so a reader could include a half-written file, and a run killed mid-write left it torn. They are now replaced by a rename, and a torn file left by an older version reads as empty. (#3553)
 - The temp dir for generated PHP is per user and owner-only: the default is `<system temp>/phel-<uid>/tmp`, created 0700. One Phel owns that other users can open is tightened to 0700 (by `phel doctor` too), and one another user owns, or could replace through a parent directory, is refused. It used to be a shared `/tmp/phel/tmp` created 0777, so on Linux any local user could read the PHP being compiled. `phel cache:clear` on a temp dir that is a symlink removes the link instead of emptying its target. `phel nrepl --host` with an address other than loopback warns that nREPL has no authentication. (#3532)
 - `phel build` in a project that installs Phel with Composer no longer warns that every stdlib namespace is defined in multiple locations, listing one file twice. Phel's own source dir is both a source and a vendor dir there, and since 0.54 the build read each of its files twice. (#3549)
+- `phel nrepl` shuts down cleanly on SIGTERM or Ctrl+C. A signal landing inside the accept loop closed the socket under `stream_socket_accept()`, which threw, so the server exited with 1. (#3575)
 - `phel doc` and the API reference link `apply`, `definterface`, `ns` and the `php/` array, object, class, callable and reference forms to sections that exist. The guides moved PHP interop under `/documentation/language/` and renamed several sections, so these links opened the top of a page or a redirect.
 - A `phel build` output finds the files its namespaces `(load ...)`. A loaded file used to be written by its path under the source dir while the built primary looked next to itself, so a project in the flat layout `phel init` creates, or one requiring phel-sql, built fine and then failed with `Cannot locate main_extra for (load ...)`. (#3528)
 - The `phellang/repl` Docker image installs the release its tag names, where it used to install `main`, and a pre-release tag no longer moves `latest`. It is built for `linux/arm64` too. (#3536)
@@ -29,6 +30,7 @@ Tooling:
 PHP API:
 
 - **BREAKING (PHP API)**: `Phel\Lang\LoadClasspath::NAMESPACE` is now `LoadClasspath::NS`. PHP 8.6 deprecates a class constant named `namespace`, and declaring one is what warns, so no alias can keep the old name. (#3522)
+- `Seq::range()` takes any Phel number, where it took only `int|float`, and `SequenceGenerator::numericRange()` is public. (#3557)
 
 Compiler:
 
@@ -44,6 +46,7 @@ Runtime:
 
 - **BREAKING**: `phel.http-client` accepts only `http` and `https` URLs, including redirect targets. `(hc/get "file:///etc/hosts")` and `php://` or `data://` URLs used to read local data through `file_get_contents`. A redirect to another origin keeps only `accept`, `accept-encoding`, `accept-language`, `user-agent` and `content-type`: custom headers such as the `x-api-key` `phel.ai` sends used to follow it. More than 20 redirects throw. (#3531)
 - On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. (#3522)
+- `range` accepts a ratio, `BigInt` or `BigDecimal` bound or step, so `(repeat 1/2 :x)`, `(repeatedly 5/2 f)`, `(dotimes [i 5/2] ...)` and `(for [i :range [5/2]] i)` run as they do with a float. They used to fail with a `TypeError` from `Seq::range()`. (#3557)
 
 ## [0.54.0](https://github.com/phel-lang/phel-lang/compare/v0.53.0...v0.54.0) - 2026-10-04
 

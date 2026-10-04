@@ -1108,6 +1108,7 @@ final class Phel\Lang\Generators\PartitionGenerator
 
 final class Phel\Lang\Generators\SequenceGenerator
   public static function indexed(mixed $iterable): Generator
+  public static function numericRange(mixed $start, mixed $end, mixed $step): Generator
   public static function range(float|int $start, float|int $end, float|int $step): Generator
   public static function toIterable(mixed $value): iterable
   public static function toIterator(mixed $value): Iterator
@@ -1354,7 +1355,7 @@ final class Phel\Lang\Seq
   public static function partition(int $n, mixed $iterable): Generator
   public static function partitionAll(int $n, mixed $iterable): Generator
   public static function partitionBy(callable $f, mixed $iterable): Generator
-  public static function range(float|int $start, float|int $end, float|int $step): Generator
+  public static function range(mixed $start, mixed $end, mixed $step): Generator
   public static function readFileChunks(string $filename, int $chunkSize = 8192): Generator
   public static function reductions(callable $f, mixed $init, mixed $iterable): Generator
   public static function repeat(mixed $value): Generator
