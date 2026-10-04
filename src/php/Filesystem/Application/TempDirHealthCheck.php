@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Filesystem\Application;
 
+use Closure;
 use Gacela\Framework\Health\HealthStatus;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Override;
@@ -26,9 +27,18 @@ use function sprintf;
  */
 final readonly class TempDirHealthCheck implements ModuleHealthCheckInterface
 {
+    /** @var Closure(string): void */
+    private Closure $closeToOthers;
+
+    /**
+     * @param ?Closure(string): void $closeToOthers
+     */
     public function __construct(
         private string $tempDir,
-    ) {}
+        ?Closure $closeToOthers = null,
+    ) {
+        $this->closeToOthers = $closeToOthers ?? TempDirPolicy::closeToOthers(...);
+    }
 
     #[Override]
     public function getModuleName(): string
@@ -54,7 +64,19 @@ final readonly class TempDirHealthCheck implements ModuleHealthCheckInterface
             );
         }
 
-        if (TempDirPolicy::isOpenToOthers($this->tempDir) && !TempDirPolicy::closeToOthers($this->tempDir)) {
+        if (TempDirPolicy::isOpenToOthers($this->tempDir)) {
+            ($this->closeToOthers)($this->tempDir);
+        }
+
+        // Re-read the mode: some mounts accept chmod and ignore it.
+        if (TempDirPolicy::isWritableByOthers($this->tempDir)) {
+            return HealthStatus::unhealthy(
+                sprintf('Temp dir is unsafe. Other users can replace the generated PHP in it: %s (chmod 700 it)', $this->tempDir),
+                ['path' => $this->tempDir],
+            );
+        }
+
+        if (TempDirPolicy::isOpenToOthers($this->tempDir)) {
             return HealthStatus::unhealthy(
                 sprintf('Temp dir holds generated PHP, but other users can open it: %s (chmod 700 it)', $this->tempDir),
                 ['path' => $this->tempDir],

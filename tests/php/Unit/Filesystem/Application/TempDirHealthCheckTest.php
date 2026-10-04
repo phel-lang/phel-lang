@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Filesystem\Application;
 
+use Closure;
 use Phel\Filesystem\Application\TempDirHealthCheck;
 use PHPUnit\Framework\TestCase;
 
@@ -95,6 +96,37 @@ final class TempDirHealthCheckTest extends TestCase
         self::assertSame(0o700, fileperms($this->tempDir) & 0o777);
     }
 
+    public function test_it_is_unhealthy_when_others_can_still_write_after_the_close(): void
+    {
+        if (!function_exists('posix_geteuid')) {
+            self::markTestSkipped('needs POSIX permissions');
+        }
+
+        mkdir($this->tempDir, 0o700, true);
+        chmod($this->tempDir, 0o777);
+
+        $status = new TempDirHealthCheck($this->tempDir, $this->mountThatIgnoresChmod())->checkHealth();
+        chmod($this->tempDir, 0o700);
+
+        self::assertFalse($status->isHealthy());
+        self::assertStringContainsString('can replace', $status->message);
+    }
+
+    public function test_it_is_unhealthy_when_others_can_still_read_after_the_close(): void
+    {
+        if (!function_exists('posix_geteuid')) {
+            self::markTestSkipped('needs POSIX permissions');
+        }
+
+        mkdir($this->tempDir, 0o700, true);
+        chmod($this->tempDir, 0o755);
+
+        $status = new TempDirHealthCheck($this->tempDir, $this->mountThatIgnoresChmod())->checkHealth();
+
+        self::assertFalse($status->isHealthy());
+        self::assertStringContainsString('can open', $status->message);
+    }
+
     public function test_it_is_unhealthy_when_another_user_owns_the_temp_dir(): void
     {
         if (!function_exists('posix_geteuid') || posix_geteuid() === 0 || fileowner('/usr') === posix_geteuid()) {
@@ -105,5 +137,13 @@ final class TempDirHealthCheckTest extends TestCase
 
         self::assertFalse($status->isHealthy());
         self::assertStringContainsString('owned by another user', $status->message);
+    }
+
+    /**
+     * @return Closure(string): void
+     */
+    private function mountThatIgnoresChmod(): Closure
+    {
+        return static function (string $dir): void {};
     }
 }

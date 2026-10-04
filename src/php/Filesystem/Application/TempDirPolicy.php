@@ -63,11 +63,9 @@ final class TempDirPolicy
         return CurrentUser::id() !== null && ((int) @fileperms($dir) & 0o022) !== 0;
     }
 
-    public static function closeToOthers(string $dir): bool
+    public static function closeToOthers(string $dir): void
     {
-        $closed = @chmod($dir, 0o700);
+        @chmod($dir, 0o700);
         clearstatcache(true, $dir);
-
-        return $closed;
     }
 }
