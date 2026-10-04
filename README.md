@@ -62,12 +62,12 @@ composer require phel-lang/phel-lang
 ```
 
 ```clojure
-phel:1:> (->> [1 2 3 4 5] (filter odd?) (map #(* % %)) (reduce +))
+user:1> (->> [1 2 3 4 5] (filter odd?) (map #(* % %)) (reduce +))
 35
-phel:2:> (defn greet [name] (str "Hello, " name "!"))
-| user/greet
-phel:3:> (greet "Phel")
-| "Hello, Phel!"
+user:2> (defn greet [who] (str "Hello, " who "!"))
+#'user/greet
+user:3> (greet "Phel")
+"Hello, Phel!"
 ```
 
 **2. Scaffold a project**

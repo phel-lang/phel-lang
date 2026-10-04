@@ -11,8 +11,10 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
+use function sprintf;
 
 /**
  * (defstruct Name [fields...]).
@@ -81,11 +83,21 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
     private function params(PersistentVectorInterface $vector): array
     {
         $params = [];
+        $names = [];
         foreach ($vector as $element) {
             if (!($element instanceof Symbol)) {
                 throw AnalyzerException::withLocation('Defstruct field elements must be Symbols.', $vector);
             }
 
+            if (isset($names[$element->getName()])) {
+                throw AnalyzerException::withLocation(
+                    sprintf('Field %s is declared more than once', $element->getName()),
+                    $element,
+                    errorCode: ErrorCode::INVALID_SPECIAL_FORM,
+                );
+            }
+
+            $names[$element->getName()] = true;
             $params[] = TagCanonicalizer::symbol($element, $this->analyzer);
         }
 

@@ -57,7 +57,7 @@ final class ConsoleBootstrap extends Application
         $this->setAutoExit(false);
 
         $sanitizedArgs = $this->getFactory()
-            ->createArgvInputSanitizer()
+            ->createArgvInputSanitizer($this->getDefinition())
             ->sanitize(ScalarCoercion::toStringList($_SERVER['argv'] ?? null));
 
         $strippedArgs = WarnDeprecationsFlag::strip($sanitizedArgs);

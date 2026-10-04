@@ -858,7 +858,9 @@ Creates intermediate maps if they don't exist."
      (let [result (LazySeq/fromGenerator
                    (new Hasher)
                    (new Equalizer)
-                   (Seq/distinct (entries-or-self coll)))]
+                   (Seq/distinct (if (or (map? coll) (struct? coll))
+                                   (Seq/map identity coll)
+                                   coll)))]
        (copy-meta coll result)))))
 
 (defn distinct?

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Config;
 
 use JsonSerializable;
+use Phel\Shared\CurrentUser;
 
 /**
  * Immutable project configuration returned by `phel-config.php`.
@@ -116,7 +117,7 @@ final readonly class PhelConfig implements JsonSerializable
         public array $cacheEnvVars = [],
     ) {
         $this->tempDir = $tempDir === null
-            ? sys_get_temp_dir() . self::PHEL_TEMP_SUBDIR . '/tmp'
+            ? self::defaultTempDir()
             : rtrim($tempDir, DIRECTORY_SEPARATOR);
         $this->cacheDir = rtrim($cacheDir, DIRECTORY_SEPARATOR);
     }
@@ -481,9 +482,23 @@ final readonly class PhelConfig implements JsonSerializable
     }
 
     /**
+     * The system temp dir under `/phel-<uid>/tmp`, one per user: the dir is
+     * owner-only, so on a host where `/tmp` is shared a common path would lock
+     * every user but the first out. Plain `/phel/tmp` on Windows, whose temp
+     * dir is per user already.
+     */
+    public static function defaultTempDir(): string
+    {
+        $uid = CurrentUser::id();
+        $user = $uid === null ? '' : '-' . $uid;
+
+        return sys_get_temp_dir() . self::PHEL_TEMP_SUBDIR . $user . '/tmp';
+    }
+
+    /**
      * Directory for transient compilation artifacts (e.g. `(load ...)` output).
-     * Default: the system temp dir under `/phel/tmp`. Distinct from the cache
-     * dir, which holds persistent caches.
+     * Default: {@see defaultTempDir()}. Distinct from the cache dir, which
+     * holds persistent caches.
      */
     public function withTempDir(string $dir): self
     {

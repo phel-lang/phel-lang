@@ -28,13 +28,16 @@ use function is_string;
  *    add/remove churn that the mtime alone would miss.
  * 2. Per-file `mtime` (authoritative). Each scanned file's mtime is stored and
  *    re-checked, which is what guards each namespace's name + dependency list
- *    against in-place edits.
+ *    against in-place edits. A file whose mtime is not older than `recordedAt`,
+ *    the second the scan started, may have been rewritten after it was read
+ *    without its mtime moving, so it invalidates the entry too (#3537).
  *
  * @phpstan-type DirFingerprint array{mtime: int, fileCount: int}
  * @phpstan-type FileStamp array{file: string, mtime: int}
  * @phpstan-type SerializedScanIndexEntry array{
  *     perDir: array<string, DirFingerprint>,
  *     files: list<FileStamp>,
+ *     recordedAt: int,
  *     infos: list<array{file: string, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}>
  * }
  *
@@ -51,6 +54,7 @@ final readonly class ScanIndexEntry
         public array $perDir,
         public array $files,
         public array $infos,
+        public int $recordedAt,
     ) {}
 
     /**
@@ -93,7 +97,10 @@ final readonly class ScanIndexEntry
             }
 
             $currentMtime = @filemtime($file['file']);
-            if ($currentMtime === false || $currentMtime !== $file['mtime']) {
+            if ($currentMtime === false
+                || $currentMtime !== $file['mtime']
+                || $currentMtime >= $this->recordedAt
+            ) {
                 return false;
             }
         }
@@ -142,6 +149,7 @@ final readonly class ScanIndexEntry
         return [
             'perDir' => $this->perDir,
             'files' => $this->files,
+            'recordedAt' => $this->recordedAt,
             'infos' => $infos,
         ];
     }
@@ -149,9 +157,10 @@ final readonly class ScanIndexEntry
     public static function fromArray(mixed $data): ?self
     {
         if (!is_array($data)
-            || !isset($data['perDir'], $data['files'], $data['infos'])
+            || !isset($data['perDir'], $data['files'], $data['recordedAt'], $data['infos'])
             || !is_array($data['perDir'])
             || !is_array($data['files'])
+            || !is_int($data['recordedAt'])
             || !is_array($data['infos'])
         ) {
             return null;
@@ -211,6 +220,6 @@ final readonly class ScanIndexEntry
             return null;
         }
 
-        return new self($perDir, $files, $infos);
+        return new self($perDir, $files, $infos, $data['recordedAt']);
     }
 }

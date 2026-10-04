@@ -14,14 +14,14 @@ final class SetVarNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private readonly AbstractNode $symbol,
+        private readonly GlobalVarNode $symbol,
         private readonly AbstractNode $valueExpr,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
     }
 
-    public function getSymbol(): AbstractNode
+    public function getSymbol(): GlobalVarNode
     {
         return $this->symbol;
     }

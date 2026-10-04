@@ -4,33 +4,49 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Public PHP API: `PhelConfig::defaultTempDir()` and `Phel\Shared\CurrentUser`, which finds the effective uid also on a PHP built without the posix extension. (#3532)
+
 ### Fixed
 
 Tooling:
 
+- `phel run --stack-trace --debug app.phel` runs `app.phel`. It used to read `--debug` as the namespace, because `phel run` only knew `-t`, `--with-time` and `--clear-opcache` before the path. Every option `run` declares now works there, and `--warn-deprecations` after the path reaches the script instead of being stripped. (#3537)
+- `phel mutate` works on a project that prints when it loads, such as the `src/main.phel` `phel init` writes, and does not hang when a worker raises a PHP notice. Both used to land on the worker's stdout, which carries its answers: the first failed with `Failed to decode worker frame: Syntax error`, the second waited forever, which every run on PHP 8.6 did. A worker's stdout now carries answers only, and anything else there fails the run with the stray text. (#3526)
+- A `.phel` file rewritten within the second Phel last read it is read again. File times have whole-second resolution, so the cached `ns` form used to win: after a file requiring `app.does-not-exist`, the next file written to the same path in the same second failed with `Cannot find namespace 'app.does-not-exist'`. (#3537)
 - Two `phel` processes on one project (an editor's LSP and `phel test`, or `phel watch` and a manual run) no longer crash with a `ParseError` in `.phel/cache/namespace-cache.php`. The namespace cache, the scan index and the compiled-code index (`compiled-index.php`) were rewritten in place, so a reader could include a half-written file, and a run killed mid-write left it torn. They are now replaced by a rename, and a torn file left by an older version reads as empty. (#3553)
+- The temp dir for generated PHP is per user and owner-only: the default is `<system temp>/phel-<uid>/tmp`, created 0700. One Phel owns that other users can open is tightened to 0700 (by `phel doctor` too), and one another user owns, or could replace through a parent directory, is refused. It used to be a shared `/tmp/phel/tmp` created 0777, so on Linux any local user could read the PHP being compiled. `phel cache:clear` on a temp dir that is a symlink removes the link instead of emptying its target. `phel nrepl --host` with an address other than loopback warns that nREPL has no authentication. (#3532)
 - `phel build` in a project that installs Phel with Composer no longer warns that every stdlib namespace is defined in multiple locations, listing one file twice. Phel's own source dir is both a source and a vendor dir there, and since 0.54 the build read each of its files twice. (#3549)
+- `phel doc` and the API reference link `apply`, `definterface`, `ns` and the `php/` array, object, class, callable and reference forms to sections that exist. The guides moved PHP interop under `/documentation/language/` and renamed several sections, so these links opened the top of a page or a redirect.
 - A `phel build` output finds the files its namespaces `(load ...)`. A loaded file used to be written by its path under the source dir while the built primary looked next to itself, so a project in the flat layout `phel init` creates, or one requiring phel-sql, built fine and then failed with `Cannot locate main_extra for (load ...)`. (#3528)
+- The `phellang/repl` Docker image installs the release its tag names, where it used to install `main`, and a pre-release tag no longer moves `latest`. It is built for `linux/arm64` too. (#3536)
 - A `phel build` output finds a classpath-absolute `(load "/extra")`. The lookup searched only the load classpath, which nothing publishes in a built app, so it failed with "Cannot locate extra for (load ...)" where `phel run` worked. (#3542)
+- `phel cache:warm --help` shows `phel cache:warm` examples and no longer sends you to `bin/gacela` and `gacela.php`. `phel doctor` points at `phel cache:clear`; it used to name a `phel clear-cache` command that does not exist. (#3537)
 - A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
+- `.phel/` ignores itself after `phel run`, `phel build` and every other command. Only `phel lint`, `phel test`, the REPL and the error log wrote `.phel/.gitignore`, so a fresh project showed over a thousand untracked files under `.phel/`. (#3537)
 
 PHP API:
 
 - **BREAKING (PHP API)**: `Phel\Lang\LoadClasspath::NAMESPACE` is now `LoadClasspath::NS`. PHP 8.6 deprecates a class constant named `namespace`, and declaring one is what warns, so no alias can keep the old name. (#3522)
+- `Seq::range()` takes any Phel number, where it took only `int|float`, and `SequenceGenerator::numericRange()` is public. (#3557)
 
 Compiler:
 
 - **BREAKING**: `recur` inside a `foreach`, `doseq`, `dotimes` or `dofor` body fails with `PHEL010`. It used to rebind the enclosing `loop` or fn and keep iterating the inner loop instead of restarting: `(loop [i 0] (doseq [x [:a :b :c]] (when (< i 1) (recur 10))))` printed every element. Write the `loop` inside the body, or collect with `reduce`. (#3523)
 - A radix literal past `PHP_INT_MAX` reads as a float: `36rZZZZZZZZZZZZZZ` used to read as `PHP_INT_MAX`. Hex, binary and octal literals past `PHP_INT_MAX`, such as `-0x8000000000000000`, no longer raise a notice on PHP 8.6. (#3522)
+- A `fn`, `defn`, `defmacro`, protocol method or `extend-type` impl that declares one arity twice fails with `PHEL007` on the second parameter vector. It used to stop PHP with `Cannot redeclare ...::invokeArity1()`. (#3534)
+- A `definterface` that declares one method name twice, or one parameter twice in a method, fails with `PHEL009`. A PHP method has a single signature, so a second arity needs its own name. It used to stop PHP with `Cannot redeclare app\main\I::m()` or `Redefinition of parameter $x`. (#3534)
+- A fn parameter named twice binds the last argument, as in Clojure: `((fn [x x] x) 1 2)` returns `2`. It used to stop PHP with `Redefinition of parameter $x`. (#3534)
+- A `defstruct`, `defrecord` or `deftype` field named twice fails with `PHEL007` on the repeated field. It used to stop PHP with `Redefinition of parameter $x`. (#3534)
+- A `binding` or `with-redefs` target that is not a var, such as a local or `php/PHP_EOL`, fails with `PHEL008` on that target. It used to fail an internal assertion after emitting half the PHP. (#3534)
 
 Runtime:
 
-- **BREAKING**: `set`, `frequencies`, `group-by`, `distinct` and `union` see the `[key value]` entries of a map or struct, as in Clojure and as `vec`, `seq` and `(into #{} ...)` already do. They used to see the values: `(set {:a 1 :b 2})` was `#{1 2}` and is now `#{[:a 1] [:b 2]}`, `(frequencies {:a 1 :b 1})` was `{1 2}`, and `group-by` passed `f` a bare value. Use `(vals m)` where you relied on the values. (#3556)
-- On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. (#3522)
-
-Runtime:
-
+- **BREAKING**: `set`, `frequencies`, `group-by`, `distinct` and `union` see the `[key value]` entries of a map or struct, as in Clojure and as `vec`, `seq` and `(into #{} ...)` already do. They used to see the values: `(set {:a 1 :b 2})` was `#{1 2}` and is now `#{[:a 1] [:b 2]}`, `(frequencies {:a 1 :b 1})` was `{1 2}`, and `group-by` passed `f` a bare value. Use `(vals m)` where you relied on the values. (#3556 #3570)
 - **BREAKING**: `phel.http-client` accepts only `http` and `https` URLs, including redirect targets. `(hc/get "file:///etc/hosts")` and `php://` or `data://` URLs used to read local data through `file_get_contents`. A redirect to another origin keeps only `accept`, `accept-encoding`, `accept-language`, `user-agent` and `content-type`: custom headers such as the `x-api-key` `phel.ai` sends used to follow it. More than 20 redirects throw. (#3531)
+- On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. (#3522)
+- `range` accepts a ratio, `BigInt` or `BigDecimal` bound or step, so `(repeat 1/2 :x)`, `(repeatedly 5/2 f)`, `(dotimes [i 5/2] ...)` and `(for [i :range [5/2]] i)` run as they do with a float. They used to fail with a `TypeError` from `Seq::range()`. (#3557)
 
 ## [0.54.0](https://github.com/phel-lang/phel-lang/compare/v0.53.0...v0.54.0) - 2026-10-04
 
