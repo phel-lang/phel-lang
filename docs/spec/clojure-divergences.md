@@ -5,12 +5,13 @@ a decision, and this page is the record. **If a behaviour is listed here, it is
 not a bug.** Anything unlisted that differs is worth
 [an issue](https://github.com/phel-lang/phel-lang/issues).
 
-Every entry is pinned by a test: most by a `:phel` reader conditional in
+Behaviour shared with Clojure is pinned by a `:phel` reader conditional in
 [phel-lang/clojure-test-suite](https://github.com/phel-lang/clojure-test-suite),
 run against `main` nightly. That suite characterises Clojure JVM behaviour across
 dialects; a `:phel` branch is Phel saying "here, deliberately, something else".
-The few rows the suite has no file for are pinned by tests in this repository,
-named under each such section.
+Host interop (section 7) has no Clojure counterpart to test against; it follows
+the ADRs it links. The rows the suite has no file for are pinned by tests in this
+repository, named in section 9.
 
 ## Why they exist
 
