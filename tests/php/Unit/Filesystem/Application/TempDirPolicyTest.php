@@ -12,9 +12,12 @@ use function chmod;
 use function function_exists;
 use function mkdir;
 use function posix_geteuid;
+use function realpath;
 use function rmdir;
+use function symlink;
 use function sys_get_temp_dir;
 use function uniqid;
+use function unlink;
 
 final class TempDirPolicyTest extends TestCase
 {
@@ -68,5 +71,28 @@ final class TempDirPolicyTest extends TestCase
     public function test_a_dir_the_current_user_owns_passes(): void
     {
         self::assertNull(TempDirPolicy::violationFor($this->dir, posix_geteuid()));
+    }
+
+    public function test_a_symlink_to_a_dir_under_an_open_parent_is_refused(): void
+    {
+        // The path that names the temp dir has safe parents, but the dir it
+        // points to sits in one anyone can write to, so it can be swapped.
+        $open = $this->dir . '/open';
+        $target = $open . '/target';
+        $link = $this->dir . '/link';
+        mkdir($target, 0o700, true);
+        chmod($open, 0o777);
+        symlink($target, $link);
+
+        try {
+            $violation = TempDirPolicy::violationFor($link, posix_geteuid());
+        } finally {
+            unlink($link);
+            rmdir($target);
+            rmdir($open);
+        }
+
+        self::assertNotNull($violation);
+        self::assertStringContainsString('can be replaced by another user: ' . realpath($this->dir) . '/open', $violation->getMessage());
     }
 }

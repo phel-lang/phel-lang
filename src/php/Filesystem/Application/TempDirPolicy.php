@@ -12,6 +12,7 @@ use function clearstatcache;
 use function dirname;
 use function fileowner;
 use function fileperms;
+use function realpath;
 
 /**
  * The temp dir holds generated PHP that is `require`d, so it has to belong to
@@ -50,18 +51,14 @@ final class TempDirPolicy
             return FileException::directoryIsOwnedByAnotherUser($dir);
         }
 
-        for ($ancestor = dirname($dir); ; $ancestor = dirname($ancestor)) {
-            $owner = @fileowner($ancestor);
-            $mode = (int) @fileperms($ancestor);
-            $writableByOthers = ($mode & 0o022) !== 0 && ($mode & 0o1000) === 0;
-            if (($owner !== $uid && $owner !== 0) || $writableByOthers) {
-                return FileException::directoryCanBeReplacedByAnotherUser($ancestor);
-            }
-
-            if (dirname($ancestor) === $ancestor) {
-                return null;
-            }
+        // Owner and mode follow a symlink, so the parents of its target need
+        // the same check as the parents of the path that names it.
+        $realDir = realpath($dir);
+        if ($realDir === false) {
+            return FileException::directoryCanBeReplacedByAnotherUser($dir);
         }
+
+        return self::replaceableAncestor($dir, $uid) ?? self::replaceableAncestor($realDir, $uid);
     }
 
     public static function isOpenToOthers(string $dir): bool
@@ -78,5 +75,21 @@ final class TempDirPolicy
     {
         @chmod($dir, 0o700);
         clearstatcache(true, $dir);
+    }
+
+    private static function replaceableAncestor(string $dir, int $uid): ?FileException
+    {
+        for ($ancestor = dirname($dir); ; $ancestor = dirname($ancestor)) {
+            $owner = @fileowner($ancestor);
+            $mode = (int) @fileperms($ancestor);
+            $writableByOthers = ($mode & 0o022) !== 0 && ($mode & 0o1000) === 0;
+            if (($owner !== $uid && $owner !== 0) || $writableByOthers) {
+                return FileException::directoryCanBeReplacedByAnotherUser($ancestor);
+            }
+
+            if (dirname($ancestor) === $ancestor) {
+                return null;
+            }
+        }
     }
 }
