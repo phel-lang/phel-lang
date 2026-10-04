@@ -2,7 +2,7 @@
 
 Phel follows Clojure semantics where it can. Where it does not, the difference is
 a decision, and this page is the record. **If a behaviour is listed here, it is
-not a bug.** Anything unlisted that differs is worth
+not a bug**, except for the known gaps in section 11. Anything unlisted that differs is worth
 [an issue](https://github.com/phel-lang/phel-lang/issues).
 
 Behaviour shared with Clojure is pinned by a `:phel` reader conditional in
@@ -77,7 +77,7 @@ compares them structurally.
 
 | Function | Behaviour |
 |---|---|
-| `compare` | vectors, lists, sets, maps and ranges compare element-wise or by count. Comparing across *kinds* still throws |
+| `compare` | vectors, lists, sets and maps compare element-wise or by count. Comparing across *kinds* still throws. Lazy seqs, `range` included, are a known gap (section 11) |
 | `min`, `max` | strings compare lexicographically; `nil` is still rejected |
 | `min-key`, `max-key` | strings, vectors, maps and sets are comparable, so a value comes back instead of a throw |
 | `sort-by` | a `nil`, `[]` or `{}` comparator yields an empty result instead of throwing. Other non-callable comparators, such as `5` or `:b`, throw |
@@ -108,7 +108,7 @@ These return `nil` or a benign value where Clojure throws.
 | `assoc`, `dissoc`, `conj` on a transient | accepted and applied, where Clojure requires `assoc!`, `dissoc!`, `conj!`. `pop` and `disj` on a transient still throw |
 | `transient` | accepts a sorted map or sorted set |
 | `intern` | auto-creates an unknown target namespace |
-| `keyword`, `symbol` | accept symbols and keywords for the ns/name arguments, coercing to their string names |
+| `keyword`, `symbol` | accept symbols and keywords for the ns/name arguments, coercing to their string names. `(keyword "abc" nil)` is `nil` instead of a throw |
 
 `(first 5)` is the case a Clojure reader hits first: Clojure throws
 `Don't know how to create ISeq from: java.lang.Long`. Phel keeps `nil` through
@@ -345,11 +345,20 @@ pinned in this repository instead: `tests/phel/core/control-structures.phel`
 | refs and agents | not implemented: `ref` and `agent` do not resolve, so `add-watch` takes an atom or a var |
 | Pattern objects | a regex literal is its PHP pattern string, so `(= #"a" #"a")` is `true` (matches Basilisp) |
 
-## 11. Known gap, not a decision
+## 11. Known gaps, not decisions
 
 `case` returns `nil` when nothing matches and there is no default clause; Clojure
 throws. The suite marks it `:phel` with a note that it is arguably a real semantic
-gap. It is the one entry here that may yet change.
+gap.
+
+The suite also pins these with a `:phel` branch, but they are bugs, each with an
+open issue. Expect them to change:
+
+| Clojure | Phel today |
+|---|---|
+| `(compare (range 5) (range 5))` is `0` | `1`: two lazy seqs fall through to PHP `<=>` on objects ([#3555](https://github.com/phel-lang/phel-lang/issues/3555)) |
+| `(set {:a 1 :b 2})` is `#{[:a 1] [:b 2]}` | `#{1 2}`: `set` collects a map's values ([#3556](https://github.com/phel-lang/phel-lang/issues/3556)) |
+| `(repeatedly 1/2 +)` is `(0)` | a ratio count throws a `TypeError` in `repeat` and `repeatedly` ([#3557](https://github.com/phel-lang/phel-lang/issues/3557)) |
 
 ## Keeping this page honest
 
