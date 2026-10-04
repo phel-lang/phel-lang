@@ -68,6 +68,7 @@ final class PhpNamespaceCacheTest extends TestCase
         $cache = new PhpNamespaceCache($this->cacheFile);
         $cache->put(__FILE__, new NamespaceCacheEntry(__FILE__, 1, 'a', [], true));
         $cache->save();
+
         $before = fileinode($this->cacheFile);
 
         $cache->put(__FILE__, new NamespaceCacheEntry(__FILE__, 2, 'a', [], true));
