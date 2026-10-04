@@ -31,11 +31,11 @@
   (if (set? coll)
     (transient coll)
     (let [target (transient (hash-set))]
-      (foreach [v coll] (.add target v))
+      (foreach [v (entries-or-self coll)] (.add target v))
       target)))
 
 (defn union
-  "Union multiple sets into a new one."
+  "Union multiple sets into a new one. Any other collection is added element by element; for hash-maps and structs, the elements are the `[key value]` entries."
   {:example "(union (hash-set 1 2) (hash-set 2 3)) ; => #{1 2 3}"
    :see-also ["intersection" "difference"]}
   ;; Fixed arities, and the first collection seeds the result rather than being
@@ -46,13 +46,13 @@
   ([s] (persistent (union-target s)))
   ([s1 s2]
    (let [target (union-target s1)]
-     (foreach [v s2] (.add target v))
+     (foreach [v (entries-or-self s2)] (.add target v))
      (persistent target)))
   ([s1 s2 & sets]
    (let [target (union-target s1)]
-     (foreach [v s2] (.add target v))
+     (foreach [v (entries-or-self s2)] (.add target v))
      (foreach [s sets]
-       (foreach [v s] (.add target v)))
+       (foreach [v (entries-or-self s)] (.add target v)))
      (persistent target))))
 
 (defn- intersection-pair

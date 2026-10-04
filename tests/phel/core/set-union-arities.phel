@@ -37,6 +37,15 @@
   (is (= (set [1 2 3]) (union [1 2] (set [3]))) "a vector then a set")
   (is (= (set [1 2 3]) (union '(1 2) '(3))) "lists"))
 
+(defstruct union-point [x y])
+
+(deftest test-union-of-associatives-adds-entries
+  (is (= #{[:a 1] [:b 2]} (union #{} {:a 1 :b 2})) "a map as the second argument adds its entries")
+  (is (= #{[:a 1] [:b 2]} (union {:a 1 :b 2} #{})) "a map as the first argument seeds with its entries")
+  (is (= #{[:a 1] [:b 2] [:c 3]} (union #{[:c 3]} #{} {:a 1 :b 2})) "a map among the rest arguments")
+  (is (= #{[:a 1]} (union {:a 1})) "a map alone")
+  (is (= #{[:x 1] [:y 2]} (union #{} (union-point 1 2))) "a struct adds one entry per field"))
+
 (deftest test-union-of-a-large-set-with-a-small-one
   ;; The case the seeding is for: the big set is not rebuilt element by element.
   (let [big   (set (range 0 200))
