@@ -39,3 +39,8 @@
   (is (reader/tag-registered? "shout-test"))
   (reader/unregister-tag "shout-test")
   (is (not (reader/tag-registered? "shout-test"))))
+
+(deftest test-unknown-string-escape-keeps-its-backslash
+  ;; Divergence: Clojure's reader rejects "\q"; Phel keeps it, as PHP does.
+  (is (= 4 (count "a\qb")))
+  (is (= "a\\qb" "a\qb")))
