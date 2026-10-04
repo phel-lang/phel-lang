@@ -10,6 +10,8 @@ use Phel\Config\PhelExportConfig;
 use Phel\Config\ProjectLayout;
 use PHPUnit\Framework\TestCase;
 
+use function function_exists;
+
 final class PhelConfigTest extends TestCase
 {
     public function test_default_json_serialize(): void
