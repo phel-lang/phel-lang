@@ -42,8 +42,11 @@ auto-gensym. See
 [removed-deprecated-core-fns.md](../migration/removed-deprecated-core-fns.md).
 
 Still shipped and still deprecated: `\` as a namespace separator
-([#2827](https://github.com/phel-lang/phel-lang/issues/2827)). The only
-reader-level item whose fate is unsettled.
+([#2827](https://github.com/phel-lang/phel-lang/issues/2827)). Its fate is
+settled: it parses throughout `1.x`, announces its deprecation without
+`--warn-deprecations`, and goes at the next major
+([ADR 0014](../adr/0014-announce-the-separator-deprecation.md),
+[ADR 0015](../adr/0015-a-php-class-is-named-with-dots.md)).
 
 ## 2. Special forms
 
@@ -187,7 +190,7 @@ major is this dotted spelling without a leading `\`; see
 
 At host-symbol fallback a bare all-caps name reads by position: the global
 constant in value position (`PHP_EOL`), the class as a member target, a
-constructor argument or a callable (`(WP_CLI/log "x")`, `(php/new PDO dsn)`,
+constructor argument or a callable (`(WP_CLI/log "x")`, `(new PDO dsn)`,
 `(php/callable PDO getAvailableDrivers)`). Nothing is probed, so the emitted PHP
 does not depend on what the compiling process had autoloaded; see
 [ADR 0016](../adr/0016-a-bare-all-caps-host-name-reads-by-position.md). `php/NAME`
