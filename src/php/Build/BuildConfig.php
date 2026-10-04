@@ -116,6 +116,31 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function getLockedPhelVersion(): ?string
     {
+        $package = $this->getLockedPhelPackage();
+        $version = $package['version'] ?? null;
+
+        return is_string($version) ? $version : null;
+    }
+
+    public function getLockedPhelReference(): ?string
+    {
+        $package = $this->getLockedPhelPackage();
+        foreach (['source', 'dist'] as $kind) {
+            $metadata = $package[$kind] ?? null;
+            $reference = is_array($metadata) ? ($metadata['reference'] ?? null) : null;
+            if (is_string($reference) && preg_match('/^[0-9a-f]{7,64}$/i', $reference) === 1) {
+                return strtolower($reference);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<array-key, mixed>|null
+     */
+    private function getLockedPhelPackage(): ?array
+    {
         $path = $this->getAppRootDir() . '/composer.lock';
         if (!is_file($path)) {
             return null;
@@ -135,9 +160,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
             foreach ($packages as $package) {
                 if (is_array($package) && ($package['name'] ?? null) === 'phel-lang/phel-lang') {
-                    $version = $package['version'] ?? null;
-
-                    return is_string($version) ? $version : null;
+                    return $package;
                 }
             }
         }

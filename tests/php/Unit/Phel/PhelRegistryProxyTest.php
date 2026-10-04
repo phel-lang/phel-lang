@@ -41,7 +41,8 @@ final class PhelRegistryProxyTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage(
-            'built with ' . $version . ', running ' . $runningVersion . ': run phel build',
+            'built with ' . $version . ', running ' . $runningVersion
+            . ': run phel build (or phel export for exported wrappers)',
         );
 
         Phel::assertBuiltWith($version);

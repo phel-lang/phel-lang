@@ -99,7 +99,7 @@ TXT;
         file_put_contents($filename, str_replace($currentGuard, \Phel::class . "::assertBuiltWith('v0.0.0');", $wrapper));
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('built with v0.0.0, running ' . VersionResolver::current() . ': run phel build');
+        $this->expectExceptionMessage('built with v0.0.0, running ' . VersionResolver::current() . ': run phel build (or phel export for exported wrappers)');
 
         require $filename;
     }

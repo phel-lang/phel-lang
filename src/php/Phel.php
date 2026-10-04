@@ -62,7 +62,8 @@ class Phel
 
         if ($version !== $runningVersion) {
             throw new RuntimeException(
-                'built with ' . $version . ', running ' . $runningVersion . ': run phel build',
+                'built with ' . $version . ', running ' . $runningVersion
+                . ': run phel build (or phel export for exported wrappers)',
             );
         }
     }

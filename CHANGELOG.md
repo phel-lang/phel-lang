@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Public PHP API: `\Phel::assertBuiltWith(string $version)` rejects generated PHP built with another Phel version and reports how to rebuild it. `Phel\Shared\VersionResolver::current()` returns the running Phel version for the process. (#3519)
+- Public PHP API: `\Phel::assertBuiltWith(string $version)` rejects generated PHP built with another Phel version and reports how to rebuild it. `Phel\Shared\VersionResolver::current()` and `currentReference()` expose the running version and commit for the process. (#3519)
 - Public PHP API: `PhelConfig::defaultTempDir()` and `Phel\Shared\CurrentUser`, which finds the effective uid also on a PHP built without the posix extension. (#3532)
 
 ### Fixed

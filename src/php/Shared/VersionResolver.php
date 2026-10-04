@@ -41,6 +41,13 @@ final readonly class VersionResolver
         return $version ??= new self()->resolve();
     }
 
+    public static function currentReference(): string
+    {
+        static $reference = null;
+
+        return $reference ??= new self()->currentCommit();
+    }
+
     public function resolve(): string
     {
         return new VersionFinder(

@@ -34,7 +34,7 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 
 Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Config**: `BuildConfig` reads `PhelConfig`/`PhelBuildConfig`, and `Domain/Compile/Output/EntryPointPhpFile` reads `PhelBuildConfig`.
 
-`EntryPointPhpFile` emits `\Phel::assertBuiltWith(...)` after Composer autoloading and before bootstrap, then `\Phel::setupRuntimeArgs(...)`. Built files and exported wrappers carry `VersionResolver::current()`, including a development commit suffix; entry points and wrappers refuse another runtime version. Rebuild after every Phel version change, including patches. Generated calls to internals do not create a cross-version build ABI. `BuildConfig::getLockedPhelVersion()` reads the project's Composer lock so `BuildCommand` warns when a different Phel builds it.
+`EntryPointPhpFile` emits `\Phel::assertBuiltWith(...)` after Composer autoloading and before bootstrap, then `\Phel::setupRuntimeArgs(...)`. Built files and exported wrappers carry `VersionResolver::current()`, including a development commit suffix; entry points and wrappers refuse another runtime version. Rebuild after every Phel version change, including patches. Generated calls to internals do not create a cross-version build ABI. `BuildConfig::getLockedPhelVersion()` and `getLockedPhelReference()` read the project's Composer lock so `BuildCommand` warns when a different Phel builds it. A development dependency is compared by its source or dist commit, not its branch label; unknown references do not prove a mismatch.
 
 ## Structure
 

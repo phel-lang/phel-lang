@@ -52,16 +52,26 @@ final class BuildCommandTest extends TestCase
     #[DataProvider('locked_build_versions')]
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
-    public function test_build_warns_when_the_project_locks_another_version(string $section, string $version, bool $warns): void
+    public function test_build_warns_when_the_project_locks_another_version(string $section, string $version, bool $warns, array $metadata = [], bool $officialRelease = false): void
     {
         $this->workspace->writeFile('composer.lock', json_encode([
-            $section => [['name' => 'phel-lang/phel-lang', 'version' => $version]],
+            $section => [array_merge(['name' => 'phel-lang/phel-lang', 'version' => $version], $metadata)],
         ], JSON_THROW_ON_ERROR));
-        $this->bootstrapGacela();
-        $output = new BufferedOutput();
+        $previousOfficialRelease = getenv('OFFICIAL_RELEASE');
+        if ($officialRelease) {
+            putenv('OFFICIAL_RELEASE=true');
+        }
 
-        $exit = $this->command->run(new ArrayInput(['--no-source-map' => true, '--no-cache' => true]), $output);
-        $text = $output->fetch();
+        try {
+            $this->bootstrapGacela();
+            $output = new BufferedOutput();
+            $exit = $this->command->run(new ArrayInput(['--no-source-map' => true, '--no-cache' => true]), $output);
+            $text = $output->fetch();
+        } finally {
+            if ($officialRelease) {
+                putenv($previousOfficialRelease === false ? 'OFFICIAL_RELEASE' : 'OFFICIAL_RELEASE=' . $previousOfficialRelease);
+            }
+        }
 
         self::assertSame(Command::SUCCESS, $exit);
         if ($warns) {
@@ -79,6 +89,10 @@ final class BuildCommandTest extends TestCase
         yield 'development dependency mismatch' => ['packages-dev', 'v0.0.0', true];
         yield 'matching version without v prefix' => ['packages', ltrim($runningVersion, 'v'), false];
         yield 'released version against current builder' => ['packages', VersionFinder::LATEST_VERSION, $runningVersion !== VersionFinder::LATEST_VERSION];
+        yield 'matching source development commit' => ['packages', 'dev-main', false, ['source' => ['reference' => VersionResolver::currentReference()]]];
+        yield 'matching dist branch alias commit' => ['packages-dev', '1.x-dev', false, ['dist' => ['reference' => VersionResolver::currentReference()]]];
+        yield 'another development commit' => ['packages', 'dev-main', true, ['source' => ['reference' => str_repeat('a', 40)]]];
+        yield 'release builder against development runtime at the same commit' => ['packages', 'dev-main', true, ['source' => ['reference' => VersionResolver::currentReference()]], true];
     }
 
     #[PreserveGlobalState(false)]
