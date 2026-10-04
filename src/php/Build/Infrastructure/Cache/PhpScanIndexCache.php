@@ -29,7 +29,7 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
 {
     use DeferredFlushTrait;
 
-    private const string VERSION = '1.0';
+    private const string VERSION = '1.1';
 
     /** @var array<string, ScanIndexEntry> */
     private array $entries;
@@ -45,7 +45,7 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
         return $this->entries[$dirSetKey] ?? null;
     }
 
-    public function put(string $dirSetKey, array $perDir, array $infos): void
+    public function put(string $dirSetKey, array $perDir, array $infos, int $recordedAt = 0): void
     {
         $files = [];
         foreach ($infos as $info) {
@@ -60,7 +60,7 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
             $files[] = ['file' => $info->getFile(), 'mtime' => $mtime];
         }
 
-        $this->entries[$dirSetKey] = new ScanIndexEntry($perDir, $files, $infos);
+        $this->entries[$dirSetKey] = new ScanIndexEntry($perDir, $files, $infos, $recordedAt);
         $this->markFlushPending();
     }
 

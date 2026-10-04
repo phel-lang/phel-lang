@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Test\TestCommandParallel;
 
+use Phel\Config\PhelConfig;
 use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\TestCase;
 
 use function dirname;
 use function extension_loaded;
-use function sys_get_temp_dir;
 
 final class ParallelTestRunnerTest extends TestCase
 {
@@ -232,7 +232,7 @@ final class ParallelTestRunnerTest extends TestCase
 
     private function workerOpcodeCacheDir(): string
     {
-        return sys_get_temp_dir() . '/phel/tmp/opcache-workers';
+        return PhelConfig::defaultTempDir() . '/opcache-workers';
     }
 
     /**

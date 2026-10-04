@@ -42,6 +42,14 @@ final class WarnDeprecationsFlagTest extends TestCase
         );
     }
 
+    public function test_leaves_the_flag_after_the_separator_to_the_script(): void
+    {
+        self::assertSame(
+            ['phel', 'run', 'src/main.phel', '--', '--warn-deprecations', '--warn-deprecations=1'],
+            WarnDeprecationsFlag::strip(['phel', '--warn-deprecations', 'run', 'src/main.phel', '--', '--warn-deprecations', '--warn-deprecations=1']),
+        );
+    }
+
     public function test_returns_argv_unchanged_when_the_flag_is_absent(): void
     {
         $argv = ['phel', 'test', '--filter=foo'];

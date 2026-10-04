@@ -88,6 +88,7 @@ Stateless strategy-pattern printer (see `.agnostic-ai/rules/module-shared-printe
 | `Munge` | namespace/symbol encoding: `encode()`, `encodePhpNs()`, `encodeRegistryKey()`, `decodeNs()`; static `canonicalNs()`, `displayNs()` |
 | `ColorStyle` | ANSI colors; static factories `withStyles()`, `noStyles()`; `green/yellow/blue/red/color()` |
 | `ByteSize` | static `format(int)` -> `1.50 KB` / `2.00 MB`; one size format across `phel build --report` and `phel doctor` |
+| `CurrentUser` | static `id()`: the effective uid, memoized; `posix_geteuid()`, else the owner of a probe file in the system temp dir; null on Windows. Feeds the per-user temp dir and its ownership check |
 | `ScalarCoercion` | coerce config `mixed`→scalar with default: static `toString()`, `toInt()`, `toFloat()`, `toStringList()` |
 | `OptimizationLevel` | the level a process compiles at: `resolve()` the configured one (Build and Run config) unless `PHEL_OPTIMIZATION_LEVEL` is set (a documented user override; `pin()` sets it, subprocesses inherit it, a non-integer value throws); `phel mutate` pins 0 (#3396) |
 | `FrameworkNamespaces` | the `phel.*`/`clojure.*` space: static `matches(string)` (either prefix), `isPhel(string)`, `clojureTarget(string)` (`clojure.X` -> `phel.X`, `clojure.set` -> `phel.core`, null outside `clojure.*`), plus the two prefix consts. Build's dependency walk and emitted-`ns` check, the analyzer's alias remap and the `phel/unresolved-namespace` lint rule all read it, so they cannot drift on what a `clojure.*` require means |

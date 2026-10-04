@@ -147,13 +147,14 @@ final class PhpScanIndexCacheTest extends TestCase
     }
 
     /**
-     * @return array{perDir: array<string, array{mtime: int, fileCount: int}>, files: list<array{file: string, mtime: int}>, infos: list<array{file: string, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}>}
+     * @return array{perDir: array<string, array{mtime: int, fileCount: int}>, files: list<array{file: string, mtime: int}>, recordedAt: int, infos: list<array{file: string, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}>}
      */
     private function serializedEntry(string $dir, string $file, int $mtime = 100): array
     {
         return [
             'perDir' => [$dir => ['mtime' => $mtime, 'fileCount' => 1]],
             'files' => [['file' => $file, 'mtime' => $mtime]],
+            'recordedAt' => $mtime + 1,
             'infos' => [[
                 'file' => $file,
                 'namespace' => 'doc',
@@ -169,7 +170,7 @@ final class PhpScanIndexCacheTest extends TestCase
     private function writeCacheFile(array $entries): void
     {
         $payload = [
-            'version' => '1.0',
+            'version' => '1.1',
             'entries' => $entries,
         ];
 

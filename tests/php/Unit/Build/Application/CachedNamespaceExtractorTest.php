@@ -9,6 +9,7 @@ use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Infrastructure\Cache\NullNamespaceCache;
+use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
 use Phel\Shared\NamespaceInformation;
 use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
@@ -185,4 +186,66 @@ final class CachedNamespaceExtractorTest extends TestCase
         self::assertSame('good\\ns', $infos[0]->getNamespace());
     }
 
+    /**
+     * `filemtime` has whole-second resolution, so a file rewritten in the
+     * second its entry was recorded keeps the recorded mtime. Serving that
+     * entry handed back the old dependency list (#3537). The future mtime
+     * stands in for "the same second as the recording", without racing the
+     * clock.
+     */
+    public function test_same_second_rewrite_is_not_served_from_the_namespace_cache(): void
+    {
+        $file = $this->dir . '/main.phel';
+        $sameSecond = time() + 60;
+        file_put_contents($file, '(ns app\main (:require app\does-not-exist))');
+        touch($file, $sameSecond);
+
+        $callCount = 0;
+        $firstCache = new PhpNamespaceCache($this->dir . '/namespace-cache.php');
+        $this->makeReadingExtractor($firstCache, $callCount)->getNamespaceFromFile($file);
+        $firstCache->save();
+
+        file_put_contents($file, '(ns app\main)');
+        touch($file, $sameSecond);
+        clearstatcache();
+
+        $info = $this->makeReadingExtractor(new PhpNamespaceCache($this->dir . '/namespace-cache.php'), $callCount)
+            ->getNamespaceFromFile($file);
+
+        self::assertSame(2, $callCount, 'A racily clean entry must be re-read, not served.');
+        self::assertSame([], $info->getDependencies());
+    }
+
+    public function test_file_older_than_its_cache_entry_is_served_without_rereading(): void
+    {
+        $file = $this->dir . '/main.phel';
+        file_put_contents($file, '(ns app\main (:require app\dep))');
+        touch($file, time() - 10);
+
+        $callCount = 0;
+        $firstCache = new PhpNamespaceCache($this->dir . '/namespace-cache.php');
+        $this->makeReadingExtractor($firstCache, $callCount)->getNamespaceFromFile($file);
+        $firstCache->save();
+
+        $info = $this->makeReadingExtractor(new PhpNamespaceCache($this->dir . '/namespace-cache.php'), $callCount)
+            ->getNamespaceFromFile($file);
+
+        self::assertSame(1, $callCount, 'A file older than its entry must be served from the cache.');
+        self::assertSame(['app\dep'], $info->getDependencies());
+    }
+
+    private function makeReadingExtractor(PhpNamespaceCache $cache, int &$callCount): CachedNamespaceExtractor
+    {
+        $inner = $this->createStub(NamespaceExtractorInterface::class);
+        $inner->method('getNamespaceFromFile')->willReturnCallback(
+            static function (string $path) use (&$callCount): NamespaceInformation {
+                ++$callCount;
+                $dependencies = str_contains((string) file_get_contents($path), ':require') ? ['app\dep'] : [];
+
+                return new NamespaceInformation((string) realpath($path), 'app\main', $dependencies);
+            },
+        );
+
+        return new CachedNamespaceExtractor($inner, $cache, new TopologicalNamespaceSorter());
+    }
 }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
@@ -23,7 +22,6 @@ final class SetVarEmitter implements NodeEmitterInterface
     {
         assert($node instanceof SetVarNode);
         $symbolNode = $node->getSymbol();
-        assert($symbolNode instanceof GlobalVarNode);
 
         // Route through \Phel::setVar instead of addDefinition so that
         // set-vars emitted by the `binding` macro can be captured into

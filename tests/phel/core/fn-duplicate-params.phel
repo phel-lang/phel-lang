@@ -1,0 +1,17 @@
+(ns phel-test.core.fn-duplicate-params
+  (:require phel.test :refer [deftest is]))
+
+(defn- last-wins [x x] x)
+
+(deftest a-repeated-param-binds-the-last-argument
+  (is (= 2 ((fn [x x] x) 1 2)) "fn")
+  (is (= 2 (last-wins 1 2)) "defn")
+  (is (= 3 ((fn [x _ x] x) 1 2 3)) "around an ignored param")
+  (is (= [2 3] (vec ((fn [x & x] x) 1 2 3))) "rest param named like a fixed one"))
+
+(deftest a-repeated-param-keeps-the-arity
+  (is (= 2 (arity (fn [x x] x))) "both params count")
+  (is (= 2 ((fn ([x] x) ([x x] x)) 1 2)) "in one arity of a multi-arity fn"))
+
+(deftest recur-rebinds-every-repeated-param
+  (is (= 3 ((fn [n n] (if (< n 3) (recur 0 (inc n)) n)) 9 0))))

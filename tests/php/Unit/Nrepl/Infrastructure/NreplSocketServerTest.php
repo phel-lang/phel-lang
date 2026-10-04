@@ -45,9 +45,14 @@ final class NreplSocketServerTest extends TestCase
         $server = new NreplSocketServer(new OpDispatcher(), 0);
         $server->start();
 
+        $listening = $server->port();
+        self::assertGreaterThan(0, $listening);
+        $portAfterStop = null;
+
         pcntl_async_signals(true);
-        pcntl_signal(SIGALRM, static function () use ($server): void {
+        pcntl_signal(SIGALRM, static function () use ($server, &$portAfterStop): void {
             $server->stop();
+            $portAfterStop = $server->port();
         });
 
         try {
@@ -58,6 +63,7 @@ final class NreplSocketServerTest extends TestCase
             pcntl_signal(SIGALRM, SIG_DFL);
         }
 
+        self::assertSame($listening, $portAfterStop);
         self::assertSame(0, $server->port());
     }
 }

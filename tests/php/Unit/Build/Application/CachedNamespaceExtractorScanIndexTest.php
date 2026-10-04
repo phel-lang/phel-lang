@@ -136,12 +136,44 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         self::assertSame(1, $callCount, 'In-place edit must force a re-walk via per-file mtime mismatch.');
     }
 
+    /**
+     * The rewrite keeps the file's mtime, the directory's mtime and the file
+     * count, so only the time the scan started can tell it apart (#3537). The
+     * future mtime stands in for "the same second as the scan", without racing
+     * the clock.
+     */
+    public function test_same_second_rewrite_is_not_served_from_the_scan_index(): void
+    {
+        $file = $this->dir . '/main.phel';
+        $sameSecond = time() + 60;
+        file_put_contents($file, '(ns app\\main (:require app\\does-not-exist))');
+        touch($file, $sameSecond);
+
+        $callCount = 0;
+        $coldCache = new PhpScanIndexCache($this->cacheFile);
+        $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$this->dir]);
+        $coldCache->save();
+
+        $dirMtime = (int) filemtime($this->dir);
+        file_put_contents($file, '(ns app\\main)');
+        touch($file, $sameSecond);
+        touch($this->dir, $dirMtime);
+        clearstatcache();
+
+        $callCount = 0;
+        $result = $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)
+            ->getNamespacesFromDirectories([$this->dir]);
+
+        self::assertSame(1, $callCount, 'A racily clean scan must be walked again, not served.');
+        self::assertSame([], $result[0]->getDependencies());
+    }
+
     public function test_different_dir_sets_do_not_cross_contaminate(): void
     {
         $other = $this->dir . '/other';
         mkdir($other, 0777, true);
         $this->writePhel('main.phel', '(ns app\\main)');
-        file_put_contents($other . '/lib.phel', '(ns app\\lib)');
+        $this->writePhel('other/lib.phel', '(ns app\\lib)');
 
         $callCount = 0;
         $cache = new PhpScanIndexCache($this->cacheFile);
@@ -182,7 +214,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $src = $this->dir . '/src';
         $tests = $this->dir . '/tests';
         mkdir($src, 0777, true);
-        file_put_contents($src . '/main.phel', '(ns app\\main)');
+        $this->writePhel('src/main.phel', '(ns app\\main)');
 
         $callCount = 0;
         $coldCache = new PhpScanIndexCache($this->cacheFile);
@@ -192,7 +224,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
 
         // The test directory did not exist at scan time; it does now, with a file.
         mkdir($tests, 0777, true);
-        file_put_contents($tests . '/main_test.phel', '(ns app\\main-test)');
+        $this->writePhel('tests/main_test.phel', '(ns app\\main-test)');
 
         $callCount = 0;
         $warm = $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)
@@ -210,7 +242,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $src = $this->dir . '/src';
         $missing = $this->dir . '/never-created';
         mkdir($src, 0777, true);
-        file_put_contents($src . '/main.phel', '(ns app\\main)');
+        $this->writePhel('src/main.phel', '(ns app\\main)');
 
         $callCount = 0;
         $coldCache = new PhpScanIndexCache($this->cacheFile);
@@ -315,9 +347,14 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $extractor->getNamespacesFromDirectories([$this->dir], failOnInvalidNsForm: true);
     }
 
+    /**
+     * Backdated, so the scan that follows does not see a file written in the
+     * second it started, which it would rightly refuse to trust (#3537).
+     */
     private function writePhel(string $name, string $content): void
     {
         file_put_contents($this->dir . '/' . $name, $content);
+        touch($this->dir . '/' . $name, time() - 10);
     }
 
     private function makeExtractor(PhpScanIndexCache $scanIndexCache, int &$callCount): CachedNamespaceExtractor
