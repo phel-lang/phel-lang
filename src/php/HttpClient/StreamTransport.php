@@ -9,11 +9,15 @@ use Phel\Shared\ScalarCoercion;
 use RuntimeException;
 
 use function array_filter;
+use function array_pop;
+use function count;
+use function end;
+use function explode;
 use function implode;
 use function in_array;
 use function parse_url;
 use function sprintf;
-use function str_replace;
+use function strcspn;
 use function str_starts_with;
 use function strrpos;
 use function strtolower;
@@ -189,6 +193,9 @@ final class StreamTransport
         return sprintf('%s://%s:%d', $scheme, strtolower($parts['host'] ?? ''), $port);
     }
 
+    /**
+     * Resolves a `Location` against the request URL (RFC 3986, section 5.2).
+     */
     private static function resolve(string $base, string $location): string
     {
         if (parse_url($location, PHP_URL_SCHEME) !== null) {
@@ -202,13 +209,50 @@ final class StreamTransport
         }
 
         $authority = $scheme . '://' . ($parts['host'] ?? '') . (isset($parts['port']) ? ':' . $parts['port'] : '');
-        if (str_starts_with($location, '/')) {
-            return $authority . $location;
+        $basePath = $parts['path'] ?? '/';
+        if ($location === '' || str_starts_with($location, '#')) {
+            return $authority . $basePath . (isset($parts['query']) ? '?' . $parts['query'] : '');
         }
 
-        $path = $parts['path'] ?? '/';
-        $directory = substr($path, 0, (int) strrpos($path, '/') + 1);
+        if (str_starts_with($location, '?')) {
+            return $authority . $basePath . $location;
+        }
 
-        return $authority . str_replace('/./', '/', $directory . $location);
+        $queryAt = strcspn($location, '?#');
+        $path = substr($location, 0, $queryAt);
+        $rest = substr($location, $queryAt);
+        if (!str_starts_with($path, '/')) {
+            $path = substr($basePath, 0, (int) strrpos($basePath, '/') + 1) . $path;
+        }
+
+        return $authority . self::removeDotSegments($path) . $rest;
+    }
+
+    private static function removeDotSegments(string $path): string
+    {
+        $segments = explode('/', $path);
+        $output = [];
+        foreach ($segments as $segment) {
+            if ($segment === '.') {
+                continue;
+            }
+
+            if ($segment === '..') {
+                if (count($output) > 1) {
+                    array_pop($output);
+                }
+
+                continue;
+            }
+
+            $output[] = $segment;
+        }
+
+        $last = end($segments);
+        if ($last === '.' || $last === '..') {
+            $output[] = '';
+        }
+
+        return implode('/', $output);
     }
 }

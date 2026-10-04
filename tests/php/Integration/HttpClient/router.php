@@ -6,7 +6,7 @@ declare(strict_types=1);
 // echoes the request it received as JSON.
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-if ($path === '/redirect') {
+if (str_ends_with((string) $path, '/redirect') && isset($_GET['to'])) {
     http_response_code((int) ($_GET['code'] ?? 302));
     header('Location: ' . $_GET['to']);
 
@@ -29,6 +29,7 @@ header('Content-Type: application/json');
 echo json_encode([
     'method' => $_SERVER['REQUEST_METHOD'],
     'path' => $path,
+    'query' => $_SERVER['QUERY_STRING'] ?? '',
     'headers' => $headers,
     'body' => file_get_contents('php://input'),
 ]);

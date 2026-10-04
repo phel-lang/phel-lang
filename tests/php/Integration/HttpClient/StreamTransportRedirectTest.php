@@ -64,6 +64,22 @@ final class StreamTransportRedirectTest extends TestCase
         self::assertSame('Bearer secret-token', $echo['headers']['authorization']);
     }
 
+    public function test_a_query_only_location_keeps_the_current_path(): void
+    {
+        $echo = $this->send('GET', self::$origin->url('/items/redirect?to=' . rawurlencode('?page=2')));
+
+        self::assertSame('/items/redirect', $echo['path']);
+        self::assertSame('page=2', $echo['query']);
+    }
+
+    public function test_a_relative_location_resolves_against_the_current_directory(): void
+    {
+        $echo = $this->send('GET', self::$origin->url('/a/b/redirect?to=' . rawurlencode('../echo?x=1')));
+
+        self::assertSame('/a/echo', $echo['path']);
+        self::assertSame('x=1', $echo['query']);
+    }
+
     public function test_a_303_turns_a_post_into_a_get_without_its_body(): void
     {
         $echo = $this->send('POST', $this->redirectTo('/echo', 303), '{"a":1}');
@@ -105,13 +121,13 @@ final class StreamTransportRedirectTest extends TestCase
     }
 
     /**
-     * @return array{method: string, path: string, headers: array<string, string>, body: string}
+     * @return array{method: string, path: string, query: string, headers: array<string, string>, body: string}
      */
     private function send(string $method, string $url, ?string $body = null): array
     {
         $result = StreamTransport::send($method, $url, self::SECRET_HEADERS, $body, []);
 
-        /** @var array{method: string, path: string, headers: array<string, string>, body: string} */
+        /** @var array{method: string, path: string, query: string, headers: array<string, string>, body: string} */
         return json_decode($result['body'], true, flags: JSON_THROW_ON_ERROR);
     }
 
