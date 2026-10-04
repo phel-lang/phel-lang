@@ -13,10 +13,12 @@ use function fwrite;
 use function hexdec;
 use function is_resource;
 use function microtime;
+use function preg_match;
 use function proc_close;
 use function proc_get_status;
 use function proc_open;
 use function proc_terminate;
+use function sprintf;
 use function stream_select;
 use function stream_set_blocking;
 use function strlen;
@@ -239,6 +241,12 @@ final class MutantWorker
         $headerSize = WorkerFrame::headerSize();
         if (strlen($this->readBuffer) < $headerSize) {
             return null;
+        }
+
+        if (preg_match(sprintf('/^[0-9a-f]{%d}\n/', $headerSize - 1), $this->readBuffer) !== 1) {
+            throw new RuntimeException(
+                'The mutation worker wrote output that is not a frame: ' . substr($this->readBuffer, 0, 200),
+            );
         }
 
         $length = (int) hexdec(substr($this->readBuffer, 0, $headerSize - 1));

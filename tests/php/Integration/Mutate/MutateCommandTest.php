@@ -118,6 +118,39 @@ final class MutateCommandTest extends TestCase
         self::assertStringContainsString('src/app/calc.phel:8 [compare] (< x lo) -> (<= x lo)', $output);
     }
 
+    public function test_a_namespace_that_prints_when_it_loads_does_not_break_the_workers(): void
+    {
+        // The worker answers on stdout; output from loading the project used
+        // to land in that stream and was read as a frame header.
+        $this->writeSource("(ns app.calc)\n\n(defn add [a b]\n  (+ a b))\n\n(println \"Hello from app.calc\")\n");
+        $this->writeTests(
+            "(ns app.calc-test\n  (:require phel.test :refer [deftest is])\n  (:require app.calc :as calc))\n\n"
+            . "(deftest adds\n  (is (= 3 (calc/add 1 2))))\n",
+        );
+
+        [$exitCode, $output] = $this->runPhelMutate([]);
+
+        self::assertSame(0, $exitCode, $output);
+        self::assertStringNotContainsString('Failed to decode worker frame', $output);
+        self::assertMatchesRegularExpression('/Killed: [1-9]/', $output);
+    }
+
+    public function test_a_php_notice_in_a_worker_does_not_hang_the_run(): void
+    {
+        // With display_errors on, PHP writes a notice to stdout, the frame
+        // stream; on PHP 8.6 the new deprecations made every run hang.
+        $this->writeSource("(ns app.calc)\n\n(php/trigger_error \"loud\" php/E_USER_NOTICE)\n\n(defn add [a b]\n  (+ a b))\n");
+        $this->writeTests(
+            "(ns app.calc-test\n  (:require phel.test :refer [deftest is])\n  (:require app.calc :as calc))\n\n"
+            . "(deftest adds\n  (is (= 3 (calc/add 1 2))))\n",
+        );
+
+        [$exitCode, $output] = $this->runPhelMutate([], ['PHP_INI_SCAN_DIR=' . $this->displayErrorsIniDir()]);
+
+        self::assertSame(0, $exitCode, $output);
+        self::assertMatchesRegularExpression('/Killed: [1-9]/', $output);
+    }
+
     public function test_the_min_msi_gate_fails_the_run(): void
     {
         $this->writeSource("(ns app.calc)\n\n(defn add [a b]\n  (+ a b))\n");
@@ -321,6 +354,19 @@ final class MutateCommandTest extends TestCase
         ksort($verdicts);
 
         return $verdicts;
+    }
+
+    /**
+     * An ini scan dir that turns display_errors on for every PHP process,
+     * workers included, as a PHP without a php.ini does.
+     */
+    private function displayErrorsIniDir(): string
+    {
+        $dir = $this->projectDir . '/ini';
+        mkdir($dir);
+        file_put_contents($dir . '/display.ini', "display_errors=1\nerror_reporting=E_ALL\n");
+
+        return $dir;
     }
 
     private function git(string $arguments): void
