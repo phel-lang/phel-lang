@@ -41,8 +41,10 @@ final readonly class CacheClearer
 
         // Emptied in place, never removed: PHP aborts at startup when
         // opcache.file_cache points at a path that does not exist (#3268).
+        // A symlinked root is left alone: emptying it would empty its target,
+        // and unlinking it would leave opcache.file_cache pointing nowhere.
         $opcachePruner = new OpcacheFileCachePruner(new OpcacheFileCache($this->opcacheDir));
-        if ($opcachePruner->clearContents()) {
+        if (!is_link($this->opcacheDir) && $opcachePruner->clearContents()) {
             $clearedPaths[] = $this->opcacheDir;
         }
 
