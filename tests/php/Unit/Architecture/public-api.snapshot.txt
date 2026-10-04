@@ -1875,6 +1875,7 @@ interface Phel\Shared\Exceptions\ExceptionPrinterInterface
 final class Phel\Shared\Exceptions\FileException extends RuntimeException
   public static function canNotCreateDirectory(string $directory): Phel\Shared\Exceptions\FileException
   public static function canNotCreateFile(string $filename): Phel\Shared\Exceptions\FileException
+  public static function directoryCanBeReplacedByAnotherUser(string $directory): Phel\Shared\Exceptions\FileException
   public static function directoryIsNotWritable(string $directory): Phel\Shared\Exceptions\FileException
   public static function directoryIsOwnedByAnotherUser(string $directory): Phel\Shared\Exceptions\FileException
 

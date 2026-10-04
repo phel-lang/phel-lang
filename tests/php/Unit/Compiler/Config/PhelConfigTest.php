@@ -428,8 +428,11 @@ final class PhelConfigTest extends TestCase
     {
         $tempDir = new PhelConfig()->getTempDir();
 
-        self::assertStringContainsString('/phel/', $tempDir);
+        self::assertStringStartsWith(sys_get_temp_dir() . '/phel', $tempDir);
         self::assertStringEndsWith('/tmp', $tempDir);
+        if (function_exists('posix_geteuid')) {
+            self::assertStringContainsString('/phel-' . posix_geteuid() . '/', $tempDir);
+        }
     }
 
     public function test_cache_dir_default_is_relative_to_project_root(): void
