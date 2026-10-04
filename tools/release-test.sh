@@ -78,13 +78,51 @@ function test_format_release_notes_maps_performance() {
     assert_same "## ⚡ Performance" "$result"
 }
 
-function test_map_to_github_username_is_case_insensitive() {
-    assert_same "Chemaclass" "$(map_to_github_username 'chemaclass')"
-    assert_same "Chemaclass" "$(map_to_github_username 'Chemaclass')"
+function test_noreply_login_reads_the_login_from_a_noreply_address() {
+    assert_same "Chemaclass" "$(echo '5256287+Chemaclass@users.noreply.github.com' | noreply_login)"
+    assert_same "dchaudhari7177" "$(echo 'dchaudhari7177@users.noreply.github.com' | noreply_login)"
 }
 
-function test_map_to_github_username_keeps_an_unknown_name() {
-    assert_same "SomeoneElse" "$(map_to_github_username 'Someone Else')"
+function test_noreply_login_skips_any_other_address() {
+    assert_empty "$(echo 'chemaclass@outlook.es' | noreply_login)"
+}
+
+function test_format_contributors_dedupes_and_leaves_out_bots() {
+    local result
+    result=$(printf 'Chemaclass\ndependabot[bot]\njasalt\nChemaclass\n' | format_contributors)
+    assert_same "@Chemaclass @jasalt" "$result"
+}
+
+function test_version_may_follow_a_stable_release_after_an_rc_of_a_later_core() {
+    assert_successful_code "version_may_follow 0.54.0 1.0.0-rc2 0.53.0"
+}
+
+function test_version_may_follow_the_release_its_rcs_announce() {
+    assert_successful_code "version_may_follow 1.0.0 1.0.0-rc2 0.53.0"
+}
+
+function test_version_may_follow_the_next_rc() {
+    assert_successful_code "version_may_follow 1.0.0-rc3 1.0.0-rc2 0.54.0"
+}
+
+function test_version_may_not_follow_an_earlier_rc_of_the_same_core() {
+    local result=0
+    version_may_follow 1.0.0-rc1 1.0.0-rc2 0.54.0 || result=$?
+    assert_equals "1" "$result"
+}
+
+function test_version_may_not_repeat_the_last_release() {
+    local result=0
+    version_may_follow 0.53.0 1.0.0-rc2 0.53.0 || result=$?
+    assert_equals "1" "$result"
+}
+
+function test_version_may_follow_compares_with_current_when_there_is_no_tag() {
+    assert_successful_code "version_may_follow 0.2.0 0.1.0 ''"
+
+    local result=0
+    version_may_follow 0.1.0 0.1.0 '' || result=$?
+    assert_equals "1" "$result"
 }
 
 function test_validate_semver_valid_prerelease() {
@@ -264,6 +302,26 @@ function test_get_latest_tag_version_ignores_non_semver() {
     local result
     result=$(get_latest_tag_version "$test_repo")
     assert_equals "0.5.0" "$result"
+}
+
+function test_get_latest_tag_version_leaves_out_prereleases() {
+    local test_repo="$TEMP_DIR/test-repo"
+    mkdir -p "$test_repo"
+    git -C "$test_repo" init --quiet
+    git -C "$test_repo" config user.email "test@test.com"
+    git -C "$test_repo" config user.name "Test"
+    git -C "$test_repo" config tag.gpgsign false
+    touch "$test_repo/file.txt"
+    git -C "$test_repo" add .
+    git -C "$test_repo" commit -m "initial" --quiet
+
+    git -C "$test_repo" tag v0.53.0
+    git -C "$test_repo" tag v1.0.0-rc1
+    git -C "$test_repo" tag v1.0.0-rc2
+    assert_equals "0.53.0" "$(get_latest_tag_version "$test_repo")"
+
+    git -C "$test_repo" tag v1.0.0
+    assert_equals "1.0.0" "$(get_latest_tag_version "$test_repo")"
 }
 
 function test_get_latest_tag_version_empty_repo() {
@@ -658,6 +716,48 @@ EOF
     # Verify emoji headers are applied
     assert_contains "## 🎉 Added" "$result"
     assert_contains "## 🐛 Fixed" "$result"
+}
+
+function test_extract_release_notes_keeps_the_blank_line_before_a_sub_label() {
+    local changelog_file="$TEMP_DIR/CHANGELOG.md"
+    cat > "$changelog_file" << 'EOF'
+# Changelog
+
+## [0.54.0](https://github.com/phel-lang/phel-lang/compare/v0.53.0...v0.54.0) - 2026-10-04
+
+### Added
+
+Language:
+
+- New form
+
+Tooling:
+
+- New flag
+
+## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
+EOF
+
+    local result
+    result=$(extract_release_notes "0.54.0" "$changelog_file")
+    assert_same "## 🎉 Added
+
+Language:
+
+- New form
+
+Tooling:
+
+- New flag" "$result"
+}
+
+function test_update_changelog_links_a_release_after_rcs_to_the_last_release() {
+    local changelog_file="$TEMP_DIR/CHANGELOG.md"
+    printf '# Changelog\n\n## Unreleased\n\n### Added\n- New feature\n' > "$changelog_file"
+
+    update_changelog "0.54.0" "$changelog_file" "0.53.0"
+
+    assert_contains "compare/v0.53.0...v0.54.0" "$(cat "$changelog_file")"
 }
 
 function test_format_release_notes() {

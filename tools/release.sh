@@ -152,10 +152,16 @@ main() {
     local current_version
     current_version=$(get_current_version "$VERSION_FILE") || exit 1
 
-    log "Current: v$current_version → New: v$NEW_VERSION"
+    # The newest release tag, read before this run tags anything. The compare
+    # link, the contributors and the CHANGELOG heading all start here, because
+    # the notes cover everything since the last release, RCs included.
+    local base_version
+    base_version=$(get_latest_tag_version "$REPO_ROOT")
 
-    if ! version_gt "$NEW_VERSION" "$current_version"; then
-        log_err "New version must be greater than current ($current_version)"
+    log "Current: v$current_version → New: v$NEW_VERSION (since v${base_version:-none})"
+
+    if ! version_may_follow "$NEW_VERSION" "$current_version" "$base_version"; then
+        log_err "v$NEW_VERSION cannot follow v$current_version (last release v${base_version:-none})"
         exit 1
     fi
     log_ok "Version increment valid"
@@ -188,7 +194,7 @@ main() {
     # Update files (always update, even in dry-run, to show accurate release notes)
     log "\n${BOLD}Updating files${NC}"
     update_version_finder "$NEW_VERSION" "$VERSION_FILE"
-    update_changelog "$NEW_VERSION" "$CHANGELOG_FILE" "$current_version"
+    update_changelog "$NEW_VERSION" "$CHANGELOG_FILE" "$base_version"
     update_agents_version "$NEW_VERSION" "$AGENTS_VERSION_FILE"
     local changelog_note="Updated CHANGELOG.md"
     if is_prerelease "$NEW_VERSION"; then
@@ -272,17 +278,17 @@ main() {
         local notes
         notes=$(build_release_notes_body "$NEW_VERSION" "$CHANGELOG_FILE" "$unreleased_content")
         local contributors
-        contributors=$(get_contributors "$current_version" "$REPO_ROOT")
+        contributors=$(get_contributors "$base_version" "$(git -C "$REPO_ROOT" rev-parse HEAD)" "$REPO_ROOT")
 
-        # Build preview
-        local preview=""
-        [[ -n "$tldr" ]] && preview="$tldr\n\n"
-        preview="${preview}$notes\n\n## 👥 Contributors\n$contributors\n\n**Full Changelog**: https://github.com/$REPO_NAME/compare/v$current_version...v$NEW_VERSION"
-
-        log "[DRY-RUN] Release notes:\n$preview"
+        # printf, not log(): log() is `echo -e`, which reads `\a` in
+        # `bugs.arity\add` as a bell and stops printing at a `\c`.
+        log "[DRY-RUN] Release notes:"
+        [[ -n "$tldr" ]] && printf '%s\n\n' "$tldr"
+        printf '%s\n\n## 👥 Contributors\n%s\n\n**Full Changelog**: https://github.com/%s/compare/v%s...v%s\n' \
+            "$notes" "$contributors" "$REPO_NAME" "$base_version" "$NEW_VERSION"
         [[ $SKIP_PHAR -eq 0 ]] && log "[DRY-RUN] Would: attach PHAR"
     else
-        create_github_release "$NEW_VERSION" "$CHANGELOG_FILE" "$PHAR_OUTPUT" "$SKIP_PHAR" "$RELEASE_NAME" "$current_version" "$REPO_ROOT" "$unreleased_content"
+        create_github_release "$NEW_VERSION" "$CHANGELOG_FILE" "$PHAR_OUTPUT" "$SKIP_PHAR" "$RELEASE_NAME" "$base_version" "$REPO_ROOT" "$unreleased_content"
     fi
 
     # Done
