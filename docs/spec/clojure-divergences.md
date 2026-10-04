@@ -39,6 +39,7 @@ ClojureCLR already are; the catalogue notes it when so.
 | `last`, `reverse` | treat a char as a one-element collection |
 | `not-empty` | `(not-empty \a)` is `"a"` |
 | `set` | `(set \space)` is `#{" "}` |
+| `char?` | `true` for any one-character string: `(char? "0")` |
 | `pr-str`, `prn-str` | print `"A"`, not `\A` (matches ClojureScript and Basilisp) |
 | `string/blank?` | `(blank? \space)` is `true`: it really is whitespace |
 
@@ -46,21 +47,25 @@ ClojureCLR already are; the catalogue notes it when so.
 
 | Function | Behaviour |
 |---|---|
-| `inc`, `+'`, `-'`, `*'` | integers promote to BigInt instead of overflowing |
-| `-` | integer subtraction overflows into arbitrary precision rather than throwing |
-| `*` | on overflow PHP promotes to float; no `ArithmeticException` |
+| `inc`, `dec`, `+`, `*`, `+'`, `-'`, `*'` | integer overflow promotes to BigInt; no `ArithmeticException` |
+| `-` | `(-)` is `0`; Clojure throws on zero args. Integer overflow promotes to BigInt, as above |
+| `int?`, `pos-int?`, `neg-int?` | `true` for a BigInt literal such as `1N` |
 | `int` | 64-bit, so no 32-bit wraparound; parses numeric strings; `nil` is `0` |
 | `long` | parses numeric strings, treats `nil` as `0`; still throws on `:0` / `[0]` |
 | `double`, `float` | parse numeric strings (PHP float cast); `##Inf` casting is a no-op |
 | `byte` | truncates toward zero *before* the range check, so `-128.000001` passes |
-| `quot`, `rem`, `mod` | IEEE-754: an infinite or NaN operand yields NaN rather than throwing. Integer division by zero still throws |
+| `quot` | IEEE-754 rather than a throw: `(quot ##Inf 2)` is `##Inf`, `(quot ##-Inf 1)` is `##-Inf`, a NaN operand yields NaN. Division by zero still throws |
+| `rem`, `mod` | IEEE-754: an infinite or NaN operand yields NaN rather than throwing. Division by zero still throws |
+| `NaN?` | `(NaN? nil)` is `false` rather than a throw; a string still throws |
+| `repeat` | a fractional count rounds up: `(repeat 3.14 :a)` has four elements (matches ClojureScript) |
 | `/` | `(/)` is `1`, the multiplicative identity, mirroring `(*)`. Clojure throws on zero args |
 | `numerator`, `denominator` | accept plain integers, treating `n` as `n/1` (matches Basilisp) |
 
 `even?`, `odd?`, `neg?` and `zero?` do not validate that their argument is an
 integer: floats, infinities and NaN return a boolean. `zero?` returns `false` for
-non-numeric input (matches Basilisp and ClojureScript), `neg?` coerces
-`false`/`true` to `0`/`1`, and only `nil` is rejected by `even?`, `odd?`, `neg?`.
+non-numeric input (matches Basilisp and ClojureScript), `neg?` and `pos?` coerce
+`false`/`true` to `0`/`1`, and only `nil` is rejected by `even?`, `odd?`, `neg?`
+and `pos?`.
 
 ## 3. Comparison is total
 
@@ -72,7 +77,7 @@ compares them structurally.
 | `compare` | vectors, lists, sets, maps and ranges compare element-wise or by count. Comparing across *kinds* still throws |
 | `min`, `max` | strings compare lexicographically; `nil` is still rejected |
 | `min-key`, `max-key` | strings, vectors, maps and sets are comparable, so a value comes back instead of a throw |
-| `sort-by` | a non-callable comparator yields an empty result instead of throwing |
+| `sort-by` | a `nil`, `[]` or `{}` comparator yields an empty result instead of throwing. Other non-callable comparators, such as `5` or `:b`, throw |
 
 ## 4. Lenient accessors and predicates
 
@@ -81,18 +86,24 @@ These return `nil` or a benign value where Clojure throws.
 | Function | Behaviour |
 |---|---|
 | `first`, `ffirst` | `nil` for a non-seqable scalar: `(first 5)` and `(first true)` are `nil`. A keyword still throws |
-| `last` | `nil` for a non-seqable scalar |
+| `last` | `(last 0)` is `nil`. Other scalars, such as `5`, `1.5`, `true` or a keyword, throw |
 | `nth` | `(nth nil _)` is `nil` for any index. Out of bounds on a real vector still throws |
 | `key` | `nil` for empty or non-pair collections; the first element for sequential pairs |
 | `val` | calls `next` and returns the second element; only a non-seqable scalar like `0` throws |
-| `keys`, `vals` | `nil` for a non-associative scalar |
+| `keys`, `vals` | `(keys 0)` and `(vals 0)` are `nil`, because `(empty? 0)` is `true`. Other scalars, such as `5`, `0.0` or `true`, throw |
+| `contains?` | on a string, checks numeric indices only: `(contains? "abc" "a")` is `false` rather than a throw (matches ClojureScript) |
+| `conj`, `conj!`, `merge` | a two-element list onto a map is a map entry: `(conj {:a 0} '(:b 1))` is `{:a 0 :b 1}` (matches Basilisp). Any other length still throws |
+| `associative?` | `true` for a PHP array, and for `(seq "ab")`, which is the vector `["a" "b"]` |
+| `descendants` | `nil` for a PHP class, `(descendants stdClass)` among them, rather than a throw |
 | `peek` | lenient on maps (`nil`), lists, cons and lazy seqs (head), strings (last char). Throws only for sets and non-seqable scalars |
-| `empty?` | `(not (seq x))` over a lenient `count`; `(empty? 0)` is `true` |
+| `empty?` | `(empty? 0)` is `true` while `(seq 0)` throws, so it is not `(not (seq x))` for scalars. `(empty? 0.0)` and `(empty? 5)` are `false`; `true` and a keyword throw |
 | `dissoc` | accepts a set and removes the element |
 | `select-keys` | an empty string behaves as an empty associative source, yielding `{}` |
 | `shuffle` | coerces any seqable; `nil` and `{}` yield `[]`, a string shuffles its characters |
 | `remove` | regexes and strings are iterable, so a regex yields its pattern characters |
 | `realized?` | anything not a pending delay, promise or future is "realized", including `nil` |
+| `assoc`, `dissoc`, `conj` on a transient | accepted and applied, where Clojure requires `assoc!`, `dissoc!`, `conj!`. `pop` and `disj` on a transient still throw |
+| `transient` | accepts a sorted map or sorted set |
 | `intern` | auto-creates an unknown target namespace |
 | `keyword`, `symbol` | accept symbols and keywords for the ns/name arguments, coercing to their string names |
 
@@ -106,9 +117,11 @@ major. The leniency stops at the accessors in this table: `(seq 5)`, `(rest 5)` 
 the argument was a collection
 ([#3477](https://github.com/phel-lang/phel-lang/issues/3477)).
 
-`drop`, `take`, `nthnext` and `take-nth` treat a `nil` count as `0` rather than
-throwing, matching ClojureScript. For `take` this is the transducer arity only;
-the lazy-seq arity still throws.
+A `nil` count reads as `0` rather than throwing in `nthnext`, in the lazy arity
+of `take-nth`, and in the transducer arities of `drop` and `take`, matching
+ClojureScript. So `(nthnext [1 2] nil)` is `(1 2)` and `(into [] (take nil) [1 2])`
+is `[]`. The collection arities of `drop` and `take` still throw, as does the
+`take-nth` transducer.
 
 `parse-boolean`, `parse-double`, `parse-long` and `parse-uuid` return `nil` for
 anything they cannot parse, including non-strings, so they chain inside `when`
@@ -270,8 +283,8 @@ active**, so it can never change a root by accident, exactly as in Clojure.
 `set-var` is the odd one out: a special form, taking a value rather than a
 function, with a name that reads like Clojure's `set!` while behaving like
 `alter-var-root`. A name pointing a Clojure reader at the wrong operation is the
-failure mode this page exists to prevent, so it is rejected as source from
-`1.0.0` ([#2888](https://github.com/phel-lang/phel-lang/issues/2888), ADR 0018).
+failure mode this page exists to prevent, so it is rejected as source since
+`0.52.0`, with `PHEL012` ([#2888](https://github.com/phel-lang/phel-lang/issues/2888), ADR 0018).
 It remains on the closed special-form list because `binding` and `with-redefs`
 expand into it internally.
 
@@ -282,15 +295,53 @@ expand into it internally.
 The call shapes differ, which is why this was not a rename: `set-var` takes a
 symbol and a value, `alter-var-root` a var and a function.
 
-## 8. Absent concepts
+## 8. Calls
+
+Clojure checks every call's argument count when the call runs. Phel checks a
+call by name at compile time, and a call through a value only partly:
+
+| Call | Too few arguments | Too many arguments |
+|---|---|---|
+| a known fn by name, `(f 1 2)` | `PHEL002` at compile time | `PHEL002` at compile time |
+| a single-arity fn value: a local, `apply`, a higher-order fn | `PHEL401` at run time | **ignored** |
+| a multi-arity fn value | throws at run time | throws at run time |
+
+So `((fn [x] x) 1 2)` is `1`, `(apply inc 1 [17])` is `2`, and
+`(update {:a 1} :a identity 2 3)` is `{:a 1}`, because `identity` drops the
+extra arguments `update` passes it. Clojure throws on all three. ClojureScript
+behaves like Phel.
+
+Two reasons keep the runtime path open
+([#3384](https://github.com/phel-lang/phel-lang/issues/3384),
+[#3395](https://github.com/phel-lang/phel-lang/pull/3395)). Every call goes
+through the fn's `__invoke`, and a count guard there costs about 6% on a trivial
+body. And PHP passes callbacks more arguments than they declare by design:
+`array_walk` passes the key, `set_error_handler` four values. A runtime throw
+would break working interop code with no way to opt out.
+
+## 9. Reader and core macros
+
+| Form | Behaviour |
+|---|---|
+| `cond` | an odd trailing form is the default: `(cond false 1 2)` is `2`. Clojure rejects an odd number of forms |
+| string literals | an unknown escape keeps its backslash, as in PHP: `"a\qb"` is four characters. Clojure's reader rejects it |
+| `for` | each binding is a `binding :verb expr` triple, with `:in`, `:range`, `:keys` or `:pairs`. The Clojure pair form `(for [x [1 2 3]] x)` fails to expand with `PHEL005`; write `(for [x :in [1 2 3]] x)`. `doseq` accepts the pair form |
+
+The suite has no file for `cond`, `for` or the string reader, so these rows are
+not pinned there. `tests/phel/core/control-structures.phel` pins the `cond` row;
+the other two have no test yet.
+
+## 10. Absent concepts
 
 | Clojure | Phel |
 |---|---|
-| `aclone`, reference identity | PHP arrays are value types; nothing to alias ([#1735](https://github.com/phel-lang/phel-lang/issues/1735)) |
+| `aclone`, `vec` aliasing an array, reference identity | PHP arrays are value types; nothing to alias ([#1735](https://github.com/phel-lang/phel-lang/issues/1735)) |
 | `special-symbol?` | Phel does not recognise the JVM special-symbol set |
 | Class objects (`string?` on a class) | classes are represented as strings |
+| refs and agents | not implemented: `ref` and `agent` do not resolve, so `add-watch` takes an atom or a var |
+| Pattern objects | a regex literal is its PHP pattern string, so `(= #"a" #"a")` is `true` (matches Basilisp) |
 
-## 9. Known gap, not a decision
+## 11. Known gap, not a decision
 
 `case` returns `nil` when nothing matches and there is no default clause; Clojure
 throws. The suite marks it `:phel` with a note that it is arguably a real semantic
