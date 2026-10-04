@@ -7,8 +7,8 @@ namespace Phel\Filesystem\Application;
 use Gacela\Framework\Health\HealthStatus;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Override;
+use Phel\Shared\Exceptions\FileException;
 
-use function function_exists;
 use function is_dir;
 use function is_writable;
 use function mkdir;
@@ -46,20 +46,19 @@ final readonly class TempDirHealthCheck implements ModuleHealthCheckInterface
             );
         }
 
-        if (function_exists('posix_geteuid')) {
-            if (@fileowner($this->tempDir) !== posix_geteuid()) {
-                return HealthStatus::unhealthy(
-                    sprintf('Temp dir is owned by another user: %s', $this->tempDir),
-                    ['path' => $this->tempDir],
-                );
-            }
+        $violation = TempDirPolicy::violation($this->tempDir);
+        if ($violation instanceof FileException) {
+            return HealthStatus::unhealthy(
+                sprintf('Temp dir is unsafe. %s', $violation->getMessage()),
+                ['path' => $this->tempDir],
+            );
+        }
 
-            if ((@fileperms($this->tempDir) & 0o077) !== 0) {
-                return HealthStatus::unhealthy(
-                    sprintf('Temp dir holds generated PHP, but other users can open it: %s (chmod 700 it)', $this->tempDir),
-                    ['path' => $this->tempDir],
-                );
-            }
+        if (TempDirPolicy::isOpenToOthers($this->tempDir)) {
+            return HealthStatus::unhealthy(
+                sprintf('Temp dir holds generated PHP, but other users can open it: %s (chmod 700 it)', $this->tempDir),
+                ['path' => $this->tempDir],
+            );
         }
 
         if (!is_writable($this->tempDir)) {

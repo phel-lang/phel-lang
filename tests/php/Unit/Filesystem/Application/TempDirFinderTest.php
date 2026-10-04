@@ -85,6 +85,28 @@ final class TempDirFinderTest extends TestCase
         rmdir($dir);
     }
 
+    #[RunInSeparateProcess]
+    public function test_refuses_a_dir_inside_a_parent_others_can_write_to(): void
+    {
+        if (!function_exists('posix_geteuid')) {
+            self::markTestSkipped('needs POSIX permissions');
+        }
+
+        $parent = sys_get_temp_dir() . '/phel-open-parent-' . uniqid('', true);
+        mkdir($parent);
+        chmod($parent, 0o777);
+
+        try {
+            $this->expectException(FileException::class);
+            $this->expectExceptionMessage('Directory can be replaced by another user: ' . $parent);
+
+            new TempDirFinder($this->writable(), $parent . '/tmp')->getOrCreateTempDir();
+        } finally {
+            @rmdir($parent . '/tmp');
+            rmdir($parent);
+        }
+    }
+
     public function test_refuses_a_dir_another_user_owns(): void
     {
         if (!function_exists('posix_geteuid') || posix_geteuid() === 0 || fileowner('/usr') === posix_geteuid()) {

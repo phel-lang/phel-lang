@@ -7,8 +7,6 @@ namespace Phel\Filesystem\Application;
 use Phel\Filesystem\Domain\DirectoryWritabilityCheckerInterface;
 use Phel\Shared\Exceptions\FileException;
 
-use function function_exists;
-
 /**
  * Resolves the configured temp directory, creating it if missing and ensuring
  * it is writable.
@@ -88,20 +86,16 @@ final class TempDirFinder
     }
 
     /**
-     * @throws FileException if another user owns the directory
+     * @throws FileException if another user owns or can replace the directory
      */
     private function ensureOwnedByCurrentUser(string $tempDir): void
     {
-        // Windows has no POSIX owners; its temp dir is per user already.
-        if (!function_exists('posix_geteuid')) {
-            return;
+        $violation = TempDirPolicy::violation($tempDir);
+        if ($violation instanceof FileException) {
+            throw $violation;
         }
 
-        if (@fileowner($tempDir) !== posix_geteuid()) {
-            throw FileException::directoryIsOwnedByAnotherUser($tempDir);
-        }
-
-        if ((@fileperms($tempDir) & 0o077) !== 0) {
+        if (TempDirPolicy::isOpenToOthers($tempDir)) {
             @chmod($tempDir, 0o700);
         }
     }
