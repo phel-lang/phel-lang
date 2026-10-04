@@ -6,7 +6,9 @@ Everything here is **removed**. The step-by-step upgrade path is
 ## Core aliases ([#2784](https://github.com/phel-lang/phel-lang/issues/2784))
 
 Each was a thin alias, so the replacement takes the same arguments and behaves
-the same way.
+the same way, except `set-meta!`: `with-meta` returns a copy since 0.53, so a
+`(set-meta! a m)` statement becomes `(reset-meta! a m)` on an atom or var, and
+`(with-meta v m)` with the result kept on anything else.
 
 | Removed | Deprecated since | Replacement |
 |---------|------------------|-------------|
@@ -20,7 +22,7 @@ the same way.
 | `hash-map?` | 0.32.0 | `map?` |
 | `id` | 0.32.0 | `identical?` |
 | `str-contains?` | long-deprecated | `phel.string/contains?` |
-| `set-meta!` | 0.32.0 | `with-meta` |
+| `set-meta!` | 0.32.0 | `reset-meta!` (atom, var), or `with-meta` keeping the result |
 | `phel.test/print-summary` | 0.49.0 | react to the `:summary` event |
 
 `str-contains?` moved namespace, so it needs a require:
