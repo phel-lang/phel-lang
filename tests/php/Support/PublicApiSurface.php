@@ -61,7 +61,7 @@ use function str_starts_with;
 final readonly class PublicApiSurface
 {
     /**
-     * Whole namespaces whose every symbol is public.
+     * Namespaces whose symbols are public unless explicitly excluded.
      *
      * These are the namespaces a consumer cannot avoid: the values that cross a
      * facade boundary, the contracts those facades speak in, and the object a
@@ -76,8 +76,7 @@ final readonly class PublicApiSurface
     ];
 
     /**
-     * Emitted PHP calls straight into the global `Phel` class, so every compiled
-     * `.phel` file ever produced is a consumer of it.
+     * PHP hosts and version-matched generated artifacts call the global `Phel` class.
      *
      * Its `Phel\Phel` base is *not* public: it is annotated "@internal use \Phel
      * instead". The members it declares still reach a consumer through the child,

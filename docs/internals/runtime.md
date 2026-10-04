@@ -134,7 +134,6 @@ setup and filesystem cleanup:
 ```php
 <?php // warmup.php, next to vendor/
 require __DIR__ . '/vendor/autoload.php';
-\Phel::bootstrap(__DIR__);
 \Phel::run(__DIR__, 'app.main');
 ```
 

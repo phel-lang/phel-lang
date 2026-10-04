@@ -47,8 +47,8 @@ final class SharedCompilerBoundaryTest extends TestCase
     private const string ALLOWED_FILE = 'Facade/CompilerFacadeInterface.php';
 
     /**
-     * Every compiler symbol the contract is allowed to name. Four carry the
-     * compiler's public types through method signatures; five appear only in
+     * Every compiler symbol the contract is allowed to name. Four pin opaque
+     * compiler handles through method signatures; five appear only in
      * `@throws` tags. Adding to this list widens the cycle, so it should be a
      * deliberate, reviewed act rather than a silent import.
      *
