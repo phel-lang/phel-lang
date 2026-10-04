@@ -14,9 +14,6 @@ use function unlink;
 
 use const PHP_OS_FAMILY;
 
-/**
- * @internal
- */
 final class CurrentUser
 {
     private static ?int $id = null;
