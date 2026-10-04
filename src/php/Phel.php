@@ -99,12 +99,17 @@ class Phel
             self::$autoDetectedConfig = self::detectProjectStructure($projectRootDir);
         }
 
+        // Gacela writes its cache under `.phel/` while it boots, and so does every
+        // command after it: seed the `.gitignore` before the first write.
+        PhelProjectDirectory::ensure($projectRootDir);
+
         try {
             Gacela::bootstrap($projectRootDir, self::configFn(self::readAppModulePaths($configPath)));
 
             // Forces the merged app config to materialize, so a broken
             // phel-config.php fails here (inside the guard) rather than later.
             self::mirrorPhelDirToEnv();
+            PhelProjectDirectory::ensure($projectRootDir);
         } catch (Throwable $throwable) {
             throw ConfigLoadException::wrapIfConfigError($throwable, $configPath);
         }

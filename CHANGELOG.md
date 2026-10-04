@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 Tooling:
 
+- `.phel/` ignores itself after `phel run`, `phel build` and every other command. Only `phel lint`, `phel test`, the REPL and the error log wrote `.phel/.gitignore`, so a fresh project showed over a thousand untracked files under `.phel/`. (#3537)
+
 Tooling:
 
 - `phel build` in a project that installs Phel with Composer no longer warns that every stdlib namespace is defined in multiple locations, listing one file twice. Phel's own source dir is both a source and a vendor dir there, and since 0.54 the build read each of its files twice. (#3549)
