@@ -134,13 +134,38 @@ version_gt() {
     prerelease_gt "$pre1" "$pre2"
 }
 
+# The newest release tag, pre-releases left out. It is the base every stable
+# comparison starts from: after `v1.0.0-rc2`, the next release is measured
+# against `v0.53.0`, and `sort -V` would also put `v1.0.0-rc2` after `v1.0.0`.
 get_latest_tag_version() {
     local repo_root="${1:-.}"
-    # Get latest semver tag, strip 'v' prefix
     git -C "$repo_root" tag -l 'v[0-9]*.[0-9]*.[0-9]*' \
+        | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
         | sort -V \
         | tail -1 \
         | sed 's/^v//'
+}
+
+# Whether `new` may follow, given the version in VersionFinder (`current`) and
+# the newest release tag (`base`). A release only has to outrank `base`, so
+# `0.54.0` can follow `1.0.0-rc2`. A pre-release of the same core as `current`
+# has to outrank it too, so `1.0.0-rc1` cannot follow `1.0.0-rc2`.
+version_may_follow() {
+    local new="$1"
+    local current="$2"
+    local base="$3"
+
+    if [[ -z "$base" ]]; then
+        version_gt "$new" "$current"
+        return
+    fi
+
+    version_gt "$new" "$base" || return 1
+
+    if is_prerelease "$current" && [[ "$(version_core "$new")" == "$(version_core "$current")" ]]; then
+        version_gt "$new" "$current" || return 1
+    fi
+    return 0
 }
 
 increment_minor_version() {
@@ -251,7 +276,7 @@ update_agents_version() {
 update_changelog() {
     local version="$1"
     local changelog_file="$2"
-    local current_version="$3"
+    local base_version="$3"
 
     # A pre-release leaves `## Unreleased` exactly where it is. Consuming it
     # would hand the release candidate the notes the final release is meant to
@@ -263,7 +288,7 @@ update_changelog() {
     local current_date
     current_date=$(date +%Y-%m-%d)
 
-    local new_heading="## [$version](https://github.com/$REPO_NAME/compare/v$current_version...v$version) - $current_date"
+    local new_heading="## [$version](https://github.com/$REPO_NAME/compare/v$base_version...v$version) - $current_date"
     # Use awk for cross-platform newline insertion
     awk -v new="$new_heading" '/^## Unreleased$/{print; print ""; print new; next}1' "$changelog_file" > "$changelog_file.tmp"
     mv "$changelog_file.tmp" "$changelog_file"
@@ -295,11 +320,17 @@ extract_release_notes() {
     # Extract content between version heading and next heading, skip first and last line
     local content
     content=$(sed -n "/^## \[$version\]/,/^## \[/p" "$changelog_file" | tail -n +2)
-    # Remove last line (next version heading) and empty lines - compatible with macOS
-    content=$(echo "$content" | sed '$d' | sed '/^$/d')
+    # Drop the next version heading, then only the blank lines around the
+    # section: the ones inside separate a sub-label such as `Tooling:` from the
+    # list above it, and without them Markdown folds the label into that list.
+    content=$(echo "$content" | sed '$d' | trim_blank_edges)
     # Transform h3 headers to h2 with emojis
     content=$(format_release_notes "$content")
     echo "$content"
+}
+
+trim_blank_edges() {
+    awk 'NF { printf "%s", pending; pending = ""; print; started = 1; next } started { pending = pending $0 "\n" }'
 }
 
 format_release_notes() {
@@ -460,35 +491,39 @@ git_push() {
 # =============================================================================
 # GitHub Release
 # =============================================================================
-map_to_github_username() {
-    local name="$1"
-    # Matched case-insensitively: the same person authors commits as both
-    # `Chemaclass` and `chemaclass`, and the `sort -u` downstream is
-    # case-sensitive, so an unmapped spelling shows up as a second contributor.
-    local key
-    key=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')
-
-    case "$key" in
-        "jose m. valera reales"|"jesusvalera"|"jesus valera") echo "JesusValeraDev" ;;
-        "chema"|"jose maria valera reales"|"chemaclass") echo "Chemaclass" ;;
-        *) echo "$name" | sed 's/ //g' ;;  # Remove spaces for unknown names
-    esac
+# A GitHub noreply address carries the login: `5256287+Chemaclass@users...`.
+noreply_login() {
+    sed -nE 's/^([0-9]+\+)?([^@]+)@users\.noreply\.github\.com$/\2/p'
 }
 
-get_contributors() {
-    local prev_version="$1"
-    local repo_root="$2"
-
-    # Get unique contributor names from commits since last tag and map to GitHub usernames
-    git -C "$repo_root" log "v$prev_version"..HEAD --format='%aN' 2>/dev/null \
-        | sort -u \
-        | while read -r name; do
-            map_to_github_username "$name"
-        done \
+# One line of `@login` mentions, deduplicated, bots left out.
+format_contributors() {
+    grep -v '\[bot\]$' \
+        | grep -v '^$' \
+        | sort -fu \
         | sed 's/^/@/' \
-        | sort -u \
         | tr '\n' ' ' \
         | sed 's/ $//'
+}
+
+# Logins come from GitHub, which maps each commit's email to its account. A
+# commit's author name is no guide: squash merges carry the GitHub display
+# name, which can match nobody's login or somebody else's.
+get_contributors() {
+    local base_version="$1"
+    local head_ref="$2"
+    local repo_root="$3"
+
+    local logins
+    logins=$(gh api --paginate "repos/$REPO_NAME/compare/v$base_version...$head_ref?per_page=100" \
+        --jq '.commits[] | .author.login // empty' 2>/dev/null) || logins=""
+
+    if [[ -z "$logins" ]]; then
+        log "[WARN] GitHub compare unavailable: contributors come from noreply addresses only" >&2
+        logins=$(git -C "$repo_root" log "v$base_version..$head_ref" --format='%aE' 2>/dev/null | noreply_login)
+    fi
+
+    echo "$logins" | format_contributors
 }
 
 create_github_release() {
@@ -497,7 +532,7 @@ create_github_release() {
     local phar_output="$3"
     local skip_phar="$4"
     local release_name="${5:-}"
-    local prev_version="${6:-}"
+    local base_version="${6:-}"
     local repo_root="${7:-$(pwd)}"
     local unreleased_content="${8:-}"
 
@@ -512,7 +547,7 @@ create_github_release() {
 
     # Add contributors and full changelog link
     local contributors
-    contributors=$(get_contributors "$prev_version" "$repo_root")
+    contributors=$(get_contributors "$base_version" "v$version" "$repo_root")
 
     # Build final release notes
     if [[ -n "$tldr" ]]; then
@@ -526,7 +561,7 @@ $release_notes"
 ## 👥 Contributors
 $contributors
 
-**Full Changelog**: https://github.com/$REPO_NAME/compare/v$prev_version...v$version"
+**Full Changelog**: https://github.com/$REPO_NAME/compare/v$base_version...v$version"
 
     # Build title: "0.28.0" or "0.28.0 - Release Name" (no v prefix in title)
     local title="$version"

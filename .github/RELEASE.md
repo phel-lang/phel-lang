@@ -55,7 +55,9 @@ Before releasing, ensure you have:
 ### What the Script Does
 
 1. Validates version format (`X.Y.Z`, or `X.Y.Z-rc1` for a pre-release) and
-   ensures new > current
+   ensures it outranks the last release tag (pre-release tags left out), and
+   any pre-release of the same version in `VersionFinder`. So `0.54.0` may
+   follow `1.0.0-rc2`, while `1.0.0-rc1` may not follow `1.0.0-rc2`
 2. Runs pre-flight checks (gh CLI, on `main`, in sync with `origin/main`, clean
    tree, `## Unreleased` still populated, tag absent, network)
 3. Updates `LATEST_VERSION` in [VersionFinder.php](../src/php/Shared/VersionFinder.php)
@@ -68,11 +70,15 @@ Before releasing, ensure you have:
 8. Creates the git tag
 9. Pushes commit and tag to `main`
 10. Creates the GitHub release with notes, contributors and the PHAR attached,
-    which fires `announce-release.yml`
+    which fires `announce-release.yml`. The compare link, the contributor
+    list (GitHub logins from the compare API) and the CHANGELOG heading all
+    start at the last release tag, because the notes cover every change since
+    then, RCs included
 
 A pre-release (`tools/release.sh 1.0.0-rc1`) differs in three ways: step 4 is
 skipped so `## Unreleased` stays where it is, the notes come from that section
-as it stands, and step 10 publishes with `--prerelease`.
+as it stands, and step 10 publishes with `--prerelease` and skips the
+announcement draft.
 
 ---
 
