@@ -20,6 +20,9 @@ use TypeError;
 
 use function array_values;
 use function is_array;
+use function is_bool;
+use function is_float;
+use function is_int;
 use function is_string;
 use function iterator_to_array;
 
@@ -250,11 +253,33 @@ final class Seq
     }
 
     /**
-     * @return Generator<int, float|int>
+     * @return Generator<int, BigDecimal|BigInt|float|int|Ratio>
      */
-    public static function range(int|float $start, int|float $end, int|float $step): Generator
+    public static function range(mixed $start, mixed $end, mixed $step): Generator
     {
-        return SequenceGenerator::range($start, $end, $step);
+        // The typed parameters reject a non-native number when the generator is
+        // created, before any element runs, so the try is free for ints and floats.
+        try {
+            return SequenceGenerator::range(
+                // @phpstan-ignore argument.type (the TypeError below is the check)
+                $start,
+                // @phpstan-ignore argument.type
+                $end,
+                // @phpstan-ignore argument.type
+                $step,
+            );
+        } catch (TypeError) {
+            // Compiled Phel calls this in PHP's weak mode, so the old int|float
+            // signature took a bool or a numeric string; keep accepting them.
+            $start = self::weakNumber($start);
+            $end = self::weakNumber($end);
+            $step = self::weakNumber($step);
+            if ((is_int($start) || is_float($start)) && (is_int($end) || is_float($end)) && (is_int($step) || is_float($step))) {
+                return SequenceGenerator::range($start, $end, $step);
+            }
+
+            return SequenceGenerator::numericRange($start, $end, $step);
+        }
     }
 
     /**
@@ -428,6 +453,20 @@ final class Seq
         string $escape = '\\',
     ): Generator {
         return FileGenerator::csvLines($filename, $separator, $enclosure, $escape);
+    }
+
+    private static function weakNumber(mixed $value): mixed
+    {
+        if (is_bool($value)) {
+            return (int) $value;
+        }
+
+        if (is_string($value) && is_numeric($value)) {
+            /** @psalm-suppress InvalidOperand Preserve PHP's weak integer-versus-float coercion. */
+            return $value + 0;
+        }
+
+        return $value;
     }
 
     /**

@@ -9,13 +9,53 @@
   (is (= [0 2] (range 0 4 2)) "(range 0 4 2)")
   (is (= [0 2 4] (range 0 5 2)) "(range 0 5 2)"))
 
+(deftest test-range-numeric-tower
+  (is (= [0] (range 1/2)) "ratio end below one")
+  (is (= [0 1 2] (range 5/2)) "ratio end")
+  (is (= [0 1 2] (range 0 5/2)) "ratio end with a start")
+  (is (= [1/2 3/2] (range 1/2 5/2)) "ratio start")
+  (is (= [0 1/2 1 3/2] (range 0 2 1/2)) "ratio step")
+  (is (= [2 3/2 1 1/2] (range 2 0 -1/2)) "negative ratio step")
+  (is (= [0 1 2] (range (bigint 3))) "BigInt end")
+  (is (= [1 2] (range (bigint 1) (bigint 3))) "BigInt start and end")
+  (is (= [0 2 4] (range 0 5 (bigint 2))) "BigInt step")
+  (is (= [0 1 2] (range 3M)) "BigDecimal end")
+  (is (= [0 1 2] (range 2.5M)) "fractional BigDecimal end")
+  (is (= [0 1 2] (range 0 2.5)) "float end, the behaviour the others match")
+  (is (= [0 0 0] (take 3 (range 0 5/2 0))) "zero step is a lazy infinite seq, as with ints and in Clojure")
+  (is (= [:a] (repeat true :a)) "a bool count reads as 1 or 0, as before the numeric tower")
+  (is (= [] (repeat false :a)) "false count")
+  (is (= [:a :a] (repeat "2" :a)) "a numeric string count")
+  (is (= [0 1 2] (range "3")) "a numeric string end")
+  (is (every? int? (range "02" "04" "01")) "leading zero numeric strings yield ints")
+  (is (every? float? (range "2e0" 4)) "exponent numeric strings yield floats")
+  (is (= [0 0.5 1.0 1.5] (range 0 2 0.5)) "a float step gives floats after the int start")
+  (is (= [0 1 2] (take 3 (range 0 (+ 9223372036854775807 5)))) "an end past PHP_INT_MAX does not wrap")
+  (is (thrown? InvalidArgumentException (range :a)) "a non-number end")
+  (is (thrown? InvalidArgumentException (range 0 5 :a)) "a non-number step"))
+
 (deftest test-repeat
   (is (= [:a :a :a] (repeat 3 :a)) "(repeat 3 :a)")
-  (is (= [] (repeat 0 :a)) "(repeat 0 :a)"))
+  (is (= [] (repeat 0 :a)) "(repeat 0 :a)")
+  (is (= [:a :a :a] (repeat 2.5 :a)) "a float count rounds up, as range does")
+  (is (= [:a :a :a] (repeat 5/2 :a)) "a ratio count behaves like the float of the same value")
+  (is (= [:a] (repeat 1/2 :a)) "a ratio count below one")
+  (is (= [:a :a] (repeat (bigint 2) :a)) "a BigInt count")
+  (is (= [:a :a :a] (repeat 3M :a)) "a BigDecimal count")
+  (is (= [:a :a :a] (repeat 2.5M :a)) "a fractional BigDecimal count"))
 
 (deftest test-repeatedly
   (is (= [:x :x :x] (repeatedly 3 (fn [] :x))) "(repeatedly 3 (fn [] :x))")
-  (is (= [] (repeatedly 0 (fn [] :x))) "(repeatedly 0 (fn [] :x))"))
+  (is (= [] (repeatedly 0 (fn [] :x))) "(repeatedly 0 (fn [] :x))")
+  (is (= [:x :x :x] (repeatedly 2.5 (fn [] :x))) "a float count")
+  (is (= [:x :x :x] (repeatedly 5/2 (fn [] :x))) "a ratio count")
+  (is (= [:x :x] (repeatedly (bigint 2) (fn [] :x))) "a BigInt count")
+  (is (= [:x :x :x] (repeatedly 3M (fn [] :x))) "a BigDecimal count"))
+
+(deftest test-for-range-numeric-tower
+  (is (= [0 1 2] (for [x :range [5/2]] x)) "for :range with a ratio end")
+  (is (= [0 1/2 1] (for [x :range [0 3/2 1/2]] x)) "for :range with a ratio step")
+  (is (= [0 1] (for [x :range [(bigint 2)]] x)) "for :range with a BigInt end"))
 
 (deftest test-for-loop
   (is (= [0 1 2] (for [x :range [0 3]] x)) "for loop (:range)")

@@ -8,6 +8,11 @@ use ArrayIterator;
 use Generator;
 use InvalidArgumentException;
 use Iterator;
+use Phel\Lang\BigDecimal;
+use Phel\Lang\BigInt;
+use Phel\Lang\NumericCoercion;
+use Phel\Lang\NumericOperations;
+use Phel\Lang\Ratio;
 
 use function get_debug_type;
 use function is_array;
@@ -108,6 +113,36 @@ final class SequenceGenerator
             : static fn(int|float $i, int|float $e): bool => $i < $e;
 
         for ($i = $start; $cmp($i, $end); $i += $step) {
+            yield $i;
+        }
+    }
+
+    /**
+     * Same as {@see range()} for a bound or step that is a `BigInt`, `Ratio` or
+     * `BigDecimal`: `numericRange(0, 5/2, 1)` yields `0, 1, 2`.
+     *
+     * @return Generator<int, BigDecimal|BigInt|float|int|Ratio>
+     */
+    public static function numericRange(mixed $start, mixed $end, mixed $step): Generator
+    {
+        NumericCoercion::ensureNumeric($start);
+        NumericCoercion::ensureNumeric($end);
+        NumericCoercion::ensureNumeric($step);
+
+        return self::tower($start, $end, $step);
+    }
+
+    /**
+     * @return Generator<int, BigDecimal|BigInt|float|int|Ratio>
+     */
+    private static function tower(
+        BigDecimal|BigInt|float|int|Ratio $start,
+        BigDecimal|BigInt|float|int|Ratio $end,
+        BigDecimal|BigInt|float|int|Ratio $step,
+    ): Generator {
+        $direction = NumericOperations::compare($step, 0) < 0 ? -1 : 1;
+
+        for ($i = $start; NumericOperations::compare($i, $end) === -$direction; $i = NumericOperations::add($i, $step)) {
             yield $i;
         }
     }
