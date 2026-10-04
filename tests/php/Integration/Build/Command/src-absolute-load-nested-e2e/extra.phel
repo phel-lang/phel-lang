@@ -1,0 +1,3 @@
+(in-ns nest.main)
+
+(defn shout [s] (str s "!"))
