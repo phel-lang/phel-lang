@@ -20,6 +20,8 @@ final class FilesystemConfig extends AbstractConfig
 
     public function getTempDir(): string
     {
-        return ScalarCoercion::toString($this->get(PhelConfig::TEMP_DIR, sys_get_temp_dir()), sys_get_temp_dir());
+        $default = PhelConfig::defaultTempDir();
+
+        return ScalarCoercion::toString($this->get(PhelConfig::TEMP_DIR, $default), $default);
     }
 }

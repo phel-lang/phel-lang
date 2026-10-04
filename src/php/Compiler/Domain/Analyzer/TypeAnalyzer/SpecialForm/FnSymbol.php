@@ -17,6 +17,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReadModel\FnSymbolTup
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\TagResolver;
 
 use function count;
@@ -75,6 +76,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         $childEnv = $env->withReturnInferenceDeferred(false)->withExpressionContext();
 
         $fnNodes = [];
+        $fixedArities = [];
         $hasVariadic = false;
         $count = count($list);
         for ($i = 1; $i < $count; ++$i) {
@@ -98,14 +100,27 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 
             if ($fnNode->isVariadic()) {
                 if ($hasVariadic) {
-                    throw AnalyzerException::withLocation('Only one variadic overload allowed', $clause);
+                    throw AnalyzerException::withLocation('Only one variadic overload allowed', $clause, errorCode: ErrorCode::INVALID_SPECIAL_FORM);
                 }
 
                 if ($i !== $count - 1) {
-                    throw AnalyzerException::withLocation('Variadic overload must be the last one', $clause);
+                    throw AnalyzerException::withLocation('Variadic overload must be the last one', $clause, errorCode: ErrorCode::INVALID_SPECIAL_FORM);
                 }
 
                 $hasVariadic = true;
+            } else {
+                // Each fixed arity compiles to its own `invokeArityN` method.
+                $arity = count($fnNode->getParams());
+                if (isset($fixedArities[$arity])) {
+                    $signature = $clause->first();
+                    throw AnalyzerException::withLocation(
+                        "Can't have 2 overloads with the same arity",
+                        $signature instanceof PersistentVectorInterface ? $signature : $clause,
+                        errorCode: ErrorCode::INVALID_SPECIAL_FORM,
+                    );
+                }
+
+                $fixedArities[$arity] = true;
             }
 
             $fnNodes[] = $fnNode;

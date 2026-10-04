@@ -84,7 +84,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function getTempDir(): string
     {
-        return ScalarCoercion::toString($this->get(PhelConfig::TEMP_DIR, sys_get_temp_dir() . '/phel'));
+        return ScalarCoercion::toString($this->get(PhelConfig::TEMP_DIR, PhelConfig::defaultTempDir()));
     }
 
     public function getCacheDir(): string

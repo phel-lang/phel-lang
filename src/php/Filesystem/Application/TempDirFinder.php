@@ -13,9 +13,12 @@ use Phel\Shared\Exceptions\FileException;
  *
  * The resolved path is cached on the instance after the first successful call,
  * so subsequent calls return immediately without touching the filesystem.
- * Creation is idempotent (a concurrently-created directory is tolerated), and
- * a non-writable directory triggers a chmod 0777 retry before giving up with a
- * FileException.
+ * Creation is idempotent (a concurrently-created directory is tolerated).
+ *
+ * The directory holds generated PHP that is `require`d, so it belongs to the
+ * current user alone: it is created 0700, a world-writable one we own is
+ * tightened to 0700, and one another user owns is refused, since whoever owns
+ * it could swap the code we run.
  *
  * @internal
  */
@@ -43,11 +46,12 @@ final class TempDirFinder
         $tempDir = $this->configTempDir;
 
         $this->ensureDirectoryExists($tempDir);
+        $this->ensureOwnedByCurrentUser($tempDir);
 
-        // Directory exists but is not writable: try to broaden permissions
+        // Directory exists but is not writable: give its owner write access
         // and re-check before failing.
         if (!$this->fileIo->isWritable($tempDir)) {
-            @chmod($tempDir, 0777);
+            @chmod($tempDir, 0o700);
 
             if ($this->fileIo->isWritable($tempDir)) {
                 return $this->cachedTempDir = $tempDir;
@@ -63,8 +67,8 @@ final class TempDirFinder
      * Creates the directory if it does not already exist.
      *
      * Idempotent: an already-existing directory (or one created concurrently
-     * between the mkdir attempt and the is_dir re-check) is tolerated. umask is
-     * reset to 0 around mkdir so the 0777 mode is applied as requested.
+     * between the mkdir attempt and the is_dir re-check) is tolerated. A
+     * restrictive umask can only narrow 0700, never widen it.
      *
      * @throws FileException if the directory cannot be created
      */
@@ -74,16 +78,31 @@ final class TempDirFinder
             return;
         }
 
-        $oldUmask = umask(0);
         // Suppressed: the thrown FileException is the user-facing signal; the
         // raw PHP warning would just duplicate it as noise above the error.
-        if (!@mkdir($tempDir, 0777, true) && !is_dir($tempDir)) {
+        if (!@mkdir($tempDir, 0o700, true) && !is_dir($tempDir)) {
             throw FileException::canNotCreateDirectory($tempDir);
         }
+    }
 
-        umask($oldUmask);
-        if (!is_dir($tempDir)) {
-            throw FileException::canNotCreateDirectory($tempDir);
+    /**
+     * @throws FileException if another user owns or can replace the directory
+     */
+    private function ensureOwnedByCurrentUser(string $tempDir): void
+    {
+        $violation = TempDirPolicy::violation($tempDir);
+        if ($violation instanceof FileException) {
+            throw $violation;
+        }
+
+        if (TempDirPolicy::isOpenToOthers($tempDir)) {
+            TempDirPolicy::closeToOthers($tempDir);
+        }
+
+        // Some mounts ignore chmod. Read access there only leaks source, which
+        // `phel doctor` reports; write access would let others swap the PHP.
+        if (TempDirPolicy::isWritableByOthers($tempDir)) {
+            throw FileException::directoryCanBeReplacedByAnotherUser($tempDir);
         }
     }
 }

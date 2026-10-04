@@ -10,6 +10,8 @@ use Phel\Config\PhelExportConfig;
 use Phel\Config\ProjectLayout;
 use PHPUnit\Framework\TestCase;
 
+use function function_exists;
+
 final class PhelConfigTest extends TestCase
 {
     public function test_default_json_serialize(): void
@@ -35,7 +37,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::IGNORE_WHEN_BUILDING => [],
             PhelConfig::NO_CACHE_WHEN_BUILDING => [],
             PhelConfig::KEEP_GENERATED_TEMP_FILES => false,
-            PhelConfig::TEMP_DIR => sys_get_temp_dir() . '/phel/tmp',
+            PhelConfig::TEMP_DIR => PhelConfig::defaultTempDir(),
             PhelConfig::FORMAT_DIRS => ['src', 'tests'],
             PhelConfig::FORMAT_EXCLUDE => [],
             PhelConfig::APP_MODULE_PATHS => [],
@@ -428,8 +430,11 @@ final class PhelConfigTest extends TestCase
     {
         $tempDir = new PhelConfig()->getTempDir();
 
-        self::assertStringContainsString('/phel/', $tempDir);
+        self::assertStringStartsWith(sys_get_temp_dir() . '/phel', $tempDir);
         self::assertStringEndsWith('/tmp', $tempDir);
+        if (function_exists('posix_geteuid')) {
+            self::assertStringContainsString('/phel-' . posix_geteuid() . '/', $tempDir);
+        }
     }
 
     public function test_cache_dir_default_is_relative_to_project_root(): void

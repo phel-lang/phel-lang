@@ -27,6 +27,8 @@
   (is (= [] (repeat false :a)) "false count")
   (is (= [:a :a] (repeat "2" :a)) "a numeric string count")
   (is (= [0 1 2] (range "3")) "a numeric string end")
+  (is (every? int? (range "02" "04" "01")) "leading zero numeric strings yield ints")
+  (is (every? float? (range "2e0" 4)) "exponent numeric strings yield floats")
   (is (= [0 0.5 1.0 1.5] (range 0 2 0.5)) "a float step gives floats after the int start")
   (is (= [0 1 2] (take 3 (range 0 (+ 9223372036854775807 5)))) "an end past PHP_INT_MAX does not wrap")
   (is (thrown? InvalidArgumentException (range :a)) "a non-number end")

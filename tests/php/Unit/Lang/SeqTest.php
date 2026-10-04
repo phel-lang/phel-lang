@@ -67,6 +67,22 @@ final class SeqTest extends TestCase
         self::assertSame([0, 1, 2], iterator_to_array($result, false));
     }
 
+    public function test_range_coerces_leading_zero_numeric_strings_to_ints(): void
+    {
+        self::assertSame([2, 3], iterator_to_array(Seq::range('02', '04', '01'), false));
+    }
+
+    public function test_range_coerces_decimal_and_exponent_numeric_strings_to_floats(): void
+    {
+        self::assertSame([2.0, 3.0], iterator_to_array(Seq::range('2.0', 4, 1), false));
+        self::assertSame([2.0, 3.0], iterator_to_array(Seq::range('2e0', 4, 1), false));
+    }
+
+    public function test_range_coerces_booleans_to_ints(): void
+    {
+        self::assertSame([0], iterator_to_array(Seq::range(false, true, true), false));
+    }
+
     public function test_range_with_ratio_step(): void
     {
         $result = iterator_to_array(Seq::range(0, 2, Ratio::create(1, 2)), false);

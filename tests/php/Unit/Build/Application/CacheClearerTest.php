@@ -54,6 +54,47 @@ final class CacheClearerTest extends TestCase
         self::assertDirectoryDoesNotExist($this->root . '/cache');
     }
 
+    public function test_a_symlinked_directory_loses_the_link_and_keeps_its_target(): void
+    {
+        mkdir($this->root . '/elsewhere');
+        file_put_contents($this->root . '/elsewhere/keep.txt', 'mine');
+        $this->removeDir($this->root . '/tmp');
+        symlink($this->root . '/elsewhere', $this->root . '/tmp');
+
+        new CacheClearer($this->root . '/tmp', $this->root . '/cache', $this->root . '/opcache')->clearAll();
+
+        self::assertFileExists($this->root . '/elsewhere/keep.txt');
+        self::assertFalse(is_link($this->root . '/tmp'));
+    }
+
+    public function test_a_directory_reached_through_a_symlinked_parent_is_still_cleared(): void
+    {
+        // A link above the configured dir is part of the path the user chose
+        // (macOS reaches its temp dir through /var -> /private/var); only a
+        // link at the configured dir itself is refused.
+        mkdir($this->root . '/real/cache', 0o755, true);
+        file_put_contents($this->root . '/real/cache/index.php', '<?php');
+        symlink($this->root . '/real', $this->root . '/via');
+
+        new CacheClearer($this->root . '/tmp', $this->root . '/via/cache', $this->root . '/opcache')->clearAll();
+
+        self::assertDirectoryDoesNotExist($this->root . '/real/cache');
+    }
+
+    public function test_a_symlinked_opcache_directory_is_left_alone(): void
+    {
+        mkdir($this->root . '/elsewhere');
+        file_put_contents($this->root . '/elsewhere/keep.txt', 'mine');
+        $this->removeDir($this->root . '/opcache');
+        symlink($this->root . '/elsewhere', $this->root . '/opcache');
+
+        $cleared = new CacheClearer($this->root . '/tmp', $this->root . '/cache', $this->root . '/opcache')->clearAll();
+
+        self::assertFileExists($this->root . '/elsewhere/keep.txt');
+        self::assertTrue(is_link($this->root . '/opcache'));
+        self::assertNotContains($this->root . '/opcache', $cleared);
+    }
+
     public function test_leaves_the_opcache_directory_present_and_empty(): void
     {
         // PHP aborts at startup when opcache.file_cache points at a missing
