@@ -79,7 +79,7 @@ final class StreamTransport
             $next = self::resolve($url, $location);
             self::assertHttpUrl($next);
 
-            if ($response['status'] === 303 || ($response['status'] <= 302 && strtoupper($method) === 'POST')) {
+            if (self::redirectBecomesGet($response['status'], strtoupper($method))) {
                 $method = 'GET';
                 $body = null;
                 $headers = array_filter(
@@ -99,6 +99,19 @@ final class StreamTransport
 
             $url = $next;
         }
+    }
+
+    /**
+     * A 303 continues as a GET, except for a HEAD, which stays a HEAD (RFC 9110,
+     * 15.4.4). A 301 or 302 after a POST does the same, as browsers do.
+     */
+    private static function redirectBecomesGet(int $status, string $method): bool
+    {
+        return match ($status) {
+            303 => $method !== 'HEAD',
+            301, 302 => $method === 'POST',
+            default => false,
+        };
     }
 
     /**

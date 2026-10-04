@@ -104,6 +104,13 @@ final class StreamTransportRedirectTest extends TestCase
         self::assertArrayNotHasKey('content-type', $echo['headers']);
     }
 
+    public function test_a_303_keeps_a_head_request_a_head(): void
+    {
+        $result = StreamTransport::send('HEAD', $this->redirectTo('/echo', 303), [], null, ['timeout' => 5]);
+
+        self::assertSame('HEAD', $result['headers']['x-method']);
+    }
+
     public function test_a_307_keeps_the_method_and_the_body(): void
     {
         $echo = $this->send('POST', $this->redirectTo('/echo', 307), '{"a":1}');

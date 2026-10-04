@@ -26,6 +26,7 @@ foreach (getallheaders() as $name => $value) {
 }
 
 header('Content-Type: application/json');
+header('X-Method: ' . $_SERVER['REQUEST_METHOD']);
 echo json_encode([
     'method' => $_SERVER['REQUEST_METHOD'],
     'path' => $path,
