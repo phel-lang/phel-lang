@@ -7,6 +7,8 @@ namespace PhelTest\Unit\Filesystem\Application;
 use Phel\Filesystem\Application\TempDirHealthCheck;
 use PHPUnit\Framework\TestCase;
 
+use function function_exists;
+
 final class TempDirHealthCheckTest extends TestCase
 {
     private string $tempDir;
@@ -25,7 +27,7 @@ final class TempDirHealthCheckTest extends TestCase
 
     public function test_it_is_healthy_when_temp_dir_exists_and_is_writable(): void
     {
-        mkdir($this->tempDir, 0777, true);
+        mkdir($this->tempDir, 0o700, true);
 
         $healthCheck = new TempDirHealthCheck($this->tempDir);
         $status = $healthCheck->checkHealth();
@@ -74,5 +76,28 @@ final class TempDirHealthCheckTest extends TestCase
         self::assertFalse($status->isHealthy());
 
         chmod($this->tempDir, 0755);
+    }
+
+    public function test_it_is_unhealthy_when_other_users_can_open_the_temp_dir(): void
+    {
+        mkdir($this->tempDir, 0o700, true);
+        chmod($this->tempDir, 0o755);
+
+        $status = new TempDirHealthCheck($this->tempDir)->checkHealth();
+
+        self::assertFalse($status->isHealthy());
+        self::assertStringContainsString('other users can open it', $status->message);
+    }
+
+    public function test_it_is_unhealthy_when_another_user_owns_the_temp_dir(): void
+    {
+        if (!function_exists('posix_geteuid') || posix_geteuid() === 0 || fileowner('/usr') === posix_geteuid()) {
+            self::markTestSkipped('needs a directory owned by another user');
+        }
+
+        $status = new TempDirHealthCheck('/usr')->checkHealth();
+
+        self::assertFalse($status->isHealthy());
+        self::assertStringContainsString('owned by another user', $status->message);
     }
 }
