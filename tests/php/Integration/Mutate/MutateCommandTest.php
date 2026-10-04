@@ -162,7 +162,7 @@ final class MutateCommandTest extends TestCase
             . "(deftest adds\n  (is (= 3 (calc/add 1 2))))\n",
         );
 
-        [$exitCode, $output] = $this->runPhelMutate([], ['PHP_INI_SCAN_DIR=' . $this->displayErrorsIniDir()]);
+        [$exitCode, $output] = $this->runPhelMutate([], ['PHP_INI_SCAN_DIR=' . $this->scanDirsWith($this->displayErrorsIniDir())]);
 
         self::assertSame(0, $exitCode, $output);
         self::assertMatchesRegularExpression('/Killed: [1-9]/', $output);
@@ -377,6 +377,17 @@ final class MutateCommandTest extends TestCase
      * An ini scan dir that turns display_errors on for every PHP process,
      * workers included, as a PHP without a php.ini does.
      */
+    /**
+     * An empty element keeps PHP's compiled-in scan dir, where CI images load
+     * extensions such as phar; naming only the new dir would drop them.
+     */
+    private function scanDirsWith(string $dir): string
+    {
+        $current = getenv('PHP_INI_SCAN_DIR');
+
+        return ($current === false ? '' : $current) . PATH_SEPARATOR . $dir;
+    }
+
     private function displayErrorsIniDir(): string
     {
         $dir = $this->projectDir . '/ini';
