@@ -12,8 +12,8 @@ use function array_filter;
 use function implode;
 use function in_array;
 use function parse_url;
-use function preg_replace;
 use function sprintf;
+use function str_replace;
 use function str_starts_with;
 use function strrpos;
 use function strtolower;
@@ -209,6 +209,6 @@ final class StreamTransport
         $path = $parts['path'] ?? '/';
         $directory = substr($path, 0, (int) strrpos($path, '/') + 1);
 
-        return $authority . (string) preg_replace('#/\./#', '/', $directory . $location);
+        return $authority . str_replace('/./', '/', $directory . $location);
     }
 }
