@@ -5,7 +5,25 @@ declare(strict_types=1);
 namespace PhelTest\Support;
 
 use BackedEnum;
+use Phel\Api\ApiFacade;
+use Phel\Balance\BalanceFacade;
+use Phel\Fiber\FiberFacade;
+use Phel\Lint\LintFacade;
+use Phel\Lsp\LspFacade;
+use Phel\Mutate\MutateFacade;
+use Phel\Nrepl\NreplFacade;
+use Phel\Profile\ProfileFacade;
+use Phel\Run\RunFacade;
+use Phel\Shared\Exceptions\Hint\ClassNotFoundHint;
+use Phel\Shared\Facade\ApiFacadeInterface;
+use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\FrameworkNamespaces;
+use Phel\Shared\Lint\LintRuleExplainerInterface;
+use Phel\Shared\NoColor;
+use Phel\Shared\OptimizationLevel;
+use Phel\Shared\SourceMap\SupersededSourceMaps;
 use Phel\Shared\VersionFinder;
+use Phel\Watch\WatchFacade;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
@@ -157,6 +175,10 @@ final readonly class PublicApiSurface
      */
     public function isPublicSymbol(string $className): bool
     {
+        if ($this->isInternalSymbol($className)) {
+            return false;
+        }
+
         if ($className === self::RUNTIME_CLASS) {
             return true;
         }
@@ -168,6 +190,41 @@ final readonly class PublicApiSurface
         }
 
         return $this->isModuleFacade($className);
+    }
+
+    public function isInternalSymbol(string $className): bool
+    {
+        if (str_starts_with($className, 'Phel\\Shared\\Performance\\')) {
+            return true;
+        }
+
+        return in_array($className, [
+            LintFacade::class,
+            MutateFacade::class,
+            ProfileFacade::class,
+            RunFacade::class,
+            FiberFacade::class,
+            LspFacade::class,
+            NreplFacade::class,
+            ApiFacade::class,
+            BalanceFacade::class,
+            WatchFacade::class,
+            ApiFacadeInterface::class,
+            RunFacadeInterface::class,
+            SupersededSourceMaps::class,
+            LintRuleExplainerInterface::class,
+        ], true);
+    }
+
+    public function isInternalMember(string $className, string $memberName): bool
+    {
+        return in_array($className . '::' . $memberName, [
+            OptimizationLevel::class . '::pin',
+            NoColor::class . '::followOutput',
+            ClassNotFoundHint::class . '::javaClassHint',
+            FrameworkNamespaces::class . '::clojureTarget',
+            FrameworkNamespaces::class . '::isPhel',
+        ], true);
     }
 
     public static function repositoryRoot(): string
@@ -554,6 +611,10 @@ final readonly class PublicApiSurface
         ReflectionClass $class,
         ReflectionMethod|ReflectionProperty|ReflectionClassConstant $member,
     ): bool {
+        if ($this->isInternalMember($member->getDeclaringClass()->getName(), $member->getName())) {
+            return false;
+        }
+
         if ($member->isPublic()) {
             return true;
         }

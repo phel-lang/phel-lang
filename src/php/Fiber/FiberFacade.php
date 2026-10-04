@@ -12,6 +12,7 @@ use Phel\Fiber\Domain\Promise;
 use Phel\Fiber\Domain\Scheduler;
 
 /**
+ * @internal
  * Public entrypoint for the Fiber module. Exposes the cooperative async
  * primitives used by Phel's async library: {@see Promise}, {@see Future},
  * and the shared {@see Scheduler}.

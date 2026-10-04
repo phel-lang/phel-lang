@@ -77,7 +77,7 @@ final class Phel extends InternalPhel
         // is a process-global over-approximation of a fiber-local structure,
         // so it can only over-report; the full check behind it still decides
         // (#3179).
-        if (DynamicScope::$boundNames !== [] && isset(DynamicScope::$boundNames[$ns . '/' . $name])) {
+        if (DynamicScope::hasBoundName($ns, $name)) {
             $scope = DynamicScope::getInstance();
             if ($scope->hasAnyBinding() && $scope->hasBinding($ns, $name)) {
                 return $scope->getBinding($ns, $name);

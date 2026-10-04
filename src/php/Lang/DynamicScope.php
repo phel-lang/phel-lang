@@ -31,42 +31,11 @@ final class DynamicScope
     public const string MODE_REDEFS = 'redefs';
 
     /**
-     * Conservative one-way latch: flipped to `true` the first time any
-     * binding frame is pushed and only reset in {@see self::clear()}.
-     * It is never cleared on `popFrame()`, so it can read stale-`true`
-     * (frames were pushed then all popped) but never stale-`false` while
-     * a binding is live in any fiber. The hot global-read path
-     * ({@see \Phel::getDefinition()}) reads this static first and only
-     * pays the {@see self::getInstance()} singleton fetch plus the
-     * `Fiber::getCurrent()` call in {@see self::hasAnyBinding()} when the
-     * latch is set. A stale `true` harmlessly falls through to that
-     * correct slow check, which reports "no binding" and returns the
-     * registry value; a `false` is only ever seen before any frame was
-     * ever pushed, so skipping the scope probe is always correct.
-     */
-    public static bool $anyActive = false;
-
-    /**
-     * Which `"ns/name"` keys currently have at least one binding frame holding
-     * them, anywhere in the process, as a reference count.
-     *
-     * `$anyActive` is a single sticky boolean, so once anything in the process
-     * binds anything, every global read pays the full fiber-local scope
-     * lookup for the rest of the run: 0.046us for the registry read alone
-     * against 0.153us through the scope check (#3179). Keying the gate by name
-     * means a run that binds `*out*` does not slow down reads of every other
-     * var.
-     *
-     * A process-global count over a fiber-local structure is deliberately an
-     * over-approximation: a key bound only in another fiber still passes the
-     * gate, and the existing `hasAnyBinding()` / `hasBinding()` check behind it
-     * gives the same answer it always did. It can only produce false
-     * positives, never false negatives, which is what makes it a pure
-     * optimisation rather than a semantic change.
+     * Process-wide reference counts may include bindings in other fibers.
      *
      * @var array<string, int>
      */
-    public static array $boundNames = [];
+    private static array $boundNames = [];
 
     private static ?DynamicScope $instance = null;
 
@@ -109,9 +78,13 @@ final class DynamicScope
         return self::$instance ??= new self();
     }
 
+    public static function hasBoundName(string $ns, string $name): bool
+    {
+        return self::$boundNames !== [] && isset(self::$boundNames[$ns . '/' . $name]);
+    }
+
     public function clear(): void
     {
-        self::$anyActive = false;
         self::$boundNames = [];
         $this->mainStack = [];
         $this->mainRecordings = [];
@@ -189,11 +162,6 @@ final class DynamicScope
      */
     public function pushFrame(array $frame): void
     {
-        // Latch on the first (and every) read-visible frame push. This is
-        // the sole path that installs a frame onto mainStack/fiberStacks;
-        // setBinding only mutates existing frames, recordings are not
-        // read-visible, so keying the latch here covers every path.
-        self::$anyActive = true;
         foreach ($frame as $key => $_) {
             self::$boundNames[$key] = (self::$boundNames[$key] ?? 0) + 1;
         }

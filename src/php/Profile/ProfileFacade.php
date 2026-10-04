@@ -11,6 +11,8 @@ use Phel\Profile\Domain\ProfilerSession;
 use Phel\Profile\Domain\SortOrder;
 
 /**
+ * @internal
+ *
  * @extends AbstractFacade<ProfileFactory>
  */
 #[ServiceMap(method: 'getFactory', className: ProfileFactory::class)]
@@ -19,7 +21,7 @@ final class ProfileFacade extends AbstractFacade
     /**
      * Start a new profiling session.
      *
-     * Install the returned session as `Registry::$profilerHook` for the run,
+     * Install the returned session with `Registry::setProfilerHook()` for the run,
      * then call `stop()` to collect the {@see ProfileReport}.
      */
     public function startSession(): ProfilerSession

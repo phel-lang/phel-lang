@@ -2,11 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Phel\Build\Domain\Compile;
+namespace Phel\Shared;
 
-/**
- * @internal
- */
 final readonly class BuildOptions
 {
     public function __construct(

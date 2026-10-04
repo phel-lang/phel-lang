@@ -83,8 +83,6 @@ services:
                 - Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface
                 - Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface
                 - Phel\Compiler\Domain\Analyzer\Ast\AbstractNode
-                - Phel\Compiler\Domain\Parser\ReadModel\ReaderResult
-                - Phel\Compiler\Domain\Emitter\EmitterResult
 
 parameters:
     level: 9

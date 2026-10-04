@@ -10,6 +10,7 @@ use function in_array;
 use function str_starts_with;
 
 /**
+ * @internal
  * Decides whether the `phel` CLI should re-exec itself with a persistent
  * OPcache file cache so warm `run`/`eval`/`repl` invocations reuse compiled
  * opcode instead of re-parsing every required `.php`.

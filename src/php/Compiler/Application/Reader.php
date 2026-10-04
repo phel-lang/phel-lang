@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Application;
 
-use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\NotValidQuoteNodeException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ExpressionReaderFactoryInterface;
@@ -23,6 +22,7 @@ use Phel\Shared\Parser\Node\TaggedLiteralNode;
 use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
+use Phel\Shared\ReaderResult;
 use RuntimeException;
 
 /**

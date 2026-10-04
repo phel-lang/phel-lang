@@ -29,7 +29,8 @@ final class NoColor
     private static ?bool $outputDecorated = null;
 
     /**
-     * Pass null to go back to reading the environment.
+     * @internal
+     * Pass null to go back to reading the environment
      */
     public static function followOutput(?bool $decorated): void
     {

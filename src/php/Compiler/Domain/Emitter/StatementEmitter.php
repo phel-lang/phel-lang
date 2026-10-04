@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use Phel\Lang\SourceLocation;
+use Phel\Shared\EmitterResult;
 use RuntimeException;
 
 /**

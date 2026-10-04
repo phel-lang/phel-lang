@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Run\Application;
 
-use Phel\Compiler\Domain\Emitter\EmitterResult;
 use Phel\Run\Application\CompileExecutor;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\EmitterResult;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 

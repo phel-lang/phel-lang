@@ -8,12 +8,20 @@ use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFactory;
 use Phel\Run\Infrastructure\Command\ReplCommand;
+use Phel\Run\RunFacade;
 use Phel\Run\RunProvider;
+use Phel\Shared\Exceptions\Hint\ClassNotFoundHint;
+use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\FrameworkNamespaces;
+use Phel\Shared\NoColor;
+use Phel\Shared\OptimizationLevel;
+use Phel\Shared\Performance\OpcacheReexec;
 use Phel\Shared\VersionFinder;
 use PhelTest\Support\PublicApiSurface;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use ReflectionMethod;
 use SplFileInfo;
 
 use function file_get_contents;
@@ -61,7 +69,7 @@ final class PublicApiSurfaceTest extends TestCase
      * module root would otherwise silently drop out of the snapshot, and a
      * dropped symbol is exactly what the gate exists to catch.
      */
-    public function test_every_module_facade_is_part_of_the_surface(): void
+    public function test_every_embedding_facade_is_part_of_the_surface(): void
     {
         $surface = PublicApiSurface::fromRepositoryRoot(PublicApiSurface::repositoryRoot());
 
@@ -75,7 +83,8 @@ final class PublicApiSurfaceTest extends TestCase
             $relative = substr($path, strlen($srcDir) + 1);
             $className = 'Phel\\' . str_replace('/', '\\', substr($relative, 0, -4));
 
-            self::assertTrue(
+            self::assertSame(
+                !$surface->isInternalSymbol($className),
                 $surface->isPublicSymbol($className),
                 sprintf('%s is a module facade but the surface rules do not select it.', $className),
             );
@@ -92,6 +101,9 @@ final class PublicApiSurfaceTest extends TestCase
             ReplCommand::class,
             CompilerFactory::class,
             RunProvider::class,
+            RunFacade::class,
+            RunFacadeInterface::class,
+            OpcacheReexec::class,
         ];
 
         foreach ($internal as $className) {
@@ -122,6 +134,25 @@ final class PublicApiSurfaceTest extends TestCase
             $snapshot,
             'The version string itself must not reach the snapshot, or every release makes it stale.',
         );
+    }
+
+    public function test_internal_members_are_annotated_and_excluded(): void
+    {
+        $surface = PublicApiSurface::fromRepositoryRoot(PublicApiSurface::repositoryRoot());
+        $members = [
+            ['class' => OptimizationLevel::class, 'method' => 'pin'],
+            ['class' => NoColor::class, 'method' => 'followOutput'],
+            ['class' => ClassNotFoundHint::class, 'method' => 'javaClassHint'],
+            ['class' => FrameworkNamespaces::class, 'method' => 'clojureTarget'],
+            ['class' => FrameworkNamespaces::class, 'method' => 'isPhel'],
+        ];
+
+        $rendered = $surface->render();
+        foreach ($members as ['class' => $className, 'method' => $method]) {
+            self::assertTrue($surface->isInternalMember($className, $method));
+            self::assertStringNotContainsString(' function ' . $method . '(', $rendered);
+            self::assertStringContainsString('@internal', (string) new ReflectionMethod($className, $method)->getDocComment());
+        }
     }
 
     /**

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Cache;
 
 use Phel\Compiler\Domain\Cache\CachedReaderResult;
-use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Infrastructure\Cache\FileSystemReaderResultCache;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
+use Phel\Shared\ReaderResult;
 use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 

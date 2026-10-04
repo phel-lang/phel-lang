@@ -10,6 +10,8 @@ use Phel\Watch\Domain\FileWatcherInterface;
 use Phel\Watch\Domain\ReloadEventPublisherInterface;
 
 /**
+ * @internal
+ *
  * @extends AbstractFacade<WatchFactory>
  */
 #[ServiceMap(method: 'getFactory', className: WatchFactory::class)]

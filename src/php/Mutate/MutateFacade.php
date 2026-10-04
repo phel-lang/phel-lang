@@ -17,6 +17,8 @@ use Phel\Mutate\Domain\MutationPlan;
 use Phel\Mutate\Domain\MutationReport;
 
 /**
+ * @internal
+ *
  * @extends AbstractFacade<MutateFactory>
  */
 #[ServiceMap(method: 'getFactory', className: MutateFactory::class)]

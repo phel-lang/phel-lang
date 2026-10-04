@@ -69,7 +69,7 @@ $emit   = $facade->compile('(print "hi")', new CompileOptions());
 
 ## Building tools around Phel
 
-**Public API.** Every `*Facade.php` under `src/php/*/`, with `*FacadeInterface.php` for typing. Each module's `.agnostic-ai/rules/module-<name>.md` documents it. Tooling-relevant: `CompilerFacade`, `ApiFacade`, `LintFacade`, `FormatterFacade`. `Lsp/` and `Nrepl/` are worked examples.
+**Public API.** [The stability policy](../stability.md#public-php-api) names the covered facades and types. `CompilerFacade`, `BuildFacade` and `FormatterFacade` are public; `ApiFacade` and `LintFacade` are internal tooling. Each module's `.agnostic-ai/rules/module-<name>.md` documents its operations. `Lsp/` and `Nrepl/` are internal worked examples.
 
 **Run compiler without CLI.** Bootstrap Gacela, fetch `CompilerFacade`, call `compile()` / `eval()`. `tests/php/Integration/` does this.
 
@@ -77,7 +77,7 @@ $emit   = $facade->compile('(print "hi")', new CompileOptions());
 
 **Macroexpand from PHP.** `CompilerFacade::macroexpand1($form)`, `macroexpand($form)`. Returns Phel forms. Same path nREPL uses.
 
-**Introspect a namespace at runtime.** `ApiFacade`: symbol search, doc, `:see-also`, source locations. `Lang\Registry` is the store but private.
+**Introspect a namespace at runtime.** `ApiFacade` provides symbol search, doc, `:see-also` and source locations for Phel's own tooling; its PHP API is internal. A PHP host can inspect definitions through `\Phel` and the public `Lang\Registry` methods.
 
 **Cache invalidation.** Keyed by source hash + optimization level + Phel version, plus the declared `cache-env-vars`. Phel bump busts automatically. Local generated-code change: `phel cache:clear` or `rm -rf .phel/cache/`.
 

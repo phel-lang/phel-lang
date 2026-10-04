@@ -9,6 +9,7 @@ use function is_array;
 use function is_resource;
 
 /**
+ * @internal
  * Reads the full command line of the *running* process, interpreter flags
  * included.
  *

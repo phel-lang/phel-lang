@@ -8,7 +8,7 @@ scope: src/php/Nrepl
 
 nREPL protocol server: bencode-over-TCP for editor tooling (Cursive, Calva, CIDER, Conjure). `NreplConfig`: port 7888, host 127.0.0.1.
 
-## Public API (Facade)
+## Internal tooling API (Facade)
 
 | Method | Purpose |
 |--------|---------|
@@ -26,6 +26,8 @@ The facade is production surface only. `NreplFactory::createOpDispatcher()` stay
 | `lookup` / `info` / `eldoc` | Api `findSymbolMetadata` | three `LookupOp` instances differing only by name |
 | `reload` | Run `structuredEval` → `phel.repl/reload!`; `all` param (`1`/`true`) → `reload-all!` | |
 | `run-tests` | Run `structuredEval` → `phel.repl/run-tests` (required `ns` param); add `var` param → `phel.repl/run-test` (single test) | |
+
+The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies (NreplProvider)
 

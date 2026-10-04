@@ -12,7 +12,6 @@ use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Deprecation\SupersededFormRejector;
-use Phel\Compiler\Domain\Emitter\EmitterResult;
 use Phel\Compiler\Domain\Emitter\FileEmitterInterface;
 use Phel\Compiler\Domain\Emitter\StatementEmitterInterface;
 use Phel\Compiler\Domain\Evaluator\EvaluatorInterface;
@@ -21,7 +20,6 @@ use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ParserInterface;
-use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\ProfilerHookInterface;
@@ -29,12 +27,14 @@ use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\EmitterResult;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\FileException;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
+use Phel\Shared\ReaderResult;
 
 use function hrtime;
 
@@ -94,7 +94,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
      */
     private function doCompileString(string $phelCode, CompileOptions $compileOptions): EmitterResult
     {
-        $hook = Registry::$profilerHook;
+        $hook = Registry::getProfilerHook();
         $source = $compileOptions->getSource();
         $optimizationLevel = $compileOptions->getOptimizationLevel();
         $this->analyzer->setOptimizationLevel($optimizationLevel);

@@ -8,7 +8,7 @@ scope: src/php/Run
 
 Runtime execution: runs Phel namespaces/files, REPL, evaluation, test runner, and most CLI commands.
 
-## Public API (Facade)
+## Internal tooling API (Facade)
 
 | Group | Methods |
 |-------|---------|
@@ -23,6 +23,8 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, test runner, an
 | Coverage | `detectCoverageDriver(): ?CoverageDriver`, `buildCoverageReport(array, string): CoverageReport`, `buildPerTestCoverageReport(array, string): PerTestCoverageReport`; on the interface for hosts that run `phel.test` themselves (the mutation worker): `beginPerTestCoverage(): ?string`, `perTestCoverageByLine(): array`, `endPerTestCoverage()` (`PerTestCoverageSession`, one collector per process) |
 | Errors | `writeLocatedException`, `writeStackTrace` |
 | Doctor | `getModuleHealthChecks()` (surfaced by `phel doctor`) |
+
+The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies
 

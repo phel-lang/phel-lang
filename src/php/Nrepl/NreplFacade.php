@@ -9,6 +9,8 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Nrepl\Infrastructure\NreplSocketServer;
 
 /**
+ * @internal
+ *
  * @extends AbstractFacade<NreplFactory>
  */
 #[ServiceMap(method: 'getFactory', className: NreplFactory::class)]

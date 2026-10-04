@@ -14,11 +14,13 @@ That is why it is its own module: `Formatter` can write but only from a parse
 tree, and `Lint` can read broken input but never rewrites it. `Balance` is the
 intersection and belongs to neither.
 
-## Public API (Facade)
+## Internal tooling API (Facade)
 
 | Method | Returns |
 |--------|---------|
 | `balance(list<string> $paths, bool $fix = false)` | `BalanceResult`; throws `BalanceSourceException` when a listed directory cannot be walked |
+
+The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies
 

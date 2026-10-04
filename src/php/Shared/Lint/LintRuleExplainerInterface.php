@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Phel\Shared\Lint;
 
 /**
+ * @internal
  * The prose behind each lint rule, for a command outside Lint that explains
- * codes: `phel explain` lives in Run, and Lint already depends on Run.
+ * codes: `phel explain` lives in Run, and Lint already depends on Run
  */
 interface LintRuleExplainerInterface
 {

@@ -36,12 +36,16 @@ final class FrameworkNamespaces
             || str_starts_with($canonical, self::CLOJURE_PREFIX);
     }
 
+    /**
+     * @internal
+     */
     public static function isPhel(string $namespace): bool
     {
         return str_starts_with(Munge::canonicalNs($namespace), self::PHEL_PREFIX);
     }
 
     /**
+     * @internal
      * The `phel.*` namespace a `clojure.*` require stands for, or null when
      * the name is not in the `clojure.*` space.
      */

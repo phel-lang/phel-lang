@@ -14,18 +14,18 @@ Cross-module facade contracts: Compiler, Build, Run, Command, Console, Filesyste
 
 ## Compiler Back-Edge (accepted cycle)
 
-`Facade/CompilerFacadeInterface` imports 11 symbols from `Phel\Compiler\Domain`, which keeps `{Compiler, Config, Filesystem, Lang, Shared}` in one SCC. **This is deliberate** (decided in #2785). It is the only Shared → Compiler edge, and `tests/php/Unit/Architecture/SharedCompilerBoundaryTest.php` fails the build if a second one appears or the symbol set changes.
+`Facade/CompilerFacadeInterface` imports 9 symbols from `Phel\Compiler\Domain`, which keeps `{Compiler, Config, Filesystem, Lang, Shared}` in one SCC. **This is deliberate** (decided in #2785). It is the only Shared → Compiler edge, and `tests/php/Unit/Architecture/SharedCompilerBoundaryTest.php` fails the build if a second one appears or the symbol set changes.
 
 | Kind | Symbols |
 |------|---------|
-| Method signatures (6) | `AbstractNode`, `NodeEnvironmentInterface`, `GlobalEnvironmentInterface`, `TokenStream`, `EmitterResult`, `ReaderResult` |
+| Method signatures (4) | `AbstractNode`, `NodeEnvironmentInterface`, `GlobalEnvironmentInterface`, `TokenStream` |
 | `@throws` tags only (5) | `AnalyzerException`, `LexerValueException`, `UnexpectedParserException`, `UnfinishedParserException`, `ReaderException` |
 
 ### Why it is not broken
 
-An SCC decomposes only when *every* back-edge goes, so partial moves are churn with no structural payoff: relocating just the five exceptions leaves the cycle exactly as it was.
+An SCC decomposes only when *every* back-edge goes. Moving `EmitterResult` and `ReaderResult` into Shared makes embedding usable without constructing internals, but leaves the accepted cycle intact; moving the five exceptions alone would not remove it either.
 
-Removing all 11 means moving the analyzer AST into Shared. `AbstractNode` has ~554 references outside Shared and `NodeEnvironmentInterface` ~291. Shared would become the compiler, inverting the leaf-layer rule it exists to enforce.
+Removing all 9 means moving the analyzer AST into Shared. `AbstractNode` has ~554 references outside Shared and `NodeEnvironmentInterface` ~291. Shared would become the compiler, inverting the leaf-layer rule it exists to enforce.
 
 The two alternatives weighed in #2785 both cost more than the cycle does:
 
@@ -37,6 +37,8 @@ The two alternatives weighed in #2785 both cost more than the cycle does:
 The cycle is a static-analysis artifact over `use` statements, not a runtime one. No initialization order, autoloading, or build-order problem follows from it, and PHP has no module-level compilation unit.
 
 It also does not weaken the Gacela rule it appears to touch. Shared only *names* compiler types in a signature; it never instantiates one, and no factory gains a cross-module `new`. The dependency inversion this interface exists for (consumers injecting `CompilerFacadeInterface` rather than the concrete `CompilerFacade`) holds regardless of who owns the types in its signature.
+
+The Api and Run contracts are internal tooling; other facade contracts retain the public embedding policy. `Performance/*`, `SourceMap/SupersededSourceMaps` and `Lint/LintRuleExplainerInterface` are explicit internal Shared exceptions. `OptimizationLevel::pin`, `NoColor::followOutput`, `ClassNotFoundHint::javaClassHint` and `FrameworkNamespaces::{clojureTarget,isPhel}` are internal methods on public classes (ADR 0021).
 
 ## Constants
 
@@ -63,6 +65,8 @@ It also does not weaken the Gacela rule it appears to touch. Shared only *names*
 - `ExceptionPrinterInterface`: contract for exception/stack-trace rendering; implemented by `Command\Application\TextExceptionPrinter`, consumed by Command's runtime error report formatter. Lives here so `CommandFacadeInterface` doesn't back-reference `Command\Domain`. Four methods: `getExceptionString()`, `getStackTraceString()`, `getUserFacingTraceString($e, $showInternalFrames)` (all string-returning, so the caller decides where the text goes) plus the one side-effecting `printStackTrace()`. The two side-effecting `print*` siblings are gone on purpose: `printError()` echoed straight to stdout, bypassing the Symfony `OutputInterface` that every command already writes through, and `printException()` only wrapped `getExceptionString()` in an error-log write that `CommandExceptionWriter` already performs. `printStackTrace()` looks unused in PHP but is called from `src/phel/test.phel` via interop.
 
 ## Value Objects
+
+- `EmitterResult`, `ReaderResult` and `BuildOptions`: public compile/read outcomes and build options, constructed or inspected by PHP hosts. The result objects move here from Compiler and options from Build (#3521).
 
 - `NamespaceInformation`: `final readonly` DTO (`file`, `namespace`, `dependencies`, `isPrimaryDefinition`); produced by Build, consumed across Build/Run/Interop. Lives here so Shared facade contracts don't back-reference a foreign module's `Domain`.
 - `Eval/`: `final readonly` VOs for eval outcomes: `EvalResult` (`success()`/`incomplete()`/`failure()` named ctors), `EvalError`, `StackFrame`. Returned by `RunFacadeInterface::structuredEval()`, consumed by Nrepl/Watch. Producing orchestration lives in `Run\Application\StructuredEvaluator`, so these stay logic-free.
@@ -123,7 +127,7 @@ Stateless strategy-pattern printer (see `.agnostic-ai/rules/module-shared-printe
 | `SourceMapConsumer` | read side of the codec: decodes a `mappings` string into `getOriginalLine()` / `getMappedLines()`. Lives here, not in the emitter, because both Compiler (`EvaluatedCodeException`) and Command (`FilePositionExtractor`) decode maps while only the emitter writes them. The writer (`SourceMapGenerator`, `SourceMapState`) stays in Compiler |
 | `SourceMapSiblings` | naming convention for `<file>.php.map` + `<file>.phel` artifacts. Written by Build (`FileCompiler`, `SecondaryFileHarvester`), read by Command (`SourceMapExtractor`) |
 | `BuiltFilePreamble` | one-line `<?php declare(strict_types=1);` preamble with a building-version comment before generated code; `prepend()` (writer: `FileCompiler`), `codeStartLine()` (reader: `SourceMapExtractor`) |
-| `InlineSourceMapComments` | `// ` / `// ;;` metadata comment prefixes for inline maps in eval'd code. Written by Compiler's `EmitterResult`, parsed by `SourceMapExtractor` + `EvaluatedCodeException` |
+| `InlineSourceMapComments` | `// ` / `// ;;` metadata comment prefixes for inline maps in eval'd code. Written by `Shared\EmitterResult`, parsed by `SourceMapExtractor` + `EvaluatedCodeException` |
 | `SupersededSourceMaps` | in-memory, per-process headers of compiled files this process `require`d before they were overwritten with different code. Written by Build (`CompiledCodeCache::put`), read first by Command (`SourceMapExtractor`), so a frame of the earlier code maps through its own source map |
 
 ## Key Constraints

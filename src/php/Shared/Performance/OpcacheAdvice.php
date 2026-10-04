@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Phel\Shared\Performance;
 
 /**
- * Result of evaluating the OPcache configuration for CLI usage.
+ * @internal
+ * Result of evaluating the OPcache configuration for CLI usage
  */
 final readonly class OpcacheAdvice
 {

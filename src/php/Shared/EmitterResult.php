@@ -2,15 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Emitter;
+namespace Phel\Shared;
 
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\SourceMap\InlineSourceMapComments;
 
 /**
  * @phpstan-import-type DeprecationRecord from CompilerFacadeInterface
- *
- * @internal
  */
 final readonly class EmitterResult
 {

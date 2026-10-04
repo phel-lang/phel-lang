@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- **BREAKING (PHP API)**: `EmitterResult`, `ReaderResult` and `BuildOptions` move to `Phel\Shared`, where a PHP host can construct and inspect them. Use the Shared names in imports. Tooling facades and the listed Shared plumbing are internal; internal types named by public facade signatures remain supported as opaque handles. (#3521, ADR 0021)
+- **BREAKING (PHP API)**: `DynamicScope::$boundNames` and `Registry::$profilerHook` are private. Use `DynamicScope::hasBoundName()` and `Registry::{getProfilerHook,setProfilerHook}()`; the unused `DynamicScope::$anyActive` property is removed. (#3521)
+
 ### Added
 
 - Public PHP API: `\Phel::assertBuiltWith(string $version)` rejects generated PHP built with another Phel version and reports how to rebuild it. `Phel\Shared\VersionResolver::current()` and `currentReference()` expose the running version and commit for the process. (#3519)
@@ -79,7 +84,7 @@ PHP API:
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::withoutDeprecations()` runs a callable with deprecation notices held back. (#3381)
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::rejectSupersededForms()` throws on a superseded form in a form the reader returned. (#3456)
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::findSimilarNames()` returns the analyzer's "did you mean" candidates for a name. (#3454)
-- Public PHP API: `Phel\Lang\Destructure` (with `kwargs()`, `lookupSource()` and `restKwargs()`), `\Phel::fnSlot()`, `Phel\Lang\ForeignFn`, `Phel\Shared\OptimizationLevel`, `Phel\Shared\SourceMap\SupersededSourceMaps`, the `MissingNsFormException` / `MissingNsFormHint` pair and `ClassNotFoundHint` in `Phel\Shared\Exceptions`, and `LintRuleCodes::UNKNOWN_CLASS`, `UNRESOLVED_NAMESPACE` and `UNRESOLVED_REFER`. (#3354 #3356 #3373 #3396 #3435 #3454 #3455 #3465 #3479 #3487)
+- Public PHP API: `Phel\Lang\Destructure` (with `nthNext()`, `kwargs()`, `lookupSource()` and `restKwargs()`), `Symbol::{createGenerated,isGenerated}()`, `LintFacade::ruleExplainer()`, `Diagnostic` error codes, suggestions, fixes and projections, `AbstractLocatedException::{getSuggestions,setSuggestions}()`, `LintRuleCodes::SHADOWED_CORE_FN`, the `VersionResolver` constructor, `\Phel::fnSlot()`, `Phel\Lang\ForeignFn`, `Phel\Shared\OptimizationLevel`, `Phel\Shared\SourceMap\SupersededSourceMaps`, the `MissingNsFormException` / `MissingNsFormHint` pair and `ClassNotFoundHint` in `Phel\Shared\Exceptions`, and `LintRuleCodes::UNKNOWN_CLASS`, `UNRESOLVED_NAMESPACE` and `UNRESOLVED_REFER`. (#3354 #3356 #3373 #3396 #3435 #3454 #3455 #3465 #3479 #3487)
 
 ### Performance
 

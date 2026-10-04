@@ -16,7 +16,7 @@ Compiler is PHP. Stdlib is Phel: `src/phel/core.phel` bootstraps the core namesp
 
 ## Modules
 
-Every directory under `src/php/` is a module. Most follow the [Gacela](https://gacela-project.com/) pattern: `Facade` for public API, `Provider` for cross-module deps, `Factory` for internal wiring. The Gacela pillars themselves are internal PHP wiring, not user-facing API; public consumers enter through facades and documented Shared contracts. `Lang/`, `Shared/`, `Config/` and `HttpClient/` are leaves with no Gacela wiring; their module rule in `.agnostic-ai/rules/` says "No Gacela Pattern".
+Every directory under `src/php/` is a module. Most follow the [Gacela](https://gacela-project.com/) pattern: `Facade` for the module API, `Provider` for cross-module deps, `Factory` for internal wiring. The Gacela pillars themselves are internal PHP wiring, not user-facing API; public consumers enter through the facades and Shared contracts covered by [the stability policy](../stability.md#public-php-api). Tooling facades are internal CLI plumbing. `Lang/`, `Shared/`, `Config/` and `HttpClient/` are leaves with no Gacela wiring; their module rule in `.agnostic-ai/rules/` says "No Gacela Pattern".
 
 | Module | Purpose |
 |--------|---------|
@@ -43,7 +43,7 @@ Every directory under `src/php/` is a module. Most follow the [Gacela](https://g
 
 ```
 Run/
-├── RunFacade.php       public API
+├── RunFacade.php       internal tooling API
 ├── RunFactory.php      internal wiring
 ├── RunConfig.php       typed config
 ├── RunProvider.php     cross-module deps

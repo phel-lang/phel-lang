@@ -18,6 +18,7 @@ use function str_ends_with;
 use function unlink;
 
 /**
+ * @internal
  * Reclaims space in an OPcache file cache Phel owns.
  *
  * Two kinds of dead weight accumulate there and nothing else removes them

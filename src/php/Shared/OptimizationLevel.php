@@ -26,6 +26,9 @@ final class OptimizationLevel
 {
     public const string PIN_ENV = 'PHEL_OPTIMIZATION_LEVEL';
 
+    /**
+     * @internal
+     */
     public static function pin(int $level): void
     {
         putenv(self::PIN_ENV . '=' . max(0, $level));

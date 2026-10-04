@@ -21,7 +21,7 @@ final class Registry
      * `addDefinition` wraps every `AbstractFn` value with a profiling proxy
      * before storing it. Off-state cost: one null-check per definition.
      */
-    public static ?ProfilerHookInterface $profilerHook = null;
+    private static ?ProfilerHookInterface $profilerHook = null;
 
     /** @var array<string, array<string, mixed>> */
     private array $definitions = [];
@@ -43,6 +43,16 @@ final class Registry
         }
 
         return self::$instance;
+    }
+
+    public static function getProfilerHook(): ?ProfilerHookInterface
+    {
+        return self::$profilerHook;
+    }
+
+    public static function setProfilerHook(?ProfilerHookInterface $hook): void
+    {
+        self::$profilerHook = $hook;
     }
 
     public function clear(): void

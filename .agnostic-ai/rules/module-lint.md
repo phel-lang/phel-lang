@@ -8,7 +8,7 @@ scope: src/php/Lint
 
 Read-only semantic linter: emits diagnostics on Phel sources, never rewrites them.
 
-## Public API (Facade)
+## Internal tooling API (Facade)
 
 | Method | Returns |
 |--------|---------|
@@ -18,6 +18,8 @@ Read-only semantic linter: emits diagnostics on Phel sources, never rewrites the
 | `formatters()` | `FormatterRegistry` |
 | `createCache(string $baseDir, RuleSettings $settings)` | `LintCache` |
 | `ruleExplainer()` | `Shared\Lint\LintRuleExplainerInterface`, implemented by `Domain\LintRuleCatalog`, for `phel explain` |
+
+The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies
 

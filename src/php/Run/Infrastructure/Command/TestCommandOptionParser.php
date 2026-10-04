@@ -193,7 +193,7 @@ final readonly class TestCommandOptionParser
             return 'TAP reporter requires a monotonic test counter';
         }
 
-        if (Registry::$profilerHook instanceof ProfilerHookInterface) {
+        if (Registry::getProfilerHook() instanceof ProfilerHookInterface) {
             return 'profiler hook only collects counts in the parent process';
         }
 

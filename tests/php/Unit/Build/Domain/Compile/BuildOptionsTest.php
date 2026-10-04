@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Domain\Compile;
 
-use Phel\Build\Domain\Compile\BuildOptions;
+use Phel\Shared\BuildOptions;
 use PHPUnit\Framework\TestCase;
 
 final class BuildOptionsTest extends TestCase

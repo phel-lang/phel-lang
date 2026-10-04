@@ -48,31 +48,10 @@ final class Phel extends Phel\Phel
   public static function vector(?array $values = []): Phel\Lang\Collections\Vector\PersistentVectorInterface
   public static function withDynamicBindings(array $frame, Closure $body): mixed
 
-final class Phel\Api\ApiFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\ApiFacadeInterface
-  public function analyzeSource(string $source, string $uri): array
-  public function completeAtPoint(string $source, int $line, int $col, Phel\Shared\Api\ProjectIndex $index): array
-  public function completionDoc(string $candidate, string $currentNs = 'user'): ?string
-  public function createApiDaemon(): Phel\Api\Infrastructure\Daemon\ApiDaemon
-  public function extractDefinitions(string $source, string $uri): array
-  public function findReferences(Phel\Shared\Api\ProjectIndex $index, string $namespace, string $symbol): array
-  public function findSymbolMetadata(string $symbol, string $currentNs = 'user'): ?Phel\Shared\Api\PhelFunction
-  public function getPhelFunctions(array $namespaces = []): array
-  public function indexProject(array $srcDirs): Phel\Shared\Api\ProjectIndex
-  public function phelSignatureAt(string $source, int $line, int $col, string $currentNs = 'user'): ?array
-  public function phpInteropHoverAt(string $source, int $line, int $col): ?string
-  public function phpInteropSignatureAt(string $source, int $line, int $col): ?array
-  public function replComplete(string $input): array
-  public function replCompleteWithTypes(string $input): array
-  public function resolveLocalBinding(string $source, string $uri, int $line, int $col, string $word): ?Phel\Shared\Api\Location
-  public function resolveSymbol(Phel\Shared\Api\ProjectIndex $index, string $namespace, string $symbol): ?Phel\Shared\Api\Definition
-
-final class Phel\Balance\BalanceFacade extends Gacela\Framework\AbstractFacade
-  public function balance(array $paths, bool $fix = false): Phel\Balance\Domain\BalanceResult
-
 final class Phel\Build\BuildFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\BuildFacadeInterface
   public function clearCache(): array
   public function compileFile(string $src, string $dest): Phel\Shared\CompiledFile
-  public function compileProject(Phel\Build\Domain\Compile\BuildOptions $options): array
+  public function compileProject(Phel\Shared\BuildOptions $options): array
   public function evalFile(string $src): Phel\Shared\CompiledFile
   public function flushCompiledCodeCache(): void
   public function getDependenciesForNamespace(array $directories, array $ns): array
@@ -110,9 +89,9 @@ final class Phel\Command\CommandFacade extends Gacela\Framework\AbstractFacade i
 
 final class Phel\Compiler\CompilerFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\CompilerFacadeInterface
   public function analyze(Phel\Lang\TypeInterface|bool|float|int|null|string $x, Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface $env): Phel\Compiler\Domain\Analyzer\Ast\AbstractNode
-  public function compile(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Compiler\Domain\Emitter\EmitterResult
-  public function compileForCache(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Compiler\Domain\Emitter\EmitterResult
-  public function compileForm(Phel\Lang\TypeInterface|bool|float|int|null|string $form, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Compiler\Domain\Emitter\EmitterResult
+  public function compile(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Shared\EmitterResult
+  public function compileForCache(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Shared\EmitterResult
+  public function compileForm(Phel\Lang\TypeInterface|bool|float|int|null|string $form, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Shared\EmitterResult
   public function disableDebugLineTap(): void
   public function emptyNodeEnvironment(): Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface
   public function enableDebugLineTap(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void
@@ -132,7 +111,7 @@ final class Phel\Compiler\CompilerFacade extends Gacela\Framework\AbstractFacade
   public function macroexpand1(Phel\Lang\TypeInterface|bool|float|int|null|string $form): Phel\Lang\TypeInterface|bool|float|int|null|string
   public function parseAll(Phel\Compiler\Domain\Lexer\TokenStream $tokenStream): Phel\Shared\Parser\Node\FileNode
   public function parseNext(Phel\Compiler\Domain\Lexer\TokenStream $tokenStream): ?Phel\Shared\Parser\Node\NodeInterface
-  public function read(Phel\Shared\Parser\Node\NodeInterface $parseTree): Phel\Compiler\Domain\Parser\ReadModel\ReaderResult
+  public function read(Phel\Shared\Parser\Node\NodeInterface $parseTree): Phel\Shared\ReaderResult
   public function readFormsBestEffort(string $code, string $source = 'string'): Generator
   public function rejectSupersededForms(mixed $form): void
   public function replayDeprecations(array $records): void
@@ -304,12 +283,6 @@ final class Phel\Config\StrictPhpConfigReader implements Gacela\Framework\Config
 final class Phel\Console\ConsoleFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\ConsoleFacadeInterface
   public function getVersion(): string
   public function runConsole(): void
-
-final class Phel\Fiber\FiberFacade extends Gacela\Framework\AbstractFacade
-  public function await(Phel\Fiber\Domain\Awaitable $awaitable, ?int $timeoutMs = null): mixed
-  public function createPromise(): Phel\Fiber\Domain\Promise
-  public function future(callable $body): Phel\Fiber\Domain\Future
-  public function scheduler(): Phel\Fiber\Domain\Scheduler
 
 final class Phel\Filesystem\FilesystemFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\FilesystemFacadeInterface
   public function addFile(string $file): void
@@ -1022,8 +995,6 @@ final class Phel\Lang\Destructure
 final class Phel\Lang\DynamicScope
   public const string MODE_BINDING = 'binding'
   public const string MODE_REDEFS = 'redefs'
-  public static array $boundNames
-  public static bool $anyActive
   public function clear(): void
   public function currentRecordingMode(): ?string
   public function getBinding(string $ns, string $name): mixed
@@ -1040,6 +1011,7 @@ final class Phel\Lang\DynamicScope
   public function startRecording(string $mode = 'binding'): void
   public function withFrame(array $frame, Closure $fn): mixed
   public static function getInstance(): Phel\Lang\DynamicScope
+  public static function hasBoundName(string $ns, string $name): bool
 
 final class Phel\Lang\Eduction implements IteratorAggregate
   public function __construct(callable $xform, iterable $coll)
@@ -1306,7 +1278,6 @@ final readonly class Phel\Lang\Reduced
   public function deref(): mixed
 
 final class Phel\Lang\Registry
-  public static ?Phel\Lang\ProfilerHookInterface $profilerHook
   public function addDefinition(string $ns, string $name, mixed $value, Closure|Phel\Lang\Collections\Map\PersistentMapInterface|null $metaData = null): Phel\Lang\PhelVar
   public function clear(): void
   public function getDefinition(string $ns, string $name): mixed
@@ -1323,7 +1294,9 @@ final class Phel\Lang\Registry
   public function restore(array $snapshot): void
   public function snapshot(): array
   public static function getInstance(): Phel\Lang\Registry
+  public static function getProfilerHook(): ?Phel\Lang\ProfilerHookInterface
   public static function readRoot(string $ns, string $name): mixed
+  public static function setProfilerHook(?Phel\Lang\ProfilerHookInterface $hook): void
 
 interface Phel\Lang\RestInterface
   public function rest()
@@ -1539,68 +1512,6 @@ final class Phel\Lang\Volatile
   public function deref(): mixed
   public function reset(mixed $value): mixed
 
-final class Phel\Lint\LintFacade extends Gacela\Framework\AbstractFacade
-  public function createCache(string $baseDir, Phel\Lint\Application\Config\RuleSettings $settings): Phel\Lint\Application\Cache\LintCache
-  public function defaultSettings(): Phel\Lint\Application\Config\RuleSettings
-  public function formatters(): Phel\Lint\Application\Formatter\FormatterRegistry
-  public function lint(array $paths, Phel\Lint\Application\Config\RuleSettings $settings, ?Phel\Lint\Application\Cache\LintCache $cache = null): Phel\Lint\Transfer\LintResult
-  public function loadSettings(string $configPath, Phel\Lint\Application\Config\RuleSettings $defaults): Phel\Lint\Application\Config\RuleSettings
-  public function ruleExplainer(): Phel\Shared\Lint\LintRuleExplainerInterface
-
-final class Phel\Lsp\LspFacade extends Gacela\Framework\AbstractFacade
-  public function createServer($output): Phel\Lsp\Application\Rpc\LspServer
-
-final class Phel\Mutate\MutateFacade extends Gacela\Framework\AbstractFacade
-  public function createWorkerSession(): Phel\Mutate\Application\MutantWorkerSession
-  public function detectWorkerCount(): int
-  public function generate(Phel\Mutate\Domain\MutationPlan $plan, Phel\Mutate\Domain\MutateOptions $options): array
-  public function plan(Phel\Mutate\Domain\MutateOptions $options): Phel\Mutate\Domain\MutationPlan
-  public function run(Phel\Mutate\Domain\MutationPlan $plan, Phel\Mutate\Domain\MutateOptions $options, array $mutants, ?Closure $onResult = null): Phel\Mutate\Domain\MutationReport
-  public function warm(Phel\Mutate\Domain\MutationPlan $plan): void
-
-final class Phel\Nrepl\NreplFacade extends Gacela\Framework\AbstractFacade
-  public function createSocketServer(int $port, string $host, ?callable $logger = null): Phel\Nrepl\Infrastructure\NreplSocketServer
-  public function loadPhelNamespaces(): void
-
-final class Phel\Profile\ProfileFacade extends Gacela\Framework\AbstractFacade
-  public function renderJson(Phel\Profile\Domain\ProfileReport $report): string
-  public function renderTable(Phel\Profile\Domain\ProfileReport $report, int $top, Phel\Profile\Domain\SortOrder $sort, bool $includeCompilePhases): string
-  public function startSession(): Phel\Profile\Domain\ProfilerSession
-
-final class Phel\Run\RunFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\RunFacadeInterface
-  public function autoDetectEntryPoint(): ?string
-  public function beginPerTestCoverage(): ?string
-  public function breakpoint(Phel\Lang\Collections\Map\PersistentMapInterface $locals): void
-  public function buildCoverageReport(array $rawCoverage, string $driverName): Phel\Run\Application\Test\Coverage\CoverageReport
-  public function buildPerTestCoverageReport(array $hitLinesByTest, string $driverName): Phel\Run\Application\Test\Coverage\PerTestCoverageReport
-  public function createAbBenchRunner(): Phel\Run\Application\Bench\AbBenchRunner
-  public function createCpuCountDetector(): Phel\Shared\Process\CpuCountDetector
-  public function createParallelTestOrchestrator(): Phel\Run\Application\Test\ParallelTestOrchestrator
-  public function detectCoverageDriver(): ?Phel\Run\Application\Test\Coverage\CoverageDriver
-  public function disableDebugLineTap(): void
-  public function enableDebugLineTap(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void
-  public function endPerTestCoverage(): void
-  public function eval(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): mixed
-  public function evalFile(Phel\Shared\NamespaceInformation $info): void
-  public function flushCompiledCodeCache(): void
-  public function getAllNamespaces(): array
-  public function getAllPhelDirectories(): array
-  public function getDependenciesForNamespace(array $directories, array $ns): array
-  public function getDependenciesFromPaths(array $paths): array
-  public function getLoadedNamespaces(): array
-  public function getModuleHealthChecks(): array
-  public function getNamespaceFromFile(string $fileOrPath): Phel\Shared\NamespaceInformation
-  public function getVersion(): string
-  public function loadPhelNamespaces(?string $replStartupFile = null): void
-  public function perTestCoverageByLine(): array
-  public function runFile(string $filename): void
-  public function runNamespace(string $namespace): void
-  public function runTestWatchLoop(callable $runTests, Symfony\Component\Console\Output\OutputInterface $output): int
-  public function selectChangedTests(?string $ref, array $infos, string $projectDir): Phel\Run\Domain\Test\ChangeSelection
-  public function structuredEval(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Shared\Eval\EvalResult
-  public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\CompilerException $e): void
-  public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
-
 final readonly class Phel\Shared\Api\Completion
   public const string KIND_GLOBAL = 'global'
   public const string KIND_KEYWORD = 'keyword'
@@ -1712,6 +1623,12 @@ interface Phel\Shared\BuildConstants
   public const string BUILD_MODE = '*build-mode*'
   public const string LOADING_DEPENDENCIES = '*loading-dependencies*'
 
+final readonly class Phel\Shared\BuildOptions
+  public function __construct(bool $enableCache, bool $enableSourceMap, ?int $optimizationLevel = null)
+  public function getOptimizationLevel(): ?int
+  public function isCacheEnabled(): bool
+  public function isSourceMapEnabled(): bool
+
 final class Phel\Shared\ByteSize
   public static function format(int $bytes): string
 
@@ -1771,6 +1688,14 @@ final class Phel\Shared\CurrentUser
 
 final class Phel\Shared\DeprecationResolver
   public static function reasonFromMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): string
+
+final readonly class Phel\Shared\EmitterResult
+  public function __construct(bool $enableSourceMaps, string $phpCode, string $sourceMap, string $source, array $deprecations = [])
+  public function getCodeWithSourceMap(): string
+  public function getDeprecations(): array
+  public function getPhpCode(): string
+  public function getSourceMap(): string
+  public function withDeprecations(array $deprecations): Phel\Shared\EmitterResult
 
 final readonly class Phel\Shared\Eval\EvalError
   public readonly ?int $column
@@ -1894,7 +1819,6 @@ final class Phel\Shared\Exceptions\Hint\ArgumentCountHint implements Phel\Shared
 final class Phel\Shared\Exceptions\Hint\ClassNotFoundHint implements Phel\Shared\Exceptions\Hint\ExceptionHintInterface
   public function appliesTo(Throwable $e): bool
   public function hint(Throwable $e): string
-  public function javaClassHint(string $class): ?string
 
 interface Phel\Shared\Exceptions\Hint\ExceptionHintInterface
   public function appliesTo(Throwable $e): bool
@@ -1926,23 +1850,6 @@ final readonly class Phel\Shared\Exceptions\RuntimeErrorCodeResolver
 final class Phel\Shared\ExistingPaths
   public static function filter(array $paths): array
 
-interface Phel\Shared\Facade\ApiFacadeInterface
-  public function analyzeSource(string $source, string $uri): array
-  public function completeAtPoint(string $source, int $line, int $col, Phel\Shared\Api\ProjectIndex $index): array
-  public function completionDoc(string $candidate, string $currentNs = 'user'): ?string
-  public function extractDefinitions(string $source, string $uri): array
-  public function findReferences(Phel\Shared\Api\ProjectIndex $index, string $namespace, string $symbol): array
-  public function findSymbolMetadata(string $symbol, string $currentNs = 'user'): ?Phel\Shared\Api\PhelFunction
-  public function getPhelFunctions(array $namespaces = []): array
-  public function indexProject(array $srcDirs): Phel\Shared\Api\ProjectIndex
-  public function phelSignatureAt(string $source, int $line, int $col, string $currentNs = 'user'): ?array
-  public function phpInteropHoverAt(string $source, int $line, int $col): ?string
-  public function phpInteropSignatureAt(string $source, int $line, int $col): ?array
-  public function replComplete(string $input): array
-  public function replCompleteWithTypes(string $input): array
-  public function resolveLocalBinding(string $source, string $uri, int $line, int $col, string $word): ?Phel\Shared\Api\Location
-  public function resolveSymbol(Phel\Shared\Api\ProjectIndex $index, string $namespace, string $symbol): ?Phel\Shared\Api\Definition
-
 interface Phel\Shared\Facade\BuildFacadeInterface
   public function compileFile(string $src, string $dest): Phel\Shared\CompiledFile
   public function evalFile(string $src): Phel\Shared\CompiledFile
@@ -1972,8 +1879,8 @@ interface Phel\Shared\Facade\CommandFacadeInterface
 
 interface Phel\Shared\Facade\CompilerFacadeInterface
   public function analyze(Phel\Lang\TypeInterface|bool|float|int|null|string $x, Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface $env): Phel\Compiler\Domain\Analyzer\Ast\AbstractNode
-  public function compile(string $phelCode, Phel\Shared\CompileOptions $compileOptions): Phel\Compiler\Domain\Emitter\EmitterResult
-  public function compileForCache(string $phelCode, Phel\Shared\CompileOptions $compileOptions): Phel\Compiler\Domain\Emitter\EmitterResult
+  public function compile(string $phelCode, Phel\Shared\CompileOptions $compileOptions): Phel\Shared\EmitterResult
+  public function compileForCache(string $phelCode, Phel\Shared\CompileOptions $compileOptions): Phel\Shared\EmitterResult
   public function disableDebugLineTap(): void
   public function emptyNodeEnvironment(): Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface
   public function enableDebugLineTap(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void
@@ -1993,7 +1900,7 @@ interface Phel\Shared\Facade\CompilerFacadeInterface
   public function macroexpand1(Phel\Lang\TypeInterface|bool|float|int|null|string $form): Phel\Lang\TypeInterface|bool|float|int|null|string
   public function parseAll(Phel\Compiler\Domain\Lexer\TokenStream $tokenStream): Phel\Shared\Parser\Node\FileNode
   public function parseNext(Phel\Compiler\Domain\Lexer\TokenStream $tokenStream): ?Phel\Shared\Parser\Node\NodeInterface
-  public function read(Phel\Shared\Parser\Node\NodeInterface $parseTree): Phel\Compiler\Domain\Parser\ReadModel\ReaderResult
+  public function read(Phel\Shared\Parser\Node\NodeInterface $parseTree): Phel\Shared\ReaderResult
   public function readFormsBestEffort(string $code, string $source = 'string'): Generator
   public function rejectSupersededForms(mixed $form): void
   public function replayDeprecations(array $records): void
@@ -2019,30 +1926,6 @@ interface Phel\Shared\Facade\FormatterFacadeInterface
 interface Phel\Shared\Facade\InteropFacadeInterface
   public function generateExportCode(): array
 
-interface Phel\Shared\Facade\RunFacadeInterface
-  public function autoDetectEntryPoint(): ?string
-  public function beginPerTestCoverage(): ?string
-  public function breakpoint(Phel\Lang\Collections\Map\PersistentMapInterface $locals): void
-  public function endPerTestCoverage(): void
-  public function eval(string $phelCode, Phel\Shared\CompileOptions $compileOptions): mixed
-  public function evalFile(Phel\Shared\NamespaceInformation $info): void
-  public function flushCompiledCodeCache(): void
-  public function getAllNamespaces(): array
-  public function getAllPhelDirectories(): array
-  public function getDependenciesForNamespace(array $directories, array $ns): array
-  public function getDependenciesFromPaths(array $paths): array
-  public function getLoadedNamespaces(): array
-  public function getModuleHealthChecks(): array
-  public function getNamespaceFromFile(string $fileOrPath): Phel\Shared\NamespaceInformation
-  public function getVersion(): string
-  public function loadPhelNamespaces(?string $replStartupFile = null): void
-  public function perTestCoverageByLine(): array
-  public function runFile(string $filename): void
-  public function runNamespace(string $namespace): void
-  public function structuredEval(string $phelCode, Phel\Shared\CompileOptions $compileOptions): Phel\Shared\Eval\EvalResult
-  public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\CompilerException $e): void
-  public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
-
 final readonly class Phel\Shared\Formatter\FormatResult
   public function __construct(array $changedPaths = [], array $failedPaths = [])
   public function changedPaths(): array
@@ -2053,8 +1936,6 @@ final readonly class Phel\Shared\Formatter\FormatResult
 final class Phel\Shared\FrameworkNamespaces
   public const string CLOJURE_PREFIX = 'clojure.'
   public const string PHEL_PREFIX = 'phel.'
-  public static function clojureTarget(string $namespace): ?string
-  public static function isPhel(string $namespace): bool
   public static function matches(string $namespace): bool
 
 final readonly class Phel\Shared\Interop\Wrapper
@@ -2082,10 +1963,6 @@ final class Phel\Shared\LintRuleCodes
   public const string UNUSED_REQUIRE = 'phel/unused-require'
   public static function allCodes(): array
 
-interface Phel\Shared\Lint\LintRuleExplainerInterface
-  public function explainRule(string $code): ?array
-  public function ruleExplanations(): array
-
 final readonly class Phel\Shared\Munge implements Phel\Shared\MungeInterface
   public function __construct(array $mapping = ['-' => '_', '.' => '_DOT_', ':' => '_COLON_', '+' => '_PLUS_', '>' => '_GT_', '<' => '_LT_', '=' => '_EQ_', '~' => '_TILDE_', '!' => '_BANG_', '@' => '_CIRCA_', '#' => '_SHARP_', '\'' => '_SINGLEQUOTE_', '"' => '_DOUBLEQUOTE_', '%' => '_PERCENT_', '^' => '_CARET_', '&' => '_AMPERSAND_', '*' => '_STAR_', '|' => '_BAR_', '{' => '_LBRACE_', '}' => '_RBRACE_', '[' => '_LBRACK_', ']' => '_RBRACK_', '/' => '_SLASH_', '\\' => '_BSLASH_', '?' => '_QMARK_', '$' => '_DOLLAR_'], array $nsMapping = ['-' => '_'])
   public function decodeNs(string $str): string
@@ -2109,13 +1986,11 @@ final readonly class Phel\Shared\NamespaceInformation
   public function isPrimaryDefinition(): bool
 
 final class Phel\Shared\NoColor
-  public static function followOutput(?bool $decorated): void
   public static function isRequested(?array $env = null): bool
   public static function style(?array $env = null): Phel\Shared\ColorStyleInterface
 
 final class Phel\Shared\OptimizationLevel
   public const string PIN_ENV = 'PHEL_OPTIMIZATION_LEVEL'
-  public static function pin(int $level): void
   public static function resolve(mixed $configured): int
 
 abstract class Phel\Shared\Parser\Node\AbstractAtomNode implements Phel\Shared\Parser\Node\NodeInterface
@@ -2274,54 +2149,6 @@ final readonly class Phel\Shared\Parser\ReadModel\CodeSnippet
   public function getEndLocation(): Phel\Lang\SourceLocation
   public function getStartLocation(): Phel\Lang\SourceLocation
 
-final readonly class Phel\Shared\Performance\OpcacheAdvice
-  public readonly array $messages
-  public readonly bool $optimal
-  public function __construct(bool $optimal, array $messages)
-
-final class Phel\Shared\Performance\OpcacheAdvisor
-  public function advise(bool $opcacheLoaded, bool $enableCli, bool $fileCacheConfigured, ?string $iniTemplatePath = null): Phel\Shared\Performance\OpcacheAdvice
-
-final readonly class Phel\Shared\Performance\OpcacheFileCache
-  public const string BIN_SUFFIX = '.bin'
-  public function __construct(string $directory)
-  public function binPath(string $systemId, string $sourcePath): string
-  public function detectSystemId(string $compiledFile): string
-  public function entries(): array
-  public function exists(): bool
-  public function foreignEntries(string $systemId): array
-  public function path(): string
-  public function sizeInBytes(): int
-  public function sourcePathOfBin(string $systemId, string $binPath): string
-  public function subtreePath(string $systemId, string $sourcePath): string
-
-final readonly class Phel\Shared\Performance\OpcacheFileCachePruner
-  public function __construct(Phel\Shared\Performance\OpcacheFileCache $fileCache)
-  public function clearContents(): bool
-  public function pruneForeignSystemIds(string $currentSystemId): array
-  public function pruneOrphanedBins(string $systemId, string $sourceRoot): array
-
-final class Phel\Shared\Performance\OpcacheReexec
-  public const string REEXEC_DONE_ENV = 'PHEL_OPCACHE_REEXEC_DONE'
-  public static function compilesNothing(array $argv): bool
-  public static function decide(bool $opcacheLoaded, bool $fileCacheConfigured, bool $optedOut, bool $pcntlAvailable, string $fileCacheDir, bool $reexecAlreadyDone = false, bool $compilesNothing = false, bool $isMacOs = false, bool $optedIn = false, bool $loadsManyFiles = false): Phel\Shared\Performance\OpcacheReexecDecision
-  public static function loadsManyFiles(array $argv): bool
-
-final readonly class Phel\Shared\Performance\OpcacheReexecDecision
-  public readonly array $flags
-  public readonly bool $shouldReexec
-  public function __construct(bool $shouldReexec, array $flags)
-  public function withUserIniFlags(array $userIniFlags): Phel\Shared\Performance\OpcacheReexecDecision
-
-final class Phel\Shared\Performance\OpcacheWorkerFlags
-  public static function forFileCache(bool $opcacheLoaded, string $fileCacheDir): array
-
-final class Phel\Shared\Performance\ProcessCommandLine
-  public static function current(): array
-
-final class Phel\Shared\Performance\UserIniFlags
-  public static function extract(array $processArgs, array $scriptArgv): array
-
 final class Phel\Shared\PhelProjectDirectory
   public const string CACHE_DIR_ENV = 'PHEL_CACHE_DIR'
   public const string DIRECTORY_NAME = '.phel'
@@ -2476,6 +2303,11 @@ final class Phel\Shared\Process\WorkerFrame
 final class Phel\Shared\ProjectRootResolver
   public static function resolveFromCwd(string $cwd): string
 
+final readonly class Phel\Shared\ReaderResult
+  public function __construct(mixed $ast, Phel\Shared\Parser\ReadModel\CodeSnippet $codeSnippet)
+  public function getAst(): mixed
+  public function getCodeSnippet(): Phel\Shared\Parser\ReadModel\CodeSnippet
+
 interface Phel\Shared\ReplConstants
   public const string INTERACTIVE_MODE = '*interactive-mode*'
   public const string REPL_MODE = '*repl-mode*'
@@ -2508,13 +2340,6 @@ final class Phel\Shared\SourceMap\SourceMapSiblings
   public static function mapFile(string $compiledFile): string
   public static function sourceFile(string $compiledFile): string
 
-final class Phel\Shared\SourceMap\SupersededSourceMaps
-  public const int HEADER_LINES = 4
-  public static function has(string $compiledPath): bool
-  public static function headerOf(string $compiledPath): ?array
-  public static function keepBeforeOverwrite(string $compiledPath, string $newContent): void
-  public static function reset(): void
-
 final class Phel\Shared\SourceMap\VLQ
   public function __construct()
   public function decode(string $string): array
@@ -2537,7 +2362,3 @@ final readonly class Phel\Shared\VersionResolver
   public function resolve(): string
   public static function current(): string
   public static function currentReference(): string
-
-final class Phel\Watch\WatchFacade extends Gacela\Framework\AbstractFacade
-  public function createFileWatcher(?string $preferred = null, ?int $pollIntervalMs = null, ?int $debounceMs = null): Phel\Watch\Domain\FileWatcherInterface
-  public function watch(array $paths, array $options = []): void

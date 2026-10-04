@@ -7,6 +7,7 @@ namespace Phel\Shared\Performance;
 use function sprintf;
 
 /**
+ * @internal
  * Evaluates whether OPcache is configured to persist the compiled-code cache
  * across CLI invocations, and produces actionable advice when it is not.
  *
