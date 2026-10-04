@@ -6,9 +6,12 @@ namespace PhelTest\Unit\Shared;
 
 use Phel\Shared\VersionFinder;
 use Phel\Shared\VersionResolver;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
 use function chdir;
+use function dirname;
 use function exec;
 use function getcwd;
 use function sys_get_temp_dir;
@@ -16,6 +19,45 @@ use function uniqid;
 
 final class VersionResolverTest extends TestCase
 {
+    public function test_current_matches_the_running_version(): void
+    {
+        self::assertSame(new VersionResolver()->resolve(), VersionResolver::current());
+    }
+
+    public function test_current_reference_returns_the_full_running_checkout_reference(): void
+    {
+        exec('git -C ' . escapeshellarg(dirname(__DIR__, 4)) . ' rev-parse --verify HEAD', $output, $status);
+
+        self::assertSame(0, $status);
+        self::assertSame($output[0], VersionResolver::currentReference());
+
+        $cwd = (string) getcwd();
+        chdir(sys_get_temp_dir());
+        try {
+            self::assertSame($output[0], VersionResolver::currentReference());
+        } finally {
+            chdir($cwd);
+        }
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_current_is_cached_for_the_process(): void
+    {
+        $previous = getenv('OFFICIAL_RELEASE');
+        putenv('OFFICIAL_RELEASE=false');
+
+        try {
+            $version = VersionResolver::current();
+            putenv('OFFICIAL_RELEASE=true');
+
+            self::assertSame(VersionFinder::LATEST_VERSION, new VersionResolver()->resolve());
+            self::assertSame($version, VersionResolver::current());
+        } finally {
+            putenv($previous === false ? 'OFFICIAL_RELEASE' : 'OFFICIAL_RELEASE=' . $previous);
+        }
+    }
+
     public function test_resolve_returns_a_version_string_rooted_at_the_latest_tag(): void
     {
         $version = new VersionResolver()->resolve();

@@ -6,6 +6,7 @@ namespace Phel\Build\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use Phel\Build\BuildConfig;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\BuildReport;
@@ -17,6 +18,8 @@ use Phel\Shared\CompiledFile;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\ResourceUsageFormatter;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\VersionFinder;
+use Phel\Shared\VersionResolver;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -30,10 +33,12 @@ use function sprintf;
 
 /**
  * @method BuildFacade getFacade()
+ * @method BuildConfig getConfig()
  *
  * @internal
  */
 #[ServiceMap(method: 'getFacade', className: BuildFacade::class)]
+#[ServiceMap(method: 'getConfig', className: BuildConfig::class)]
 final class BuildCommand extends Command
 {
     use ServiceResolverAwareTrait;
@@ -84,6 +89,7 @@ HELP)
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->warnAboutLockedVersion($output);
         $buildOptions = $this->getBuildOptions($input);
         $report = (bool) $input->getOption(self::OPTION_REPORT);
         $failed = false;
@@ -126,6 +132,36 @@ HELP)
         // A build that aborted mid-compile emits a partial/empty output tree;
         // exiting 0 makes CI and deploy scripts treat a broken build as green.
         return $failed ? self::FAILURE : self::SUCCESS;
+    }
+
+    private function warnAboutLockedVersion(OutputInterface $output): void
+    {
+        $lockedVersion = $this->getConfig()->getLockedPhelVersion();
+        if ($lockedVersion === null) {
+            return;
+        }
+
+        $buildingVersion = VersionResolver::current();
+        if (str_starts_with($lockedVersion, 'dev-') || str_ends_with($lockedVersion, '-dev')) {
+            $lockedReference = $this->getConfig()->getLockedPhelReference();
+            $buildingReference = strtolower(VersionResolver::currentReference());
+            if ($lockedReference === null || $buildingReference === '') {
+                return;
+            }
+
+            $lockedRuntimeVersion = new VersionFinder('', $lockedReference)->getVersion();
+            if (str_starts_with($buildingReference, $lockedReference) && $buildingVersion === $lockedRuntimeVersion) {
+                return;
+            }
+        } elseif (ltrim($lockedVersion, 'v') === ltrim($buildingVersion, 'v')) {
+            return;
+        }
+
+        $output->writeln(sprintf(
+            "<comment>Warning: building with %s, but composer.lock pins %s. Build with the project's Phel version before deploying.</comment>",
+            $buildingVersion,
+            $lockedVersion,
+        ));
     }
 
     private function printPhaseTiming(OutputInterface $output, PhaseTimingReport $timing): void

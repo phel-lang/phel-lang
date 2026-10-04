@@ -122,7 +122,7 @@ Stateless strategy-pattern printer (see `.agnostic-ai/rules/module-shared-printe
 | `VLQ` | pure Base64-VLQ codec (`decode`, `encodeIntegers`, `encodeInteger`); used by Compiler's `SourceMapGenerator` and by `SourceMapConsumer` below |
 | `SourceMapConsumer` | read side of the codec: decodes a `mappings` string into `getOriginalLine()` / `getMappedLines()`. Lives here, not in the emitter, because both Compiler (`EvaluatedCodeException`) and Command (`FilePositionExtractor`) decode maps while only the emitter writes them. The writer (`SourceMapGenerator`, `SourceMapState`) stays in Compiler |
 | `SourceMapSiblings` | naming convention for `<file>.php.map` + `<file>.phel` artifacts. Written by Build (`FileCompiler`, `SecondaryFileHarvester`), read by Command (`SourceMapExtractor`) |
-| `BuiltFilePreamble` | fixed `<?php declare(strict_types=1);` line before generated code; `prepend()` (writer: `FileCompiler`), `codeStartLine()` (reader: `SourceMapExtractor`) |
+| `BuiltFilePreamble` | one-line `<?php declare(strict_types=1);` preamble with a building-version comment before generated code; `prepend()` (writer: `FileCompiler`), `codeStartLine()` (reader: `SourceMapExtractor`) |
 | `InlineSourceMapComments` | `// ` / `// ;;` metadata comment prefixes for inline maps in eval'd code. Written by Compiler's `EmitterResult`, parsed by `SourceMapExtractor` + `EvaluatedCodeException` |
 | `SupersededSourceMaps` | in-memory, per-process headers of compiled files this process `require`d before they were overwritten with different code. Written by Build (`CompiledCodeCache::put`), read first by Command (`SourceMapExtractor`), so a frame of the earlier code maps through its own source map |
 
@@ -132,3 +132,5 @@ Stateless strategy-pattern printer (see `.agnostic-ai/rules/module-shared-printe
 - Exceptions are cross-module: thrown and caught everywhere.
 - Utilities stay stateless: safe to instantiate without module context.
 - The one permitted outward edge is `CompilerFacadeInterface → Compiler\Domain` (see "Compiler Back-Edge" above). Adding a second Shared → Compiler import, or a new compiler type to that contract, breaks `SharedCompilerBoundaryTest`; widen it only deliberately, and update the rationale when you do.
+
+- `VersionResolver::current()` caches the resolved running version for the process, including beta commit suffixes. Build stamps, runtime guards and compiled-code cache identity use it; `VersionFinder::LATEST_VERSION` is only the last release tag. `currentReference()` similarly caches the own-checkout Git or Composer commit (empty when unavailable), for comparison with locked development dependencies. Instance `resolve()` still supports an explicit Phel root.

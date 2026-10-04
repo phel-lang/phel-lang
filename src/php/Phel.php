@@ -19,6 +19,7 @@ use Phel\Run\RunFacade;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ProjectRootResolver;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\VersionResolver;
 use RuntimeException;
 use Throwable;
 
@@ -54,6 +55,18 @@ class Phel
     private const string FILE_CACHE_DIR = '.phel/cache';
 
     private static ?PhelConfig $autoDetectedConfig = null;
+
+    public static function assertBuiltWith(string $version): void
+    {
+        $runningVersion = VersionResolver::current();
+
+        if ($version !== $runningVersion) {
+            throw new RuntimeException(
+                'built with ' . $version . ', running ' . $runningVersion
+                . ': run phel build (or phel export for exported wrappers)',
+            );
+        }
+    }
 
     /**
      * Set up Phel runtime argv and program globals.

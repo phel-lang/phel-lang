@@ -121,7 +121,7 @@ Uncaught RuntimeException: boom in out/app/main.php:22
 One line in the entry point replaces it with the Phel reading:
 
 ```php
-\Phel\Phel::installExceptionHandler(__DIR__);
+\Phel::installExceptionHandler(__DIR__);
 ```
 
 ```

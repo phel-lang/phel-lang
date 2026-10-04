@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Interop\Command\Export;
 
 use Phel\Interop\Infrastructure\Command\ExportCommand;
 use Phel\Phel;
+use Phel\Shared\VersionResolver;
 use PhelTest\Integration\Interop\Command\Export\PhelGenerated\TestCmdExportMultiple\Adder;
 use PhelTest\Integration\Interop\Command\Export\PhelGenerated\TestCmdExportMultiple\Multiplier;
 use PhelTest\Integration\Util\DirectoryUtil;
@@ -13,6 +14,7 @@ use PhelTest\Support\PerTestGacelaCache;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -77,6 +79,29 @@ TXT;
 TXT;
         self::assertStringContainsString($expectedMultiAdder, $adder);
         self::assertSame(7, Adder::multiAdder(3, 4));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_stale_export_fails_before_calling_a_definition(): void
+    {
+        Phel::bootstrap(__DIR__);
+        $command = new ExportCommand();
+        $command->run(
+            $this->createStub(InputInterface::class),
+            $this->createStub(OutputInterface::class),
+        );
+
+        $filename = __DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php';
+        $wrapper = (string) file_get_contents($filename);
+        $currentGuard = \Phel::class . "::assertBuiltWith('" . VersionResolver::current() . "');";
+        self::assertStringContainsString($currentGuard, $wrapper);
+        file_put_contents($filename, str_replace($currentGuard, \Phel::class . "::assertBuiltWith('v0.0.0');", $wrapper));
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('built with v0.0.0, running ' . VersionResolver::current() . ': run phel build (or phel export for exported wrappers)');
+
+        require $filename;
     }
 
     private function stubOutput(): OutputInterface

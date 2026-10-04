@@ -7,7 +7,9 @@ namespace PhelTest\Unit\Phel;
 use BadMethodCallException;
 use Phel;
 use Phel\Lang\DynamicScope;
+use Phel\Shared\VersionResolver;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class PhelRegistryProxyTest extends TestCase
 {
@@ -23,6 +25,27 @@ final class PhelRegistryProxyTest extends TestCase
 
         self::assertTrue(Phel::hasDefinition('ns', 'name'));
         self::assertSame(['name' => 'value'], Phel::getDefinitionInNamespace('ns'));
+    }
+
+    public function test_accepts_a_build_from_the_exact_runtime_version(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        Phel::assertBuiltWith(new VersionResolver()->resolve());
+    }
+
+    public function test_rejects_a_build_from_a_different_runtime_version(): void
+    {
+        $runningVersion = new VersionResolver()->resolve();
+        $version = $runningVersion . '-other';
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(
+            'built with ' . $version . ', running ' . $runningVersion
+            . ': run phel build (or phel export for exported wrappers)',
+        );
+
+        Phel::assertBuiltWith($version);
     }
 
     public function test_throws_exception_when_method_does_not_exist(): void

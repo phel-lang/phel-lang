@@ -34,6 +34,20 @@ final readonly class VersionResolver
         $this->phelRoot = $phelRoot ?? dirname(__DIR__, 3);
     }
 
+    public static function current(): string
+    {
+        static $version = null;
+
+        return $version ??= new self()->resolve();
+    }
+
+    public static function currentReference(): string
+    {
+        static $reference = null;
+
+        return $reference ??= new self()->currentCommit();
+    }
+
     public function resolve(): string
     {
         return new VersionFinder(

@@ -41,7 +41,7 @@ use Phel\Build\Infrastructure\Cache\PhpScanIndexCache;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
-use Phel\Shared\VersionFinder;
+use Phel\Shared\VersionResolver;
 
 /**
  * @extends AbstractFactory<BuildConfig>
@@ -250,7 +250,7 @@ final class BuildFactory extends AbstractFactory
 
         return new CompiledCodeCache(
             $this->getConfig()->getCacheDir(),
-            VersionFinder::LATEST_VERSION,
+            VersionResolver::current(),
         );
     }
 

@@ -34,7 +34,7 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 
 Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Config**: `BuildConfig` reads `PhelConfig`/`PhelBuildConfig`, and `Domain/Compile/Output/EntryPointPhpFile` reads `PhelBuildConfig`.
 
-`EntryPointPhpFile` also *emits* the string `\Phel\Phel::setupRuntimeArgs(...)` into generated entry points. That is generated-code text, not an import: it creates no compile-time edge to the composition root, but it does make the root's signature part of the build ABI, so changing `setupRuntimeArgs()` breaks previously built artifacts.
+`EntryPointPhpFile` emits `\Phel::assertBuiltWith(...)` after Composer autoloading and before bootstrap, then `\Phel::setupRuntimeArgs(...)`. Built files and exported wrappers carry `VersionResolver::current()`, including a development commit suffix; entry points and wrappers refuse another runtime version. Rebuild after every Phel version change, including patches. Generated calls to internals do not create a cross-version build ABI. `BuildConfig::getLockedPhelVersion()` and `getLockedPhelReference()` read the project's Composer lock so `BuildCommand` warns when a different Phel builds it. A development dependency is compared by its source or dist commit, not its branch label; unknown references do not prove a mismatch.
 
 ## Structure
 
@@ -65,7 +65,7 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Con
 
 ### Caching (two levels: namespace extraction + compiled code, each optional)
 
-- **Compiled-code cache** (`CompiledCodeCache`) keys entries by `CompiledSourceHash::of(source, optimizationLevel, envFingerprint)` under an index stamped with the Phel version; it is the policy orchestrator and delegates to `CacheDirectory` (layout), `CacheIndexFile` (index load/save/merge), `NamespaceEnvironmentStore` (env data), `CachePathResolver`, `AtomicFileWriter`.
+- **Compiled-code cache** (`CompiledCodeCache`) keys entries by `CompiledSourceHash::of(source, optimizationLevel, envFingerprint)` under an index stamped with the resolved running Phel version (including beta commits); it is the policy orchestrator and delegates to `CacheDirectory` (layout), `CacheIndexFile` (index load/save/merge), `NamespaceEnvironmentStore` (env data), `CachePathResolver`, `AtomicFileWriter`.
 - A cache entry carries the deprecation notices its compile found (`EmitterResult::getDeprecations()`, stored as `deprecations` in the index entry, `INDEX_FORMAT_VERSION` 1.6, now 1.8 since the `xxh128` key of #3470); `FileEvaluator` hands them to `CompilerFacadeInterface::replayDeprecations()` on every hit, so `--warn-deprecations` reports the same on a warm cache as on a cold one (#3222). Never key the cache on the flag instead: a repeat flagged run would then be silent again. `NamespaceExtractor` reads `ns` forms inside `CompilerFacadeInterface::withoutDeprecations()`: a file's notices come from compiling it, never from indexing it (#3381).
 - `put`/`invalidate` only mutate the in-memory index + mark it dirty; the index flushes to disk **exactly once per process at shutdown** via `register_shutdown_function` (`DeferredFlushTrait`), so cold-build index I/O is O(N) not O(N²). Flush goes through `CacheIndexFile::save()` (atomic-write + `flock` + read-merge-from-disk), so concurrent `phel test` workers merge without lost entries.
 - Compiled `.php` files are still written eagerly by `AtomicFileWriter`, so a crash before shutdown costs at most a recompile (lost index entry), never corruption. `clear()` writes the empty index eagerly + resets the dirty flag.
@@ -131,3 +131,5 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Con
 ### Lifecycle
 
 - `FileEvaluator` is a singleton; repeated `(load ...)` calls reuse the instance to preserve the compiled-code index.
+
+- `FileEvaluator` reuses a precompiled sibling only when its version stamp matches the running Phel version. An older or unstamped sibling falls back to compiling its `.phel` source. `BuiltFilePreamble::isPresent()` stays tolerant for source-map recognition.

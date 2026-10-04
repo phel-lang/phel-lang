@@ -6,12 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Public PHP API: `\Phel::assertBuiltWith(string $version)` rejects generated PHP built with another Phel version and reports how to rebuild it. `Phel\Shared\VersionResolver::current()` and `currentReference()` expose the running version and commit for the process. (#3519)
 - Public PHP API: `PhelConfig::defaultTempDir()` and `Phel\Shared\CurrentUser`, which finds the effective uid also on a PHP built without the posix extension. (#3532)
 
 ### Fixed
 
 Tooling:
 
+- Built entry points and exported PHP wrappers refuse a different runtime Phel version, including a patch or development commit change. Run `phel build` or `phel export` after changing Phel. A build warns when its version differs from the project's locked Phel version; it used to produce artifacts that could fail on missing internal methods at deployment. (#3519, ADR 0020)
 - `phel run --stack-trace --debug app.phel` runs `app.phel`. It used to read `--debug` as the namespace, because `phel run` only knew `-t`, `--with-time` and `--clear-opcache` before the path. Every option `run` declares now works there, and `--warn-deprecations` after the path reaches the script instead of being stripped. (#3537)
 - `phel mutate` works on a project that prints when it loads, such as the `src/main.phel` `phel init` writes, and does not hang when a worker raises a PHP notice. Both used to land on the worker's stdout, which carries its answers: the first failed with `Failed to decode worker frame: Syntax error`, the second waited forever, which every run on PHP 8.6 did. A worker's stdout now carries answers only, and anything else there fails the run with the stray text. (#3526)
 - A `.phel` file rewritten within the second Phel last read it is read again. File times have whole-second resolution, so the cached `ns` form used to win: after a file requiring `app.does-not-exist`, the next file written to the same path in the same second failed with `Cannot find namespace 'app.does-not-exist'`. (#3537)

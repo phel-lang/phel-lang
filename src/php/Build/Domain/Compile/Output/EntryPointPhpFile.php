@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Domain\Compile\Output;
 
 use Phel\Config\PhelBuildConfig;
+use Phel\Shared\VersionResolver;
 
 use function file_put_contents;
 use function sprintf;
@@ -44,19 +45,21 @@ final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
 
 require_once dirname(__DIR__) . "/vendor/autoload.php";
 
+\Phel::assertBuiltWith('{{BUILD_VERSION}}');
+
 // Core fns such as read-string, eval and promise reach Phel's facades
 \Phel::bootstrap(dirname(__DIR__));
 
 // Normalize argv: program is $argv[0], user args are the rest
-\Phel\Phel::setupRuntimeArgs($argv[0] ?? __FILE__, array_slice($argv ?? [], 1));
+\Phel::setupRuntimeArgs($argv[0] ?? __FILE__, array_slice($argv ?? [], 1));
 
 $compiledFile = __DIR__ . "/{{OUTPUT_MAIN_PHEL_PATH}}.php";
 
 require_once $compiledFile;
 TXT;
         return str_replace(
-            '{{OUTPUT_MAIN_PHEL_PATH}}',
-            $this->outputMainPhelPath(),
+            ['{{OUTPUT_MAIN_PHEL_PATH}}', '{{BUILD_VERSION}}'],
+            [$this->outputMainPhelPath(), VersionResolver::current()],
             $template,
         );
     }

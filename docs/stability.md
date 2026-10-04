@@ -36,11 +36,11 @@ including a patch.
 | 5 | Everything under `Phel\Lang\` | `Phel\Lang\Symbol`, `Phel\Lang\Collections\Map\PersistentMapInterface` |
 | 6 | Everything under `Phel\Config\` | `Phel\Config\PhelConfig`, `Phel\Config\ProjectLayout` |
 
-Rule 1 exists because emitted PHP calls into it: every compiled `.phel` file is a
-consumer, so `\Phel` is load-bearing for build artifacts from older versions. Its
-`Phel\Phel` base stays internal, but the members it declares (`bootstrap()`,
-`run()`, `configFn()` among them) are reachable through the child and covered as
-part of `\Phel`.
+Rule 1 covers PHP integrations calling `\Phel`, including the entry point's
+`assertBuiltWith()` version check. Generated artifacts are version bound and
+must be rebuilt after changing the Phel version. Its `Phel\Phel` base stays
+internal, but the members it declares (`bootstrap()`, `run()`, `configFn()` among
+them) are reachable through the child and covered as part of `\Phel`.
 
 Rules 4 to 6 are whole namespaces rather than curated lists because they are what
 a consumer cannot avoid: values crossing the facade boundary (`Lang`), the
@@ -153,8 +153,8 @@ Two consequences worth stating, because both come up in review:
 
 - **A deployed app does load compiler classes**, eight of them. "Production needs
   only `Lang`" is the intuitive answer and it is wrong. The reason is the
-  singleton whose fully-qualified name is compiled into build artifacts, which is
-  also why it cannot be renamed.
+  singleton whose fully-qualified name is compiled into build artifacts. It can
+  change between Phel versions because those artifacts must be rebuilt.
 - **The package is not split.** One Composer package carries the compiler, the
   language server and the nREPL server into a production install. Splitting it is
   not a `1.x` change, so this section is the honest answer in the meantime: what
@@ -230,6 +230,13 @@ tool may rely on `.phel/cache/` and `.phel/repl-history` being where they are.
 
 Not under semver, in any release:
 
+- Build output (`out/`) and generated export wrappers across Phel versions,
+  including patch releases and development commits. They carry the resolved
+  building version; generated entry
+  points and wrappers reject a different runtime version before executing the
+  program. Run `phel build` after changing Phel, or `phel export` for wrappers.
+  Source remains covered by the language promise. This rule also requires
+  rebuilding older artifacts that predate the version check.
 - The exact PHP source the emitter produces. Only its *behaviour* is promised;
   the test suite pins the text so changes are reviewed, not forbidden.
 - Compiler diagnostic *wording*, and the layout of human-facing error output.
