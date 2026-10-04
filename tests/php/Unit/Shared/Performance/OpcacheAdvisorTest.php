@@ -35,6 +35,18 @@ final class OpcacheAdvisorTest extends TestCase
         self::assertStringContainsString('opcache.file_cache', implode("\n", $advice->messages));
     }
 
+    public function test_file_cache_advice_names_the_existing_cache_command(): void
+    {
+        $advice = new OpcacheAdvisor()->advise(
+            opcacheLoaded: true,
+            enableCli: true,
+            fileCacheConfigured: false,
+        );
+
+        self::assertStringContainsString('phel cache:clear', $advice->messages[0]);
+        self::assertStringNotContainsString('clear-cache', $advice->messages[0]);
+    }
+
     public function test_enabled_without_file_cache_warns_only_about_file_cache(): void
     {
         $advice = new OpcacheAdvisor()->advise(

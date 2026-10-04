@@ -351,8 +351,8 @@ class RunFactory extends AbstractFactory
 
         // opcache.file_cache must be an absolute, existing directory or PHP
         // aborts at startup, so create it before any worker is spawned. It
-        // lives under the temp dir (not the compiled-code cache) so it survives
-        // `phel clear-cache` and keeps paying off across runs.
+        // lives under the temp dir (not the compiled-code cache) and keeps
+        // paying off across runs until `phel cache:clear` empties the temp dir.
         $cacheDir = $this->getFilesystemFacade()->getTempDir() . '/opcache-workers';
         if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0777, true) && !is_dir($cacheDir)) {
             return [];

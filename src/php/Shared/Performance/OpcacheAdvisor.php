@@ -44,7 +44,7 @@ final class OpcacheAdvisor
             // file_cache must be an absolute path to a directory that already
             // exists, or PHP aborts at startup; warn explicitly so enabling it
             // does not trade one problem for a worse one.
-            $messages[] = 'opcache.file_cache is not configured. Point it at an existing, writable, absolute directory (e.g. create /tmp/phel-opcache first, then opcache.file_cache=/tmp/phel-opcache) to persist the compiled cache across processes. PHP aborts at startup if the path is missing or relative, so keep it outside caches that "phel clear-cache" wipes.';
+            $messages[] = 'opcache.file_cache is not configured. Point it at an existing, writable, absolute directory (e.g. create /tmp/phel-opcache first, then opcache.file_cache=/tmp/phel-opcache) to persist the compiled cache across processes. PHP aborts at startup if the path is missing or relative, so keep it outside caches that "phel cache:clear" wipes.';
         }
 
         if ($messages === []) {
