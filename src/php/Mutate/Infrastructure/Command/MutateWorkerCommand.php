@@ -65,10 +65,13 @@ final class MutateWorkerCommand extends Command
             return self::FAILURE;
         }
 
-        // Stdout carries frames only: a PHP notice goes to stderr, and what the
-        // project or a mutant prints is dropped, or the parent reads it as a
-        // frame header.
+        // Stdout carries frames only, or the parent reads stray bytes as a
+        // frame header. A PHP notice goes to stderr. What the project or a
+        // mutant prints lands in a buffer that discards it and that project
+        // code cannot end (no PHP_OUTPUT_HANDLER_REMOVABLE); frames are
+        // written to php://stdout, which output buffering never sees.
         ini_set('display_errors', 'stderr');
+        ob_start(static fn(): string => '', 1, PHP_OUTPUT_HANDLER_STDFLAGS & ~PHP_OUTPUT_HANDLER_REMOVABLE);
 
         $session = $this->getFacade()->createWorkerSession();
         try {
@@ -78,14 +81,7 @@ final class MutateWorkerCommand extends Command
                     return self::SUCCESS;
                 }
 
-                ob_start();
-                try {
-                    $answer = $this->answer($session, $frame);
-                } finally {
-                    ob_end_clean();
-                }
-
-                fwrite($stdout, WorkerFrame::encode($answer));
+                fwrite($stdout, WorkerFrame::encode($this->answer($session, $frame)));
             }
         } finally {
             @fclose($stdin);

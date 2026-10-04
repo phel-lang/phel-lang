@@ -135,6 +135,23 @@ final class MutateCommandTest extends TestCase
         self::assertMatchesRegularExpression('/Killed: [1-9]/', $output);
     }
 
+    public function test_a_namespace_that_ends_the_output_buffers_cannot_reach_the_frames(): void
+    {
+        $this->writeSource(
+            "(ns app.calc)\n\n(dotimes [_ 5] (php/ob_end_flush))\n(println \"escaped\")\n\n"
+            . "(defn add [a b]\n  (+ a b))\n",
+        );
+        $this->writeTests(
+            "(ns app.calc-test\n  (:require phel.test :refer [deftest is])\n  (:require app.calc :as calc))\n\n"
+            . "(deftest adds\n  (is (= 3 (calc/add 1 2))))\n",
+        );
+
+        [$exitCode, $output] = $this->runPhelMutate([]);
+
+        self::assertSame(0, $exitCode, $output);
+        self::assertMatchesRegularExpression('/Killed: [1-9]/', $output);
+    }
+
     public function test_a_php_notice_in_a_worker_does_not_hang_the_run(): void
     {
         // With display_errors on, PHP writes a notice to stdout, the frame
