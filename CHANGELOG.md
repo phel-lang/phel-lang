@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 Tooling:
 
+- `phel mutate` works on a project that prints when it loads, such as the `src/main.phel` `phel init` writes, and does not hang when a worker raises a PHP notice. Both used to land on the worker's stdout, which carries its answers: the first failed with `Failed to decode worker frame: Syntax error`, the second waited forever, which every run on PHP 8.6 did. A worker's stdout now carries answers only, and anything else there fails the run with the stray text. (#3526)
 - A `phel build` output finds the files its namespaces `(load ...)`. A loaded file used to be written by its path under the source dir while the built primary looked next to itself, so a project in the flat layout `phel init` creates, or one requiring phel-sql, built fine and then failed with `Cannot locate main_extra for (load ...)`. (#3528)
 - A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
 
@@ -22,11 +23,8 @@ Compiler:
 
 Runtime:
 
-- On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. (#3522)
-
-Runtime:
-
 - **BREAKING**: `phel.http-client` accepts only `http` and `https` URLs, including redirect targets. `(hc/get "file:///etc/hosts")` and `php://` or `data://` URLs used to read local data through `file_get_contents`. A redirect to another origin keeps only `accept`, `accept-encoding`, `accept-language`, `user-agent` and `content-type`: custom headers such as the `x-api-key` `phel.ai` sends used to follow it. More than 20 redirects throw. (#3531)
+- On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. (#3522)
 
 ## [0.54.0](https://github.com/phel-lang/phel-lang/compare/v0.53.0...v0.54.0) - 2026-10-04
 
