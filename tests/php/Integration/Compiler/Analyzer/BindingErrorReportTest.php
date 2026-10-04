@@ -47,6 +47,39 @@ final class BindingErrorReportTest extends AbstractCompilerRuntimeTestCase
         self::assertSame($expected, $this->report('(let (a 1) a)'));
     }
 
+    /**
+     * `binding` expands to one var assignment per target, and the emitter
+     * asserted the target was a var: a local or a PHP constant failed with an
+     * `AssertionError` and half-emitted PHP (#3534).
+     */
+    public function test_binding_a_local_names_the_code(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL008] a is not a var: binding and with-redefs rebind a var defined with def
+            in binding.phel:1
+
+            1| (let [a 1] (binding [a 10] a))
+                                    ^
+
+            REPORT;
+
+        self::assertSame($expected, $this->report('(let [a 1] (binding [a 10] a))'));
+    }
+
+    public function test_binding_a_php_constant_names_the_code(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL008] php/PHP_EOL is not a var: binding and with-redefs rebind a var defined with def
+            in binding.phel:1
+
+            1| (with-redefs [php/PHP_EOL 10] 1)
+                             ^^^^^^^^^^^
+
+            REPORT;
+
+        self::assertSame($expected, $this->report('(with-redefs [php/PHP_EOL 10] 1)'));
+    }
+
     private function report(string $phelCode): string
     {
         try {

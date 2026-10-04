@@ -114,7 +114,7 @@ The fallback code for an analyzer error that carries no more specific one, such 
 
 Enum case: `ErrorCode::BINDING_ERROR`
 
-A `let`, `loop` or destructuring binding has the wrong shape. The binding list must be a vector of an even number of forms, and every bound name must be an unqualified symbol.
+A `let`, `loop` or destructuring binding has the wrong shape. The binding list must be a vector of an even number of forms, and every bound name must be an unqualified symbol. A `binding` or `with-redefs` target must name a var defined with `def`, not a local or a PHP constant.
 
 ```phel
 (let (a 1) a)

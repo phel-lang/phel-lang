@@ -69,6 +69,38 @@ final class InterfaceErrorReportTest extends AbstractCompilerRuntimeTestCase
         self::assertSame($expected, $this->report('(definterface Shape (draw))'));
     }
 
+    /**
+     * A PHP interface method has one signature, so a second arity under the
+     * same name cannot compile; it used to stop PHP with `Cannot redeclare`.
+     */
+    public function test_an_interface_method_declared_twice_names_the_code(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL009] definterface declares method m more than once. A PHP method has one signature: give each arity its own name.
+            in interface.phel:2
+
+            2| (definterface Twice (m [this]) (m [this x]))
+                                              ^^^^^^^^^^^^
+
+            REPORT;
+
+        self::assertSame($expected, $this->report("(ns interface.twice)\n(definterface Twice (m [this]) (m [this x]))"));
+    }
+
+    public function test_an_interface_method_with_a_repeated_parameter_names_the_code(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL009] Method m declares parameter x more than once
+            in interface.phel:2
+
+            2| (definterface Repeated (m [this x x]))
+                                                 ^
+
+            REPORT;
+
+        self::assertSame($expected, $this->report("(ns interface.repeated)\n(definterface Repeated (m [this x x]))"));
+    }
+
     private function report(string $phelCode): string
     {
         try {
