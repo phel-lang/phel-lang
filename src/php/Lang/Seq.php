@@ -257,8 +257,14 @@ final class Seq
         // The typed parameters reject a non-native number when the generator is
         // created, before any element runs, so the try is free for ints and floats.
         try {
-            // @phpstan-ignore argument.type (the TypeError below is the check)
-            return SequenceGenerator::range($start, $end, $step);
+            return SequenceGenerator::range(
+                // @phpstan-ignore argument.type (the TypeError below is the check)
+                $start,
+                // @phpstan-ignore argument.type
+                $end,
+                // @phpstan-ignore argument.type
+                $step,
+            );
         } catch (TypeError) {
             return SequenceGenerator::numericRange($start, $end, $step);
         }
