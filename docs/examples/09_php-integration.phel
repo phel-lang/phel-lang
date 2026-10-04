@@ -5,7 +5,7 @@
 ;; `php/->`, `php/::`) before analysis, so the two are the same program — but the
 ;; `php/*` layer is the compilation target only, and rejected as source.
 ;;
-;; Full guide: https://phel-lang.org/documentation/php-interop/
+;; Full guide: https://phel-lang.org/documentation/language/php-interop/
 
 (ns examples.php-integration
   (:use DateInterval DateTimeImmutable DateTimeZone)
