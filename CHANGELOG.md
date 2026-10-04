@@ -23,6 +23,8 @@ Compiler:
 - A radix literal past `PHP_INT_MAX` reads as a float: `36rZZZZZZZZZZZZZZ` used to read as `PHP_INT_MAX`. Hex, binary and octal literals past `PHP_INT_MAX`, such as `-0x8000000000000000`, no longer raise a notice on PHP 8.6. (#3522)
 - A `fn`, `defn`, `defmacro`, protocol method or `extend-type` impl that declares one arity twice fails with `PHEL007` on the second parameter vector. It used to stop PHP with `Cannot redeclare ...::invokeArity1()`. (#3534)
 - A `definterface` that declares one method name twice, or one parameter twice in a method, fails with `PHEL009`. A PHP method has a single signature, so a second arity needs its own name. It used to stop PHP with `Cannot redeclare app\main\I::m()` or `Redefinition of parameter $x`. (#3534)
+- A fn parameter named twice binds the last argument, as in Clojure: `((fn [x x] x) 1 2)` returns `2`. It used to stop PHP with `Redefinition of parameter $x`. (#3534)
+- A `defstruct`, `defrecord` or `deftype` field named twice fails with `PHEL007` on the repeated field. It used to stop PHP with `Redefinition of parameter $x`. (#3534)
 
 Runtime:
 

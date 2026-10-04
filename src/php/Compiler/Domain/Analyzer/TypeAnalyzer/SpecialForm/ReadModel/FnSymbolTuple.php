@@ -13,6 +13,7 @@ use Phel\Lang\Destructure;
 use Phel\Lang\Symbol;
 
 use function array_slice;
+use function count;
 use function preg_match;
 
 /**
@@ -62,6 +63,7 @@ final class FnSymbolTuple
 
         $self->addDummyVariadicSymbol();
         $self->checkAllVariablesStartWithALetterOrUnderscore();
+        $self->renameShadowedParams();
 
         return $self;
     }
@@ -133,6 +135,31 @@ final class FnSymbolTuple
                 );
             }
         }
+    }
+
+    /**
+     * A repeated name binds the last argument, as in Clojure. PHP rejects a
+     * repeated parameter, so each earlier one gets a name nothing reads.
+     */
+    private function renameShadowedParams(): void
+    {
+        $lastIndex = [];
+        foreach ($this->params as $i => $param) {
+            $lastIndex[$param->getName()] = $i;
+        }
+
+        if (count($lastIndex) === count($this->params)) {
+            return;
+        }
+
+        $params = [];
+        foreach ($this->params as $i => $param) {
+            $params[] = $lastIndex[$param->getName()] === $i
+                ? $param
+                : Symbol::gen()->copyLocationFrom($param);
+        }
+
+        $this->params = $params;
     }
 
     private function buildParamsByState(mixed $param): void
