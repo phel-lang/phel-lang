@@ -73,7 +73,7 @@ final class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
     public const BOUND_TO = "hello_world\\abc?";
 
     public function __invoke($x): bool {
-      return is_a($x, "hello_world\\abc");
+      return ((($__or = is_object($x)) !== null && $__or !== false) ? is_a($x, "hello_world\\abc") : $__or);
     }
   },
   static fn() => \Phel::locationMeta(

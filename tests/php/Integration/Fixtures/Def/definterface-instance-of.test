@@ -33,7 +33,7 @@ interface IPlayer {
     public const BOUND_TO = "interface_instance\\choose";
 
     public function __invoke($p) {
-      if ((is_a($p, "interface_instance\\IPlayer"))) {
+      if ((is_object($p)) && (is_a($p, "interface_instance\\IPlayer"))) {
         return (is_string($p) ? $p::choose() : $p->choose());
       } else {
         throw (new \InvalidArgumentException("Value doesn't implement interface IPlayer"));
@@ -58,10 +58,10 @@ interface IPlayer {
     public const BOUND_TO = "interface_instance\\update_strategy";
 
     public function __invoke($p, $me, $you) {
-      if ((is_a($p, "interface_instance\\IPlayer"))) {
+      if ((is_object($p)) && (is_a($p, "interface_instance\\IPlayer"))) {
         return (function() use($p,$me,$you) {
-          $target_1 = $p;
-          return is_string($target_1) ? $target_1::update_strategy($me, $you) : $target_1->update_strategy($me, $you);
+          $target_5 = $p;
+          return is_string($target_5) ? $target_5::update_strategy($me, $you) : $target_5->update_strategy($me, $you);
         })();
       } else {
         throw (new \InvalidArgumentException("Value doesn't implement interface IPlayer"));
