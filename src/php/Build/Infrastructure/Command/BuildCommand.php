@@ -6,6 +6,7 @@ namespace Phel\Build\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use Phel\Build\BuildConfig;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\BuildReport;
@@ -17,6 +18,7 @@ use Phel\Shared\CompiledFile;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\ResourceUsageFormatter;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\VersionResolver;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -30,10 +32,12 @@ use function sprintf;
 
 /**
  * @method BuildFacade getFacade()
+ * @method BuildConfig getConfig()
  *
  * @internal
  */
 #[ServiceMap(method: 'getFacade', className: BuildFacade::class)]
+#[ServiceMap(method: 'getConfig', className: BuildConfig::class)]
 final class BuildCommand extends Command
 {
     use ServiceResolverAwareTrait;
@@ -84,6 +88,16 @@ HELP)
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $lockedVersion = $this->getConfig()->getLockedPhelVersion();
+        $buildingVersion = VersionResolver::current();
+        if ($lockedVersion !== null && ltrim($lockedVersion, 'v') !== ltrim($buildingVersion, 'v')) {
+            $output->writeln(sprintf(
+                "<comment>Warning: building with %s, but composer.lock pins %s. Build with the project's Phel version before deploying.</comment>",
+                $buildingVersion,
+                $lockedVersion,
+            ));
+        }
+
         $buildOptions = $this->getBuildOptions($input);
         $report = (bool) $input->getOption(self::OPTION_REPORT);
         $failed = false;

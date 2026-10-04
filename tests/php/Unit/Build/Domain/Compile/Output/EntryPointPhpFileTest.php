@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Domain\Compile\Output;
 
+use Phel;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
 use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
 use Phel\Config\PhelBuildConfig;
+use Phel\Shared\VersionResolver;
 use PHPUnit\Framework\TestCase;
 
 final class EntryPointPhpFileTest extends TestCase
@@ -46,6 +48,16 @@ final class EntryPointPhpFileTest extends TestCase
         self::assertStringContainsString(
             '$compiledFile = __DIR__ . "/cli_skeleton/main.php";',
             $contents,
+        );
+        self::assertStringContainsString(Phel::class . "::assertBuiltWith('" . new VersionResolver()->resolve() . "');", $contents);
+        self::assertStringContainsString(Phel::class . '::setupRuntimeArgs(', $contents);
+        self::assertLessThan(
+            strpos($contents, Phel::class . '::bootstrap('),
+            strpos($contents, Phel::class . '::assertBuiltWith('),
+        );
+        self::assertLessThan(
+            strpos($contents, Phel::class . '::assertBuiltWith('),
+            strpos($contents, 'require_once dirname(__DIR__)'),
         );
     }
 }

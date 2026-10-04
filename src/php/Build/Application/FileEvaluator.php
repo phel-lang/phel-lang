@@ -25,6 +25,7 @@ use Throwable;
 use function is_file;
 use function preg_replace;
 use function sprintf;
+use function strlen;
 
 /**
  * @phpstan-import-type SerializedNamespaceEnvironment from CompilerFacadeInterface
@@ -204,8 +205,8 @@ final class FileEvaluator
      * running the compiled file registers every definition (with macro meta)
      * in the runtime registry, which is all the analyzer needs to resolve
      * those symbols when it later compiles user code. The file must carry the
-     * build preamble so a hand-written PHP file that merely happens to sit
-     * next to a Phel source is never executed.
+     * current build stamp so stale artifacts and unrelated PHP siblings
+     * fall back to recompiling the source.
      */
     private function precompiledSiblingPath(string $src): ?string
     {
@@ -223,8 +224,8 @@ final class FileEvaluator
             return null;
         }
 
-        $head = @file_get_contents($sibling, length: 64);
-        if ($head === false || !BuiltFilePreamble::isPresent($head)) {
+        $head = @file_get_contents($sibling, length: strlen(BuiltFilePreamble::prepend('')));
+        if ($head === false || !BuiltFilePreamble::isCurrent($head)) {
             return null;
         }
 

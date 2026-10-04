@@ -42,6 +42,7 @@ One non-facade edge: **Config**: `InteropConfig` imports `PhelConfig` and `PhelE
 ## Key Constraints
 
 - Only `^{:export true}` fns are exported.
+- Wrappers call `\Phel::assertBuiltWith(VersionResolver::current())` after the namespace declaration and before the class. They require the exact generating Phel version; run `phel export` after changing it.
 - Export target directory is wiped and regenerated each run.
 - Phel ns → PHP: hyphens become CamelCase (`my-lib` → `MyLib`); generated method names camelCase the fn name (`my-fn` → `myFn`).
 - `CompiledPhpMethodBuilder` reflects the compiled fn class's `BOUND_TO` constant + `__invoke` signature; do not bypass: params/return type/ns come from there. Native param/return types (compiled from `:tag`) are mirrored into the wrapper signature plus an `@param`/`@return` docblock; multi-arity fns reflect an untyped `__invoke($a0 = null, ...)` that dispatches on `func_num_args()`, so their wrapper forwards `...$args` (any optional non-variadic param triggers it; passing every param would always select the widest arity) and their `@return` comes from the return `:tag` that `FunctionToExport` carries from the definition metadata. Fns without any type info keep a docblock-free `mixed` wrapper.

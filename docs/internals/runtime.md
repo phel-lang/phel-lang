@@ -104,7 +104,7 @@ Reproduce with any namespace of your own:
 
 ```php
 require 'vendor/autoload.php';
-Phel\Phel::bootstrap(__DIR__);
+\Phel::bootstrap(__DIR__);
 $t = hrtime(true);
 new Phel\Run\RunFacade()->runNamespace('phel.core');
 printf("%.1f ms, %.1f MB\n", (hrtime(true) - $t) / 1e6, memory_get_peak_usage(true) / 1048576);
@@ -128,7 +128,7 @@ build step:
 ```php
 <?php // warmup.php, next to vendor/
 require __DIR__ . '/vendor/autoload.php';
-Phel\Phel::bootstrap(__DIR__);
+\Phel::bootstrap(__DIR__);
 new Phel\Run\RunFacade()->runNamespace('app.main'); // your entry namespace
 ```
 

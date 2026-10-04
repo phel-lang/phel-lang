@@ -4,24 +4,19 @@ declare(strict_types=1);
 
 namespace Phel\Shared\SourceMap;
 
+use Phel\Shared\VersionResolver;
+
 use function substr_count;
 
-/**
- * The fixed first line(s) `phel build` writes before the generated code of
- * every compiled PHP file. The build prepends it (FileCompiler) and the error
- * printer subtracts it again to translate runtime trace lines into source-map
- * lines (SourceMapExtractor), so the layout lives here in Shared: growing the
- * preamble automatically keeps both sides in sync.
- */
 final class BuiltFilePreamble
 {
-    private const string CONTENT = "<?php declare(strict_types=1);\n";
+    private const string OPENER = '<?php declare(strict_types=1);';
 
     private function __construct() {}
 
     public static function prepend(string $phpCode): string
     {
-        return self::CONTENT . $phpCode;
+        return self::content() . $phpCode;
     }
 
     /**
@@ -29,7 +24,7 @@ final class BuiltFilePreamble
      */
     public static function codeStartLine(): int
     {
-        return substr_count(self::CONTENT, "\n") + 1;
+        return substr_count(self::content(), "\n") + 1;
     }
 
     /**
@@ -40,6 +35,18 @@ final class BuiltFilePreamble
      */
     public static function isPresent(string $code): bool
     {
-        return str_starts_with($code, self::CONTENT);
+        return str_starts_with($code, self::OPENER . "\n")
+            || str_starts_with($code, self::OPENER . ' // Built with Phel ');
+    }
+
+    public static function isCurrent(string $code): bool
+    {
+        return str_starts_with($code, self::content());
+    }
+
+    private static function content(): string
+    {
+        // Keep the stamp on the opener line so existing source-map offsets stay valid.
+        return self::OPENER . ' // Built with Phel ' . VersionResolver::current() . "\n";
     }
 }

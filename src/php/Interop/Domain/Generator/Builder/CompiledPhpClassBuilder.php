@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Interop\Domain\Generator\Builder;
 
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
+use Phel\Shared\VersionResolver;
 
 /**
  * @internal
@@ -25,10 +26,12 @@ final readonly class CompiledPhpClassBuilder
             '$NAMESPACE$',
             '$CLASS_NAME$',
             '$METHODS$',
+            '$PHEL_VERSION$',
         ], [
             $this->buildNamespace($phelNs),
             $this->buildClassName($phelNs),
             $this->buildCompiledPhpMethods($phelNs, $functionsToExport),
+            VersionResolver::current(),
         ], $this->classTemplate());
     }
 
@@ -95,6 +98,8 @@ final readonly class CompiledPhpClassBuilder
 namespace $NAMESPACE$;
 
 use Phel\Interop\PhelCallerTrait;
+
+\Phel::assertBuiltWith('$PHEL_VERSION$');
 
 /**
  * THIS FILE IS AUTO-GENERATED, DO NOT CHANGE ANYTHING IN THIS FILE

@@ -8,7 +8,10 @@ use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
 use Phel\Phel;
+use Phel\Shared\VersionFinder;
+use Phel\Shared\VersionResolver;
 use PhelTest\Support\PerTestGacelaCache;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -44,6 +47,38 @@ final class BuildCommandTest extends TestCase
     protected function tearDown(): void
     {
         $this->workspace->remove();
+    }
+
+    #[DataProvider('locked_build_versions')]
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_build_warns_when_the_project_locks_another_version(string $section, string $version, bool $warns): void
+    {
+        $this->workspace->writeFile('composer.lock', json_encode([
+            $section => [['name' => 'phel-lang/phel-lang', 'version' => $version]],
+        ], JSON_THROW_ON_ERROR));
+        $this->bootstrapGacela();
+        $output = new BufferedOutput();
+
+        $exit = $this->command->run(new ArrayInput(['--no-source-map' => true, '--no-cache' => true]), $output);
+        $text = $output->fetch();
+
+        self::assertSame(Command::SUCCESS, $exit);
+        if ($warns) {
+            self::assertStringContainsString('composer.lock pins ' . $version, $text);
+            self::assertStringContainsString("Build with the project's Phel version before deploying", $text);
+        } else {
+            self::assertStringNotContainsString('composer.lock pins', $text);
+        }
+    }
+
+    public static function locked_build_versions(): iterable
+    {
+        $runningVersion = new VersionResolver()->resolve();
+        yield 'runtime dependency mismatch' => ['packages', 'v0.0.0', true];
+        yield 'development dependency mismatch' => ['packages-dev', 'v0.0.0', true];
+        yield 'matching version without v prefix' => ['packages', ltrim($runningVersion, 'v'), false];
+        yield 'released version against current builder' => ['packages', VersionFinder::LATEST_VERSION, $runningVersion !== VersionFinder::LATEST_VERSION];
     }
 
     #[PreserveGlobalState(false)]
@@ -131,17 +166,19 @@ final class BuildCommandTest extends TestCase
 
 require_once dirname(__DIR__) . "/vendor/autoload.php";
 
+\Phel::assertBuiltWith('{{BUILD_VERSION}}');
+
 // Core fns such as read-string, eval and promise reach Phel's facades
 \Phel::bootstrap(dirname(__DIR__));
 
 // Normalize argv: program is $argv[0], user args are the rest
-\Phel\Phel::setupRuntimeArgs($argv[0] ?? __FILE__, array_slice($argv ?? [], 1));
+\Phel::setupRuntimeArgs($argv[0] ?? __FILE__, array_slice($argv ?? [], 1));
 
 $compiledFile = __DIR__ . "/test_ns/hello.php";
 
 require_once $compiledFile;
 TXT;
-        self::assertSame($expected, $actual);
+        self::assertSame(str_replace('{{BUILD_VERSION}}', VersionResolver::current(), $expected), $actual);
     }
 
     #[PreserveGlobalState(false)]

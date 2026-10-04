@@ -11,6 +11,7 @@ use Phel\Interop\Domain\Generator\WrapperGenerator;
 use Phel\Interop\Domain\Generator\WrapperGeneratorInterface;
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 use Phel\Lang\FnInterface;
+use Phel\Shared\VersionResolver;
 use PHPUnit\Framework\TestCase;
 
 final class WrapperGeneratorTest extends TestCase
@@ -40,6 +41,8 @@ namespace PhelGenerated\CustomNamespace;
 
 use Phel\Interop\PhelCallerTrait;
 
+\Phel::assertBuiltWith('$PHEL_VERSION$');
+
 /**
  * THIS FILE IS AUTO-GENERATED, DO NOT CHANGE ANYTHING IN THIS FILE
  */
@@ -59,7 +62,10 @@ final class FileNameExample
 
 }
 TXT;
-        self::assertSame($expectedCompiledPhp, $wrapper->compiledPhp());
+        self::assertSame(
+            str_replace('$PHEL_VERSION$', VersionResolver::current(), $expectedCompiledPhp),
+            $wrapper->compiledPhp(),
+        );
     }
 
     private function createWrapperGenerator(): WrapperGeneratorInterface

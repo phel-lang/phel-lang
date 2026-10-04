@@ -12,6 +12,9 @@ use Phel\Shared\OptimizationLevel;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
 
+use function is_array;
+use function is_string;
+
 /**
  * @internal
  */
@@ -109,6 +112,37 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
     public function getScanIndexCacheFile(): string
     {
         return $this->getCacheDir() . '/scan-index.php';
+    }
+
+    public function getLockedPhelVersion(): ?string
+    {
+        $path = $this->getAppRootDir() . '/composer.lock';
+        if (!is_file($path)) {
+            return null;
+        }
+
+        $contents = file_get_contents($path);
+        $lock = $contents === false ? null : json_decode($contents, true);
+        if (!is_array($lock)) {
+            return null;
+        }
+
+        foreach (['packages', 'packages-dev'] as $section) {
+            $packages = $lock[$section] ?? null;
+            if (!is_array($packages)) {
+                continue;
+            }
+
+            foreach ($packages as $package) {
+                if (is_array($package) && ($package['name'] ?? null) === 'phel-lang/phel-lang') {
+                    $version = $package['version'] ?? null;
+
+                    return is_string($version) ? $version : null;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

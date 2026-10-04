@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Application;
 
+use Iterator;
 use Phel;
 use Phel\Build\Application\FileEvaluator;
 use Phel\Build\BuildFacade;
@@ -16,7 +17,9 @@ use Phel\Lang\Registry;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\NamespaceInformation;
+use Phel\Shared\SourceMap\BuiltFilePreamble;
 use PhelTest\Support\RemoveDirTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -82,7 +85,7 @@ final class FileEvaluatorTest extends TestCase
         $siblingFile = $this->tempDir . '/test.php';
         file_put_contents(
             $siblingFile,
-            "<?php declare(strict_types=1);\n\$GLOBALS['phel_precompiled_sibling_ran'] = true;\n",
+            BuiltFilePreamble::prepend("\$GLOBALS['phel_precompiled_sibling_ran'] = true;\n"),
         );
 
         $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
@@ -163,7 +166,7 @@ final class FileEvaluatorTest extends TestCase
         // the bundled artifact.
         file_put_contents(
             $this->tempDir . '/test.php',
-            "<?php declare(strict_types=1);\n\$GLOBALS['phel_build_sibling_ran'] = true;\n",
+            BuiltFilePreamble::prepend("\$GLOBALS['phel_build_sibling_ran'] = true;\n"),
         );
 
         $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
@@ -213,6 +216,35 @@ final class FileEvaluatorTest extends TestCase
 
         self::assertSame($namespace, $result->getNamespace());
         self::assertSame('', $result->getTargetFile());
+    }
+
+    #[DataProvider('outdatedPreambles')]
+    public function test_eval_file_recompiles_source_instead_of_loading_an_outdated_sibling(string $preamble): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        file_put_contents($sourceFile, '(ns test\\namespace)');
+        file_put_contents($this->tempDir . '/test.php', $preamble . "throw new \\RuntimeException('outdated sibling must not run');\n");
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->once())->method('compileForCache')
+            ->willReturn(new EmitterResult(false, '$compiled = true;', '', ''));
+
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, 'test\\namespace', ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, new CompiledCodeCache($this->tempDir . '/cache'));
+        $result = $evaluator->evalFile($sourceFile);
+
+        self::assertNotSame($this->tempDir . '/test.php', $result->getTargetFile());
+        self::assertSame('test\\namespace', $result->getNamespace());
+    }
+
+    public static function outdatedPreambles(): Iterator
+    {
+        yield 'older runtime' => ["<?php declare(strict_types=1); // Built with Phel v0.0.0\n"];
+        yield 'unstamped legacy build' => ["<?php declare(strict_types=1);\n"];
     }
 
     public function test_eval_file_compiles_on_cache_miss(): void
@@ -944,15 +976,13 @@ final class FileEvaluatorTest extends TestCase
     ): void {
         file_put_contents(
             $path,
-            "<?php declare(strict_types=1);\n"
-            . sprintf(
+            BuiltFilePreamble::prepend(sprintf(
                 "%s::addDefinition(%s, %s, %s);\n",
                 '\\' . Phel::class,
                 var_export($namespace, true),
                 var_export($defName, true),
                 $valueExpr,
-            )
-            . $trailer,
+            ) . $trailer),
         );
     }
 

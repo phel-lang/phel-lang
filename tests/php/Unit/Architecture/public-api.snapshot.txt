@@ -8,6 +8,7 @@ final class Phel extends Phel\Phel
   public const string PHEL_CONFIG_FILE_NAME = 'phel-config.php'
   public static function __callStatic(string $name, array $arguments): mixed
   public static function abortBindingFrameIfOpen(): void
+  public static function assertBuiltWith(string $version): void
   public static function atom($value, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): Phel\Lang\Atom
   public static function bootstrap(string $projectRootDir, ?array $argv = null): void
   public static function breakpoint(Phel\Lang\Collections\Map\PersistentMapInterface $locals): mixed
@@ -2490,6 +2491,7 @@ final class Phel\Shared\ScalarCoercion
 
 final class Phel\Shared\SourceMap\BuiltFilePreamble
   public static function codeStartLine(): int
+  public static function isCurrent(string $code): bool
   public static function isPresent(string $code): bool
   public static function prepend(string $phpCode): string
 
@@ -2533,6 +2535,7 @@ final class Phel\Shared\VersionFinder
 final readonly class Phel\Shared\VersionResolver
   public function __construct(?string $phelRoot = null)
   public function resolve(): string
+  public static function current(): string
 
 final class Phel\Watch\WatchFacade extends Gacela\Framework\AbstractFacade
   public function createFileWatcher(?string $preferred = null, ?int $pollIntervalMs = null, ?int $debounceMs = null): Phel\Watch\Domain\FileWatcherInterface
