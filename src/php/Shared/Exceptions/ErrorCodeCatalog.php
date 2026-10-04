@@ -133,7 +133,7 @@ final class ErrorCodeCatalog
             new ErrorCodeExplanation(
                 code: ErrorCode::BINDING_ERROR,
                 title: 'Invalid binding form',
-                summary: 'A `let`, `loop` or destructuring binding has the wrong shape. The binding list must be a vector of an even number of forms, and every bound name must be an unqualified symbol.',
+                summary: 'A `let`, `loop` or destructuring binding has the wrong shape. The binding list must be a vector of an even number of forms, and every bound name must be an unqualified symbol. A `binding` or `with-redefs` target must name a var defined with `def`, not a local or a PHP constant.',
                 example: '(let (a 1) a)',
                 fix: 'Write the bindings as a vector of name and value pairs.',
             ),

@@ -25,6 +25,7 @@ Compiler:
 - A `definterface` that declares one method name twice, or one parameter twice in a method, fails with `PHEL009`. A PHP method has a single signature, so a second arity needs its own name. It used to stop PHP with `Cannot redeclare app\main\I::m()` or `Redefinition of parameter $x`. (#3534)
 - A fn parameter named twice binds the last argument, as in Clojure: `((fn [x x] x) 1 2)` returns `2`. It used to stop PHP with `Redefinition of parameter $x`. (#3534)
 - A `defstruct`, `defrecord` or `deftype` field named twice fails with `PHEL007` on the repeated field. It used to stop PHP with `Redefinition of parameter $x`. (#3534)
+- A `binding` or `with-redefs` target that is not a var, such as a local or `php/PHP_EOL`, fails with `PHEL008` on that target. It used to fail an internal assertion after emitting half the PHP. (#3534)
 
 Runtime:
 
