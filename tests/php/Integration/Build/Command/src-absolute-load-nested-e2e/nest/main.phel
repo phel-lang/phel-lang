@@ -1,0 +1,6 @@
+(ns nest.main)
+
+(load "extra")
+(load "/extra")
+
+(println (str (whisper "quiet") " " (shout "nested")))
