@@ -122,6 +122,15 @@ final class BuildConfigTest extends TestCase
         self::assertSame(0, new BuildConfig()->getOptimizationLevel());
     }
 
+    public function test_temp_dir_defaults_to_where_the_filesystem_module_writes(): void
+    {
+        // `cache:clear` must empty the dir the compiler writes to, also for an
+        // array config without a `temp-dir` key.
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {});
+
+        self::assertSame(PhelConfig::defaultTempDir(), new BuildConfig()->getTempDir());
+    }
+
     public function test_cache_env_vars_default_to_none(): void
     {
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {});
