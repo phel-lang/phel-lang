@@ -8,7 +8,7 @@ Rules + CLI: [`RULES.md`](RULES.md).
 |--------|--------|----------------|
 | Scaffold new project | [`tasks/scaffold-project.md`](tasks/scaffold-project.md) | https://phel-lang.org/documentation/getting-started/ |
 | HTTP app or JSON API | [`tasks/http-app.md`](tasks/http-app.md) | `vendor/phel-lang/phel-lang/src/phel/router.phel`, `vendor/phel-lang/phel-lang/src/phel/http.phel` |
-| CLI tool | [`tasks/cli-tool.md`](tasks/cli-tool.md) | https://phel-lang.org/documentation/php-interop/ |
+| CLI tool | [`tasks/cli-tool.md`](tasks/cli-tool.md) | https://phel-lang.org/documentation/language/php-interop/ |
 | Add tests | [`tasks/add-tests.md`](tasks/add-tests.md) | `vendor/phel-lang/phel-lang/src/phel/test.phel`, https://phel-lang.org/documentation/testing/ |
 | REPL | [`tasks/repl-workflow.md`](tasks/repl-workflow.md) | `vendor/phel-lang/phel-lang/src/phel/repl.phel` |
 | Find core fn | [`tasks/use-core-lib.md`](tasks/use-core-lib.md) | `phel doc <fn>`, https://phel-lang.org/documentation/guides/cookbook/ |
@@ -19,7 +19,7 @@ Rules + CLI: [`RULES.md`](RULES.md).
 | Memoize | [`tasks/memoize.md`](tasks/memoize.md) | `phel doc memoize`, `phel doc memoize-lru` |
 | Write macros | [`tasks/write-macros.md`](tasks/write-macros.md) | https://phel-lang.org/documentation/language/macros/ |
 | Common pitfalls | [`tasks/common-gotchas.md`](tasks/common-gotchas.md) | `RULES.md` § Gotchas |
-| Use a PHP library | [`tasks/use-php-libs.md`](tasks/use-php-libs.md) | https://phel-lang.org/documentation/php-interop/ |
+| Use a PHP library | [`tasks/use-php-libs.md`](tasks/use-php-libs.md) | https://phel-lang.org/documentation/language/php-interop/ |
 | Validate data | [`tasks/validate-with-schema.md`](tasks/validate-with-schema.md) | `vendor/phel-lang/phel-lang/src/phel/schema.phel`, https://phel-lang.org/documentation/libraries/schema/ |
 | Pattern match | [`tasks/pattern-match.md`](tasks/pattern-match.md) | `vendor/phel-lang/phel-lang/src/phel/match.phel`, https://phel-lang.org/documentation/language/control-flow/#match |
 | Lint code | [`RULES.md`](RULES.md) § Check loop | `phel lint --format=json`, `phel explain <PHELnnn>` |

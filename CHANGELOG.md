@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 
 Tooling:
 
+Tooling:
+
+- `phel doc` and the API reference link `php/aget`, `php/aset`, `php/new`, `php/->`, `php/::`, `apply`, `definterface` and `ns` to sections that exist. The guides moved PHP interop under `/documentation/language/` and renamed several sections, so these links opened the top of a page or a redirect.
 - A `phel build` output finds the files its namespaces `(load ...)`. A loaded file used to be written by its path under the source dir while the built primary looked next to itself, so a project in the flat layout `phel init` creates, or one requiring phel-sql, built fine and then failed with `Cannot locate main_extra for (load ...)`. (#3528)
 - A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
 

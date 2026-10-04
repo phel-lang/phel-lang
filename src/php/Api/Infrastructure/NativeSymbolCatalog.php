@@ -57,7 +57,7 @@ Returns the namespace in the current scope.',
 (apply f expr*)
 ```
 Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
-            'docUrl' => '/documentation/language/functions-and-recursion/#apply-functions',
+            'docUrl' => '/documentation/language/functions-and-recursion/#apply-and-compose',
             'signatures' => ['(apply f expr*)'],
             'desc' => 'Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
             'example' => '(apply + [1 2 3]) ; => 6',
@@ -140,7 +140,7 @@ Define a new exception, optionally extending a custom parent class (defaults to 
 (definterface name & fns)
 ```
 An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.',
-            'docUrl' => '/documentation/language/interfaces/#defining-interfaces',
+            'docUrl' => '/documentation/language/interfaces/#define-and-implement-an-interface',
             'signatures' => ['(definterface name & fns)'],
             'desc' => 'An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.',
             'example' => '(definterface Greeter (greet [name]))',
@@ -263,7 +263,7 @@ Creates a new hash map. If no argument is provided, an empty hash map is created
 (ns name imports*)
 ```
 Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword `:use` is used to import PHP classes, the keyword `:require` is used to import Phel modules and the keyword `:require-file` is used to load php files.',
-            'docUrl' => '/documentation/language/namespaces/#namespace-ns',
+            'docUrl' => '/documentation/language/namespaces/#declare-a-namespace',
             'signatures' => ['(ns name imports*)'],
             'desc' => 'Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword :use is used to import PHP classes, the keyword :require is used to import Phel modules and the keyword :require-file is used to load php files.',
             'example' => '(ns my-app.core (:require phel.string :as str))',
@@ -273,7 +273,7 @@ Defines the namespace for the current file and adds imports to the environment. 
 (php/aget arr index)
 ```
 Equivalent to PHP\'s `arr[index] ?? null`.',
-            'docUrl' => '/documentation/php-interop/#get-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#get-php-array-value',
             'signatures' => ['(php/aget arr index)'],
             'desc' => "Equivalent to PHP's `arr[index] ?? null`.",
             'example' => '(php/aget (php/array "a" "b" "c") 1) ; => "b"',
@@ -283,7 +283,7 @@ Equivalent to PHP\'s `arr[index] ?? null`.',
 (php/aget-in arr ks)
 ```
 Equivalent to PHP\'s `arr[k1][k2][k...] ?? null`.',
-            'docUrl' => '/documentation/php-interop/#get-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#get-php-array-value',
             'signatures' => ['(php/aget-in arr ks)'],
             'desc' => "Equivalent to PHP's `arr[k1][k2][k...] ?? null`.",
             'example' => '(php/aget-in nested-arr ["users" 0 "name"])',
@@ -293,7 +293,7 @@ Equivalent to PHP\'s `arr[k1][k2][k...] ?? null`.',
 (php/aset arr index value)
 ```
 Equivalent to PHP\'s `arr[index] = value`.',
-            'docUrl' => '/documentation/php-interop/#set-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#set-php-array-value',
             'signatures' => ['(php/aset arr index value)'],
             'desc' => "Equivalent to PHP's `arr[index] = value`.",
             'example' => '(php/aset arr 0 "new-value")',
@@ -303,7 +303,7 @@ Equivalent to PHP\'s `arr[index] = value`.',
 (php/aset-in arr ks value)
 ```
 Equivalent to PHP\'s `arr[k1][k2][k...] = value`.',
-            'docUrl' => '/documentation/php-interop/#set-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#set-php-array-value',
             'signatures' => ['(php/aset-in arr ks value)'],
             'desc' => "Equivalent to PHP's `arr[k1][k2][k...] = value`.",
             'example' => '(php/aset-in arr ["users" 0 "name"] "Alice")',
@@ -313,7 +313,7 @@ Equivalent to PHP\'s `arr[k1][k2][k...] = value`.',
 (php/apush arr value)
 ```
 Equivalent to PHP\'s `arr[] = value`.',
-            'docUrl' => '/documentation/php-interop/#append-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#append-php-array-value',
             'signatures' => ['(php/apush arr value)'],
             'desc' => "Equivalent to PHP's arr[] = value.",
             'example' => '(php/apush arr "new-item")',
@@ -323,7 +323,7 @@ Equivalent to PHP\'s `arr[] = value`.',
 (php/apush-in arr ks value)
 ```
 Equivalent to PHP\'s `arr[k1][k2][k...][] = value`.',
-            'docUrl' => '/documentation/php-interop/#append-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#append-php-array-value',
             'signatures' => ['(php/apush-in arr ks value)'],
             'desc' => "Equivalent to PHP's `arr[k1][k2][k...][] = value`.",
             'example' => '(php/apush-in arr ["users"] {:name "Bob"})',
@@ -333,7 +333,7 @@ Equivalent to PHP\'s `arr[k1][k2][k...][] = value`.',
 (php/aunset arr index)
 ```
 Equivalent to PHP\'s `unset(arr[index])`.',
-            'docUrl' => '/documentation/php-interop/#unset-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#unset-php-array-value',
             'signatures' => ['(php/aunset arr index)'],
             'desc' => "Equivalent to PHP's `unset(arr[index])`.",
             'example' => '(php/aunset arr "key-to-remove")',
@@ -343,7 +343,7 @@ Equivalent to PHP\'s `unset(arr[index])`.',
 (php/aunset-in arr ks)
 ```
 Equivalent to PHP\'s `unset(arr[k1][k2][k...])`.',
-            'docUrl' => '/documentation/php-interop/#unset-php-array-value',
+            'docUrl' => '/documentation/language/php-interop/#unset-php-array-value',
             'signatures' => ['(php/aunset-in arr ks)'],
             'desc' => "Equivalent to PHP's `unset(arr[k1][k2][k...])`.",
             'example' => '(php/aunset-in arr ["users" 0])',
@@ -355,7 +355,7 @@ Equivalent to PHP\'s `unset(arr[k1][k2][k...])`.',
 Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned.
 
 **Deprecated**: write `(new DateTime "2024-01-01")` or `(DateTime. "2024-01-01")`.',
-            'docUrl' => '/documentation/php-interop/#php-class-instantiation',
+            'docUrl' => '/documentation/language/php-interop/#php-class-instantiation',
             'signatures' => ['(php/new expr args*)'],
             'desc' => 'Deprecated. Creates a PHP object; write `(new Foo arg)` instead.',
             'example' => '(new DateTime "2024-01-01")',
@@ -368,7 +368,7 @@ Evaluates expr and creates a new PHP class using the arguments. The instance of 
 Access to an object property or result of chained calls.
 
 **Deprecated**: write `(.format date "Y-m-d")` for a method and `(.-prop obj)` for a property. Chains thread with plain `->`.',
-            'docUrl' => '/documentation/php-interop/#php-set-object-properties',
+            'docUrl' => '/documentation/language/php-interop/#php-set-object-properties',
             'signatures' => ['(php/-> object call*)', '(php/:: class call*)'],
             'desc' => 'Deprecated. Reaches an instance member; write `(.method obj arg)` or `(.-field obj)` instead.',
             'example' => '(.format date "Y-m-d")',
@@ -379,7 +379,7 @@ Access to an object property or result of chained calls.
 (php/oset (php/:: class property) value)
 ```
 Sets a class/object property. `set!` is the top-level name for the same thing.',
-            'docUrl' => '/documentation/php-interop/#php-set-object-properties',
+            'docUrl' => '/documentation/language/php-interop/#php-set-object-properties',
             'signatures' => ['(php/oset (.-property object) value)', '(php/oset (php/:: class property) value)'],
             'desc' => 'Sets a class/object property. `set!` is the top-level name for the same thing.',
             'example' => '(php/oset (.-name obj) "Alice")',
@@ -392,7 +392,7 @@ Sets a class/object property. `set!` is the top-level name for the same thing.',
 Calls a static method or property from a PHP class. Both method-name and property must be symbols and cannot be an evaluated value.
 
 **Deprecated**: write `(DateTime/createFromFormat "Y-m-d" "2024-01-01")` for a method and `DateTime/ATOM` for a constant.',
-            'docUrl' => '/documentation/php-interop/#php-static-method-and-property-call',
+            'docUrl' => '/documentation/language/php-interop/#php-static-method-and-property-call',
             'signatures' => ['(php/:: class (method-name expr*))', '(php/:: class call*)'],
             'desc' => 'Deprecated. Reaches a static member; write `(Foo/method arg)` or `Foo/CONST` instead.',
             'example' => '(DateTime/createFromFormat "Y-m-d" "2024-01-01")',
@@ -404,7 +404,7 @@ Calls a static method or property from a PHP class. Both method-name and propert
 (php/callable object method)
 ```
 Builds a native PHP 8.1 first-class callable `(...)` from a free function, a static method, or an instance method, without allocating an `fn` wrapper.',
-            'docUrl' => '/documentation/php-interop/#php-first-class-callable',
+            'docUrl' => '/documentation/language/php-interop/#php-first-class-callable',
             'signatures' => ['(php/callable \function)', '(php/callable Class method)', '(php/callable object method)'],
             'desc' => 'Builds a native PHP first-class callable from a function or method, without an fn wrapper.',
             'example' => '(map (php/callable \strtoupper) ["a" "b"])',
@@ -414,7 +414,7 @@ Builds a native PHP 8.1 first-class callable `(...)` from a free function, a sta
 (.method object (php/ref local))
 ```
 Marks a local variable as passed by reference in an interop call, so an output-parameter PHP method can write back into the Phel binding.',
-            'docUrl' => '/documentation/php-interop/#by-reference-arguments',
+            'docUrl' => '/documentation/language/php-interop/#by-reference-arguments',
             'signatures' => ['(php/ref local)'],
             'desc' => 'Passes a local variable by reference into a PHP interop call.',
             'example' => '(.bindColumn stmt 1 (php/ref out))',

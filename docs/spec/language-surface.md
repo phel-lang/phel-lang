@@ -159,7 +159,7 @@ from the table.
 compilation target and are rejected as source. A method or class name computed
 at expansion time is reached by building the head symbol,
 `(symbol (str "." name))` or `(symbol "Foo" name)`, not by falling back to
-`php/->`. Full guide: <https://phel-lang.org/documentation/php-interop/>.
+`php/->`. Full guide: <https://phel-lang.org/documentation/language/php-interop/>.
 
 | Written | Expands to | Position |
 |---|---|---|

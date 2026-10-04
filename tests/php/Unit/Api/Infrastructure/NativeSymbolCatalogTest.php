@@ -78,8 +78,8 @@ final class NativeSymbolCatalogTest extends TestCase
     }
 
     /**
-     * The "Read more" link on phel-lang.org. The language guides moved under
-     * `/documentation/language/`, and a link to the old path lands on an alias
+     * The "Read more" link on phel-lang.org. The language guides, PHP interop
+     * included, moved under `/documentation/language/`, and a link to the old path lands on an alias
      * page that drops the `#anchor`, so the reader arrives at the top of a
      * redirect instead of the section.
      */
@@ -91,9 +91,9 @@ final class NativeSymbolCatalogTest extends TestCase
             }
 
             self::assertMatchesRegularExpression(
-                '~^/documentation/(language/[a-z-]+|php-interop)/(#[a-z0-9-]+)?$~',
+                '~^/documentation/language/[a-z-]+/(#[a-z0-9-]+)?$~',
                 $meta['docUrl'],
-                sprintf('Entry "%s" links to a page outside /documentation/language/ or /documentation/php-interop/', $symbol),
+                sprintf('Entry "%s" links to a page outside /documentation/language/', $symbol),
             );
         }
     }
