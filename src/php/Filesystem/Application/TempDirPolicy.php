@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Filesystem\Application;
 
+use Phel\Shared\CurrentUser;
 use Phel\Shared\Exceptions\FileException;
 
 use function chmod;
@@ -11,8 +12,6 @@ use function clearstatcache;
 use function dirname;
 use function fileowner;
 use function fileperms;
-use function function_exists;
-use function posix_geteuid;
 
 /**
  * The temp dir holds generated PHP that is `require`d, so it has to belong to
@@ -31,11 +30,11 @@ final class TempDirPolicy
      */
     public static function violation(string $dir): ?FileException
     {
-        if (!function_exists('posix_geteuid')) {
+        $uid = CurrentUser::id();
+        if ($uid === null) {
             return null;
         }
 
-        $uid = posix_geteuid();
         if (@fileowner($dir) !== $uid) {
             return FileException::directoryIsOwnedByAnotherUser($dir);
         }
@@ -56,12 +55,12 @@ final class TempDirPolicy
 
     public static function isOpenToOthers(string $dir): bool
     {
-        return function_exists('posix_geteuid') && ((int) @fileperms($dir) & 0o077) !== 0;
+        return CurrentUser::id() !== null && ((int) @fileperms($dir) & 0o077) !== 0;
     }
 
     public static function isWritableByOthers(string $dir): bool
     {
-        return function_exists('posix_geteuid') && ((int) @fileperms($dir) & 0o022) !== 0;
+        return CurrentUser::id() !== null && ((int) @fileperms($dir) & 0o022) !== 0;
     }
 
     public static function closeToOthers(string $dir): bool

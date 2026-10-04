@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Phel\Config;
 
 use JsonSerializable;
-
-use function function_exists;
+use Phel\Shared\CurrentUser;
 
 /**
  * Immutable project configuration returned by `phel-config.php`.
@@ -485,12 +484,13 @@ final readonly class PhelConfig implements JsonSerializable
     /**
      * The system temp dir under `/phel-<uid>/tmp`, one per user: the dir is
      * owner-only, so on a host where `/tmp` is shared a common path would lock
-     * every user but the first out. Plain `/phel/tmp` where there is no POSIX
-     * uid (Windows, whose temp dir is per user already).
+     * every user but the first out. Plain `/phel/tmp` on Windows, whose temp
+     * dir is per user already.
      */
     public static function defaultTempDir(): string
     {
-        $user = function_exists('posix_geteuid') ? '-' . posix_geteuid() : '';
+        $uid = CurrentUser::id();
+        $user = $uid === null ? '' : '-' . $uid;
 
         return sys_get_temp_dir() . self::PHEL_TEMP_SUBDIR . $user . '/tmp';
     }
