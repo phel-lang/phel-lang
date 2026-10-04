@@ -21,6 +21,7 @@ Compiler:
 
 - **BREAKING**: `recur` inside a `foreach`, `doseq`, `dotimes` or `dofor` body fails with `PHEL010`. It used to rebind the enclosing `loop` or fn and keep iterating the inner loop instead of restarting: `(loop [i 0] (doseq [x [:a :b :c]] (when (< i 1) (recur 10))))` printed every element. Write the `loop` inside the body, or collect with `reduce`. (#3523)
 - A radix literal past `PHP_INT_MAX` reads as a float: `36rZZZZZZZZZZZZZZ` used to read as `PHP_INT_MAX`. Hex, binary and octal literals past `PHP_INT_MAX`, such as `-0x8000000000000000`, no longer raise a notice on PHP 8.6. (#3522)
+- A `fn`, `defn`, `defmacro`, protocol method or `extend-type` impl that declares one arity twice fails with `PHEL007` on the second parameter vector. It used to stop PHP with `Cannot redeclare ...::invokeArity1()`. (#3534)
 
 Runtime:
 
