@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
+use Closure;
 use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
@@ -27,7 +28,6 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\NamespaceInformation;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
-use Closure;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
