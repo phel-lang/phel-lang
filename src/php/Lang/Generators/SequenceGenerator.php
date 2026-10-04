@@ -16,8 +16,6 @@ use Phel\Lang\Ratio;
 
 use function get_debug_type;
 use function is_array;
-use function is_float;
-use function is_int;
 use function is_iterable;
 use function is_string;
 use function mb_str_split;
@@ -103,36 +101,12 @@ final class SequenceGenerator
      *   range(0, 10, 2)    // => [0, 2, 4, 6, 8]
      *   range(5, 0, -1)    // => [5, 4, 3, 2, 1]
      *   range(0.0, 1.0, 0.25)  // => [0.0, 0.25, 0.5, 0.75]
-     *   range(0, 5/2, 1)   // => [0, 1, 2]
      *
-     * Native ints and floats take the plain PHP loop; a `BigInt`, `Ratio` or
-     * `BigDecimal` bound goes through the numeric tower.
-     *
-     * @return Generator<int, BigDecimal|BigInt|float|int|Ratio>
-     */
-    public static function range(mixed $start, mixed $end, mixed $step): Generator
-    {
-        if (
-            (is_int($start) || is_float($start))
-            && (is_int($end) || is_float($end))
-            && (is_int($step) || is_float($step))
-        ) {
-            return self::nativeRange($start, $end, $step);
-        }
-
-        NumericCoercion::ensureNumeric($start);
-        NumericCoercion::ensureNumeric($end);
-        NumericCoercion::ensureNumeric($step);
-
-        return self::tower($start, $end, $step);
-    }
-
-    /**
      * @return Generator<int, float|int>
      *
      * @psalm-suppress InvalidOperand
      */
-    private static function nativeRange(int|float $start, int|float $end, int|float $step): Generator
+    public static function range(int|float $start, int|float $end, int|float $step): Generator
     {
         $cmp = $step < 0
             ? static fn(int|float $i, int|float $e): bool => $i > $e
@@ -141,6 +115,21 @@ final class SequenceGenerator
         for ($i = $start; $cmp($i, $end); $i += $step) {
             yield $i;
         }
+    }
+
+    /**
+     * Same as {@see range()} for a bound or step that is a `BigInt`, `Ratio` or
+     * `BigDecimal`: `numericRange(0, 5/2, 1)` yields `0, 1, 2`.
+     *
+     * @return Generator<int, BigDecimal|BigInt|float|int|Ratio>
+     */
+    public static function numericRange(mixed $start, mixed $end, mixed $step): Generator
+    {
+        NumericCoercion::ensureNumeric($start);
+        NumericCoercion::ensureNumeric($end);
+        NumericCoercion::ensureNumeric($step);
+
+        return self::tower($start, $end, $step);
     }
 
     /**

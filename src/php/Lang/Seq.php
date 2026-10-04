@@ -20,6 +20,8 @@ use TypeError;
 
 use function array_values;
 use function is_array;
+use function is_float;
+use function is_int;
 use function is_string;
 use function iterator_to_array;
 
@@ -254,7 +256,15 @@ final class Seq
      */
     public static function range(mixed $start, mixed $end, mixed $step): Generator
     {
-        return SequenceGenerator::range($start, $end, $step);
+        if (
+            (is_int($start) || is_float($start))
+            && (is_int($end) || is_float($end))
+            && (is_int($step) || is_float($step))
+        ) {
+            return SequenceGenerator::range($start, $end, $step);
+        }
+
+        return SequenceGenerator::numericRange($start, $end, $step);
     }
 
     /**
