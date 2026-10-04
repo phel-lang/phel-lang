@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Console;
 
 use PhelTest\Support\Subprocess;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
@@ -79,6 +80,25 @@ final class RunArgvOptionsTest extends TestCase
         self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
         self::assertStringContainsString('one', $result->stdout);
         self::assertStringNotContainsString('-v', $result->stdout);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideShortOptionClusters(): iterable
+    {
+        yield '-vv' => ['-vv'];
+        yield '-vq' => ['-vq'];
+    }
+
+    #[DataProvider('provideShortOptionClusters')]
+    public function test_a_cluster_of_short_options_before_the_path_is_not_read_as_the_path(string $cluster): void
+    {
+        $result = $this->phelRun([$cluster, $this->script, 'one']);
+
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertStringContainsString('one', $result->stdout);
+        self::assertStringNotContainsString($cluster, $result->stdout);
     }
 
     /**

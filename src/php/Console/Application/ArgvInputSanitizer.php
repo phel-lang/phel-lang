@@ -76,21 +76,14 @@ final readonly class ArgvInputSanitizer
                 continue;
             }
 
-            $option = $this->findRunOption($argv[$i]);
-            if (!$option instanceof InputOption) {
+            $consumed = $this->consumeOption($argv, $i);
+            if ($consumed === null) {
                 break;
             }
 
-            if (!$option->acceptValue() || str_contains($argv[$i], '=')) {
-                $result[] = $argv[$i];
-                ++$i;
-            } elseif ($option->isValueRequired()) {
-                array_push($result, ...array_slice($argv, $i, 2));
-                $i += 2;
-            } else {
-                $result[] = '--' . $option->getName() . '=';
-                ++$i;
-            }
+            [$tokens, $count] = $consumed;
+            array_push($result, ...$tokens);
+            $i += $count;
         }
 
         if ($i < $argc) {
@@ -116,37 +109,105 @@ final readonly class ArgvInputSanitizer
         return array_values(array_filter([$this->runCommand->getName(), ...$this->runCommand->getAliases()]));
     }
 
-    private function findRunOption(string $arg): ?InputOption
+    /**
+     * Reads the option at `$argv[$i]` the way Symfony's `ArgvInput` does.
+     *
+     * @param list<string> $argv
+     *
+     * @return array{list<string>, int}|null the tokens to emit and how many argv tokens they replace,
+     *                                       or null when the token is not an option of `run`
+     */
+    private function consumeOption(array $argv, int $i): ?array
     {
-        foreach ([$this->runCommand->getDefinition(), $this->applicationDefinition] as $definition) {
-            $option = $this->findOption($definition, $arg);
-            if ($option instanceof InputOption) {
-                return $option;
+        $arg = $argv[$i];
+        $isLong = str_starts_with($arg, '--');
+        $matched = $isLong
+            ? $this->matchLongOption(substr($arg, 2))
+            : $this->matchShortOptions(substr($arg, 1));
+
+        if ($matched === null) {
+            return null;
+        }
+
+        [$option, $hasValue] = $matched;
+
+        if (!$option->acceptValue() || $hasValue) {
+            return [[$arg], 1];
+        }
+
+        if ($option->isValueRequired()) {
+            $tokens = array_slice($argv, $i, 2);
+
+            return [$tokens, count($tokens)];
+        }
+
+        $bare = '--' . $option->getName() . '=';
+        $prefix = $isLong ? '-' : substr($arg, 0, -1);
+
+        return [$prefix === '-' ? [$bare] : [$prefix, $bare], 1];
+    }
+
+    /**
+     * @return array{InputOption, bool}|null the option and whether its value is attached
+     */
+    private function matchLongOption(string $body): ?array
+    {
+        $name = explode('=', $body, 2)[0];
+
+        foreach ($this->definitions() as $definition) {
+            if ($definition->hasOption($name)) {
+                return [$definition->getOption($name), str_contains($body, '=')];
+            }
+
+            if ($definition->hasNegation($name)) {
+                return [$definition->getOption(substr($name, strlen('no-'))), true];
             }
         }
 
         return null;
     }
 
-    private function findOption(InputDefinition $definition, string $arg): ?InputOption
+    /**
+     * A cluster such as `-vq` is valid when every letter is a declared shortcut.
+     * An option that takes a value consumes the rest of the cluster as that
+     * value, so only its last letter can leave the value to the next token.
+     *
+     * @return array{InputOption, bool}|null the last option read and whether its value is attached
+     */
+    private function matchShortOptions(string $letters): ?array
     {
-        if (str_starts_with($arg, '--')) {
-            $name = explode('=', substr($arg, 2), 2)[0];
+        $last = strlen($letters) - 1;
 
-            if ($definition->hasOption($name)) {
-                return $definition->getOption($name);
+        for ($i = 0; $i <= $last; ++$i) {
+            $option = $this->findShortOption($letters[$i]);
+            if (!$option instanceof InputOption) {
+                return null;
             }
 
-            return $definition->hasNegation($name)
-                ? $definition->getOption(substr($name, strlen('no-')))
-                : null;
-        }
-
-        $shortcut = substr($arg, 1);
-        if (str_starts_with($arg, '-') && $shortcut !== '' && $definition->hasShortcut($shortcut)) {
-            return $definition->getOptionForShortcut($shortcut);
+            if ($option->acceptValue() || $i === $last) {
+                return [$option, $i < $last];
+            }
         }
 
         return null;
+    }
+
+    private function findShortOption(string $letter): ?InputOption
+    {
+        foreach ($this->definitions() as $definition) {
+            if ($definition->hasShortcut($letter)) {
+                return $definition->getOptionForShortcut($letter);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return list<InputDefinition>
+     */
+    private function definitions(): array
+    {
+        return [$this->runCommand->getDefinition(), $this->applicationDefinition];
     }
 }

@@ -9,6 +9,8 @@ use Phel\Run\Infrastructure\Command\RunCommand;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputOption;
 
 use function array_slice;
 use function explode;
@@ -215,6 +217,73 @@ final class ArgvInputSanitizerTest extends TestCase
             ['phel', 'run', 'app.phel', '--', '-v', '--no-ansi'],
             $this->sanitizer()->sanitize($argv),
         );
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideShortOptionClusters(): iterable
+    {
+        yield '-vv' => ['-vv'];
+        yield '-vvv' => ['-vvv'];
+        yield '-vq' => ['-vq'];
+        yield '-tvn' => ['-tvn'];
+        yield '-vt' => ['-vt'];
+    }
+
+    #[DataProvider('provideShortOptionClusters')]
+    public function test_collects_a_cluster_of_short_options_before_the_path(string $cluster): void
+    {
+        $result = $this->sanitizer()->sanitize(['phel', 'run', $cluster, 'app.phel', 'arg1']);
+
+        self::assertSame(['phel', 'run', $cluster, 'app.phel', '--', 'arg1'], $result);
+    }
+
+    #[DataProvider('provideUnknownShortOptionClusters')]
+    public function test_a_cluster_with_an_undeclared_letter_is_the_command_token(string $cluster): void
+    {
+        $result = $this->sanitizer()->sanitize(['phel', 'run', $cluster, 'arg1']);
+
+        self::assertSame(['phel', 'run', $cluster, '--', 'arg1'], $result);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideUnknownShortOptionClusters(): iterable
+    {
+        yield '-vZ' => ['-vZ'];
+        yield '-Zv' => ['-Zv'];
+    }
+
+    public function test_a_short_option_that_takes_a_value_consumes_the_rest_of_the_cluster(): void
+    {
+        $result = $this->clusterSanitizer()->sanitize(['phel', 'run', '-vbvalue', 'app.phel']);
+
+        self::assertSame(['phel', 'run', '-vbvalue', 'app.phel'], $result);
+    }
+
+    public function test_a_trailing_short_option_with_a_required_value_takes_the_next_token(): void
+    {
+        $result = $this->clusterSanitizer()->sanitize(['phel', 'run', '-vb', 'value', 'app.phel', 'arg1']);
+
+        self::assertSame(['phel', 'run', '-vb', 'value', 'app.phel', '--', 'arg1'], $result);
+    }
+
+    public function test_a_trailing_short_option_with_an_optional_value_does_not_take_the_path(): void
+    {
+        $result = $this->clusterSanitizer()->sanitize(['phel', 'run', '-vc', 'app.phel']);
+
+        self::assertSame(['phel', 'run', '-v', '--copt=', 'app.phel'], $result);
+    }
+
+    private function clusterSanitizer(): ArgvInputSanitizer
+    {
+        $run = new Command('run');
+        $run->addOption('bopt', 'b', InputOption::VALUE_REQUIRED);
+        $run->addOption('copt', 'c', InputOption::VALUE_OPTIONAL);
+
+        return new ArgvInputSanitizer($run, new Application()->getDefinition());
     }
 
     private function sanitizer(): ArgvInputSanitizer
