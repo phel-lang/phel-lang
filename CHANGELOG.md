@@ -10,7 +10,7 @@ Tooling:
 
 Tooling:
 
-- Two `phel` processes on one project (an editor's LSP and `phel test`, or `phel watch` and a manual run) no longer crash with a `ParseError` in `.phel/cache/namespace-cache.php`. The namespace and scan index caches were rewritten in place, so a reader could include a half-written file, and a run killed mid-write left it torn. They are now replaced by a rename, and a torn file left by an older version reads as empty. (#3553)
+- Two `phel` processes on one project (an editor's LSP and `phel test`, or `phel watch` and a manual run) no longer crash with a `ParseError` in `.phel/cache/namespace-cache.php`. The namespace cache, the scan index and the compiled-code index (`compiled-index.php`) were rewritten in place, so a reader could include a half-written file, and a run killed mid-write left it torn. They are now replaced by a rename, and a torn file left by an older version reads as empty. (#3553)
 - A `phel build` output finds the files its namespaces `(load ...)`. A loaded file used to be written by its path under the source dir while the built primary looked next to itself, so a project in the flat layout `phel init` creates, or one requiring phel-sql, built fine and then failed with `Cannot locate main_extra for (load ...)`. (#3528)
 - A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
 
