@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Public PHP API: `SequenceGenerator::numericRange()`, and `Seq::range()` takes any Phel number, where it took only `int|float`. (#3557)
+
 ### Fixed
 
 Tooling:
