@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Cache;
 
+use ParseError;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use function function_exists;
@@ -14,10 +15,10 @@ use function is_string;
  * Reads and writes the compiled-code cache index (`compiled-index.php`), a
  * version-stamped map of source path to cache entry.
  *
- * Writes go through an exclusive `flock` and merge the current on-disk
- * entries before truncating, so a nested cache instance created by a
- * `(load ...)` form cannot clobber the entries written by the outer
- * instance. Entry shapes are validated on every read so a partially
+ * Writes go through {@see LockedPhpCacheWriter}, which merges the current
+ * on-disk entries under a lock and replaces the file by a rename, so a nested
+ * cache instance created by a `(load ...)` form cannot clobber the entries
+ * written by the outer instance, and a reader never sees half a file. Entry shapes are validated on every read so a partially
  * written or version-mismatched index degrades to "empty" rather than
  * surfacing malformed data.
  *
@@ -60,7 +61,11 @@ final readonly class CacheIndexFile
             return [];
         }
 
-        $data = @include $indexFile;
+        try {
+            $data = @include $indexFile;
+        } catch (ParseError) {
+            return [];
+        }
 
         return $this->normalize($data);
     }
@@ -80,40 +85,24 @@ final readonly class CacheIndexFile
     {
         $this->directory->ensure();
 
-        $dir = $this->directory->root();
-        if (!is_dir($dir) || !is_writable($dir)) {
-            return $entries;
-        }
-
         $indexFile = $this->directory->indexFile();
-        $handle = @fopen($indexFile, 'c+');
-        if ($handle === false) {
-            return $entries;
-        }
-
-        if (!flock($handle, LOCK_EX)) {
-            fclose($handle);
-            return $entries;
-        }
-
-        try {
+        $merged = $entries;
+        $written = LockedPhpCacheWriter::write($indexFile, function () use ($indexFile, $entries, $tombstones, &$merged): array {
             // Merge on-disk entries with in-memory entries. A (load ...) form
             // creates a nested cache instance that writes its own sub-file
             // entries to disk; without this merge, the outer instance would
-            // truncate those entries when it saves its own, forcing sub-files
+            // drop those entries when it saves its own, forcing sub-files
             // to recompile on the next run.
-            $merged = $this->mergeWithDiskEntries($handle, $entries, $tombstones);
+            $merged = $this->mergeWithDiskEntries($indexFile, $entries, $tombstones);
 
-            ftruncate($handle, 0);
-            rewind($handle);
-            $content = '<?php return ' . var_export([
+            return [
                 'version' => $this->version(),
                 'entries' => $merged,
-            ], true) . ';';
-            fwrite($handle, $content);
-        } finally {
-            flock($handle, LOCK_UN);
-            fclose($handle);
+            ];
+        });
+
+        if (!$written) {
+            return $entries;
         }
 
         if (function_exists('opcache_invalidate')) {
@@ -127,16 +116,14 @@ final readonly class CacheIndexFile
      * Reads the current on-disk index and merges it with in-memory entries.
      * In-memory entries win on conflict so a fresh `put` overrides older data.
      *
-     * @param resource                  $handle     Open, exclusively-locked file handle for the index file
      * @param array<string, CacheEntry> $entries
      * @param array<string, true>       $tombstones
      *
      * @return array<string, CacheEntry>
      */
-    private function mergeWithDiskEntries($handle, array $entries, array $tombstones): array
+    private function mergeWithDiskEntries(string $indexFile, array $entries, array $tombstones): array
     {
-        rewind($handle);
-        $currentContent = stream_get_contents($handle);
+        $currentContent = @file_get_contents($indexFile);
         if ($currentContent === false || $currentContent === '') {
             return $entries;
         }
@@ -166,6 +153,8 @@ final readonly class CacheIndexFile
 
             /** @psalm-suppress UnresolvableInclude */
             $data = @include $tempFile;
+        } catch (ParseError) {
+            return [];
         } finally {
             @unlink($tempFile);
         }
