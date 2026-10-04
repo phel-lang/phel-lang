@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 Tooling:
 
+- `phel cache:warm --help` shows `phel cache:warm` examples and no longer sends you to `bin/gacela` and `gacela.php`. `phel doctor` points at `phel cache:clear`; it used to name a `phel clear-cache` command that does not exist. (#3537)
+
 Tooling:
 
 - `phel build` in a project that installs Phel with Composer no longer warns that every stdlib namespace is defined in multiple locations, listing one file twice. Phel's own source dir is both a source and a vendor dir there, and since 0.54 the build read each of its files twice. (#3549)
