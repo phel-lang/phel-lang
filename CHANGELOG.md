@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 Tooling:
 
+- A `.phel` file rewritten within the second Phel last read it is read again. File times have whole-second resolution, so the cached `ns` form used to win: after a file requiring `app.does-not-exist`, the next file written to the same path in the same second failed with `Cannot find namespace 'app.does-not-exist'`. (#3537)
+
 Tooling:
 
 - `phel build` in a project that installs Phel with Composer no longer warns that every stdlib namespace is defined in multiple locations, listing one file twice. Phel's own source dir is both a source and a vendor dir there, and since 0.54 the build read each of its files twice. (#3549)

@@ -69,8 +69,11 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
             return $cachedEntry->toNamespaceInformation();
         }
 
+        // Taken before the read: a rewrite landing between the read and the
+        // `filemtime` below must still count as racy.
+        $recordedAt = time();
         $info = $this->innerExtractor->getNamespaceFromFile($path);
-        $this->cacheNamespaceInfo($info);
+        $this->cacheNamespaceInfo($info, $recordedAt);
 
         return $info;
     }
@@ -238,7 +241,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         return implode("\0", $resolved);
     }
 
-    private function cacheNamespaceInfo(NamespaceInformation $info): void
+    private function cacheNamespaceInfo(NamespaceInformation $info, int $recordedAt): void
     {
         $file = $info->getFile();
         $mtime = @filemtime($file);
@@ -253,6 +256,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
             $info->getNamespace(),
             $info->getDependencies(),
             $info->isPrimaryDefinition(),
+            $recordedAt,
         );
 
         $this->cache->put($file, $entry);
