@@ -46,7 +46,7 @@ itself now has a shorthand ([ADR 0007](adr/0007-clojure-style-interop-is-the-sou
 
 Expansion table including `C/m` and `C/.m` in value position:
 [the language surface spec](spec/language-surface.md#interop-shorthands). Full
-guide: <https://phel-lang.org/documentation/php-interop/>. Runnable sample:
+guide: <https://phel-lang.org/documentation/language/php-interop/>. Runnable sample:
 [examples/09_php-integration.phel](examples/09_php-integration.phel).
 
 ## User-facing guides moved to phel-lang.org
@@ -58,7 +58,7 @@ links instead:
 |---|---|
 | Getting started / quickstart | https://phel-lang.org/documentation/getting-started/ |
 | Configuration | https://phel-lang.org/documentation/configuration/ |
-| PHP interop | https://phel-lang.org/documentation/php-interop/ |
+| PHP interop | https://phel-lang.org/documentation/language/php-interop/ |
 | Coming from Clojure | https://phel-lang.org/documentation/guides/coming-from-clojure/ |
 | CLI commands | https://phel-lang.org/documentation/tooling/cli-commands/ |
 | Lint / profile / watch | https://phel-lang.org/documentation/tooling/cli-commands/ |
