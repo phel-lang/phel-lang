@@ -8,6 +8,7 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\NamespaceInformation;
 use RuntimeException;
 
+use function dirname;
 use function explode;
 use function implode;
 use function ltrim;
@@ -24,10 +25,13 @@ use function substr;
  * build output directory.
  *
  * Primary `(ns X)` files are mapped from the namespace (matching classic
- * Phel behaviour — `phel\core` → `phel/core.php`). Secondary `(in-ns X)`
- * files are mapped from the source file path relative to the matching
- * source root, so sub-files ride along under the same directory as their
- * primary (`src/phel/core/util.phel` → `phel/core/util.php`).
+ * Phel behaviour — `phel\core` → `phel/core.php`). A secondary `(in-ns X)`
+ * file sits where its built primary looks for it: the emitted `(load ...)`
+ * probes the primary's own directory with a key relative to the primary's
+ * source file. So `src/main_extra.phel`, loaded by `app.main` from
+ * `src/main.phel`, goes to `app/main_extra.php`, next to `app/main.php`.
+ * Without a primary, or for a file outside the primary's directory, the
+ * secondary keeps its path relative to the source root.
  *
  * @internal
  */
@@ -41,11 +45,22 @@ final readonly class CompiledTargetPathResolver
 
     /**
      * @param list<string> $sourceDirectories
+     * @param string|null  $primaryFile       source file of the `(ns X)` a secondary belongs to
      */
-    public function resolve(NamespaceInformation $info, array $sourceDirectories): string
+    public function resolve(NamespaceInformation $info, array $sourceDirectories, ?string $primaryFile = null): string
     {
         if ($info->isPrimaryDefinition()) {
             return $this->fromNamespace($info->getNamespace());
+        }
+
+        if ($primaryFile !== null) {
+            $primaryDir = dirname($primaryFile) . DIRECTORY_SEPARATOR;
+            if (str_starts_with($info->getFile(), $primaryDir)) {
+                $targetDir = dirname($this->fromNamespace($info->getNamespace()));
+                $relative = $this->toCompiledPath(substr($info->getFile(), strlen($primaryDir)));
+
+                return $targetDir === '.' ? $relative : $targetDir . DIRECTORY_SEPARATOR . $relative;
+            }
         }
 
         return $this->fromSourceFile($info->getFile(), $sourceDirectories);

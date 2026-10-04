@@ -1,0 +1,5 @@
+(ns flate2e.main)
+
+(load "main_extra")
+
+(println (shout "built"))
