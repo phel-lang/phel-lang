@@ -63,15 +63,33 @@ final class RunArgvOptionsTest extends TestCase
         self::assertStringContainsString('--warn-deprecations,--debug,--stack-trace', $result->stdout);
     }
 
+    public function test_the_run_alias_reads_options_before_the_path(): void
+    {
+        $result = $this->phelRun(['--stack-trace', '--debug', $this->script, 'one'], 'r');
+
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertStringContainsString('one', $result->stdout);
+        self::assertStringNotContainsString('--debug', $result->stdout);
+    }
+
+    public function test_application_options_before_the_path_are_not_read_as_the_path(): void
+    {
+        $result = $this->phelRun(['-v', $this->script, 'one']);
+
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertStringContainsString('one', $result->stdout);
+        self::assertStringNotContainsString('-v', $result->stdout);
+    }
+
     /**
      * @param list<string> $args
      */
-    private function phelRun(array $args): Subprocess
+    private function phelRun(array $args, string $command = 'run'): Subprocess
     {
         $bin = dirname(__DIR__, 4) . '/bin/phel';
 
         return Subprocess::run(
-            [PHP_BINARY, $bin, 'run', ...$args],
+            [PHP_BINARY, $bin, $command, ...$args],
             cwd: $this->dir,
         );
     }

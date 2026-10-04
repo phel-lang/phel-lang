@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Console\Application;
 
-use Closure;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 
+use function array_filter;
 use function array_slice;
+use function array_values;
 use function count;
 use function explode;
+use function in_array;
 use function str_contains;
 use function str_starts_with;
 use function strlen;
@@ -19,19 +22,17 @@ use function substr;
 /**
  * @internal
  */
-final class ArgvInputSanitizer
+final readonly class ArgvInputSanitizer
 {
-    private ?InputDefinition $runDefinition = null;
-
     /**
-     * @param Closure():InputDefinition $runDefinitionResolver the definition of the `run` command: the options
-     *                                                         it declares are the ones recognized before the
-     *                                                         command name, so a new option cannot drift from
-     *                                                         this class. Resolved on first use, so only a
-     *                                                         `run` invocation builds the command.
+     * @param Command         $runCommand            the `run` command: its name, aliases and declared options
+     *                                               are what gets recognized, so none of them can drift from
+     *                                               this class
+     * @param InputDefinition $applicationDefinition the options every command accepts (`-v`, `-q`, `--no-ansi`, ...)
      */
     public function __construct(
-        private readonly Closure $runDefinitionResolver,
+        private Command $runCommand,
+        private InputDefinition $applicationDefinition,
     ) {}
 
     /**
@@ -59,12 +60,12 @@ final class ArgvInputSanitizer
     public function sanitize(array $argv): array
     {
         // Nothing to do if this isn't a `run` invocation (or argv too short).
-        if (($argv[1] ?? null) !== 'run') {
+        if (!in_array($argv[1] ?? null, $this->runNames(), true)) {
             return $argv;
         }
 
         $argc = count($argv);
-        $result = [$argv[0], 'run'];
+        $result = array_slice($argv, 0, 2);
 
         $i = 2;
 
@@ -107,18 +108,43 @@ final class ArgvInputSanitizer
         return $result;
     }
 
+    /**
+     * @return list<string>
+     */
+    private function runNames(): array
+    {
+        return array_values(array_filter([$this->runCommand->getName(), ...$this->runCommand->getAliases()]));
+    }
+
     private function findRunOption(string $arg): ?InputOption
     {
-        $definition = $this->runDefinition ??= ($this->runDefinitionResolver)();
+        foreach ([$this->runCommand->getDefinition(), $this->applicationDefinition] as $definition) {
+            $option = $this->findOption($definition, $arg);
+            if ($option instanceof InputOption) {
+                return $option;
+            }
+        }
 
+        return null;
+    }
+
+    private function findOption(InputDefinition $definition, string $arg): ?InputOption
+    {
         if (str_starts_with($arg, '--')) {
             $name = explode('=', substr($arg, 2), 2)[0];
 
-            return $definition->hasOption($name) ? $definition->getOption($name) : null;
+            if ($definition->hasOption($name)) {
+                return $definition->getOption($name);
+            }
+
+            return $definition->hasNegation($name)
+                ? $definition->getOption(substr($name, strlen('no-')))
+                : null;
         }
 
-        if (strlen($arg) === 2 && $arg[0] === '-' && $definition->hasShortcut($arg[1])) {
-            return $definition->getOptionForShortcut($arg[1]);
+        $shortcut = substr($arg, 1);
+        if (str_starts_with($arg, '-') && $shortcut !== '' && $definition->hasShortcut($shortcut)) {
+            return $definition->getOptionForShortcut($shortcut);
         }
 
         return null;

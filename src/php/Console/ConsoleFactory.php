@@ -63,12 +63,11 @@ final class ConsoleFactory extends AbstractFactory
         return new VersionResolver();
     }
 
-    public function createArgvInputSanitizer(): ArgvInputSanitizer
+    public function createArgvInputSanitizer(InputDefinition $applicationDefinition): ArgvInputSanitizer
     {
-        $loader = $this->createCommandLoader();
-
         return new ArgvInputSanitizer(
-            static fn(): InputDefinition => $loader->get('run')->getDefinition(),
+            $this->createCommandLoader()->get('run'),
+            $applicationDefinition,
         );
     }
 

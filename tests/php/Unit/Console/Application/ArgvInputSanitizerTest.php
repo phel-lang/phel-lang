@@ -8,9 +8,10 @@ use Phel\Console\Application\ArgvInputSanitizer;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Application;
 
 use function array_slice;
+use function explode;
 
 final class ArgvInputSanitizerTest extends TestCase
 {
@@ -164,8 +165,60 @@ final class ArgvInputSanitizerTest extends TestCase
         self::assertSame(['--', 'arg1'], array_slice($result, 4), $option);
     }
 
+    public function test_the_run_alias_is_sanitized_like_run(): void
+    {
+        $argv = ['phel', 'r', '--stack-trace', '--debug', 'app.phel', 'arg1'];
+
+        self::assertSame(
+            ['phel', 'r', '--stack-trace', '--debug=', 'app.phel', '--', 'arg1'],
+            $this->sanitizer()->sanitize($argv),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideEveryApplicationOption(): iterable
+    {
+        foreach (new Application()->getDefinition()->getOptions() as $option) {
+            yield '--' . $option->getName() => ['--' . $option->getName()];
+
+            if ($option->isNegatable()) {
+                yield '--no-' . $option->getName() => ['--no-' . $option->getName()];
+            }
+
+            foreach (explode('|', (string) $option->getShortcut()) as $shortcut) {
+                if ($shortcut !== '') {
+                    yield '-' . $shortcut => ['-' . $shortcut];
+                }
+            }
+        }
+    }
+
+    /**
+     * Symfony's own options (`-v`, `-q`, `--no-ansi`, ...) are options of every
+     * command, so they are not the path either.
+     */
+    #[DataProvider('provideEveryApplicationOption')]
+    public function test_collects_every_application_option_before_the_path(string $option): void
+    {
+        $result = $this->sanitizer()->sanitize(['phel', 'run', $option, 'app.phel', 'arg1']);
+
+        self::assertSame(['phel', 'run', $option, 'app.phel', '--', 'arg1'], $result);
+    }
+
+    public function test_forwards_application_options_after_the_path_to_the_script(): void
+    {
+        $argv = ['phel', 'run', 'app.phel', '-v', '--no-ansi'];
+
+        self::assertSame(
+            ['phel', 'run', 'app.phel', '--', '-v', '--no-ansi'],
+            $this->sanitizer()->sanitize($argv),
+        );
+    }
+
     private function sanitizer(): ArgvInputSanitizer
     {
-        return new ArgvInputSanitizer(static fn(): InputDefinition => new RunCommand()->getDefinition());
+        return new ArgvInputSanitizer(new RunCommand(), new Application()->getDefinition());
     }
 }
