@@ -250,9 +250,9 @@ final class Seq
     }
 
     /**
-     * @return Generator<int, float|int>
+     * @return Generator<int, BigDecimal|BigInt|float|int|Ratio>
      */
-    public static function range(int|float $start, int|float $end, int|float $step): Generator
+    public static function range(mixed $start, mixed $end, mixed $step): Generator
     {
         return SequenceGenerator::range($start, $end, $step);
     }
