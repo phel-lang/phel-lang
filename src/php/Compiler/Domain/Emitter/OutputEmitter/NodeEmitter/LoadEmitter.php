@@ -12,20 +12,25 @@ use Phel\Lang\LoadClasspath;
 
 use function assert;
 use function dirname;
+use function str_repeat;
+use function substr_count;
 
 /**
  * Emits the runtime lookup for a `(load ...)` form.
  *
  * The emitted code searches in this order, preferring a pre-compiled
- * sibling so a built artifact runs without needing the source tree:
- *   1. `__DIR__/<loadKey>.php` — a sibling already compiled next to
- *      the caller in a build output.
- *   2. Each `LoadClasspath` entry, preferring a `.php` compiled file
+ * file so a built artifact runs without needing the source tree:
+ *   1. In a build output, for a classpath-absolute `(load "/foo/bar")`
+ *      only: `<output root>/foo/bar.php`. The output mirrors the
+ *      namespaces, so the root is as many levels above the caller as its
+ *      namespace has directories.
+ *   2. In a build output: `__DIR__/<loadKey>.php`, a file compiled next to
+ *      the caller. That is where a build puts a file from the caller's
+ *      source dir, also for an absolute load when the source dir holds the
+ *      namespace prefix, as in the flat layout `phel init` creates. For an
+ *      absolute load it is probed first and step 1 overrides it.
+ *   3. Each `LoadClasspath` entry, preferring a `.php` compiled file
  *      and falling back to the `.phel` source.
- *
- * For classpath-absolute `(load "/foo/bar")` the sibling step is
- * skipped — classpath-absolute loads must resolve against the
- * configured roots.
  *
  * @internal
  */
@@ -40,7 +45,13 @@ final class LoadEmitter implements NodeEmitterInterface
         $resolution = $node->getResolution();
 
         $this->emitLookupPrelude($resolution->loadKey, $resolution->callerClasspathDir);
-        $this->emitSiblingCompiledCheck(!$this->shouldEmitSiblingCheck($resolution->isClasspathAbsolute()));
+        if ($this->isFileEmitMode()) {
+            $this->emitSiblingCompiledCheck();
+            if ($resolution->isClasspathAbsolute()) {
+                $this->emitOutputRootCompiledCheck($node->getCallerNamespace());
+            }
+        }
+
         $this->emitSrcDirsSearch();
         $this->emitCallerDirFallback($node);
         $this->emitNotFoundGuard();
@@ -48,18 +59,14 @@ final class LoadEmitter implements NodeEmitterInterface
     }
 
     /**
-     * The sibling check is only meaningful when the caller was compiled to
-     * a file sitting in a build output directory — i.e. FILE mode. CACHE
-     * and STATEMENT outputs live in flat cache dirs or are eval'd
-     * in-memory, so the `__DIR__/<loadKey>.php` probe is guaranteed to
-     * miss and just burns a syscall per `(load ...)`.
+     * The compiled-file checks are only meaningful when the caller was
+     * compiled to a file sitting in a build output directory, i.e. FILE
+     * mode. CACHE and STATEMENT outputs live in flat cache dirs or are
+     * eval'd in memory, so the probes are guaranteed to miss and just burn
+     * a syscall per `(load ...)`.
      */
-    private function shouldEmitSiblingCheck(bool $classpathAbsolute): bool
+    private function isFileEmitMode(): bool
     {
-        if ($classpathAbsolute) {
-            return false;
-        }
-
         return $this->outputEmitter->getOptions()->isFileEmitMode();
     }
 
@@ -75,7 +82,7 @@ final class LoadEmitter implements NodeEmitterInterface
      */
     private function emitCallerDirFallback(LoadNode $node): void
     {
-        if ($this->outputEmitter->getOptions()->isFileEmitMode()) {
+        if ($this->isFileEmitMode()) {
             return;
         }
 
@@ -122,12 +129,26 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('$__phelBuildMode = \\Phel\\Lang\\Registry::getInstance()->getDefinition(\'phel.core\', \'*build-mode*\') === true;');
     }
 
-    private function emitSiblingCompiledCheck(bool $skip): void
+    /**
+     * Emitted after the sibling check and wins over it, as `phel run` would
+     * pick `<src>/foo/bar.phel` over a same-named file next to the caller.
+     */
+    private function emitOutputRootCompiledCheck(string $callerNamespace): void
     {
-        if ($skip) {
-            return;
-        }
+        $depth = substr_count($this->outputEmitter->mungeEncodePhpNs($callerNamespace), '\\');
 
+        $this->outputEmitter->emitStr('$__phelRootCompiled = __DIR__ . ');
+        $this->outputEmitter->emitLiteral(str_repeat('/..', $depth) . '/');
+        $this->outputEmitter->emitLine(' . $__phelLoadKey . \'.php\';');
+        $this->outputEmitter->emitLine('if (!$__phelBuildMode && file_exists($__phelRootCompiled)) {');
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitLine('$__phelLoadPath = $__phelRootCompiled;');
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}');
+    }
+
+    private function emitSiblingCompiledCheck(): void
+    {
         $this->outputEmitter->emitLine('$__phelSibling = __DIR__ . DIRECTORY_SEPARATOR . $__phelLoadKey . \'.php\';');
         $this->outputEmitter->emitLine('if (!$__phelBuildMode && file_exists($__phelSibling)) {');
         $this->outputEmitter->increaseIndentLevel();
