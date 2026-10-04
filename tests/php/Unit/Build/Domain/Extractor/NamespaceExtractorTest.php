@@ -273,6 +273,71 @@ final class NamespaceExtractorTest extends TestCase
         rmdir($dir);
     }
 
+    public function test_a_file_reached_through_two_scanned_dirs_is_read_once(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-extractor-test-' . uniqid();
+        mkdir($dir . '/split', 0777, true);
+        file_put_contents($dir . '/main.phel', '(ns split\\ns)');
+        file_put_contents($dir . '/split/part.phel', '(in-ns split\\ns)');
+
+        $warnings = [];
+        $nsExtractor = new NamespaceExtractor(
+            new CompilerFacade(),
+            new TopologicalNamespaceSorter(),
+            new SystemFileIo(),
+            warningWriter: static function (string $message) use (&$warnings): void {
+                $warnings[] = $message;
+            },
+        );
+
+        try {
+            $infos = $nsExtractor->getNamespacesFromDirectories([$dir, $dir . '/split', $dir], failOnInvalidNsForm: true);
+        } finally {
+            unlink($dir . '/split/part.phel');
+            unlink($dir . '/main.phel');
+            rmdir($dir . '/split');
+            rmdir($dir);
+        }
+
+        self::assertSame(
+            ['main.phel', 'part.phel'],
+            array_map(static fn(NamespaceInformation $i): string => basename($i->getFile()), $infos),
+        );
+        self::assertSame([], $warnings);
+    }
+
+    public function test_the_same_namespace_in_two_files_still_warns(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-extractor-test-' . uniqid();
+        mkdir($dir . '/a', 0777, true);
+        mkdir($dir . '/b', 0777, true);
+        file_put_contents($dir . '/a/dup.phel', '(ns dup\\ns)');
+        file_put_contents($dir . '/b/dup.phel', '(ns dup\\ns)');
+
+        $warnings = [];
+        $nsExtractor = new NamespaceExtractor(
+            new CompilerFacade(),
+            new TopologicalNamespaceSorter(),
+            new SystemFileIo(),
+            warningWriter: static function (string $message) use (&$warnings): void {
+                $warnings[] = $message;
+            },
+        );
+
+        try {
+            $nsExtractor->getNamespacesFromDirectories([$dir . '/a', $dir . '/b']);
+        } finally {
+            unlink($dir . '/a/dup.phel');
+            unlink($dir . '/b/dup.phel');
+            rmdir($dir . '/a');
+            rmdir($dir . '/b');
+            rmdir($dir);
+        }
+
+        self::assertCount(1, $warnings);
+        self::assertStringContainsString("Namespace 'dup.ns' is defined in multiple locations", $warnings[0]);
+    }
+
     public function test_scan_skips_configured_output_subdirectory(): void
     {
         $dir = sys_get_temp_dir() . '/phel-extractor-test-' . uniqid();
