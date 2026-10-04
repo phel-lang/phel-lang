@@ -22,6 +22,7 @@
   (is (= [0 1 2] (range 3M)) "BigDecimal end")
   (is (= [0 1 2] (range 2.5M)) "fractional BigDecimal end")
   (is (= [0 1 2] (range 0 2.5)) "float end, the behaviour the others match")
+  (is (= [0 0 0] (take 3 (range 0 5/2 0))) "zero step is a lazy infinite seq, as with ints and in Clojure")
   (is (= [0 0.5 1.0 1.5] (range 0 2 0.5)) "a float step gives floats after the int start")
   (is (= [0 1 2] (take 3 (range 0 (+ 9223372036854775807 5)))) "an end past PHP_INT_MAX does not wrap")
   (is (thrown? InvalidArgumentException (range :a)) "a non-number end")
