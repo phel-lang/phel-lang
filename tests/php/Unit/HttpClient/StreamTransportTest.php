@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\HttpClient;
 
+use InvalidArgumentException;
 use Phel\HttpClient\StreamTransport;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -19,35 +21,23 @@ final class StreamTransportTest extends TestCase
         StreamTransport::send('GET', 'http://127.0.0.1:1/', [], null, ['timeout' => 0.5]);
     }
 
-    public function test_send_returns_body_for_readable_stream(): void
+    #[DataProvider('nonHttpUrls')]
+    public function test_send_refuses_a_url_that_is_not_http(string $url): void
     {
-        // The data:// wrapper is honoured by file_get_contents() and lets us
-        // exercise the non-failure branch of send() fully offline. It does not
-        // populate $http_response_header, so ResponseParser falls back to its
-        // defaults — which is the documented behaviour for missing status lines.
-        $result = StreamTransport::send('GET', 'data://text/plain,hello-world', [], null, []);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Only http and https URLs are supported, got: ' . $url);
 
-        self::assertSame('hello-world', $result['body']);
+        StreamTransport::send('GET', $url, [], null, []);
     }
 
-    public function test_send_uses_response_parser_defaults_when_no_status_line(): void
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function nonHttpUrls(): iterable
     {
-        $result = StreamTransport::send('GET', 'data://text/plain,payload', [], null, []);
-
-        self::assertSame(200, $result['status']);
-        self::assertSame('1.1', $result['version']);
-        self::assertSame('OK', $result['reason']);
-        self::assertSame([], $result['headers']);
-    }
-
-    public function test_send_returns_expected_shape(): void
-    {
-        $result = StreamTransport::send('GET', 'data://text/plain,x', [], null, []);
-
-        self::assertArrayHasKey('status', $result);
-        self::assertArrayHasKey('headers', $result);
-        self::assertArrayHasKey('body', $result);
-        self::assertArrayHasKey('version', $result);
-        self::assertArrayHasKey('reason', $result);
+        yield 'file' => ['file:///etc/hosts'];
+        yield 'php filter' => ['php://filter/read=convert.base64-encode/resource=/etc/hosts'];
+        yield 'data' => ['data://text/plain,hello'];
+        yield 'no scheme' => ['/etc/hosts'];
     }
 }
