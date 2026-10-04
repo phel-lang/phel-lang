@@ -20,8 +20,6 @@ use TypeError;
 
 use function array_values;
 use function is_array;
-use function is_float;
-use function is_int;
 use function is_string;
 use function iterator_to_array;
 
@@ -256,15 +254,14 @@ final class Seq
      */
     public static function range(mixed $start, mixed $end, mixed $step): Generator
     {
-        if (
-            (is_int($start) || is_float($start))
-            && (is_int($end) || is_float($end))
-            && (is_int($step) || is_float($step))
-        ) {
+        // The typed parameters reject a non-native number when the generator is
+        // created, before any element runs, so the try is free for ints and floats.
+        try {
+            // @phpstan-ignore argument.type (the TypeError below is the check)
             return SequenceGenerator::range($start, $end, $step);
+        } catch (TypeError) {
+            return SequenceGenerator::numericRange($start, $end, $step);
         }
-
-        return SequenceGenerator::numericRange($start, $end, $step);
     }
 
     /**
