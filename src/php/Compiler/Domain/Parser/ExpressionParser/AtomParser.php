@@ -309,11 +309,12 @@ final readonly class AtomParser
         $value = 0;
         foreach (str_split(strtolower($digits)) as $digit) {
             $digitValue = (int) base_convert($digit, 36, 10);
-            if (is_int($value) && $value > intdiv(PHP_INT_MAX - $digitValue, $base)) {
-                $value = (float) $value;
+            if (is_int($value) && $value <= intdiv(PHP_INT_MAX - $digitValue, $base)) {
+                $value = $value * $base + $digitValue;
+                continue;
             }
 
-            $value = $value * $base + $digitValue;
+            $value = (float) $value * (float) $base + (float) $digitValue;
         }
 
         return $value;
