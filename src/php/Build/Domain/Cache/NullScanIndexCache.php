@@ -20,7 +20,7 @@ final class NullScanIndexCache implements ScanIndexCacheInterface
         return null;
     }
 
-    public function put(string $dirSetKey, array $perDir, array $infos): void
+    public function put(string $dirSetKey, array $perDir, array $infos, int $recordedAt = 0): void
     {
         // No-op
     }

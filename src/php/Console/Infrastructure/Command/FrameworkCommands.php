@@ -34,14 +34,13 @@ final class FrameworkCommands implements ConsoleCommandProviderInterface
     }
 
     /**
-     * Gacela words its help for `bin/gacela` and a `gacela.php` file; Phel
-     * users run `phel` and configure through `phel-config.php`.
+     * Gacela's help assumes its own binary and config file.
      *
-     * @template T of Command
+     * @template TCommand of Command
      *
-     * @param T $command
+     * @param TCommand $command
      *
-     * @return T
+     * @return TCommand
      */
     private static function withPhelHelp(Command $command): Command
     {

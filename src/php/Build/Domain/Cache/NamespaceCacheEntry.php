@@ -11,8 +11,14 @@ use Phel\Shared\NamespaceInformation;
  * accepts `PartialNamespaceCacheEntry` because cache files written before
  * `isPrimaryDefinition` existed omit that key (it defaults to true).
  *
- * @phpstan-type SerializedNamespaceCacheEntry array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}
- * @phpstan-type PartialNamespaceCacheEntry array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition?: bool}
+ * `recordedAt` is the second the file was read in. `filemtime` has whole-second
+ * resolution, so a file whose mtime is not older than that second may have been
+ * rewritten after the read without its mtime moving (#3537). Such an entry is
+ * "racily clean", as git calls it, and never trusted. The default of 0 makes
+ * an entry with no known read time never valid.
+ *
+ * @phpstan-type SerializedNamespaceCacheEntry array{mtime: int, recordedAt: int, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}
+ * @phpstan-type PartialNamespaceCacheEntry array{mtime: int, recordedAt: int, namespace: string, dependencies: list<string>, isPrimaryDefinition?: bool}
  *
  * @internal
  */
@@ -27,6 +33,7 @@ final readonly class NamespaceCacheEntry
         public string $namespace,
         public array $dependencies,
         public bool $isPrimaryDefinition = true,
+        public int $recordedAt = 0,
     ) {}
 
     public function isValid(): bool
@@ -37,7 +44,9 @@ final readonly class NamespaceCacheEntry
 
         $currentMtime = filemtime($this->file);
 
-        return $currentMtime !== false && $currentMtime === $this->mtime;
+        return $currentMtime !== false
+            && $currentMtime === $this->mtime
+            && $currentMtime < $this->recordedAt;
     }
 
     public function toNamespaceInformation(): NamespaceInformation
@@ -57,6 +66,7 @@ final readonly class NamespaceCacheEntry
     {
         return [
             'mtime' => $this->mtime,
+            'recordedAt' => $this->recordedAt,
             'namespace' => $this->namespace,
             'dependencies' => $this->dependencies,
             'isPrimaryDefinition' => $this->isPrimaryDefinition,
@@ -74,6 +84,7 @@ final readonly class NamespaceCacheEntry
             $data['namespace'],
             $data['dependencies'],
             $data['isPrimaryDefinition'] ?? true,
+            $data['recordedAt'],
         );
     }
 }

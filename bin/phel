@@ -32,6 +32,7 @@ use Phel\Shared\Performance\UserIniFlags;
  */
 function maybeReexecWithOpcacheFileCache(string $appRootDir): void
 {
+    PhelProjectDirectory::ensure($appRootDir);
     $fileCacheDir = PhelProjectDirectory::opcachePath($appRootDir);
     if (!is_dir($fileCacheDir) && !@mkdir($fileCacheDir, 0o755, true) && !is_dir($fileCacheDir)) {
         return;

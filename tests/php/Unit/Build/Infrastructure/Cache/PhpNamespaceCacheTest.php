@@ -94,18 +94,21 @@ final class PhpNamespaceCacheTest extends TestCase
         $this->writeCacheFile([
             '/repo/src/phel/util.phel' => [
                 'mtime' => 100,
+                'recordedAt' => 100,
                 'namespace' => 'phel.util',
                 'dependencies' => [],
                 'isPrimaryDefinition' => true,
             ],
             '/repo/.claude/worktrees/a/src/phel/util.phel' => [
                 'mtime' => 100,
+                'recordedAt' => 100,
                 'namespace' => 'phel.util',
                 'dependencies' => [],
                 'isPrimaryDefinition' => true,
             ],
             '/repo/vendor/foo/bar.phel' => [
                 'mtime' => 100,
+                'recordedAt' => 100,
                 'namespace' => 'foo.bar',
                 'dependencies' => [],
                 'isPrimaryDefinition' => true,
@@ -132,6 +135,7 @@ final class PhpNamespaceCacheTest extends TestCase
         $this->writeCacheFile([
             $this->tmpDir . '/gone.phel' => [
                 'mtime' => 100,
+                'recordedAt' => 100,
                 'namespace' => 'gone',
                 'dependencies' => [],
                 'isPrimaryDefinition' => true,
@@ -163,6 +167,7 @@ final class PhpNamespaceCacheTest extends TestCase
         $this->writeCacheFile([
             $staleFile => [
                 'mtime' => 1,
+                'recordedAt' => 1,
                 'namespace' => 'stale',
                 'dependencies' => [],
                 'isPrimaryDefinition' => true,
@@ -180,13 +185,49 @@ final class PhpNamespaceCacheTest extends TestCase
         unlink($staleFile);
     }
 
+    public function test_save_then_load_keeps_when_the_entry_was_recorded(): void
+    {
+        $file = $this->tmpDir . '/x.phel';
+        file_put_contents($file, '(ns x)');
+        $cache = new PhpNamespaceCache($this->cacheFile);
+        $cache->put($file, new NamespaceCacheEntry($file, 100, 'x', [], true, recordedAt: 105));
+        $cache->save();
+
+        $reloaded = new PhpNamespaceCache($this->cacheFile)->get($file);
+
+        self::assertNotNull($reloaded);
+        self::assertSame(105, $reloaded->recordedAt);
+
+        unlink($file);
+    }
+
     /**
-     * @param array<string, array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}> $entries
+     * A 1.0 entry never recorded when its file was read, so it cannot tell a
+     * racily clean file from a settled one (#3537). The fixture is shaped like
+     * a 1.1 entry to show that the version alone drops it.
      */
-    private function writeCacheFile(array $entries): void
+    public function test_load_drops_entries_written_before_recorded_at_existed(): void
+    {
+        $this->writeCacheFile([
+            '/repo/src/x.phel' => [
+                'mtime' => 100,
+                'recordedAt' => 101,
+                'namespace' => 'x',
+                'dependencies' => [],
+                'isPrimaryDefinition' => true,
+            ],
+        ], version: '1.0');
+
+        self::assertSame([], new PhpNamespaceCache($this->cacheFile)->getAllFiles());
+    }
+
+    /**
+     * @param array<string, array{mtime: int, recordedAt: int, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}> $entries
+     */
+    private function writeCacheFile(array $entries, string $version = '1.1'): void
     {
         $payload = [
-            'version' => '1.0',
+            'version' => $version,
             'entries' => $entries,
         ];
 

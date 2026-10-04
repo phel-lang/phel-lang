@@ -29,8 +29,9 @@ interface ScanIndexCacheInterface
     /**
      * @param array<string, DirFingerprint> $perDir
      * @param list<NamespaceInformation>    $infos
+     * @param int                           $recordedAt the second the scan started; 0 stores an entry that never validates
      */
-    public function put(string $dirSetKey, array $perDir, array $infos): void;
+    public function put(string $dirSetKey, array $perDir, array $infos, int $recordedAt = 0): void;
 
     public function clear(): void;
 }

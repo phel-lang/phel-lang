@@ -69,8 +69,11 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
             return $cachedEntry->toNamespaceInformation();
         }
 
+        // Taken before the read: a rewrite landing between the read and the
+        // `filemtime` below must still count as racy.
+        $recordedAt = time();
         $info = $this->innerExtractor->getNamespaceFromFile($path);
-        $this->cacheNamespaceInfo($info);
+        $this->cacheNamespaceInfo($info, $recordedAt);
 
         return $info;
     }
@@ -82,9 +85,9 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
      */
     public function getNamespacesFromDirectories(array $directories, bool $failOnInvalidNsForm = false): array
     {
-        // A strict scan (`phel build`) reads every file. Both caches validate
-        // by whole-second mtime, so an `ns` form broken in the same second as
-        // the cached read would be served stale and left out of the build.
+        // A strict scan (`phel build`) reads every file instead of trusting
+        // either cache's mtime check, so a build always sees the `ns` form it
+        // has to fail on.
         if ($failOnInvalidNsForm) {
             return $this->innerExtractor->getNamespacesFromDirectories($directories, true);
         }
@@ -109,6 +112,8 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
             return $this->directoriesScanCache[$cacheKey] = $persisted->infos;
         }
 
+        // Taken before the walk: see `ScanIndexEntry::isValid()`.
+        $recordedAt = time();
         $allInfos = [];
         $skippedFile = false;
         foreach ($this->findAllPhelFiles($directories) as $file) {
@@ -133,7 +138,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
             return $grouped;
         }
 
-        $this->scanIndexCache->put($cacheKey, $this->perDirFingerprint($directories), $grouped);
+        $this->scanIndexCache->put($cacheKey, $this->perDirFingerprint($directories), $grouped, $recordedAt);
 
         return $this->directoriesScanCache[$cacheKey] = $grouped;
     }
@@ -238,7 +243,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         return implode("\0", $resolved);
     }
 
-    private function cacheNamespaceInfo(NamespaceInformation $info): void
+    private function cacheNamespaceInfo(NamespaceInformation $info, int $recordedAt): void
     {
         $file = $info->getFile();
         $mtime = @filemtime($file);
@@ -253,6 +258,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
             $info->getNamespace(),
             $info->getDependencies(),
             $info->isPrimaryDefinition(),
+            $recordedAt,
         );
 
         $this->cache->put($file, $entry);

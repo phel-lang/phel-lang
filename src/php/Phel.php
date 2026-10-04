@@ -105,6 +105,13 @@ class Phel
             // Forces the merged app config to materialize, so a broken
             // phel-config.php fails here (inside the guard) rather than later.
             self::mirrorPhelDirToEnv();
+            // A command that wrote under `.phel/` makes it ignore itself. Only
+            // an existing dir: creating it changes the project root's mtime,
+            // so Gacela drops the config cache it just stamped, and an app
+            // that keeps its caches elsewhere gets no `.phel/` at all.
+            if (is_dir(PhelProjectDirectory::path($projectRootDir))) {
+                PhelProjectDirectory::ensure($projectRootDir);
+            }
         } catch (Throwable $throwable) {
             throw ConfigLoadException::wrapIfConfigError($throwable, $configPath);
         }

@@ -22,6 +22,8 @@ use function is_bool;
 use function is_float;
 use function is_int;
 use function is_string;
+use function sprintf;
+use function strtolower;
 
 /**
  * (definterface Name (method [args])).
@@ -87,6 +89,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         }
 
         $methods = [];
+        $methodNames = [];
         $consts = [];
         $inConstBlock = false;
         for ($forms = $list; $forms instanceof PersistentListInterface; $forms = $forms->cdr()) {
@@ -103,9 +106,25 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
 
             if ($inConstBlock) {
                 $consts[] = $this->createConst($first);
-            } else {
-                $methods[] = $this->createDefInterfaceMethod($first);
+                continue;
             }
+
+            $method = $this->createDefInterfaceMethod($first);
+            // PHP method names are case-insensitive, and a method has one signature.
+            $methodKey = strtolower($method->getName()->getName());
+            if (isset($methodNames[$methodKey])) {
+                throw AnalyzerException::withLocation(
+                    sprintf(
+                        'definterface declares method %s more than once. A PHP method has one signature: give each arity its own name.',
+                        $method->getName()->getName(),
+                    ),
+                    $first,
+                    errorCode: ErrorCode::INTERFACE_ERROR,
+                );
+            }
+
+            $methodNames[$methodKey] = true;
+            $methods[] = $method;
         }
 
         return [$methods, $consts];
@@ -158,11 +177,21 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         }
 
         $argumentSymbols = [];
+        $argumentNames = [];
         foreach ($arguments as $argument) {
             if (!$argument instanceof Symbol) {
                 throw AnalyzerException::withLocation('A method argument must be symbol', $arguments, errorCode: ErrorCode::INTERFACE_ERROR);
             }
 
+            if (isset($argumentNames[$argument->getName()])) {
+                throw AnalyzerException::withLocation(
+                    sprintf('Method %s declares parameter %s more than once', $name->getName(), $argument->getName()),
+                    $argument,
+                    errorCode: ErrorCode::INTERFACE_ERROR,
+                );
+            }
+
+            $argumentNames[$argument->getName()] = true;
             $argumentSymbols[] = TagCanonicalizer::symbol($argument, $this->analyzer);
         }
 
