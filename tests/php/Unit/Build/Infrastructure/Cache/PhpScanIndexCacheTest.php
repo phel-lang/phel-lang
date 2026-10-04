@@ -73,6 +73,23 @@ final class PhpScanIndexCacheTest extends TestCase
     }
 
     /**
+     * `clear()` is no barrier against a process that is still running: its
+     * next flush writes back what it holds in memory, as the in-place write
+     * did before the rename. That is safe because a read validates every
+     * entry against the directory fingerprint and file mtimes.
+     */
+    public function test_a_live_instance_saves_its_entries_after_another_clears(): void
+    {
+        $live = new PhpScanIndexCache($this->cacheFile);
+        $live->put($this->liveDir, $this->fingerprintOfLiveDir(), [$this->liveInfo()]);
+
+        new PhpScanIndexCache($this->cacheFile)->clear();
+        $live->save();
+
+        self::assertNotNull(new PhpScanIndexCache($this->cacheFile)->get($this->liveDir));
+    }
+
+    /**
      * `phel doc`, LSP hover and REPL completion each scan a unique
      * `.phel_temp_<uniqid>` directory and delete it again before the shutdown
      * flush runs, so the entry they produce is unreachable the moment it is
