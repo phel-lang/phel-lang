@@ -133,13 +133,17 @@ final class CompositionRootBoundaryTest extends TestCase
      * Comments are stripped first: a docblock that mentions the bootstrap
      * without invoking it reads like a call, which is precisely the false
      * positive the other architecture tests already refuse to count.
+     *
+     * String literals go too. `EntryPointPhpFile` writes `\Phel::bootstrap()`
+     * into the `out/index.php` of a built app: that is the deployed app's own
+     * composition root, run in its own process, not a second root here.
      */
     private function callsBootstrap(string $contents): bool
     {
         $code = '';
 
         foreach (token_get_all($contents) as $token) {
-            if (is_array($token) && in_array($token[0], [T_COMMENT, T_DOC_COMMENT], true)) {
+            if (is_array($token) && in_array($token[0], [T_COMMENT, T_DOC_COMMENT, T_CONSTANT_ENCAPSED_STRING, T_ENCAPSED_AND_WHITESPACE], true)) {
                 continue;
             }
 

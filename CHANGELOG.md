@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+Tooling:
+
+- A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
+
 Compiler:
 
 - **BREAKING**: `recur` inside a `foreach`, `doseq`, `dotimes` or `dofor` body fails with `PHEL010`. It used to rebind the enclosing `loop` or fn and keep iterating the inner loop instead of restarting: `(loop [i 0] (doseq [x [:a :b :c]] (when (< i 1) (recur 10))))` printed every element. Write the `loop` inside the body, or collect with `reduce`. (#3523)

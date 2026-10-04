@@ -32,7 +32,6 @@ WORKDIR /app
 COPY --from=build /app/vendor /app/vendor
 COPY --from=build /app/out /app/out
 COPY --from=build /app/public /app/public
-COPY --from=build /app/src /app/src
 
 EXPOSE 8000
 CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]
