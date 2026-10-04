@@ -23,7 +23,7 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
 {
     use DeferredFlushTrait;
 
-    private const string VERSION = '1.0';
+    private const string VERSION = '1.1';
 
     /** @var array<string, NamespaceCacheEntry> */
     private array $entries;
@@ -127,8 +127,9 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
             }
 
             if (is_array($entryData)
-                && isset($entryData['mtime'], $entryData['namespace'], $entryData['dependencies'])
+                && isset($entryData['mtime'], $entryData['recordedAt'], $entryData['namespace'], $entryData['dependencies'])
                 && is_int($entryData['mtime'])
+                && is_int($entryData['recordedAt'])
                 && is_string($entryData['namespace'])
                 && is_array($entryData['dependencies'])
             ) {

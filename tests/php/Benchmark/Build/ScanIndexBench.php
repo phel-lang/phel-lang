@@ -66,10 +66,11 @@ final class ScanIndexBench
                 mkdir($sub, 0777, true);
             }
 
-            file_put_contents(
-                sprintf('%s/ns%d.phel', $sub, $i),
-                sprintf("(ns app\\pkg%d\\ns%d)\n", intdiv($i, 25), $i),
-            );
+            $file = sprintf('%s/ns%d.phel', $sub, $i);
+            file_put_contents($file, sprintf("(ns app\\pkg%d\\ns%d)\n", intdiv($i, 25), $i));
+            // A file written in the second the priming scan starts is never
+            // trusted, which would turn the warm subjects into cold ones.
+            touch($file, time() - 10);
         }
 
         $this->phelSourceDirectories = [$projectRoot . 'src'];
