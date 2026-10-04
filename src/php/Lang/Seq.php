@@ -20,6 +20,9 @@ use TypeError;
 
 use function array_values;
 use function is_array;
+use function is_bool;
+use function is_float;
+use function is_int;
 use function is_string;
 use function iterator_to_array;
 
@@ -266,6 +269,15 @@ final class Seq
                 $step,
             );
         } catch (TypeError) {
+            // Compiled Phel calls this in PHP's weak mode, so the old int|float
+            // signature took a bool or a numeric string; keep accepting them.
+            $start = self::weakNumber($start);
+            $end = self::weakNumber($end);
+            $step = self::weakNumber($step);
+            if ((is_int($start) || is_float($start)) && (is_int($end) || is_float($end)) && (is_int($step) || is_float($step))) {
+                return SequenceGenerator::range($start, $end, $step);
+            }
+
             return SequenceGenerator::numericRange($start, $end, $step);
         }
     }
@@ -441,6 +453,19 @@ final class Seq
         string $escape = '\\',
     ): Generator {
         return FileGenerator::csvLines($filename, $separator, $enclosure, $escape);
+    }
+
+    private static function weakNumber(mixed $value): mixed
+    {
+        if (is_bool($value)) {
+            return (int) $value;
+        }
+
+        if (is_string($value) && is_numeric($value)) {
+            return $value + 0;
+        }
+
+        return $value;
     }
 
     /**
