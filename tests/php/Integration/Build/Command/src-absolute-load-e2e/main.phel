@@ -1,0 +1,5 @@
+(ns abse2e.main)
+
+(load "/extra")
+
+(println (shout "abs"))
