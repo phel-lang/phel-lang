@@ -24,6 +24,7 @@ Compiler:
 
 Runtime:
 
+- **BREAKING**: `(set {:a 1 :b 2})` is `#{[:a 1] [:b 2]}`, as in Clojure and as `vec`, `seq` and `(into #{} ...)` already return. `set` on a map or struct used to collect the values, `#{1 2}`. Use `(set (vals m))` for the old result. (#3556)
 - On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. (#3522)
 
 Runtime:
