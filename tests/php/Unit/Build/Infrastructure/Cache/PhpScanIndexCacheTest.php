@@ -43,7 +43,7 @@ final class PhpScanIndexCacheTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach ([$this->cacheFile, $this->liveFile] as $file) {
+        foreach ([$this->cacheFile, $this->cacheFile . '.lock', $this->liveFile] as $file) {
             if (file_exists($file)) {
                 unlink($file);
             }
@@ -56,6 +56,13 @@ final class PhpScanIndexCacheTest extends TestCase
         }
     }
 
+    public function test_a_torn_cache_file_reads_as_empty(): void
+    {
+        file_put_contents($this->cacheFile, "<?php return ['version' => 1, 'entries' => ['");
+
+        self::assertNull(new PhpScanIndexCache($this->cacheFile)->get('any'));
+    }
+
     public function test_put_then_get_returns_entry(): void
     {
         $cache = new PhpScanIndexCache($this->cacheFile);
@@ -63,6 +70,23 @@ final class PhpScanIndexCacheTest extends TestCase
         $cache->put($this->liveDir, $this->fingerprintOfLiveDir(), [$this->liveInfo()]);
 
         self::assertNotNull($cache->get($this->liveDir));
+    }
+
+    /**
+     * `clear()` is no barrier against a process that is still running: its
+     * next flush writes back what it holds in memory, as the in-place write
+     * did before the rename. That is safe because a read validates every
+     * entry against the directory fingerprint and file mtimes.
+     */
+    public function test_a_live_instance_saves_its_entries_after_another_clears(): void
+    {
+        $live = new PhpScanIndexCache($this->cacheFile);
+        $live->put($this->liveDir, $this->fingerprintOfLiveDir(), [$this->liveInfo()]);
+
+        new PhpScanIndexCache($this->cacheFile)->clear();
+        $live->save();
+
+        self::assertNotNull(new PhpScanIndexCache($this->cacheFile)->get($this->liveDir));
     }
 
     /**
