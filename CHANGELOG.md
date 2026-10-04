@@ -14,7 +14,6 @@ Tooling:
 - A `phel build` output finds a classpath-absolute `(load "/extra")`. The lookup searched only the load classpath, which nothing publishes in a built app, so it failed with "Cannot locate extra for (load ...)" where `phel run` worked. (#3542)
 - A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
 - `.phel/` ignores itself after `phel run`, `phel build` and every other command. Only `phel lint`, `phel test`, the REPL and the error log wrote `.phel/.gitignore`, so a fresh project showed over a thousand untracked files under `.phel/`. (#3537)
-- Two `phel` processes on one project (an editor's LSP and `phel test`, or `phel watch` and a manual run) no longer crash with a `ParseError` in `.phel/cache/namespace-cache.php`. The namespace cache, the scan index and the compiled-code index (`compiled-index.php`) were rewritten in place, so a reader could include a half-written file, and a run killed mid-write left it torn. They are now replaced by a rename, and a torn file left by an older version reads as empty. (#3553)
 
 PHP API:
 
