@@ -14,7 +14,12 @@ composer install --no-dev --optimize-autoloader
 ./vendor/bin/phel build --report
 ```
 
-`phel build` writes compiled PHP into the output directory (default `out/`).
+`phel build` writes compiled PHP into the output directory (default `out/`),
+plus `out/index.php`, the entry point for the namespace `phel-config.php` names
+(`http-json-api.entry`). `public/index.php` serves `out/index.php` once it
+exists, and falls back to `\Phel::run(...)` before the first build. Delete `out/`
+(or rerun `phel build`) after editing `src/`, or the server keeps serving the
+last build.
 `--report` prints the namespace count, per-namespace compiled size, total size,
 and build time so you can spot bloat and confirm CI produced the artifact:
 
@@ -50,7 +55,8 @@ opcache.enable=1
 opcache.validate_timestamps=0   ; immutable image: never stat files
 opcache.memory_consumption=256
 opcache.max_accelerated_files=20000
-opcache.preload=/app/out/main.php   ; optional: preload the built entry
+opcache.preload=/app/vendor/phel-lang/phel-lang/build/preload.php   ; optional: preload the runtime
+opcache.preload_user=www-data
 ```
 
 With `validate_timestamps=0` you must rebuild the image (or `opcache_reset()`)
@@ -60,7 +66,8 @@ to pick up new code — exactly what you want for an immutable deploy.
 
 See the `Dockerfile` next to this guide. The build stage installs Composer
 dependencies and runs `phel build`; the runtime stage copies only PHP, the
-built output, and the no-dev `vendor/`:
+built output, and the no-dev `vendor/`. `src/` stays behind: the built app
+does not read it.
 
 ```bash
 docker build -t my-phel-api .
@@ -90,8 +97,9 @@ server {
 }
 ```
 
-Each request boots fresh: `index.php` requires the built output, opcache keeps
-it hot. No per-request compilation once the project is built.
+Each request boots fresh: `index.php` requires `out/index.php`, which boots the
+runtime and runs the compiled entry namespace; opcache keeps it hot. No
+per-request compilation once the project is built.
 
 ## 6. Worker mode (FrankenPHP / RoadRunner)
 

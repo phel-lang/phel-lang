@@ -1,0 +1,9 @@
+(ns entrye2e.main
+  (:require phel.edn :as edn))
+
+(println "read-string:" (read-string "(+ 1 2)"))
+(let [p (promise)]
+  (deliver p 42)
+  (println "promise:" @p))
+(println "eval:" (eval '(+ 1 2)))
+(println "edn:" (edn/read-string "{:a 1}"))
