@@ -165,6 +165,16 @@ pairs, not an associative array, and that has not changed either:
 
 Tracked in [#3076](https://github.com/phel-lang/phel-lang/issues/3076).
 
+## Key-first map destructuring
+
+Deprecated in 0.51.0 ([#3115](https://github.com/phel-lang/phel-lang/issues/3115)).
+Binding-first is the Clojure order; key-first keeps working through 1.x and
+reports under `--warn-deprecations`.
+
+```phel
+(let [{:a x} m] x)                    (let [{x :a} m] x)
+```
+
 ## Deprecating your own definitions
 
 The mechanism is not phel-specific. Any `def`/`defn` carrying
