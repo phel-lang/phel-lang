@@ -88,7 +88,7 @@ Breaking for a public symbol, major only:
 - removing a class, interface, method, constant or public property
 - narrowing a parameter type, adding a required parameter, reordering parameters
 - widening a return type, or changing it to an unrelated type
-- adding a method to an interface, or making an existing method abstract
+- adding a method to an interface outside `Phel\Shared\Facade\`, or making an existing method abstract
 - changing a class from non-`final` to `final`, or removing a public constructor
 
 Not breaking, fine in a minor or patch:
@@ -96,11 +96,15 @@ Not breaking, fine in a minor or patch:
 - adding a class, or a method to a `final` class
 - adding an optional parameter at the end of a signature
 - widening a parameter type, narrowing a return type
+- adding a method to an interface under `Phel\Shared\Facade\`
 - any change to an `@internal` symbol
 
-Interfaces under `Phel\Shared\Facade\` are the one place where adding a method
-bites implementers rather than callers. The changelog labels those
-**BREAKING (PHP API, implementers only)**.
+Interfaces under `Phel\Shared\Facade\` are a contract for callers and type
+hints, not for implementers. Every cross-module call goes through them (ADR
+0003), so they gain methods in most minor releases, and each one is implemented
+only by Phel's own facade. Implementing one outside Phel is unsupported. The
+changelog still labels such an addition **BREAKING (PHP API, implementers
+only)**, so anyone who implemented one anyway sees it.
 
 ### How it is enforced
 
