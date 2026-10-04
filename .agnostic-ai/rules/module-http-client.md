@@ -12,7 +12,7 @@ Outbound HTTP for `phel.http-client` via PHP's built-in stream context (no cURL/
 
 | Class::method | Behavior |
 |---|---|
-| `StreamTransport::send(method, url, headers, ?body, options): array` | HTTP request via stream context. Returns `{status, headers, body, version, reason}`. Throws `RuntimeException` on transport failure. |
+| `StreamTransport::send(method, url, headers, ?body, options): array` | HTTP request via stream context. Returns `{status, headers, body, version, reason}`. Throws `InvalidArgumentException` for a URL or redirect target that is not http or https, `RuntimeException` on transport failure or more than 20 redirects. |
 | `ResponseParser::parse(rawHeaders): array` | Parses PHP `$http_response_header` into `{status, version, reason, headers}`. Internal helper of `StreamTransport`; not called from Phel. |
 
 ### `send` options (all keys optional)
@@ -20,7 +20,7 @@ Outbound HTTP for `phel.http-client` via PHP's built-in stream context (no cURL/
 | Key | Default | Notes |
 |---|---|---|
 | `timeout` | `30.0` | Coerced via `ScalarCoercion::toFloat` (numeric strings accepted) |
-| `follow_redirects` | `true` | Sets `follow_location` |
+| `follow_redirects` | `true` | Followed by `send`, not the stream wrapper: a redirect to another origin keeps only `accept`, `accept-encoding`, `accept-language`, `user-agent` and `content-type`; a 303, or a 301/302 after a POST, continues as a GET without the body |
 | `verify_ssl` | `true` | Sets `verify_peer` + `verify_peer_name` |
 
 ## Dependencies
