@@ -67,6 +67,20 @@ final class CacheClearerTest extends TestCase
         self::assertFalse(is_link($this->root . '/tmp'));
     }
 
+    public function test_a_directory_reached_through_a_symlinked_parent_is_still_cleared(): void
+    {
+        // A link above the configured dir is part of the path the user chose
+        // (macOS reaches its temp dir through /var -> /private/var); only a
+        // link at the configured dir itself is refused.
+        mkdir($this->root . '/real/cache', 0o755, true);
+        file_put_contents($this->root . '/real/cache/index.php', '<?php');
+        symlink($this->root . '/real', $this->root . '/via');
+
+        new CacheClearer($this->root . '/tmp', $this->root . '/via/cache', $this->root . '/opcache')->clearAll();
+
+        self::assertDirectoryDoesNotExist($this->root . '/real/cache');
+    }
+
     public function test_a_symlinked_opcache_directory_is_left_alone(): void
     {
         mkdir($this->root . '/elsewhere');
