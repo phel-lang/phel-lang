@@ -15,6 +15,7 @@ use Phel\Shared\Facade\FilesystemFacadeInterface;
 use Phel\Shared\VersionResolver;
 use Symfony\Component\Console\Command\LazyCommand;
 use Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
+use Symfony\Component\Console\Input\InputDefinition;
 
 /**
  * @extends AbstractFactory<AbstractConfig>
@@ -62,9 +63,12 @@ final class ConsoleFactory extends AbstractFactory
         return new VersionResolver();
     }
 
-    public function createArgvInputSanitizer(): ArgvInputSanitizer
+    public function createArgvInputSanitizer(InputDefinition $applicationDefinition): ArgvInputSanitizer
     {
-        return new ArgvInputSanitizer();
+        return new ArgvInputSanitizer(
+            $this->createCommandLoader()->get('run'),
+            $applicationDefinition,
+        );
     }
 
     /**
