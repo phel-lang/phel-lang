@@ -16,6 +16,7 @@ Tooling:
 - A `phel build` output finds a classpath-absolute `(load "/extra")`. The lookup searched only the load classpath, which nothing publishes in a built app, so it failed with "Cannot locate extra for (load ...)" where `phel run` worked. (#3542)
 - `phel cache:warm --help` shows `phel cache:warm` examples and no longer sends you to `bin/gacela` and `gacela.php`. `phel doctor` points at `phel cache:clear`; it used to name a `phel clear-cache` command that does not exist. (#3537)
 - A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
+- `.phel/` ignores itself after `phel run`, `phel build` and every other command. Only `phel lint`, `phel test`, the REPL and the error log wrote `.phel/.gitignore`, so a fresh project showed over a thousand untracked files under `.phel/`. (#3537)
 
 PHP API:
 

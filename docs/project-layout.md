@@ -1,12 +1,13 @@
 # Project Layout
 
 Phel writes per-project runtime state under a single `.phel/` directory at the
-project root. It is created lazily on first use and auto-ignored by Git via a
-self-seeded `.phel/.gitignore` (`*`).
+project root. It is created lazily on first use, by every command, and
+auto-ignored by Git via a self-seeded `.phel/.gitignore` (`*`).
 
 | Path                            | Owner            | Purpose                              |
 | ------------------------------- | ---------------- | ------------------------------------ |
 | `.phel/cache/`                  | Build / compiler | Namespace + compiled-code cache      |
+| `.phel/opcache/`                | `bin/phel`       | OPcache file cache; `phel cache:clear` empties it |
 | `.phel/lint-cache/index.json`   | Lint             | Per-file diagnostic cache            |
 | `.phel/last-failed.txt`         | Test runner      | Backing file for `phel test --last-failed` |
 | `.phel/repl-history`            | REPL             | Readline history |
