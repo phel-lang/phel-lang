@@ -264,6 +264,7 @@ final readonly class Phel\Config\PhelConfig implements JsonSerializable
   public function withTestDirs(array $list): Phel\Config\PhelConfig
   public function withVendorDir(string $dir): Phel\Config\PhelConfig
   public function withWarnDeprecations(bool $flag = true): Phel\Config\PhelConfig
+  public static function defaultTempDir(): string
   public static function forProject(Phel\Config\ProjectLayout $layout = Phel\Config\ProjectLayout::Flat, string $mainNamespace = ''): Phel\Config\PhelConfig
 
 final class Phel\Config\PhelConfigValidator
@@ -1875,6 +1876,7 @@ final class Phel\Shared\Exceptions\FileException extends RuntimeException
   public static function canNotCreateDirectory(string $directory): Phel\Shared\Exceptions\FileException
   public static function canNotCreateFile(string $filename): Phel\Shared\Exceptions\FileException
   public static function directoryIsNotWritable(string $directory): Phel\Shared\Exceptions\FileException
+  public static function directoryIsOwnedByAnotherUser(string $directory): Phel\Shared\Exceptions\FileException
 
 final class Phel\Shared\Exceptions\Hint\ArgumentCountHint implements Phel\Shared\Exceptions\Hint\ExceptionHintInterface
   public function appliesTo(Throwable $e): bool

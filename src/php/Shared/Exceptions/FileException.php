@@ -22,4 +22,9 @@ final class FileException extends RuntimeException
     {
         return new self('Directory is not writable: ' . $directory);
     }
+
+    public static function directoryIsOwnedByAnotherUser(string $directory): self
+    {
+        return new self('Directory is owned by another user: ' . $directory);
+    }
 }

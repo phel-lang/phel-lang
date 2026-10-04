@@ -35,7 +35,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::IGNORE_WHEN_BUILDING => [],
             PhelConfig::NO_CACHE_WHEN_BUILDING => [],
             PhelConfig::KEEP_GENERATED_TEMP_FILES => false,
-            PhelConfig::TEMP_DIR => sys_get_temp_dir() . '/phel/tmp',
+            PhelConfig::TEMP_DIR => PhelConfig::defaultTempDir(),
             PhelConfig::FORMAT_DIRS => ['src', 'tests'],
             PhelConfig::FORMAT_EXCLUDE => [],
             PhelConfig::APP_MODULE_PATHS => [],

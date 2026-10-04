@@ -54,6 +54,19 @@ final class CacheClearerTest extends TestCase
         self::assertDirectoryDoesNotExist($this->root . '/cache');
     }
 
+    public function test_a_symlinked_directory_loses_the_link_and_keeps_its_target(): void
+    {
+        mkdir($this->root . '/elsewhere');
+        file_put_contents($this->root . '/elsewhere/keep.txt', 'mine');
+        $this->removeDir($this->root . '/tmp');
+        symlink($this->root . '/elsewhere', $this->root . '/tmp');
+
+        new CacheClearer($this->root . '/tmp', $this->root . '/cache', $this->root . '/opcache')->clearAll();
+
+        self::assertFileExists($this->root . '/elsewhere/keep.txt');
+        self::assertFalse(is_link($this->root . '/tmp'));
+    }
+
     public function test_leaves_the_opcache_directory_present_and_empty(): void
     {
         // PHP aborts at startup when opcache.file_cache points at a missing

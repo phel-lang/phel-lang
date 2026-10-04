@@ -51,6 +51,12 @@ final readonly class CacheClearer
 
     private function deleteDirectory(string $dir): bool
     {
+        // A configured dir that is a symlink loses the link only: following it
+        // would empty whatever it points at, maybe another user's files.
+        if (is_link($dir)) {
+            return @unlink($dir);
+        }
+
         if (!is_dir($dir)) {
             return false;
         }

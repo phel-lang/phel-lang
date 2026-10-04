@@ -7,6 +7,7 @@ namespace Phel\Nrepl\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel;
+use Phel\Nrepl\Domain\BindAddress;
 use Phel\Nrepl\Infrastructure\NreplSocketServer;
 use Phel\Nrepl\NreplConfig;
 use Phel\Nrepl\NreplFacade;
@@ -18,6 +19,7 @@ use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -119,6 +121,15 @@ HELP)
             $this->registerSignalHandlers($server);
 
             $output->writeln(sprintf('nREPL server started on %s:%d', $host, $server->port()));
+
+            if (!BindAddress::isLoopback($host)) {
+                $stderr = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
+                $stderr->writeln(sprintf(
+                    '<comment>Warning: nREPL has no authentication. Anyone who can reach %s:%d can run code as you. Bind 127.0.0.1 and use an SSH tunnel to reach it from another machine.</comment>',
+                    $host,
+                    $server->port(),
+                ));
+            }
 
             // A directory we cannot write to costs editors their automatic
             // discovery, nothing more: the server is still usable through an
