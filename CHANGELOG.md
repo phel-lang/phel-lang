@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 Tooling:
 
+- `phel run --stack-trace --debug app.phel` runs `app.phel`. It used to read `--debug` as the namespace, because `phel run` only knew `-t`, `--with-time` and `--clear-opcache` before the path. Every option `run` declares now works there, and `--warn-deprecations` after the path reaches the script instead of being stripped. (#3537)
+
 Tooling:
 
 - `phel build` in a project that installs Phel with Composer no longer warns that every stdlib namespace is defined in multiple locations, listing one file twice. Phel's own source dir is both a source and a vendor dir there, and since 0.54 the build read each of its files twice. (#3549)
