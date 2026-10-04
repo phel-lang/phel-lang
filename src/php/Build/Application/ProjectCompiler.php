@@ -187,6 +187,13 @@ final readonly class ProjectCompiler
      */
     private function harvestSecondaries(array $namespaceInformation, string $dest, array $srcDirectories): void
     {
+        $primaryFiles = [];
+        foreach ($namespaceInformation as $info) {
+            if ($info->isPrimaryDefinition()) {
+                $primaryFiles[$info->getNamespace()] = $info->getFile();
+            }
+        }
+
         foreach ($namespaceInformation as $info) {
             if ($info->isPrimaryDefinition()) {
                 continue;
@@ -196,7 +203,7 @@ final readonly class ProjectCompiler
                 continue;
             }
 
-            $this->secondaryFileHarvester->harvest($info, $dest, $srcDirectories);
+            $this->secondaryFileHarvester->harvest($info, $dest, $srcDirectories, $primaryFiles[$info->getNamespace()] ?? null);
         }
     }
 

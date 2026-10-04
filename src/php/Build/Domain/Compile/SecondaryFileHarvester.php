@@ -51,8 +51,9 @@ final readonly class SecondaryFileHarvester
 
     /**
      * @param list<string> $sourceDirectories
+     * @param string|null  $primaryFile       source file of the secondary's `(ns X)`
      */
-    public function harvest(NamespaceInformation $secondary, string $destDir, array $sourceDirectories): void
+    public function harvest(NamespaceInformation $secondary, string $destDir, array $sourceDirectories, ?string $primaryFile = null): void
     {
         $sourceFile = $secondary->getFile();
         $sourceCode = $this->fileIo->getContents($sourceFile);
@@ -65,7 +66,7 @@ final readonly class SecondaryFileHarvester
             return;
         }
 
-        $targetPath = $destDir . '/' . $this->targetPathResolver->resolve($secondary, $sourceDirectories);
+        $targetPath = $destDir . '/' . $this->targetPathResolver->resolve($secondary, $sourceDirectories, $primaryFile);
         $this->ensureDir(dirname($targetPath));
         if ($this->stripSymbolMeta) {
             // Same artifact-only strip as FileCompiler: the cached/stored
