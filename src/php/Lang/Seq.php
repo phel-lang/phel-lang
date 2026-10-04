@@ -462,7 +462,7 @@ final class Seq
         }
 
         if (is_string($value) && is_numeric($value)) {
-            return $value + 0;
+            return filter_var($value, FILTER_VALIDATE_INT) !== false ? (int) $value : (float) $value;
         }
 
         return $value;
