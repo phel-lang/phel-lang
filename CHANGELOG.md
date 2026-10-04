@@ -97,7 +97,7 @@ Tooling:
 - `phel doc --format json` and the API reference link special forms to their current guide sections, and `:see-also` entries name real fns. (#3371)
 - `build/preload.php` preloads every module's pillars, found at startup. The hand-kept list missed eight modules and named three deleted files. (#3410)
 - A top-level `(require phel.string :as s)` in a file fails with `require is only available in the REPL; use (:require ...) inside ns`. It used to suggest `Did you mean 'reduce'?`. (#3476)
-- `phel init` writes a `composer.json` requiring the running Phel, such as `"phel-lang/phel-lang": "^1.0.0-rc1"`, so the `composer install` step it prints works. An existing `composer.json` is kept, even with `--force`. (#3472)
+- `phel init` writes a `composer.json` requiring the running Phel, such as `"phel-lang/phel-lang": "^0.54.0"`, so the `composer install` step it prints works. An existing `composer.json` is kept, even with `--force`. (#3472)
 - A failing `(is (= expected actual))` prints `expected:` and `actual:`, and its diff names the path of each change inside nested maps and vectors: `~ [:b :c 2] 3 -> 4`, `+ [:b :e] 5`, `- [:x] 1`. The diff used to repeat the whole subtree under the top-level key. A failing `(is (not (= a b)))` now says `but is: = to` instead of `but is not: = to`. (#3471)
 - `phel eval` and `phel run` print values and errors without colour codes when stdout is not a terminal, as in `phel eval '#{1 2}' | cat`. `--ansi` forces colour; `--no-ansi` and `NO_COLOR` now remove it from printed values too. (#3462)
 - `phel lint`, `phel analyze`, the LSP and the api-daemon report `(php/new \DateTime)`, `php/->`, `php/::` and `set-var` as `PHEL012`, as `phel run` does. They used to report the file as clean. (#3456)
