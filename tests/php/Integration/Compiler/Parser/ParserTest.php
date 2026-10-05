@@ -209,6 +209,24 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function test_tilde_outside_quasiquote_is_a_quote_node(): void
+    {
+        $node = $this->parse('~a');
+
+        self::assertInstanceOf(QuoteNode::class, $node);
+        self::assertSame(Token::T_UNQUOTE, $node->getTokenType());
+        self::assertSame('~a', $node->getCode());
+    }
+
+    public function test_tilde_splice_outside_quasiquote_is_a_quote_node(): void
+    {
+        $node = $this->parse('~@a');
+
+        self::assertInstanceOf(QuoteNode::class, $node);
+        self::assertSame(Token::T_UNQUOTE_SPLICING, $node->getTokenType());
+        self::assertSame('~@a', $node->getCode());
+    }
+
     public function test_var_quote(): void
     {
         self::assertEquals(

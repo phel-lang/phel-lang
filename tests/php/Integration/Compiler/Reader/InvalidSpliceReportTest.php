@@ -33,6 +33,34 @@ final class InvalidSpliceReportTest extends AbstractCompilerRuntimeTestCase
         self::assertSame($expected, $this->report('`~@xs'));
     }
 
+    public function test_unquote_outside_quasiquote_is_a_located_reader_error(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL210] ~ is not valid outside quasiquote
+            in splice.phel:1
+
+            1| ~xs
+               ^^^
+
+            REPORT;
+
+        self::assertSame($expected, $this->report('~xs'));
+    }
+
+    public function test_splice_outside_quasiquote_is_a_located_reader_error(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL210] ~@ is not valid outside quasiquote
+            in splice.phel:1
+
+            1| ~@xs
+               ^^^^
+
+            REPORT;
+
+        self::assertSame($expected, $this->report('~@xs'));
+    }
+
     private function report(string $phelCode): string
     {
         try {

@@ -19,8 +19,8 @@ The lexer's token set decides whether a file parses at all. Every entry is froze
 | `#{` | set |
 | `'` | quote |
 | `` ` `` | quasiquote |
-| `~` | unquote |
-| `~@` | unquote-splicing |
+| `~` | unquote, only inside quasiquote |
+| `~@` | unquote-splicing, only inside a collection within quasiquote |
 | `^` | metadata |
 | `@` | deref |
 | `,` | whitespace (**not** unquote) |
@@ -35,6 +35,11 @@ The lexer's token set decides whether a file parses at all. Every entry is froze
 | `\a` `\space` `\newline` `\tab` `\return` `\formfeed` `\backspace` `\uNNNN` `\oNNN` | character literals |
 | `"…"` | string, with `\` escapes |
 | `foo#` | auto-gensym inside a quasiquote |
+
+Outside quasiquote, `~` and `~@` fail with `PHEL210` at the marker. An unquote's
+operand is read one quasiquote level out; another unquote there needs another
+enclosing quasiquote. A splice directly under quasiquote, without a collection,
+fails with `PHEL202`.
 
 Removed in the run-up to 1.0 and **not** coming back: `#| |#` block comments, a
 bare `#` comment, `|()` short functions, `,` and `,@` as unquote, `foo$`

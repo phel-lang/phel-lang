@@ -41,6 +41,7 @@ use Phel\Shared\Parser\Node\WhitespaceNode;
 use SplStack;
 use Throwable;
 
+use function in_array;
 use function sprintf;
 use function str_starts_with;
 
@@ -67,9 +68,6 @@ final readonly class Parser implements ParserInterface
         Token::T_SYMBOLIC_NUMBER => true,
         Token::T_TAGGED_LITERAL => true,
     ];
-
-    /** @var SplStack<bool> */
-    private SplStack $quasiquoteStack;
 
     /**
      * The delimiters of the forms currently being read, innermost last. A
@@ -102,7 +100,6 @@ final readonly class Parser implements ParserInterface
         private ExpressionParserFactoryInterface $parserFactory,
         GlobalEnvironmentInterface $globalEnvironment,
     ) {
-        $this->quasiquoteStack = new SplStack();
         $this->openForms = new SplStack();
         $this->atomParser = $parserFactory->createAtomParser($globalEnvironment);
         $this->listParser = $parserFactory->createListParser($this);
@@ -171,24 +168,8 @@ final readonly class Parser implements ParserInterface
 
             $tokenType = $token->getType();
 
-            if ($tokenType === Token::T_QUASIQUOTE) {
-                $this->enterQuasiquote();
-                $node = $this->parseQuoteNode($token, $tokenStream);
-                $this->leaveQuasiquote();
-
-                return $node;
-            }
-
-            if ($tokenType === Token::T_UNQUOTE || $tokenType === Token::T_UNQUOTE_SPLICING) {
-                if (!$this->isInsideQuasiquote()) {
-                    return $this->parseCommaNode($tokenStream);
-                }
-
-                $this->leaveQuasiquote();
-                $node = $this->parseQuoteNode($token, $tokenStream);
-                $this->enterQuasiquote();
-
-                return $node;
+            if (in_array($tokenType, [Token::T_QUASIQUOTE, Token::T_UNQUOTE, Token::T_UNQUOTE_SPLICING], true)) {
+                return $this->parseQuoteNode($token, $tokenStream);
             }
 
             if ($this->shouldTokenStreamGoNext($tokenType)) {
@@ -506,34 +487,9 @@ final readonly class Parser implements ParserInterface
             ->parseCondSplicing($tokenStream, $openToken);
     }
 
-    private function parseCommaNode(TokenStream $tokenStream): CommaNode
-    {
-        $token = $tokenStream->current();
-        $tokenStream->next();
-
-        return CommaNode::createWithToken($token);
-    }
-
     private function parseMetaNode(TokenStream $tokenStream): MetaNode
     {
         return $this->metaParser
             ->parse($tokenStream);
-    }
-
-    private function isInsideQuasiquote(): bool
-    {
-        return !$this->quasiquoteStack->isEmpty();
-    }
-
-    private function enterQuasiquote(): void
-    {
-        $this->quasiquoteStack->push(true);
-    }
-
-    private function leaveQuasiquote(): void
-    {
-        if (!$this->quasiquoteStack->isEmpty()) {
-            $this->quasiquoteStack->pop();
-        }
     }
 }
