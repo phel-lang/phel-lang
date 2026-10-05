@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\AssocConjSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\FixedAritySlots;
@@ -86,6 +87,13 @@ final readonly class CallEmitter implements NodeEmitterInterface
         assert($node instanceof CallNode);
 
         $fnNode = $node->getFn();
+        if ($fnNode instanceof PhpVarNode && $fnNode->getName() === '=&'
+            && $node->getEnv()->isContext(NodeEnvironment::CONTEXT_RETURN)) {
+            $this->emitReferenceAssignmentReturn($node, $fnNode);
+
+            return;
+        }
+
         $isYield = $fnNode instanceof PhpVarNode && $fnNode->getName() === 'yield';
 
         if (!$isYield) {
@@ -103,6 +111,20 @@ final readonly class CallEmitter implements NodeEmitterInterface
         }
 
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+    }
+
+    private function emitReferenceAssignmentReturn(CallNode $node, PhpVarNode $fnNode): void
+    {
+        // PHP 8.6 OPcache pass 5 corrupts a directly returned reference assignment.
+        $resultSym = Symbol::gen('reference_assignment_');
+        $location = $node->getStartSourceLocation();
+        $this->outputEmitter->emitPhpVariable($resultSym, $location);
+        $this->outputEmitter->emitStr(' = ', $location);
+        $this->emitPhpVarNodeInfix($node, $fnNode);
+        $this->outputEmitter->emitLine(';', $location);
+        $this->outputEmitter->emitStr('return ', $location);
+        $this->outputEmitter->emitPhpVariable($resultSym, $location);
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $location);
     }
 
     private function emitPhpVarNodeInfix(CallNode $node, PhpVarNode $fnNode): void

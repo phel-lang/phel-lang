@@ -52,6 +52,8 @@ final readonly class DefEnumSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::wrongArgumentType("First argument of 'defenum", 'Symbol', $name, $list);
         }
 
+        ReservedDeclarationName::assertType($name);
+
         // Register the enum's bare name so it resolves to the namespaced PHP
         // class (like `definterface`), enabling `EnumName/case` access.
         $this->analyzer->addInterface($this->analyzer->getNamespace(), $name);

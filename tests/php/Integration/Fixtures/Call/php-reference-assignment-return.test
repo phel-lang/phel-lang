@@ -1,0 +1,7 @@
+--PHEL--
+(fn [left right] (php/=& left right))
+--PHP--
+(function($left, $right) {
+  $reference_assignment_1 = ($left =& $right);
+  return $reference_assignment_1;
+});

@@ -30,6 +30,20 @@ final class DefEnumSymbolTest extends TestCase
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
+    public function test_reserved_name_is_rejected_before_registering_the_enum(): void
+    {
+        $this->analyzer = $this->createMock(AnalyzerInterface::class);
+        $this->analyzer->expects($this->never())->method('addInterface');
+        $this->expectException(AbstractLocatedException::class);
+        $this->expectExceptionMessage('Declaration name IS is reserved PHP syntax');
+
+        $this->analyze(Phel::list([
+            Symbol::create(Symbol::NAME_DEF_ENUM),
+            Symbol::create('IS'),
+            Keyword::create('a'),
+        ]));
+    }
+
     public function test_with_no_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);

@@ -40,6 +40,8 @@ final class DefExceptionSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::wrongArgumentType("First argument of 'defexception", 'Symbol', $name, $list);
         }
 
+        ReservedDeclarationName::assertType($name);
+
         $parentSymbol = Symbol::create('\\Exception');
         if (count($list) === 3) {
             $parentSymbol = $list->get(2);

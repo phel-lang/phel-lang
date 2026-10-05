@@ -527,7 +527,7 @@ final class AtomParserTest extends TestCase
         $node = $parser->parse(new Token(Token::T_ATOM, '0xFFFFFFFFFFFFFFFF', $start, $end));
 
         self::assertInstanceOf(NumberNode::class, $node);
-        self::assertSame(hexdec('FFFFFFFFFFFFFFFF'), $node->getValue());
+        self::assertSame(2.0 ** 64 - 1, $node->getValue());
     }
 
     public function test_parse_radix_number_is_case_insensitive(): void

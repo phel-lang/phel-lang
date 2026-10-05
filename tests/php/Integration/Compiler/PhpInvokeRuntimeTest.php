@@ -10,6 +10,16 @@ use Phel\Shared\CompileOptions;
 
 final class PhpInvokeRuntimeTest extends AbstractCompilerRuntimeTestCase
 {
+    public function test_tail_reference_assignment_returns_the_bound_value_without_mutating_captured_locals(): void
+    {
+        $result = $this->compilerFacade->eval(
+            '(let [left 1 right 2 bind (fn [] (php/=& left right))] [(bind) left right])',
+            new CompileOptions(),
+        );
+
+        self::assertSame([2, 1, 2], $result->toArray());
+    }
+
     public function test_it_calls_a_method_whose_name_is_a_runtime_value(): void
     {
         $result = $this->compilerFacade->eval(

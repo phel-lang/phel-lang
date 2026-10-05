@@ -47,6 +47,8 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::wrongArgumentType("First argument of 'defstruct", 'Symbol', $structSymbol, $list);
         }
 
+        ReservedDeclarationName::assertType($structSymbol);
+
         $structParams = $list->get(2);
         if (!($structParams instanceof PersistentVectorInterface)) {
             throw AnalyzerException::wrongArgumentType("Second argument of 'defstruct", 'Vector', $structParams, $list);

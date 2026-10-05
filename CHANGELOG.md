@@ -41,6 +41,7 @@ PHP API:
 
 Compiler:
 
+- **BREAKING**: Type declarations named `let` or `is`, and interface constants named `let`, `is` or `namespace`, fail with a compile error regardless of case. Choose another name; these declarations otherwise produce reserved PHP syntax on PHP 8.6. (#3522)
 - **BREAKING**: `recur` inside a `foreach`, `doseq`, `dotimes` or `dofor` body fails with `PHEL010`. It used to rebind the enclosing `loop` or fn and keep iterating the inner loop instead of restarting: `(loop [i 0] (doseq [x [:a :b :c]] (when (< i 1) (recur 10))))` printed every element. Write the `loop` inside the body, or collect with `reduce`. (#3523)
 - A radix literal past `PHP_INT_MAX` reads as a float: `36rZZZZZZZZZZZZZZ` used to read as `PHP_INT_MAX`. Hex, binary and octal literals past `PHP_INT_MAX`, such as `-0x8000000000000000`, no longer raise a notice on PHP 8.6. (#3522)
 - A `fn`, `defn`, `defmacro`, protocol method or `extend-type` impl that declares one arity twice fails with `PHEL007` on the second parameter vector. It used to stop PHP with `Cannot redeclare ...::invokeArity1()`. (#3534)
@@ -53,7 +54,7 @@ Runtime:
 
 - **BREAKING**: `set`, `frequencies`, `group-by`, `distinct` and `union` see the `[key value]` entries of a map or struct, as in Clojure and as `vec`, `seq` and `(into #{} ...)` already do. They used to see the values: `(set {:a 1 :b 2})` was `#{1 2}` and is now `#{[:a 1] [:b 2]}`, `(frequencies {:a 1 :b 1})` was `{1 2}`, and `group-by` passed `f` a bare value. Use `(vals m)` where you relied on the values. (#3556 #3570)
 - **BREAKING**: `phel.http-client` accepts only `http` and `https` URLs, including redirect targets. `(hc/get "file:///etc/hosts")` and `php://` or `data://` URLs used to read local data through `file_get_contents`. A redirect to another origin keeps only `accept`, `accept-encoding`, `accept-language`, `user-agent` and `content-type`: custom headers such as the `x-api-key` `phel.ai` sends used to follow it. More than 20 redirects throw. (#3531)
-- On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. (#3522)
+- On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. A fn returning `(php/=& target value)` runs with OPcache's default optimizer; PHP 8.6 RC2 used to stop with `Invalid opcode 62/4/0`. (#3522)
 - `range` accepts a ratio, `BigInt` or `BigDecimal` bound or step, so `(repeat 1/2 :x)`, `(repeatedly 5/2 f)`, `(dotimes [i 5/2] ...)` and `(for [i :range [5/2]] i)` run as they do with a float. They used to fail with a `TypeError` from `Seq::range()`. (#3557)
 
 ## [0.54.0](https://github.com/phel-lang/phel-lang/compare/v0.53.0...v0.54.0) - 2026-10-04
