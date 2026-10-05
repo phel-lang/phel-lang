@@ -99,6 +99,7 @@ In build mode a call to a multi-arity global at a count with a fixed arity emits
 
 ## Key Constraints
 
+- Type declarations reject `let` and `is` case-insensitively before registering their names. Interface constants also reject `namespace`; `ReservedDeclarationName` keeps these PHP 8.6 constraints shared across the declaration analyzers.
 - Every special-form analyzer checks its argument count before reading an argument, via `AssertsFormArityTrait::assertArityAtLeast()`. `PersistentListInterface::get()` throws past the end, and that exception is about a list rather than about the form the user wrote: it reached them as `[PHEL403] Index out of bounds`, a runtime code, with no snippet. `SpecialFormArityTest` walks the `AnalyzePersistentList` registry and fails when a form raises anything but an `AnalyzerException` (#3297).
 
 - Never bypass a phase; each consumes only output of the previous.

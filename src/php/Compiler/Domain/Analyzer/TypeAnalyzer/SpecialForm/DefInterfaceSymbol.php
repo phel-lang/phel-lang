@@ -49,6 +49,8 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::wrongArgumentType("First argument of 'definterface", 'Symbol', $interfaceSymbol, $list);
         }
 
+        ReservedDeclarationName::assertType($interfaceSymbol);
+
         $this->analyzer->addInterface($this->analyzer->getNamespace(), $interfaceSymbol);
 
         /** @var PersistentListInterface<mixed> $rest */
@@ -146,6 +148,8 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         if (!$name instanceof Symbol) {
             throw AnalyzerException::withLocation('A :php/const name must be a symbol', $const, errorCode: ErrorCode::INTERFACE_ERROR);
         }
+
+        ReservedDeclarationName::assertConstant($name);
 
         if (count($const) !== 2) {
             throw AnalyzerException::withLocation('A :php/const must be (NAME value)', $const, errorCode: ErrorCode::INTERFACE_ERROR);
