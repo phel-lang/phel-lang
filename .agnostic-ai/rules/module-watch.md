@@ -8,7 +8,7 @@ scope: src/php/Watch
 
 Hot-reload file watcher: detects `.phel` changes and re-evaluates affected namespaces in dependency order.
 
-## Public API (Facade)
+## Internal tooling API (Facade)
 
 | Method | Purpose |
 |--------|---------|
@@ -18,6 +18,8 @@ Hot-reload file watcher: detects `.phel` changes and re-evaluates affected names
 The facade is production surface only. `WatchFactory::createFileWatcherBuilder()`, `createReloadOrchestrator()` and `createNamespaceResolver()` stay internal wiring; tests build those collaborators directly (`FileWatcherBuilderTest`, `ReloadOrchestratorTest`, `NamespaceResolverTest`) rather than going through the facade.
 
 CLI: `./bin/phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]` (`Infrastructure/Command/WatchCommand`).
+
+The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies (WatchProvider)
 

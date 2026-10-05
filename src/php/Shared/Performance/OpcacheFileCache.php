@@ -18,6 +18,7 @@ use function strlen;
 use function substr;
 
 /**
+ * @internal
  * Reads the on-disk layout of an OPcache file cache directory.
  *
  * OPcache stores one entry per compiled file at

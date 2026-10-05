@@ -9,6 +9,8 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lsp\Application\Rpc\LspServer;
 
 /**
+ * @internal
+ *
  * @extends AbstractFacade<LspFactory>
  */
 #[ServiceMap(method: 'getFactory', className: LspFactory::class)]

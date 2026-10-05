@@ -100,7 +100,11 @@ compiled namespaces. Opcache takes the warm load down again, which is why
 request (PHP-FPM) pays the load on every request; a worker runtime pays it
 once.
 
-Reproduce with any namespace of your own:
+These measurements use the internal `RunFacade` to isolate namespace loading.
+Its PHP API has no semver guarantee. A supported PHP host runs a namespace with
+`\Phel::run($projectRoot, 'app.main')` or loads a version-matched built entry point.
+
+Reproduce the internal measurement with any namespace of your own:
 
 ```php
 require 'vendor/autoload.php';
@@ -123,13 +127,14 @@ Three steps, each one measured below on the same machine as the table.
 of the warm project in another directory recompiled from scratch on its first
 load. Run the host's own
 load lines once, from the directory the host will serve from, as the last
-build step:
+build step. The supported public entry point is `\Phel::run()`; the internal
+measurement above uses `RunFacade` to isolate loading from bootstrap, argument
+setup and filesystem cleanup:
 
 ```php
 <?php // warmup.php, next to vendor/
 require __DIR__ . '/vendor/autoload.php';
-\Phel::bootstrap(__DIR__);
-new Phel\Run\RunFacade()->runNamespace('app.main'); // your entry namespace
+\Phel::run(__DIR__, 'app.main');
 ```
 
 ```bash

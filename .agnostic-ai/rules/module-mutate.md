@@ -12,7 +12,7 @@ runs against each mutant, and the ones the suite does not catch are listed.
 Infection covers `src/php/`; this covers `src/phel/` and any user's Phel
 project, with no PHP dependency added.
 
-## Public API (Facade)
+## Internal tooling API (Facade)
 
 | Method | Returns |
 |--------|---------|
@@ -22,6 +22,8 @@ project, with no PHP dependency added.
 | `run(MutationPlan, MutateOptions, list<Mutant>, ?Closure $onResult)` | `MutationReport`; throws `BaselineFailedException` (red suite) or `WorkerFailedException` (worker could not load) |
 | `detectWorkerCount()` | what `--parallel=auto` means here (`Shared\Process\CpuCountDetector`, capped at 8) |
 | `createWorkerSession()` | `MutantWorkerSession`, the worker side of the protocol for `phel _mutate-worker` |
+
+The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies
 

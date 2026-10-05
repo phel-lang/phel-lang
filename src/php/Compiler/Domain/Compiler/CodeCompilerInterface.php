@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Compiler;
 
-use Phel\Compiler\Domain\Emitter\EmitterResult;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\EmitterResult;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\FileException;

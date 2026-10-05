@@ -13,6 +13,7 @@ use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\Api\ProjectIndex;
 
 /**
+ * @internal
  * The semantic-analysis contract every editor-facing consumer talks to
  * (`Lint`, `Lsp`, `Nrepl`, `Run`, `Watch`).
  *

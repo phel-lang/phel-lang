@@ -62,9 +62,7 @@ final class PhelRegistryProxyTest extends TestCase
         DynamicScope::getInstance()->clear();
         Phel::addDefinition('ns', 'x', 'root');
 
-        // No dynamic binding ever established: the latch is off and the read
-        // returns the registry (root) value without consulting the scope.
-        self::assertFalse(DynamicScope::$anyActive);
+        self::assertFalse(DynamicScope::hasBoundName('ns', 'x'));
         self::assertSame('root', Phel::getDefinition('ns', 'x'));
     }
 

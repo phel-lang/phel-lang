@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Cache;
 
-use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
+use Phel\Shared\ReaderResult;
 
 /**
  * A cached reader result plus the number of gensyms its read phase consumed.

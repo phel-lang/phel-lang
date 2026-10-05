@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Shared\Performance;
 
 /**
+ * @internal
  * Builds the `-d` CLI flags that make a spawned PHP process share a compiled-code
  * cache with its siblings through an on-disk OPcache file cache.
  *

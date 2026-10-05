@@ -13,6 +13,9 @@ use Phel\Shared\NamespaceInformation;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+/**
+ * @internal
+ */
 interface RunFacadeInterface
 {
     public function runNamespace(string $namespace): void;

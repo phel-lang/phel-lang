@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang;
 
+use Phel\Lang\AbstractFn;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelVar;
+use Phel\Lang\ProfilerHookInterface;
 use Phel\Lang\Registry;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +30,27 @@ final class RegistryTest extends TestCase
     protected function tearDown(): void
     {
         $this->registry->restore($this->registrySnapshot);
+    }
+
+    public function test_installed_profiler_wraps_functions_until_removed(): void
+    {
+        $fn = $this->createStub(AbstractFn::class);
+        $wrapped = $this->createStub(AbstractFn::class);
+        $hook = $this->createMock(ProfilerHookInterface::class);
+        $hook->expects(self::once())->method('wrapFn')->with($fn)->willReturn($wrapped);
+
+        Registry::setProfilerHook($hook);
+        try {
+            self::assertSame($hook, Registry::getProfilerHook());
+            $this->registry->addDefinition('ns', 'profiled', $fn);
+            self::assertSame($wrapped, $this->registry->getDefinition('ns', 'profiled'));
+        } finally {
+            Registry::setProfilerHook(null);
+        }
+
+        self::assertNull(Registry::getProfilerHook());
+        $this->registry->addDefinition('ns', 'plain', $fn);
+        self::assertSame($fn, $this->registry->getDefinition('ns', 'plain'));
     }
 
     /**

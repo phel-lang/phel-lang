@@ -25,6 +25,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 /**
+ * @internal
+ *
  * @extends AbstractFacade<RunFactory>
  */
 #[ServiceMap(method: 'getFactory', className: RunFactory::class)]

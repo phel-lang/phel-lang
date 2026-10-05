@@ -15,7 +15,6 @@ use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ParserInterface;
-use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\TypeInterface;
@@ -26,6 +25,7 @@ use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\FileException;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
+use Phel\Shared\ReaderResult;
 
 use function is_object;
 

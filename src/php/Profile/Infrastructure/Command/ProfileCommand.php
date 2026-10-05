@@ -129,7 +129,7 @@ HELP)
     }
 
     /**
-     * Run the target file or namespace with `Registry::$profilerHook` installed,
+     * Run the target file or namespace with a profiler hook installed,
      * always clearing the hook in `finally`. The hook is global and not
      * reentrant, so this must not run inside another profiling context.
      *
@@ -139,7 +139,7 @@ HELP)
     {
         $runFacade = $this->getFactory()->getRunFacade();
         $session = $this->getFacade()->startSession();
-        Registry::$profilerHook = $session;
+        Registry::setProfilerHook($session);
 
         try {
             if (file_exists($path)) {
@@ -156,7 +156,7 @@ HELP)
 
             return null;
         } finally {
-            Registry::$profilerHook = null;
+            Registry::setProfilerHook(null);
         }
 
         return $session->stop();

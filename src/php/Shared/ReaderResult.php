@@ -2,13 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Parser\ReadModel;
+namespace Phel\Shared;
 
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 
-/**
- * @internal
- */
 final readonly class ReaderResult
 {
     public function __construct(

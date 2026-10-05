@@ -24,15 +24,16 @@ promise affordable, not a gap to fill later.
 ## Public PHP API
 
 A symbol is public if and only if it matches a rule below. Everything else in
-`src/php/` is internal, carries `@internal`, and may change in any release
-including a patch.
+`src/php/` is internal and carries `@internal`. Internal implementations and
+members may change in a patch; names used in public signatures have the opaque
+handle guarantee below.
 
 | # | Rule | Examples |
 |---|------|----------|
 | 1 | The `\Phel` runtime class | `Phel::vector()`, `Phel::bootstrap()` |
-| 2 | `Phel\<Module>\<Module>Facade` | `Phel\Compiler\CompilerFacade` |
+| 2 | `Phel\<Module>\<Module>Facade`, except the tooling facades below | `Phel\Compiler\CompilerFacade` |
 | 3 | `Phel\<Module>\<Module>FacadeInterface` | None since 0.53.0: every contract lives under `Phel\Shared\Facade\` |
-| 4 | Everything under `Phel\Shared\` | `Phel\Shared\Facade\CompilerFacadeInterface`, `Phel\Shared\CompileOptions` |
+| 4 | Everything under `Phel\Shared\`, except the plumbing below | `Phel\Shared\Facade\CompilerFacadeInterface`, `Phel\Shared\CompileOptions` |
 | 5 | Everything under `Phel\Lang\` | `Phel\Lang\Symbol`, `Phel\Lang\Collections\Map\PersistentMapInterface` |
 | 6 | Everything under `Phel\Config\` | `Phel\Config\PhelConfig`, `Phel\Config\ProjectLayout` |
 
@@ -42,12 +43,13 @@ must be rebuilt after changing the Phel version. Its `Phel\Phel` base stays
 internal, but the members it declares (`bootstrap()`, `run()`, `configFn()` among
 them) are reachable through the child and covered as part of `\Phel`.
 
-Rules 4 to 6 are whole namespaces rather than curated lists because they are what
-a consumer cannot avoid: values crossing the facade boundary (`Lang`), the
+Rules 4 to 6 cover namespaces, with the explicit Shared exceptions below,
+because they are what a consumer cannot avoid: values crossing the facade boundary (`Lang`), the
 contracts those facades speak in (`Shared`), and the object a project's
 `phel-config.php` constructs (`Config`).
 
 Why the rules take this shape:
+[ADR 0021](adr/0021-public-embedding-types-and-internal-tooling.md), which supersedes
 [ADR 0005](adr/0005-public-php-api-by-rule-and-snapshot.md).
 
 ### Diagnostic codes
@@ -72,14 +74,46 @@ What is *not* promised is the message text beside the code. Match on the code.
 
 ### Internal by construction
 
-Internal even when a public class returns it:
+The following remain internal even when a public class returns them:
 
 - `Phel\<Module>\Domain\`, `…\Application\`, `…\Infrastructure\`
 - `*Factory`, `*Config`, `*Provider` and `#[ServiceMap]` accessors (Gacela plumbing)
 - `Phel\<Module>\Transfer\` (cross-module transfers live in `Phel\Shared\Api\`)
 
-Depending on an internal symbol is not forbidden, it is unsupported. Reaching for
-one signals a missing facade method, which is worth an issue.
+An internal type named in a public signature is an **opaque handle**. A host may
+receive it from a public facade and pass it back to that facade. Its type name and
+that round trip remain covered by semver; constructing it, inspecting its members
+or extending it is unsupported. The snapshot pins those names through the public
+signatures. `Phel\Shared\EmitterResult`, `ReaderResult` and `BuildOptions` are
+public value objects, so a host can construct and inspect them.
+
+### Tooling and Shared plumbing
+
+The `Lint`, `Mutate`, `Profile`, `Run`, `Fiber`, `Lsp`, `Nrepl`, `Api`, `Balance`
+and `Watch` facades are internal CLI plumbing. Their `RunFacadeInterface` and
+`ApiFacadeInterface` contracts under `Phel\Shared\Facade\` are internal too.
+They remain callable, but their PHP signatures have no semver guarantee. Use
+`\Phel::run()` to run a namespace from a PHP host, or the public Compiler,
+Build and Interop facades for compilation and export.
+
+These Shared classes are internal despite their namespace:
+
+- `Phel\Shared\Performance\*`
+- `Phel\Shared\SourceMap\SupersededSourceMaps`
+- `Phel\Shared\Lint\LintRuleExplainerInterface`
+
+The same applies to these individual methods on otherwise public classes:
+`OptimizationLevel::pin()`, `NoColor::followOutput()`,
+`ClassNotFoundHint::javaClassHint()` and
+`FrameworkNamespaces::{clojureTarget,isPhel}()`.
+
+Each exception carries `@internal` and is excluded by the snapshot rules.
+Generated-code entry points such as `\Phel::fnSlot()`, `Destructure`,
+`Symbol::createGenerated()`, `BuildFacade::unresolvedRequireError()` and
+`ForeignFn` remain public.
+
+Depending on another internal member is unsupported. Reaching for one signals a
+missing public operation, which is worth an issue.
 
 ### What counts as a break
 
@@ -97,7 +131,8 @@ Not breaking, fine in a minor or patch:
 - adding an optional parameter at the end of a signature
 - widening a parameter type, narrowing a return type
 - adding a method to an interface under `Phel\Shared\Facade\`
-- any change to an `@internal` symbol
+- changes to an `@internal` implementation or member, while preserving opaque
+  handles named in public signatures
 
 Interfaces under `Phel\Shared\Facade\` are a contract for callers and type
 hints, not for implementers. Every cross-module call goes through them (ADR

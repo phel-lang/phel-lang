@@ -10,6 +10,8 @@ use Phel\Balance\Domain\BalanceResult;
 use Phel\Balance\Domain\Exception\BalanceSourceException;
 
 /**
+ * @internal
+ *
  * @extends AbstractFacade<BalanceFactory>
  */
 #[ServiceMap(method: 'getFactory', className: BalanceFactory::class)]

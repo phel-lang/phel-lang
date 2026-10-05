@@ -37,8 +37,9 @@ final class ClassNotFoundHint implements ExceptionHintInterface
     }
 
     /**
+     * @internal
      * The Phel replacement for a Java class Clojure code calls, also what
-     * `phel lint` names for a static call to it.
+     * `phel lint` names for a static call to it
      */
     public function javaClassHint(string $class): ?string
     {

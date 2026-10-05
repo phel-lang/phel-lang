@@ -15,6 +15,8 @@ use Phel\Lint\Transfer\LintResult;
 use Phel\Shared\Lint\LintRuleExplainerInterface;
 
 /**
+ * @internal
+ *
  * @extends AbstractFacade<LintFactory>
  */
 #[ServiceMap(method: 'getFactory', className: LintFactory::class)]

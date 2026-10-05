@@ -8,11 +8,11 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Build\BuildConfig;
 use Phel\Build\BuildFacade;
-use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\BuildReport;
 use Phel\Build\Domain\Compile\PhaseTimingReport;
 use Phel\Build\Infrastructure\Timing\PhaseTimingProfilerHook;
 use Phel\Lang\Registry;
+use Phel\Shared\BuildOptions;
 use Phel\Shared\ByteSize;
 use Phel\Shared\CompiledFile;
 use Phel\Shared\Exceptions\CompilerException;
@@ -98,7 +98,7 @@ HELP)
             ? new PhaseTimingProfilerHook()
             : null;
         if ($timingHook instanceof PhaseTimingProfilerHook) {
-            Registry::$profilerHook = $timingHook;
+            Registry::setProfilerHook($timingHook);
         }
 
         try {
@@ -123,7 +123,7 @@ HELP)
             $failed = true;
         } finally {
             if ($timingHook instanceof PhaseTimingProfilerHook) {
-                Registry::$profilerHook = null;
+                Registry::setProfilerHook(null);
             }
         }
 

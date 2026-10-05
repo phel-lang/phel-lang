@@ -30,48 +30,12 @@ final class DynamicScopeTest extends TestCase
         self::assertFalse($scope->hasAnyBinding(), 'fresh scope reports no active frames');
     }
 
-    public function test_any_active_latch_is_false_before_any_push(): void
-    {
-        // With no dynamic binding ever established, the latch stays false so
-        // the hot global-read path skips getInstance() + Fiber::getCurrent().
-        self::assertFalse(DynamicScope::$anyActive);
-
-        $scope = DynamicScope::getInstance();
-        // A read still resolves correctly while the latch is false.
-        self::assertFalse($scope->hasBinding('ns', 'x'));
-    }
-
-    public function test_any_active_latch_sets_on_push_and_stays_set_after_pop(): void
-    {
-        $scope = DynamicScope::getInstance();
-        self::assertFalse(DynamicScope::$anyActive);
-
-        $scope->pushFrame(['ns/x' => 1]);
-        self::assertTrue(DynamicScope::$anyActive, 'latch flips on first frame push');
-
-        // Conservative one-way latch: popping all frames does NOT reset it,
-        // so a binding live in any fiber can never be missed.
-        $scope->popFrame();
-        self::assertTrue(DynamicScope::$anyActive, 'latch stays set after pop');
-    }
-
-    public function test_any_active_latch_resets_only_on_clear(): void
-    {
-        $scope = DynamicScope::getInstance();
-        $scope->pushFrame(['ns/x' => 1]);
-        $scope->popFrame();
-        self::assertTrue(DynamicScope::$anyActive);
-
-        $scope->clear();
-        self::assertFalse(DynamicScope::$anyActive, 'clear() resets the latch');
-    }
-
-    public function test_bound_value_is_seen_inside_binding_with_latch_set(): void
+    public function test_bound_value_is_seen_inside_binding(): void
     {
         $scope = DynamicScope::getInstance();
 
         $seen = $scope->withFrame(['ns/x' => 'bound'], static function () use ($scope): mixed {
-            self::assertTrue(DynamicScope::$anyActive, 'latch is set inside the binding');
+            self::assertTrue(DynamicScope::hasBoundName('ns', 'x'));
             self::assertTrue($scope->hasAnyBinding());
 
             return $scope->getBinding('ns', 'x');
@@ -321,18 +285,17 @@ final class DynamicScopeTest extends TestCase
     {
         $scope = DynamicScope::getInstance();
 
-        self::assertSame([], DynamicScope::$boundNames, 'nothing is bound to begin with');
+        self::assertFalse(DynamicScope::hasBoundName('a.ns', 'x'));
 
         $scope->pushFrame(['a.ns/x' => 1]);
-        self::assertArrayHasKey('a.ns/x', DynamicScope::$boundNames);
-        self::assertArrayNotHasKey(
-            'a.ns/y',
-            DynamicScope::$boundNames,
+        self::assertTrue(DynamicScope::hasBoundName('a.ns', 'x'));
+        self::assertFalse(
+            DynamicScope::hasBoundName('a.ns', 'y'),
             'binding one var must not gate reads of another',
         );
 
         $scope->popFrame();
-        self::assertSame([], DynamicScope::$boundNames, 'popping releases the name');
+        self::assertFalse(DynamicScope::hasBoundName('a.ns', 'x'), 'popping releases the name');
     }
 
     public function test_bound_names_is_reference_counted_across_nested_frames(): void
@@ -341,17 +304,16 @@ final class DynamicScopeTest extends TestCase
 
         $scope->pushFrame(['a.ns/x' => 1]);
         $scope->pushFrame(['a.ns/x' => 2]);
-        self::assertSame(2, DynamicScope::$boundNames['a.ns/x']);
+        self::assertTrue(DynamicScope::hasBoundName('a.ns', 'x'));
 
         $scope->popFrame();
-        self::assertArrayHasKey(
-            'a.ns/x',
-            DynamicScope::$boundNames,
+        self::assertTrue(
+            DynamicScope::hasBoundName('a.ns', 'x'),
             'the outer frame still binds it',
         );
 
         $scope->popFrame();
-        self::assertSame([], DynamicScope::$boundNames);
+        self::assertFalse(DynamicScope::hasBoundName('a.ns', 'x'));
     }
 
     public function test_clear_resets_the_bound_names(): void
@@ -361,6 +323,6 @@ final class DynamicScopeTest extends TestCase
 
         $scope->clear();
 
-        self::assertSame([], DynamicScope::$boundNames);
+        self::assertFalse(DynamicScope::hasBoundName('a.ns', 'x'));
     }
 }

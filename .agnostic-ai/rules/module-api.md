@@ -8,7 +8,7 @@ scope: src/php/Api
 
 REPL autocompletion, function introspection/docs, and user-code semantic analysis (diagnostics, project index, jump-to-def, find-references, completion at point, PHP-interop tooling).
 
-## Public API (Facade)
+## Internal tooling API (Facade)
 
 | Method | Purpose |
 |--------|---------|
@@ -31,6 +31,8 @@ REPL autocompletion, function introspection/docs, and user-code semantic analysi
 Every method above except `createApiDaemon` is declared on `Phel\Shared\Facade\ApiFacadeInterface`, so `Lint`, `Lsp`, `Nrepl`, `Run` and `Watch` all inject the contract. `createApiDaemon` stays off it: `ApiDaemon` is this module's own stdio adapter, consumed only by `ApiDaemonCommand`, so exporting it would put an `Infrastructure` class in a leaf contract for no consumer.
 
 Every transfer the contract names lives in `Phel\Shared\Api`: `ProjectIndex`, `Definition`, `Location`, `Completion`, `Diagnostic`, `PhelFunction`, `CompletionResultTransfer`. `Transfer/` keeps only the PHP-interop reflection types (`PhpInteropCall`, `PhpInteropClass`, `PhpInteropContext`, `PhpInteropSignature`), which never cross the facade.
+
+The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies
 

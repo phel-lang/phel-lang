@@ -9,6 +9,7 @@ use function count;
 use function str_starts_with;
 
 /**
+ * @internal
  * Recovers the ini-affecting interpreter flags (`-d`, `-n`, `-c`) a user put on
  * the `php` command line, so a process that replaces its own image can hand
  * them to its successor instead of silently dropping them.

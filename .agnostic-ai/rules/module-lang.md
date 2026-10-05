@@ -68,6 +68,8 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/copying `withMeta`), `HashCombin
 | `LoadClasspath` | Static accessor for the `(load ...)` classpath, stored in `Registry` under `phel.core/*load-classpath*`. Lives here (not Compiler) because its state is a `Registry` slot; FQN baked into generated PHP by `LoadEmitter`. Do NOT rename |
 | `\Phel` (`src/Phel.php`, NOT a Lang class) | Thin root facade proxying static calls to the `Registry` singleton via `__callStatic`. Api/Interop use it for ns/definition lookups (`getNamespaces`, `getDefinition`, `getDefinitionMetaData`). Lang's own code must NOT call it (leaf → root cycle); use `Registry`/`TypeFactory` directly |
 
+DynamicScope process-wide bound-name counts are private; `hasBoundName(ns, name)` is the cheap gate before the fiber-local `hasBinding` lookup. The obsolete `anyActive` latch is removed. Registry profiler state is private and exposed through typed `getProfilerHook()` / `setProfilerHook()` accessors.
+
 ## Interfaces
 
 - `TypeInterface` extends `MetaInterface`, `SourceLocationInterface`, `EqualsInterface`, `HashableInterface`.

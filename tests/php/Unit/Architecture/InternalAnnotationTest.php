@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Architecture;
 
 use PhelTest\Support\PublicApiSurface;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 use function count;
 use function sprintf;
@@ -74,7 +75,7 @@ final class InternalAnnotationTest extends TestCase
                 continue;
             }
 
-            if (!str_contains($contents, '@internal')) {
+            if (!str_contains((string) new ReflectionClass($className)->getDocComment(), '@internal')) {
                 continue;
             }
 

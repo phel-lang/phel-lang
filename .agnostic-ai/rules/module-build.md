@@ -18,7 +18,7 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 | `compileFile(src, dest)` | Compile to PHP, write output |
 | `evalFile(src)` | Same as `compileFile` but skips writing output |
 | `flushCompiledCodeCache()` | Writes the compiled-code cache index to disk now (it otherwise flushes once at shutdown); a parent about to spawn workers calls it so they find what it compiled |
-| `compileProject(BuildOptions)` | Returns `CompiledFile[]` |
+| `compileProject(Shared\BuildOptions)` | Returns `CompiledFile[]` |
 | `clearCache()` | Returns `string[]` paths cleared from the temp, cache and OPcache dirs |
 | `getHealthCheck()` | Cache, output, source dir checks |
 | `enableBuildMode()` / `disableBuildMode()` / `isBuildMode()` | Static; toggles `*build-mode*` via direct `Registry` write (avoids `Phel::__callStatic` on the hot `(load ...)` path) |
@@ -121,7 +121,7 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Con
 
 ### `--timing` profiler hook
 
-- `phel build --timing` installs `PhaseTimingProfilerHook` as `Registry::$profilerHook` around `compileProject` (reset in `finally`) to sum the compiler's per-phase wall-clock (lex/parse/read/analyze/emit) across compiled namespaces, rendered as `PhaseTimingReport`.
+- `phel build --timing` installs `PhaseTimingProfilerHook` through `Registry::setProfilerHook()` around `compileProject` (reset in `finally`) to sum the compiler's per-phase wall-clock (lex/parse/read/analyze/emit) across compiled namespaces, rendered as `PhaseTimingReport`.
 - The hook's `wrapFn()` is a deliberate no-op: a build evaluates `def`/`defmacro` while compiling, so wrapping those fns in profiling proxies (what the runtime profiler does) would bake instrumentation into the emitted output. Pair with `--no-cache` for a full, comparable measurement.
 
 ### `--report`

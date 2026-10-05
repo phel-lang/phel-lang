@@ -8,7 +8,7 @@ scope: src/php/Fiber
 
 Cooperative async primitives (promises, futures, single-threaded scheduler) backing `phel.core`'s `promise`/`deliver` and `future-call`/`future-fiber`.
 
-## Public API (Facade)
+## Internal tooling API (Facade)
 
 | Method | Returns | Notes |
 |--------|---------|-------|
@@ -16,6 +16,8 @@ Cooperative async primitives (promises, futures, single-threaded scheduler) back
 | `future(callable $body)` | `Future` | body enqueued on the scheduler eagerly at construction, not deferred to `await()` |
 | `await(Awaitable, ?int $timeoutMs = null)` | `mixed` | `null` timeout → unbounded `Scheduler::await`; with timeout → `derefWithTimeout(ms, null)`, returns `null` on timeout |
 | `scheduler()` | `Scheduler` | process-wide singleton |
+
+The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies
 

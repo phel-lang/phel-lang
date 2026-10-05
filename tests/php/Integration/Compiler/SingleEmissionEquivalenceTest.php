@@ -8,9 +8,9 @@ use Gacela\Framework\Gacela;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Emitter\EmitterResult;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\EmitterResult;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
 

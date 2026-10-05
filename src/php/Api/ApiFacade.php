@@ -17,6 +17,8 @@ use Phel\Shared\Api\ProjectIndex;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
 /**
+ * @internal
+ *
  * @phpstan-import-type SignatureHelp from ApiFacadeInterface
  *
  * @extends AbstractFacade<ApiFactory>

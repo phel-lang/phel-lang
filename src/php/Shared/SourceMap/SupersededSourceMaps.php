@@ -13,6 +13,7 @@ use function in_array;
 use function realpath;
 
 /**
+ * @internal
  * Inline source-map headers of compiled files this process `require`d before
  * the file on disk was overwritten with different code. PHP keeps running the
  * code it loaded, and its frames still name the same path, so an error report

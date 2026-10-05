@@ -16,7 +16,7 @@ stale exactly that way. See [Editing](#editing).
 | [0002](0002-compile-to-php-source.md) | Compile to PHP source, not a bytecode VM | Accepted |
 | [0003](0003-modules-talk-through-facades.md) | Modules talk to each other through facades only | Accepted |
 | [0004](0004-accept-four-module-cycles.md) | Accept four module cycles and pin them | Accepted |
-| [0005](0005-public-php-api-by-rule-and-snapshot.md) | Define the public PHP API by rule, gate it by snapshot | Amended by 0020 |
+| [0005](0005-public-php-api-by-rule-and-snapshot.md) | Define the public PHP API by rule, gate it by snapshot | Superseded by 0021 |
 | [0006](0006-one-opt-in-deprecation-channel.md) | One opt-in channel for compiler deprecations | Amended by 0014, 0017 |
 | [0007](0007-clojure-style-interop-is-the-source-spelling.md) | Clojure-style interop is the source spelling | Amended by 0018 |
 | [0008](0008-dot-namespace-separator.md) | The namespace separator is `.`, and `\` still parses | Accepted |
@@ -32,6 +32,7 @@ stale exactly that way. See [Editing](#editing).
 | [0018](0018-superseded-forms-are-rejected-as-source.md) | A superseded form is rejected as source and kept as the target | Accepted |
 | [0019](0019-with-meta-returns-a-copy.md) | `withMeta` returns a copy | Accepted |
 | [0020](0020-build-artifacts-require-the-generating-version.md) | Build artifacts require the generating Phel version | Accepted |
+| [0021](0021-public-embedding-types-and-internal-tooling.md) | Expose embedding types and exclude internal tooling | Accepted |
 
 Statuses: **Proposed**, **Accepted**, **Amended by NNNN** (in force, narrowed by a
 later record), **Superseded by NNNN**, **Deprecated** (in force, being unwound).

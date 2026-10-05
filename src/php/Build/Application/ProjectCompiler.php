@@ -6,13 +6,13 @@ namespace Phel\Build\Application;
 
 use Phel\Build\BuildConfigInterface;
 use Phel\Build\BuildFacade;
-use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledTargetPathResolver;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Compile\SecondaryFileHarvester;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Lang\LoadClasspath;
+use Phel\Shared\BuildOptions;
 use Phel\Shared\CompiledFile;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;

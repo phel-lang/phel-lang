@@ -8,16 +8,18 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Emitter\EmitterResult;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
-use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
+use Phel\Shared\BuildOptions;
+use Phel\Shared\EmitterResult;
+use Phel\Shared\ReaderResult;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use ReflectionClass;
 use SplFileInfo;
 
 use function dirname;
@@ -45,8 +47,8 @@ final class SharedCompilerBoundaryTest extends TestCase
     private const string ALLOWED_FILE = 'Facade/CompilerFacadeInterface.php';
 
     /**
-     * Every compiler symbol the contract is allowed to name. Six carry the
-     * compiler's public types through method signatures; five appear only in
+     * Every compiler symbol the contract is allowed to name. Four pin opaque
+     * compiler handles through method signatures; five appear only in
      * `@throws` tags. Adding to this list widens the cycle, so it should be a
      * deliberate, reviewed act rather than a silent import.
      *
@@ -57,12 +59,10 @@ final class SharedCompilerBoundaryTest extends TestCase
         GlobalEnvironmentInterface::class,
         NodeEnvironmentInterface::class,
         AnalyzerException::class,
-        EmitterResult::class,
         LexerValueException::class,
         TokenStream::class,
         UnexpectedParserException::class,
         UnfinishedParserException::class,
-        ReaderResult::class,
         ReaderException::class,
     ];
 
@@ -103,7 +103,18 @@ final class SharedCompilerBoundaryTest extends TestCase
     {
         // The module-shared.md rationale quotes a concrete number; keep the two honest
         // about each other so the prose cannot silently drift from the code.
-        self::assertCount(11, self::ALLOWED_IMPORTS);
+        self::assertCount(9, self::ALLOWED_IMPORTS);
+    }
+
+    public function test_facade_result_and_option_types_are_public_shared_values(): void
+    {
+        foreach ([EmitterResult::class, ReaderResult::class, BuildOptions::class] as $class) {
+            $reflection = new ReflectionClass($class);
+
+            self::assertSame('Phel\\Shared', $reflection->getNamespaceName());
+            self::assertTrue($reflection->isReadOnly());
+            self::assertStringNotContainsString('@internal', $reflection->getDocComment() ?: '');
+        }
     }
 
     /**

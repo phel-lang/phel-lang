@@ -6,6 +6,8 @@ namespace Phel\Compiler\Domain\Emitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 
+use Phel\Shared\EmitterResult;
+
 /**
  * @internal
  */
