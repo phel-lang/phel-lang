@@ -25,6 +25,69 @@ final class CallEmitterTest extends TestCase
         $this->callEmitter = new CallEmitter($outputEmitter);
     }
 
+    public function test_reference_assignment_return_uses_a_value_temporary(): void
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        $call = new CallNode(
+            NodeEnvironment::empty()->withReturnContext(),
+            new PhpVarNode($env, '=&'),
+            [new PhpVarNode($env, '$left'), new PhpVarNode($env, '$right')],
+        );
+
+        ob_start();
+        $this->callEmitter->emit($call);
+        $output = ob_get_clean();
+
+        self::assertIsString($output);
+        self::assertMatchesRegularExpression('/^(\$reference_assignment_\d+) = \(\$left =& \$right\);\s*return \1;$/', $output);
+    }
+
+    public function test_reference_assignment_return_preserves_aliases_and_evaluates_operands_once(): void
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        $call = new CallNode(
+            NodeEnvironment::empty()->withReturnContext(),
+            new PhpVarNode($env, '=&'),
+            [new PhpVarNode($env, '$left[$i++]'), new PhpVarNode($env, '$right[$j++]')],
+        );
+
+        ob_start();
+        $this->callEmitter->emit($call);
+        $output = ob_get_clean();
+
+        self::assertIsString($output);
+        $bind = eval('return function (&$left, &$right, &$i, &$j) {' . $output . '};');
+        $left = [0];
+        $right = [7];
+        $i = 0;
+        $j = 0;
+        $result = $bind($left, $right, $i, $j);
+        $right[0] = 8;
+
+        self::assertSame([7, 8, 1, 1], [$result, $left[0], $i, $j]);
+    }
+
+    #[DataProvider('reference_assignment_non_return_contexts')]
+    public function test_reference_assignment_non_return_emission_is_unchanged(bool $isExpression, string $expected): void
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        $call = new CallNode(
+            $isExpression ? $env : NodeEnvironment::empty(),
+            new PhpVarNode($env, '=&'),
+            [new PhpVarNode($env, '$left'), new PhpVarNode($env, '$right')],
+        );
+
+        $this->callEmitter->emit($call);
+
+        $this->expectOutputString($expected);
+    }
+
+    public static function reference_assignment_non_return_contexts(): iterable
+    {
+        yield 'expression' => [true, '($left =& $right)'];
+        yield 'statement' => [false, '($left =& $right);'];
+    }
+
     public function test_php_var_node_print_language_constructs(): void
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), 'print');
