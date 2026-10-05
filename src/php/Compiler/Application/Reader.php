@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Parser\Node\AbstractAtomNode;
 use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\MetaNode;
@@ -34,6 +35,8 @@ final class Reader implements ReaderInterface
     private ?array $fnArgs = null;
 
     private ?string $fnPlaceholderPrefix = null;
+
+    private int $quasiquoteDepth = 0;
 
     public function __construct(
         private readonly ExpressionReaderFactoryInterface $readerFactory,
@@ -174,16 +177,24 @@ final class Reader implements ReaderInterface
                 ->read($node, Symbol::NAME_QUOTE, $root);
         }
 
-        if ($node->getTokenType() === Token::T_UNQUOTE) {
-            return $this->readerFactory
-                ->createWrapReader($this)
-                ->read($node, Symbol::NAME_UNQUOTE, $root);
-        }
+        if ($node->getTokenType() === Token::T_UNQUOTE || $node->getTokenType() === Token::T_UNQUOTE_SPLICING) {
+            if ($this->quasiquoteDepth === 0) {
+                throw ReaderException::forNode(
+                    $node,
+                    $root,
+                    $node->getCodePrefix() . ' is not valid outside quasiquote',
+                    errorCode: ErrorCode::READER_ERROR,
+                );
+            }
 
-        if ($node->getTokenType() === Token::T_UNQUOTE_SPLICING) {
-            return $this->readerFactory
-                ->createWrapReader($this)
-                ->read($node, Symbol::NAME_UNQUOTE_SPLICING, $root);
+            --$this->quasiquoteDepth;
+            try {
+                return $this->readerFactory
+                    ->createWrapReader($this)
+                    ->read($node, $node->getTokenType() === Token::T_UNQUOTE ? Symbol::NAME_UNQUOTE : Symbol::NAME_UNQUOTE_SPLICING, $root);
+            } finally {
+                ++$this->quasiquoteDepth;
+            }
         }
 
         if ($node->getTokenType() === Token::T_DEREF) {
@@ -199,9 +210,14 @@ final class Reader implements ReaderInterface
         }
 
         if ($node->getTokenType() === Token::T_QUASIQUOTE) {
-            return $this->readerFactory
-                ->createQuoasiquoteReader($this, $this->quasiquoteTransformer)
-                ->read($node, $root);
+            ++$this->quasiquoteDepth;
+            try {
+                return $this->readerFactory
+                    ->createQuoasiquoteReader($this, $this->quasiquoteTransformer)
+                    ->read($node, $root);
+            } finally {
+                --$this->quasiquoteDepth;
+            }
         }
 
         throw NotValidQuoteNodeException::forNode($node);

@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Phel;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFacade;
+use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
@@ -23,6 +24,7 @@ use Phel\Lang\TagHandlers\BuiltinTagHandlers;
 use Phel\Lang\TagRegistry;
 use Phel\Lang\TypeInterface;
 use Phel\Lang\UUID;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
@@ -286,20 +288,54 @@ final class ReaderTest extends TestCase
         self::assertTrue($this->read('@a')->equals($this->read(',@a')));
     }
 
-    public function test_tilde_outside_quasiquote_is_ignored(): void
+    #[DataProvider('unquotes_outside_quasiquote')]
+    public function test_unquote_outside_quasiquote_reports_its_location(string $source, int $column): void
     {
-        self::assertEquals(
-            $this->loc(Symbol::create('a'), 1, 1, 1, 2),
-            $this->read('~a'),
-        );
+        try {
+            $this->read($source);
+            self::fail('An unquote outside quasiquote must be rejected.');
+        } catch (ReaderException $readerException) {
+            self::assertSame(ErrorCode::READER_ERROR, $readerException->getErrorCode());
+            self::assertEquals(new SourceLocation('string', 1, $column), $readerException->getStartLocation());
+            self::assertStringContainsString('outside quasiquote', $readerException->getMessage());
+            self::assertSame($source, $readerException->getCodeSnippet()->getCode());
+        }
     }
 
-    public function test_tilde_splice_outside_quasiquote_is_ignored(): void
+    public static function unquotes_outside_quasiquote(): iterable
     {
-        self::assertEquals(
-            $this->loc(Symbol::create('a'), 1, 2, 1, 3),
-            $this->read('~@a'),
-        );
+        yield 'unquote' => ['~a', 0];
+        yield 'splice' => ['~@a', 0];
+        yield 'list' => ['(println ~a)', 9];
+        yield 'vector' => ['[~@a]', 1];
+        yield 'ordinary quote' => ["'~a", 1];
+        yield 'excess unquote' => ['`(~~a)', 3];
+    }
+
+    public function test_nested_quasiquote_allows_matching_unquote_depth(): void
+    {
+        self::assertTrue($this->read('a')->equals($this->read('``~~a')));
+        $expected = $this->read('(apply list (concat (list (quote foo)) (list (apply list (concat (list (quote bar)) (list a))))))');
+        self::assertTrue($expected->equals($this->read('`(foo ~`(bar ~a))')));
+    }
+
+    public function test_reader_restores_quasiquote_context_after_errors(): void
+    {
+        $reader = new CompilerFactory()->createReader();
+        foreach (['`(~~a)', '`~@a', '~a'] as $source) {
+            $node = $this->compilerFacade->parseNext($this->compilerFacade->lexString($source));
+            self::assertInstanceOf(NodeInterface::class, $node);
+            try {
+                $reader->read($node);
+                self::fail('Expected a reader error.');
+            } catch (ReaderException $exception) {
+                self::assertSame($source === '`~@a' ? ErrorCode::INVALID_SPLICE : ErrorCode::READER_ERROR, $exception->getErrorCode());
+            }
+        }
+
+        $node = $this->compilerFacade->parseNext($this->compilerFacade->lexString('`(foo ~a)'));
+        self::assertInstanceOf(NodeInterface::class, $node);
+        self::assertTrue($reader->read($node)->getAst()->equals($this->read('`(foo ~a)')));
     }
 
     public function test_quasiquote1(): void

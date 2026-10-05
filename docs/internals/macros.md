@@ -58,6 +58,8 @@ Matches user-facing `&form` / `&env`.
 
 Every collection form goes through `concat` and is rebuilt by `apply`, so a splice can contribute any number of elements. `~` is the unquote token; `,` is whitespace. Check any case with `(read-string "`(a ~x)")`.
 
+`~` and `~@` outside quasiquote raise `PHEL210` at the marker. Unquote reads its operand one quasiquote level out, so a nested unquote needs another enclosing quasiquote. Splicing directly under quasiquote, without a collection, raises `PHEL202`.
+
 Symbols inside quasiquote get namespace-qualified to the *defining* namespace. Easy half of hygiene: `` `(map f xs) `` resolves to `phel.core/map` regardless of caller shadowing.
 
 ## Auto-gensym (`x#`)
