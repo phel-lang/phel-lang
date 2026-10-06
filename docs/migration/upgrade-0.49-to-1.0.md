@@ -73,6 +73,8 @@ Each of these used to compile. The error names the file, line and code.
 | `(push [] 1)`, `put`, `unset`, `put-in`, `unset-in`, `values`, `function?`, `hash-map?`, `id`, `str-contains?` | `PHEL001` | [removed-deprecated-core-fns.md](removed-deprecated-core-fns.md) | 0.50 |
 | `{:a 1 :a 2}`, `#{1 1}` | `PHEL203` Duplicate key | drop the repeated key; `{:a 1 :a 2}` used to read as `{:a 2}` | 0.54 |
 | `(defn sq [n] (* n n)) (sq 3 4)` | `PHEL002` | pass the declared number of arguments; extra ones used to be ignored | 0.54 |
+| `(if-not t a b c)`, `(if-let [x v] a b c)`, `(assert true "m" :x)`, a call to your own macro with more arguments than it declares | `PHEL002` | pass the declared number of arguments; a macro used to drop the extra ones | after 0.54 |
+| `(declare f [x])` | `PHEL005`, `declare takes symbols` | drop the arglist: `declare` takes names only | after 0.54 |
 | `(get {:a 1} :a nil :extra)`, `(max)`, `(min)` | `PHEL002` | core fns declare real arities since 0.50, so a wrong count is an arity error | 0.50 |
 | `(:require app.util :refer [nope])` for a name `app.util` does not define, or a private one | `PHEL013` | refer only what the namespace defines publicly | 0.54 |
 | `(:require phel.strng)`, a `phel.*` or `clojure.*` namespace Phel does not ship | `PHEL014` Cannot find namespace, with a did-you-mean | fix the name | 0.54 |

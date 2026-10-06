@@ -221,9 +221,17 @@ A lazily consumed source with no indexed access of its own (an `eduction` pipeli
 
 (def declare
   {:macro true
-   :doc "Declare a global symbol before it is defined. A symbol that already has a root value keeps it, so loading a namespace again does not unbind what it declares."}
-  (fn [name]
-    `(def ~name (Phel.Lang.Registry/readRoot (php/str_replace "-" "_" *ns*) ~(.getName name)))))
+   :doc "Declares global symbols before they are defined: `(declare a b)`. A symbol that already has a root value keeps it, so loading a namespace again does not unbind what it declares."}
+  (fn [& names]
+    (let [forms (php/array)]
+      (foreach [name names]
+        (if (php/instanceof name Phel.Lang.Symbol)
+          (php/apush forms `(def ~name (Phel.Lang.Registry/readRoot (php/str_replace "-" "_" *ns*) ~(.getName name))))
+          (throw (new InvalidArgumentException
+                      (php/. "declare takes symbols, got " (.print (Phel.Shared.Printer.Printer/readable) name))))))
+      (if (php/=== 1 (php/count forms))
+        (php/aget forms 0)
+        (Phel/list (php/array_merge (php/array 'do) forms))))))
 
 ;; Forward-declare symbols used by sub-files loaded before their definitions
 ;; so they can still pass compile-time symbol resolution.

@@ -197,7 +197,8 @@ final class AnalyzerException extends AbstractLocatedException
 
         return self::withLocation(
             sprintf(
-                'Wrong number of arguments to function "%s". Got: %d. Expected: %s',
+                'Wrong number of arguments to %s "%s". Got: %d. Expected: %s',
+                $f->isMacro() ? 'macro' : 'function',
                 $fnName,
                 $gotCount,
                 self::formatExpectedArity($minArity, $isVariadic, $maxArity),
@@ -221,7 +222,8 @@ final class AnalyzerException extends AbstractLocatedException
 
         return self::withLocation(
             sprintf(
-                'Wrong number of arguments to function "%s". Got: %d. Expected: %s',
+                'Wrong number of arguments to %s "%s". Got: %d. Expected: %s',
+                $f->isMacro() ? 'macro' : 'function',
                 $fnName,
                 $gotCount,
                 self::formatExpectedArity($minArity, false, $maxArity),

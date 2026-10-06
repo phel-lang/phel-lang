@@ -1,0 +1,20 @@
+(ns phel-test.core.declare
+  (:require phel.test :refer [deftest is])
+  (:require phel.string :as s))
+
+(declare first-later second-later)
+
+(defn- call-later [] [(first-later) (second-later)])
+
+(defn- first-later [] 1)
+(defn- second-later [] 2)
+
+(deftest test-declare-takes-several-names
+  (is (= [1 2] (call-later))))
+
+(deftest test-declare-rejects-anything-but-a-symbol
+  (let [err (try
+              (eval '(declare emit-where [clause]))
+              nil
+              (catch Throwable e (.getMessage e)))]
+    (is (s/contains? err "declare takes symbols, got [clause]"))))

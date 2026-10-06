@@ -14,8 +14,8 @@
 (defmacro if-not
   "Evaluates then if test is false, else otherwise."
   {:example "(if-not (< 5 3) \"not less\" \"less\") ; => \"not less\""}
-  [test then & [else]]
-  `(if ~test ~else ~then))
+  ([test then] `(if ~test nil ~then))
+  ([test then else] `(if ~test ~else ~then)))
 
 (defmacro when
   "Evaluates body if test is true, otherwise returns nil."
