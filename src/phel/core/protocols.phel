@@ -1008,23 +1008,24 @@ Equivalent to multiple `extend-type` calls."
   "If test is true, evaluates then with binding-form bound to the value of test, if not, yields else"
   {:example "(if-let [x (get {:a 1} :a)] x :none) ; => 1"
    :see-also ["when-let" "if-some"]}
-  [bindings then & [else]]
-  (let [err #(throw (new InvalidArgumentException %))]
-    (when-not
-      (vector? bindings)
-      (err (str "if-let requires a vector for it's bindings, "
-                (type bindings) " given")))
-    (when-not
-      (= 2 (count bindings))
-      (err (str "if-let requires bindings to have 2 elements, "
-                (count bindings) " given"))))
+  ([bindings then] `(if-let ~bindings ~then nil))
+  ([bindings then else]
+   (let [err #(throw (new InvalidArgumentException %))]
+     (when-not
+       (vector? bindings)
+       (err (str "if-let requires a vector for it's bindings, "
+                 (type bindings) " given")))
+     (when-not
+       (= 2 (count bindings))
+       (err (str "if-let requires bindings to have 2 elements, "
+                 (count bindings) " given"))))
 
-  (let [form (bindings 0) tst (bindings 1)]
-    `(let [temp-sym# ~tst]
-       (if temp-sym#
-         (let [~form temp-sym#]
-           ~then)
-         ~else))))
+   (let [form (bindings 0) tst (bindings 1)]
+     `(let [temp-sym# ~tst]
+        (if temp-sym#
+          (let [~form temp-sym#]
+            ~then)
+          ~else)))))
 
 (defmacro when-let
   "When test is true, evaluates body with binding-form bound to the value of test"
@@ -1051,23 +1052,24 @@ Equivalent to multiple `extend-type` calls."
   "Binds name to the value of test. If test is not nil, evaluates then with binding-form bound to the value of test, if not, yields else. Unlike if-let, false and 0 are not treated as falsy — only nil triggers the else branch."
   {:example "(if-some [x false] :yes :no) ; => :yes"
    :see-also ["if-let" "when-some"]}
-  [bindings then & [else]]
-  (let [err #(throw (new InvalidArgumentException %))]
-    (when-not
-      (vector? bindings)
-      (err (str "if-some requires a vector for its bindings, "
-                (type bindings) " given")))
-    (when-not
-      (= 2 (count bindings))
-      (err (str "if-some requires bindings to have 2 elements, "
-                (count bindings) " given"))))
+  ([bindings then] `(if-some ~bindings ~then nil))
+  ([bindings then else]
+   (let [err #(throw (new InvalidArgumentException %))]
+     (when-not
+       (vector? bindings)
+       (err (str "if-some requires a vector for its bindings, "
+                 (type bindings) " given")))
+     (when-not
+       (= 2 (count bindings))
+       (err (str "if-some requires bindings to have 2 elements, "
+                 (count bindings) " given"))))
 
-  (let [form (bindings 0) tst (bindings 1)]
-    `(let [temp-sym# ~tst]
-       (if (not (nil? temp-sym#))
-         (let [~form temp-sym#]
-           ~then)
-         ~else))))
+   (let [form (bindings 0) tst (bindings 1)]
+     `(let [temp-sym# ~tst]
+        (if (not (nil? temp-sym#))
+          (let [~form temp-sym#]
+            ~then)
+          ~else)))))
 
 (defmacro when-some
   "Binds name to the value of test. When test is not nil, evaluates body with binding-form bound to the value of test. Unlike when-let, false and 0 are not treated as falsy — only nil causes the body to be skipped."
@@ -1137,13 +1139,14 @@ bindings is a vector of function specs: (letfn [(f [params] body) (g [params] bo
 (defmacro assert
   "Throws an exception if expr is falsy. Optional message string. Used for precondition checking in application code. When `*assert*` is logical false at macroexpansion time, `assert` expands to nil and performs no runtime check."
   {:see-also ["when" "throw" "*assert*"]}
-  [expr & [message]]
-  (when *assert*
-    (let [msg (if message
-                `(str "Assert failed: " ~message)
-                `(str "Assert failed: " (quote ~expr)))]
-      `(when (not ~expr)
-         (throw (new InvalidArgumentException ~msg))))))
+  ([expr] `(assert ~expr nil))
+  ([expr message]
+   (when *assert*
+     (let [msg (if message
+                 `(str "Assert failed: " ~message)
+                 `(str "Assert failed: " (quote ~expr)))]
+       `(when (not ~expr)
+          (throw (new InvalidArgumentException ~msg)))))))
 
 (defn name
   "Returns the name string of a string, keyword or symbol."

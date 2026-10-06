@@ -64,6 +64,14 @@ final class InvokeSymbolTest extends TestCase
             Phel::map(Keyword::create('macro'), true),
         );
 
+        $env->addDefinition('user', Symbol::create('my-one-arg-macro'));
+        Phel::addDefinition(
+            'user',
+            'my-one-arg-macro',
+            static fn($form, $envMap, $a) => throw new Exception('expanded'),
+            Phel::map(Keyword::create('macro'), true, 'min-arity', 1, 'is-variadic', false),
+        );
+
         $env->addDefinition('user', Symbol::create('my-failed-macro'));
         Phel::addDefinition(
             'user',
@@ -355,6 +363,30 @@ final class InvokeSymbolTest extends TestCase
         self::assertSame(7, $start->getLine());
         self::assertSame(4, $start->getColumn());
         self::assertNull($start->getExpansionOrigin(), 'a form the user wrote is not an expansion product');
+    }
+
+    public function test_too_many_args_to_a_macro_fail_before_expansion(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Wrong number of arguments to macro "user/my-one-arg-macro". Got: 2. Expected: 1');
+
+        $list = Phel::list([
+            Symbol::createForNamespace('user', 'my-one-arg-macro'),
+            1,
+            2,
+        ]);
+
+        new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_too_few_args_to_a_macro_do_not_count_form_and_env(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Wrong number of arguments to macro "user/my-one-arg-macro". Got: 0. Expected: 1');
+
+        $list = Phel::list([Symbol::createForNamespace('user', 'my-one-arg-macro')]);
+
+        new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_macro_expand_failure(): void

@@ -1,0 +1,33 @@
+(ns phel-test.core.macro-arity
+  (:require phel.test :refer [deftest is])
+  (:require phel.string :as s))
+
+(defn- compile-error [form]
+  (try
+    (eval form)
+    nil
+    (catch Throwable e (.getMessage e))))
+
+(deftest test-extra-args-to-a-core-macro-are-a-compile-error
+  (is (s/contains? (compile-error '(if-not true 1 2 3))
+                   "Wrong number of arguments to macro \"phel.core/if-not\". Got: 4. Expected: 2 or 3"))
+  (is (s/contains? (compile-error '(if-let [x 1] x 2 3))
+                   "Wrong number of arguments to macro \"phel.core/if-let\". Got: 4. Expected: 2 or 3"))
+  (is (s/contains? (compile-error '(if-some [x 1] x 2 3))
+                   "Wrong number of arguments to macro \"phel.core/if-some\". Got: 4. Expected: 2 or 3"))
+  (is (s/contains? (compile-error '(assert true "m" :x))
+                   "Wrong number of arguments to macro \"phel.core/assert\". Got: 3. Expected: 1 or 2"))
+  (is (s/contains? (compile-error '(defexception Boom Exception :x))
+                   "Wrong number of arguments to macro \"phel.core/defexception\". Got: 3. Expected: 1 or 2")))
+
+(deftest test-too-few-args-to-a-macro-counts-only-the-written-args
+  (is (s/contains? (compile-error '(if-not true))
+                   "Wrong number of arguments to macro \"phel.core/if-not\". Got: 1. Expected: 2 or 3")))
+
+(deftest test-optional-macro-args-still-default-to-nil
+  (is (= 1 (if-not false 1)))
+  (is (nil? (if-not true 1)))
+  (is (nil? (if-let [x nil] x)))
+  (is (= false (if-some [x false] x)))
+  (is (nil? (if-some [x nil] x)))
+  (is (nil? (assert true))))

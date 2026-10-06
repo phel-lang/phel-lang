@@ -182,16 +182,17 @@
   `Exception`), so frameworks can catch it by type, e.g.
   `(defexception ProductNotFound RuntimeException)`. The parent takes any class
   spelling: bare, dotted (`My.Ns.Error`), or an alias brought in with `:use`."
-  [name & [parent]]
-  (let [name-str       (.getName name)
-        munge          (new Munge)
-        class-name-str (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))
-        is-name        (Symbol/create (php/. name-str "?"))]
-    `(do
-       (defexception* ~name ~@(if parent [parent] []))
-       (defn ~name ~(php/. "Creates a new " name " exception.") [& args]
-         (.newInstanceArgs (new ReflectionClass ~class-name-str) (to-php-array args)))
-       (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " exception.") [x] (and (php/is_object x) (php/is_a x ~class-name-str))))))
+  ([name] `(defexception ~name nil))
+  ([name parent]
+   (let [name-str       (.getName name)
+         munge          (new Munge)
+         class-name-str (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))
+         is-name        (Symbol/create (php/. name-str "?"))]
+     `(do
+        (defexception* ~name ~@(if parent [parent] []))
+        (defn ~name ~(php/. "Creates a new " name " exception.") [& args]
+          (.newInstanceArgs (new ReflectionClass ~class-name-str) (to-php-array args)))
+        (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " exception.") [x] (and (php/is_object x) (php/is_a x ~class-name-str)))))))
 
 (defmacro defenum
   "Defines a native PHP enum. Each case is named by a keyword followed by an

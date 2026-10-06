@@ -38,7 +38,7 @@ The analyzer reached a symbol that is bound nowhere: not in the current namespac
 
 Enum case: `ErrorCode::ARITY_ERROR`
 
-The call does not match the arity the analyzer knows. For a function that means a global definition the compiler has already seen; a special form given too few arguments reports here too, and names the shape it wanted.
+The call does not match the arity the analyzer knows. For a function or a macro that means a global definition the compiler has already seen; a macro is checked before it expands, without counting `&form` and `&env`. A special form given too few arguments reports here too, and names the shape it wanted.
 
 ```phel
 (map)

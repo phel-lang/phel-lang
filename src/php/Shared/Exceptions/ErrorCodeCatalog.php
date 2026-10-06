@@ -91,7 +91,7 @@ final class ErrorCodeCatalog
             new ErrorCodeExplanation(
                 code: ErrorCode::ARITY_ERROR,
                 title: 'Wrong number of arguments',
-                summary: 'The call does not match the arity the analyzer knows. For a function that means a global definition the compiler has already seen; a special form given too few arguments reports here too, and names the shape it wanted.',
+                summary: 'The call does not match the arity the analyzer knows. For a function or a macro that means a global definition the compiler has already seen; a macro is checked before it expands, without counting `&form` and `&env`. A special form given too few arguments reports here too, and names the shape it wanted.',
                 example: '(map)',
                 fix: 'Pass the number of arguments the function declares.',
             ),

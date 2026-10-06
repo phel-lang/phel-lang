@@ -42,6 +42,7 @@ PHP API:
 Compiler:
 
 - **BREAKING**: `~` and `~@` outside quasiquote fail with `PHEL210` at the marker. They used to read as whitespace, so `[~@a]` read as `[a]`. Use these markers only inside quasiquote; a splice also needs an enclosing collection. (#3524)
+- **BREAKING**: A macro call with more or fewer arguments than the macro declares fails with `PHEL002`, the same as a function call. `if-not`, `if-let`, `if-some`, `assert` and `defexception` declare their optional argument as a second arity, so `(if-not true 1 2 3)` and `(assert true "m" :x)` fail too. They used to drop the extra arguments, and a call with too few reported `expected 3 arguments, got 2`, counting `&form` and `&env`. (#3524)
 - **BREAKING**: Type declarations named `let` or `is`, and interface constants named `let`, `is` or `namespace`, fail with a compile error regardless of case. Choose another name; these declarations otherwise produce reserved PHP syntax on PHP 8.6. (#3522)
 - **BREAKING**: `recur` inside a `foreach`, `doseq`, `dotimes` or `dofor` body fails with `PHEL010`. It used to rebind the enclosing `loop` or fn and keep iterating the inner loop instead of restarting: `(loop [i 0] (doseq [x [:a :b :c]] (when (< i 1) (recur 10))))` printed every element. Write the `loop` inside the body, or collect with `reduce`. (#3523)
 - A radix literal past `PHP_INT_MAX` reads as a float: `36rZZZZZZZZZZZZZZ` used to read as `PHP_INT_MAX`. Hex, binary and octal literals past `PHP_INT_MAX`, such as `-0x8000000000000000`, no longer raise a notice on PHP 8.6. (#3522)
