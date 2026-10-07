@@ -7,7 +7,9 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\BareHostClass;
 use Phel\Compiler\Domain\Analyzer\BundledSymbolIndex;
+use Phel\Compiler\Domain\Analyzer\Environment\AmbiguousBareHostWarner;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\SymbolSuggestionProvider;
 use Phel\Compiler\Domain\Analyzer\UnresolvedSymbolAdvisor;
@@ -54,6 +56,10 @@ final class AnalyzeSymbol
     private function createGlobalResolve(Symbol $symbol, NodeEnvironmentInterface $env): AbstractNode
     {
         $globalResolve = $this->analyzer->resolve($symbol, $env);
+
+        if (BareHostClass::isConstantFallback($symbol, $globalResolve)) {
+            AmbiguousBareHostWarner::getInstance()->maybeWarn($symbol);
+        }
 
         if ($globalResolve instanceof AbstractNode) {
             return $globalResolve;

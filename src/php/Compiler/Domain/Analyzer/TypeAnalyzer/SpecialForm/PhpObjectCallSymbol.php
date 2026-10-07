@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MethodCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
@@ -44,10 +45,7 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
 
         $targetEnv = $env->withExpressionContext()->withDisallowRecurFrame();
         $target = $list->get(1);
-        $targetExpr = $this->analyzer->analyze($target, $targetEnv);
-
-        // A member target names a class by position; see BareHostClass (#3064).
-        $targetExpr = BareHostClass::reread($target, $targetExpr, $targetEnv) ?? $targetExpr;
+        $targetExpr = $this->analyzeTarget($target, $targetEnv);
 
         $counter = count($list);
 
@@ -88,6 +86,20 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
 
         /** @var PhpObjectCallNode $targetExpr */
         return $targetExpr;
+    }
+
+    private function analyzeTarget(mixed $target, NodeEnvironmentInterface $env): AbstractNode
+    {
+        if (!$target instanceof Symbol || $target->getNamespace() !== null || $env->hasLocal($target)) {
+            return $this->analyzer->analyze($target, $env);
+        }
+
+        $resolved = $this->analyzer->resolve($target, $env);
+
+        // A member target names a class by position; see BareHostClass (#3064).
+        return BareHostClass::reread($target, $resolved, $env)
+            ?? $resolved
+            ?? $this->analyzer->analyze($target, $env);
     }
 
     /**

@@ -55,20 +55,24 @@ final class BareHostClass
         ?AbstractNode $resolved,
         NodeEnvironmentInterface $env,
     ): ?PhpClassNameNode {
-        if (!$form instanceof Symbol || $form->getNamespace() !== null) {
-            return null;
-        }
-
-        if (!$resolved instanceof PhpVarNode || $resolved->getName() !== $form->getName()) {
-            return null;
-        }
-
-        if (preg_match(self::ALL_CAPS, $form->getName()) !== 1) {
+        if (!self::isConstantFallback($form, $resolved)) {
             return null;
         }
 
         $fqn = Symbol::create('\\' . $form->getName())->copyLocationFrom($form);
 
         return new PhpClassNameNode($env, $fqn, $form->getStartLocation());
+    }
+
+    /**
+     * @phpstan-assert-if-true Symbol $form
+     */
+    public static function isConstantFallback(mixed $form, ?AbstractNode $resolved): bool
+    {
+        return $form instanceof Symbol
+            && $form->getNamespace() === null
+            && $resolved instanceof PhpVarNode
+            && $resolved->getName() === $form->getName()
+            && preg_match(self::ALL_CAPS, $form->getName()) === 1;
     }
 }

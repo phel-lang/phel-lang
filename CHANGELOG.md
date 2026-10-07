@@ -61,6 +61,7 @@ Compiler:
 - A parameter tagged `^void` or `^never` fails with `PHEL007` on the parameter; PHP allows both only as a return type. It used to stop PHP with `void cannot be used as a parameter type`. (#3534)
 - A `binding` or `with-redefs` target that is not a var, such as a local or `php/PHP_EOL`, fails with `PHEL008` on that target. It used to fail an internal assertion after emitting half the PHP. (#3534)
 - A `foreach` or `catch` binding that maps to the same PHP variable as a parameter or another local, such as `a-b` and `a_b`, no longer overwrites it. (#3576)
+- `(new PDO "sqlite::memory:")`, `(.-ATTR_ERRMODE PDO)` and `(php/callable PDO getAvailableDrivers)` compile without a warning. They used to print `warning: PDO reads as the global constant PDO here`, which only applies to a bare `PDO` in value position. (#3537)
 
 Runtime:
 
