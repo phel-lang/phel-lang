@@ -80,6 +80,10 @@ Each of these used to compile. The error names the file, line and code.
 | `(:require phel.strng)`, a `phel.*` or `clojure.*` namespace Phel does not ship | `PHEL014` Cannot find namespace, with a did-you-mean | fix the name | 0.54 |
 | `"\400"`, an octal escape above `\377` | compile error | it used to wrap silently: `"\400"` was NUL | 0.53 |
 | `recur` inside a `foreach`, `doseq`, `dotimes` or `dofor` body, aimed at an enclosing `loop` or fn | `PHEL010` | write the `loop` inside the body, or use `reduce`. It used to keep iterating the inner loop | after 0.54 |
+| `[~@a]`, `(println ~a)`: `~` or `~@` outside a syntax-quote | `PHEL210` | use these markers only inside `` ` ``; they used to read as whitespace, so `[~@a]` read as `[a]` | after 0.54 |
+| `(defprotocol P (m [this]) (m [this x]))`, one method in two forms | `PHEL005`, `Function m in protocol P was redefined` | list every arity in one form: `(m [this] [this x])`; the second form used to replace the first | after 0.54 |
+| A `defstruct` or `defrecord` method named like one every struct has, such as `find` or `merge` | `PHEL007` | rename the method; `find` used to replace the struct's own lookup, so `get` and `=` broke | after 0.54 |
+| `(defstruct is [a])`, a type named `let` or `is`, an interface constant named `let`, `is` or `namespace` | compile error | choose another name; PHP 8.6 reserves them | after 0.54 |
 
 ## Step 4: code that compiles and behaves differently
 
@@ -96,6 +100,11 @@ Each of these used to compile. The error names the file, line and code.
 | A `^int` return on the native arithmetic path | could become a BigInt | overflows to float, as PHP does | 0.50 |
 | The `\` namespace separator announces itself | silent unless `--warn-deprecations` | one notice per file without the flag ([ADR 0014](../adr/0014-announce-the-separator-deprecation.md)); see [backslash-to-dot.md](backslash-to-dot.md) | 0.50 |
 | Collection methods that return a copy are `#[NoDiscard]` | dropping `(.put m k v)` did nothing silently | PHP warns; keep the result, or cast to `(void)` when deliberate | 0.53 |
+| Sequence functions walk a map, sorted map or struct as `[key value]` entries | `(take 1 {:a 1 :b 2})` was `(1)`, `(set {:a 1})` was `#{1}` | `([:a 1])`, `#{[:a 1]}`, as in Clojure and as `seq` and `into` already did. Covers `take`, `drop`, `filter`, `remove`, `keep`, `reduce` with an init, `last`, `rest`, `partition`, `distinct`, `frequencies`, `group-by` and the rest of the list in the changelog. Use `(vals m)` where you relied on the values | after 0.54 |
+| `take`, `drop`, `take-last`, `drop-last`, `take-nth`, `split-at` with a count that is not a whole number | `(drop 2.5 xs)` dropped 2; a ratio threw | the count rounds up, as in Clojure: drops 3. Pass `(int n)` to keep the old count | after 0.54 |
+| `partition` with a count that is not an integer, `2.0` included | returned chunks | returns `()`, as in Clojure | after 0.54 |
+| `compare` and `sort` on lazy seqs, maps and sets | `(compare (range 5) (range 5))` was `1`; maps and sets had an arbitrary order | seqs compare element-wise, so it is `0`; two unequal maps or sets throw. Sort them with `sort-by` and a key fn | after 0.54 |
+| `phel.http-client` URLs and redirects | `file://`, `php://` and `data://` URLs read local data; custom headers followed a redirect to another origin | only `http` and `https`; a cross-origin redirect keeps only standard headers | after 0.54 |
 
 ## Step 5: definitions and metadata
 
@@ -116,6 +125,19 @@ parameter.
 | `phel config --json` | `phel config --format=json` |
 
 Both printed a one-line stderr notice on every run before removal in 0.50.
+
+Scripts that check exit codes: a command that cannot run as asked (a missing
+path, an unknown `--format`, `--reporter` or `-O` value, a missing `--config`
+or `--ref` file, a `PHEL_OPTIMIZATION_LEVEL` that is not a whole number) exits
+2 with one line on stderr and nothing on stdout. It used to exit 0 or 1
+depending on the command. Exit 1 still means the command ran and found
+something.
+
+Tools that match diagnostic codes: many analyzer errors that printed
+`PHEL007` now carry their own code. A wrong number of arguments such as `(if)`
+is `PHEL002`, a wrong kind of value such as `(fn 1)` is `PHEL003`, a bad
+binding is `PHEL008`, and an unresolvable `catch` type, `var` target or `use`
+class is `PHEL001`.
 
 ## Step 7: the REPL history file
 
@@ -149,6 +171,13 @@ or **BC** in the changelog:
   `Phel\Fiber\FiberFacade` instead.
 - In 0.53, lint rule codes moved to the public `Phel\Shared\LintRuleCodes`; the
   strings are unchanged.
+- After 0.54, `EmitterResult`, `ReaderResult` and `BuildOptions` moved to
+  `Phel\Shared`; update the imports. `DynamicScope::$boundNames` and
+  `Registry::$profilerHook` are private: use `DynamicScope::hasBoundName()` and
+  `Registry::{getProfilerHook,setProfilerHook}()`.
+- After 0.54, `Phel\Lang\LoadClasspath::NAMESPACE` is `LoadClasspath::NS`.
+  PHP 8.6 deprecates a class constant named `namespace`, so no alias keeps the
+  old name.
 
 Only if you implement a facade interface yourself, these gained methods:
 `ApiFacadeInterface` and `FormatterFacadeInterface::formatString()` (0.50),
