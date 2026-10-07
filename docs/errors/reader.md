@@ -39,7 +39,7 @@ A map or set literal holds the same constant key twice, so one entry would be lo
 
 Enum case: `ErrorCode::READER_ERROR`
 
-The fallback code for a reader error that carries no more specific one: an odd-length map literal, metadata on a value that cannot hold it, an unknown tagged literal. Editor diagnostics report it under this code; the terminal prints the same message with no code in front.
+The fallback code for a reader error that carries no more specific one: an odd-length map literal, metadata on a value that cannot hold it, an unknown tagged literal..
 
 ```phel
 {:a}

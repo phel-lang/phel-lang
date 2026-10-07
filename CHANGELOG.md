@@ -68,6 +68,7 @@ Compiler:
 - A `foreach` or `catch` binding that maps to the same PHP variable as a parameter or another local, such as `a-b` and `a_b`, no longer overwrites it. (#3576)
 - `reify` and `extend-type` name a method the protocol does not declare: `reify: protocol P has no method nope`. It used to fail with `Cannot resolve symbol 'P--nope--dispatch'`. (#3537)
 - `(defn f (a b) a)` fails with `Parameter declaration of f must be a vector`, also for `defn-`, `defmacro` and a bad arity of a multi-arity `defn`. It used to fail with `apply final argument must be nil, string, array, or Traversable`. (#3537)
+- `phel run` prints the code of every compile error, the same one `phel analyze` reports: `(if)` prints `[PHEL007]`, `::nope/foo` and an octal escape out of range such as `"\777"` print `[PHEL120]`, and `{:a}` prints `[PHEL210]`. They used to print the message with no code. (#3537)
 
 Runtime:
 

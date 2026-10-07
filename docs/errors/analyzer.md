@@ -102,7 +102,7 @@ The `:inline` function on a definition threw while the analyzer was expanding a 
 
 Enum case: `ErrorCode::INVALID_SPECIAL_FORM`
 
-The fallback code for an analyzer error that carries no more specific one, such as a special form given the wrong number of arguments. Editor diagnostics report it under this code; the terminal prints the same message with no code in front.
+The fallback code for an analyzer error that carries no more specific one, such as a special form given the wrong number of arguments..
 
 ```phel
 (if)
