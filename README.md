@@ -201,6 +201,23 @@ rm -f ~/.zcompdump*                                  # force compinit to rebuild
 </table>
 </details>
 
+## Standalone PHAR
+
+Each [release](https://github.com/phel-lang/phel-lang/releases) attaches `phel.phar`, a single file you can run without Composer. Check it against the sha256 digest GitHub shows for the asset before you run it. The PHAR carries its own hash, but anyone who rebuilds it can recompute that.
+
+```sh
+tag=v1.0.0    # the release you want
+gh release download "$tag" --repo phel-lang/phel-lang --pattern phel.phar
+expected=$(gh release view "$tag" --repo phel-lang/phel-lang --json assets \
+  --jq '.assets[] | select(.name == "phel.phar") | .digest | ltrimstr("sha256:")')
+echo "$expected  phel.phar" | shasum -a 256 -c -    # macOS and Linux
+echo "$expected  phel.phar" | sha256sum -c -        # Linux, if shasum is missing
+```
+
+`phel.phar: OK` means the file matches. Anything else, delete the file and do not run it. Without `gh`, copy the digest from the asset list on the release page and use `shasum -a 256 phel.phar` or `sha256sum phel.phar`.
+
+Release tags are GPG-signed. In a clone, run `git tag -v "$tag"` with the maintainer's public key imported.
+
 ## Documentation
 
 - [Getting Started](https://phel-lang.org/documentation/getting-started/): install, REPL, first script (5 min)
