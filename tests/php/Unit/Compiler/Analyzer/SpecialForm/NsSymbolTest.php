@@ -1330,6 +1330,125 @@ final class NsSymbolTest extends TestCase
 
     }
 
+    public function test_alias_bound_to_two_namespaces_fails_at_the_second_alias(): void
+    {
+        $secondAlias = Symbol::create('s');
+        $secondAlias->setStartLocation(new SourceLocation('/app/core.phel', 3, 28));
+
+        try {
+            new NsSymbol($this->analyzer)->analyze($this->nsRequiring(
+                Phel::vector([Symbol::create('phel.string'), Keyword::create('as'), Symbol::create('s')]),
+                Phel::vector([Symbol::create('phel.json'), Keyword::create('as'), $secondAlias]),
+            ), NodeEnvironment::empty());
+            self::fail('Expected an AnalyzerException.');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertSame(
+                "Alias 's' already names phel.string in app.core, so it cannot also name phel.json.",
+                $analyzerException->getMessage(),
+            );
+            self::assertSame(ErrorCode::DUPLICATE_DEFINITION, $analyzerException->getErrorCode());
+            self::assertSame(3, $analyzerException->getStartLocation()?->getLine());
+            self::assertSame(28, $analyzerException->getStartLocation()?->getColumn());
+        }
+    }
+
+    public function test_alias_bound_to_two_namespaces_in_flat_require_fails(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("Alias 's' already names phel.string in app.core, so it cannot also name phel.json.");
+
+        new NsSymbol($this->analyzer)->analyze(Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app.core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('phel.string'),
+                Keyword::create('as'),
+                Symbol::create('s'),
+                Symbol::create('phel.json'),
+                Keyword::create('as'),
+                Symbol::create('s'),
+            ]),
+        ]), NodeEnvironment::empty());
+    }
+
+    public function test_same_alias_for_the_same_namespace_twice_is_allowed(): void
+    {
+        new NsSymbol($this->analyzer)->analyze($this->nsRequiring(
+            Phel::vector([Symbol::create('phel.string'), Keyword::create('as'), Symbol::create('s')]),
+            Phel::vector([Symbol::create('phel.string'), Keyword::create('as'), Symbol::create('s')]),
+        ), NodeEnvironment::empty());
+
+        self::assertSame('phel.string', $this->globalEnv->getRequireAliases('app.core')['s']->getName());
+    }
+
+    public function test_same_alias_for_a_clojure_namespace_and_its_phel_target_is_allowed(): void
+    {
+        new NsSymbol($this->analyzer)->analyze($this->nsRequiring(
+            Phel::vector([Symbol::create('phel.string'), Keyword::create('as'), Symbol::create('s')]),
+            Phel::vector([Symbol::create('clojure.string'), Keyword::create('as'), Symbol::create('s')]),
+        ), NodeEnvironment::empty());
+
+        self::assertArrayHasKey('s', $this->globalEnv->getRequireAliases('app.core'));
+    }
+
+    public function test_reevaluated_ns_may_point_an_alias_at_another_namespace(): void
+    {
+        new NsSymbol($this->analyzer)->analyze($this->nsRequiring(
+            Phel::vector([Symbol::create('phel.string'), Keyword::create('as'), Symbol::create('s')]),
+        ), NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($this->nsRequiring(
+            Phel::vector([Symbol::create('phel.json'), Keyword::create('as'), Symbol::create('s')]),
+        ), NodeEnvironment::empty());
+
+        self::assertSame('phel.json', $this->globalEnv->getRequireAliases('app.core')['s']->getName());
+    }
+
+    public function test_name_referred_from_two_namespaces_fails_at_the_second_refer(): void
+    {
+        Phel::addDefinition('app.a', 'f', 'aValue', Phel::map());
+        Phel::addDefinition('app.b', 'f', 'bValue', Phel::map());
+        $secondRefer = Symbol::create('f');
+        $secondRefer->setStartLocation(new SourceLocation('/app/core.phel', 4, 30));
+
+        try {
+            new NsSymbol($this->analyzer)->analyze($this->nsRequiring(
+                Phel::vector([Symbol::create('app.a'), Keyword::create('refer'), Phel::vector([Symbol::create('f')])]),
+                Phel::vector([Symbol::create('app.b'), Keyword::create('refer'), Phel::vector([$secondRefer])]),
+            ), NodeEnvironment::empty());
+            self::fail('Expected an AnalyzerException.');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertSame(
+                "'f' is already referred from app.a in app.core, so it cannot also be referred from app.b.",
+                $analyzerException->getMessage(),
+            );
+            self::assertSame(ErrorCode::DUPLICATE_DEFINITION, $analyzerException->getErrorCode());
+            self::assertSame(4, $analyzerException->getStartLocation()?->getLine());
+            self::assertSame(30, $analyzerException->getStartLocation()?->getColumn());
+        }
+    }
+
+    public function test_same_name_referred_from_the_same_namespace_twice_is_allowed(): void
+    {
+        Phel::addDefinition('app.a', 'f', 'aValue', Phel::map());
+
+        new NsSymbol($this->analyzer)->analyze($this->nsRequiring(
+            Phel::vector([Symbol::create('app.a'), Keyword::create('refer'), Phel::vector([Symbol::create('f'), Symbol::create('f')])]),
+            Phel::vector([Symbol::create('app.a'), Keyword::create('refer'), Phel::vector([Symbol::create('f')])]),
+        ), NodeEnvironment::empty());
+
+        self::assertSame('app.a', $this->globalEnv->getRefers('app.core')['f']->getName());
+    }
+
+    private function nsRequiring(mixed ...$entries): PersistentListInterface
+    {
+        return Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app.core'),
+            Phel::list([Keyword::create('require'), ...$entries]),
+        ]);
+    }
+
     /**
      * @param list<string> $names
      */

@@ -17,6 +17,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\FrameworkNamespaces;
 use Phel\Shared\Munge;
@@ -49,6 +50,17 @@ TXT;
 
     private const string NAMESPACE_PART_PATTERN = '/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\-\x7f-\xff]*$/';
 
+    /**
+     * Only one `ns` form is compared, so re-evaluating a namespace with a
+     * changed alias or refer, as the REPL and a reload do, keeps working.
+     *
+     * @var array<string, string>
+     */
+    private array $aliasesInForm = [];
+
+    /** @var array<string, string> */
+    private array $refersInForm = [];
+
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): NsNode
     {
         $this->assertArityAtLeast($list, 2, '(ns name)');
@@ -67,6 +79,9 @@ TXT;
 
         $this->analyzer->setNamespace($ns);
         DefaultLangAliasesRegistrar::register($this->analyzer, $ns);
+
+        $this->aliasesInForm = [];
+        $this->refersInForm = [];
 
         $requireNs = [];
         $requireFiles = [];
@@ -389,6 +404,9 @@ TXT;
         $alias = $this->createAliasFromSymbol($aliasValue, $resolvedSymbol);
         $referSymbols = $this->extractRefer($referValue, $import);
 
+        $this->assertAliasIsFree($ns, $aliasValue, $resolvedSymbol->getName(), $import);
+        $this->assertRefersAreFree($ns, $referSymbols, $resolvedSymbol->getName(), $referValue ?? $import);
+
         $this->analyzer->addRequireAlias($ns, $alias, $resolvedSymbol);
         $this->analyzer->addRefers($ns, $referSymbols, $resolvedSymbol);
 
@@ -401,6 +419,53 @@ TXT;
         $this->assertRefersAreDefined($resolvedSymbol->getName(), $referSymbols, $referValue, $import);
 
         return $resolvedSymbol;
+    }
+
+    /**
+     * @param PersistentListInterface<mixed> $import
+     */
+    private function assertAliasIsFree(string $ns, ?Symbol $alias, string $requiredNs, PersistentListInterface $import): void
+    {
+        if (!$alias instanceof Symbol) {
+            return;
+        }
+
+        $name = $alias->getName();
+        $boundNs = $this->aliasesInForm[$name] ?? $requiredNs;
+        if (!$this->isSameNamespace($boundNs, $requiredNs)) {
+            throw AnalyzerException::withLocation(
+                sprintf("Alias '%s' already names %s in %s, so it cannot also name %s.", $name, $boundNs, $ns, $requiredNs),
+                $alias->getStartLocation() instanceof SourceLocation ? $alias : $import,
+                errorCode: ErrorCode::DUPLICATE_DEFINITION,
+            );
+        }
+
+        $this->aliasesInForm[$name] = $requiredNs;
+    }
+
+    /**
+     * @param list<Symbol> $referSymbols
+     */
+    private function assertRefersAreFree(string $ns, array $referSymbols, string $requiredNs, TypeInterface $fallback): void
+    {
+        foreach ($referSymbols as $refer) {
+            $name = $refer->getName();
+            $boundNs = $this->refersInForm[$name] ?? $requiredNs;
+            if (!$this->isSameNamespace($boundNs, $requiredNs)) {
+                throw AnalyzerException::withLocation(
+                    sprintf("'%s' is already referred from %s in %s, so it cannot also be referred from %s.", $name, $boundNs, $ns, $requiredNs),
+                    $refer->getStartLocation() instanceof SourceLocation ? $refer : $fallback,
+                    errorCode: ErrorCode::DUPLICATE_DEFINITION,
+                );
+            }
+
+            $this->refersInForm[$name] = $requiredNs;
+        }
+    }
+
+    private function isSameNamespace(string $a, string $b): bool
+    {
+        return (FrameworkNamespaces::clojureTarget($a) ?? $a) === (FrameworkNamespaces::clojureTarget($b) ?? $b);
     }
 
     /**
