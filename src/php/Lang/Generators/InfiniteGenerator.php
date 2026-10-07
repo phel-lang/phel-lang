@@ -62,7 +62,7 @@ final class InfiniteGenerator
     public static function cycle(mixed $iterable): Generator
     {
         $values = [];
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             $values[] = $value;
             yield $value;
         }

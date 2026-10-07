@@ -1549,19 +1549,28 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 
 (defn- run-body!
   "Runs one test body through its fixtures. A `skip!` unwinds to here and
-  becomes a `:skipped` event with the reason; anything else propagates."
-  [ns test-name each-wrap f]
+  becomes a `:skipped` event with the reason; anything else the body throws
+  becomes an `:error` event for this test, so the run goes on."
+  [ns test-name each-wrap {:fn f, :meta m}]
   (try
     (each-wrap f)
     (catch \Phel\Lang\SkipTestException e
-      (report {:type :skipped, :ns ns, :test-name test-name, :reason (.getMessage e)}))))
+      (report {:type :skipped, :ns ns, :test-name test-name, :reason (.getMessage e)}))
+    (catch \Throwable e
+      (report {:type :error
+               :state :error
+               :ns ns
+               :test-name test-name
+               :location (:start-location m)
+               :form (list (symbol test-name))
+               :exception e}))))
 
-(defn- run-one-test! [options ns each-wrap {:fn f, :meta m}]
-  (let [test-name (:test-name m)
+(defn- run-one-test! [options ns each-wrap test]
+  (let [test-name (:test-name (:meta test))
         c0        (failure-count)]
     (report {:type :begin-test, :ns ns, :test-name test-name})
     (let [t0          (php/microtime true)
-          _           (run-body! ns test-name each-wrap f)
+          _           (run-body! ns test-name each-wrap test)
           duration-ms (* 1000.0 (- (php/microtime true) t0))]
       (when (pos? (or (:slowest options) 0))
         (record-test-time! ns test-name duration-ms))

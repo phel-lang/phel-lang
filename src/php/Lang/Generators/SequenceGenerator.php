@@ -10,9 +10,11 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInt;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\NumericCoercion;
 use Phel\Lang\NumericOperations;
 use Phel\Lang\Ratio;
+use Phel\Lang\TypeFactory;
 
 use function get_debug_type;
 use function is_array;
@@ -60,13 +62,30 @@ final class SequenceGenerator
     }
 
     /**
+     * The elements a sequence function walks. A map or struct iterates
+     * key => value, while its elements are its `[key value]` entries, as
+     * `seq` and `vec` see them. {@see self::toIterable()} stays raw because
+     * `foreach [k v m]` binds the key and the value.
+     *
+     * @return iterable<mixed>
+     */
+    public static function elementsOf(mixed $value): iterable
+    {
+        if ($value instanceof PersistentMapInterface) {
+            return self::entriesOf($value);
+        }
+
+        return self::toIterable($value);
+    }
+
+    /**
      * Converts a value to an Iterator for code that needs controlled advancement.
      *
      * @return Iterator<int|string, mixed>
      */
     public static function toIterator(mixed $value): Iterator
     {
-        $iterable = self::toIterable($value);
+        $iterable = self::elementsOf($value);
 
         if ($iterable instanceof Iterator) {
             return $iterable;
@@ -87,7 +106,7 @@ final class SequenceGenerator
     public static function indexed(mixed $iterable): Generator
     {
         $index = 0;
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (self::elementsOf($iterable) as $value) {
             yield [$index, $value];
             ++$index;
         }
@@ -130,6 +149,19 @@ final class SequenceGenerator
         NumericCoercion::ensureNumeric($step);
 
         return self::tower($start, $end, $step);
+    }
+
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $map
+     *
+     * @return Generator<int, mixed>
+     */
+    private static function entriesOf(PersistentMapInterface $map): Generator
+    {
+        $typeFactory = TypeFactory::getInstance();
+        foreach ($map as $k => $v) {
+            yield $typeFactory->persistentVectorFromArray([$k, $v]);
+        }
     }
 
     /**

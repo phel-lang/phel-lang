@@ -84,6 +84,15 @@
                             (next fdecl)
                             fdecl)
           is-single-arity (php/instanceof (first fdecl) PersistentVectorInterface)
+          params-checked  (if is-single-arity
+                            nil
+                            (foreach [arity fdecl]
+                              (if (if (php/instanceof arity PersistentListInterface)
+                                    (php/instanceof (first arity) PersistentVectorInterface)
+                                    false)
+                                nil
+                                (throw (new InvalidArgumentException
+                                            (php/. "Parameter declaration of " name " must be a vector"))))))
           docstring       (php/aget meta :doc)
           signatures      (if is-single-arity
                        ;; Single arity: just one signature

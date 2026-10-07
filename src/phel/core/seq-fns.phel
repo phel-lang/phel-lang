@@ -573,13 +573,14 @@ Creates intermediate maps if they don't exist."
    :see-also ["first" "peek" "butlast"]}
   [coll]
   (cond
-    (or (php/=== coll nil) (empty? coll)) nil
-    (seq? coll)                           (loop [s coll]
-                                            (let [n (next s)]
-                                              (if (nil? n)
-                                                (first s)
-                                                (recur n))))
-    :else                                 (peek coll)))
+    (or (php/=== coll nil) (empty? coll))        nil
+    (seq? coll)                                  (loop [s coll]
+                                                   (let [n (next s)]
+                                                     (if (nil? n)
+                                                       (first s)
+                                                       (recur n))))
+    (php/instanceof coll PersistentMapInterface) (last (seq coll))
+    :else                                        (peek coll)))
 
 (defn butlast
   "Returns all but the last item in `coll`. Returns `nil` when `coll` is
@@ -872,9 +873,7 @@ Creates intermediate maps if they don't exist."
      (let [result (LazySeq/fromGenerator
                    (new Hasher)
                    (new Equalizer)
-                   (Seq/distinct (if (or (map? coll) (struct? coll))
-                                   (Seq/map identity coll)
-                                   coll)))]
+                   (Seq/distinct coll))]
        (copy-meta coll result)))))
 
 (defn distinct?
@@ -1485,9 +1484,8 @@ With one argument returns an infinite lazy sequence of calls to f."
   ([f coll]
    (if (php/=== nil coll)
      '()
-     (let [input  (if (map? coll) (pairs coll) coll)
-           result (lazy-seq-from-generator
-                   (Phel.Lang.Seq/mapcat f input))]
+     (let [result (lazy-seq-from-generator
+                   (Phel.Lang.Seq/mapcat f coll))]
        (if (php/=== nil result)
          '()
          (copy-meta coll result)))))

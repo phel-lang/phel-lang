@@ -10,13 +10,14 @@ globs:
   - .github/workflows/announce-release.yml
   - src/php/Shared/VersionFinder.php
   - resources/agents/VERSION
+  - CITATION.cff
   - docs/stability.md
   - docs/migration/**
 ---
 
 # Releases
 
-Cut a release only with `tools/release.sh`, or the `/release` skill that wraps it. It bumps `VersionFinder.php`, `resources/agents/VERSION` and the CHANGELOG heading, commits `chore(release): vX.Y.Z`, builds and smoke-tests the PHAR, tags, pushes and publishes the GitHub release. Doing any of that by hand misses a step.
+Cut a release only with `tools/release.sh`, or the `/release` skill that wraps it. It bumps `VersionFinder.php`, `resources/agents/VERSION`, `CITATION.cff` and the CHANGELOG heading, commits `chore(release): vX.Y.Z`, builds and smoke-tests the PHAR, tags, pushes and publishes the GitHub release. Doing any of that by hand misses a step.
 
 - Leave `## Unreleased` populated. The script moves it. Never pre-convert it to a versioned heading.
 - `--dry-run` first. It previews everything and restores the files.

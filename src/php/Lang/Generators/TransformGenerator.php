@@ -6,11 +6,9 @@ namespace Phel\Lang\Generators;
 
 use Generator;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
-use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Reduced;
 use Phel\Lang\Truthy;
-use Phel\Lang\TypeFactory;
 
 use function is_array;
 
@@ -40,16 +38,7 @@ final class TransformGenerator
      */
     public static function map(callable $f, mixed $iterable): Generator
     {
-        if ($iterable instanceof PersistentMapInterface) {
-            $typeFactory = TypeFactory::getInstance();
-            foreach ($iterable as $k => $v) {
-                yield $f($typeFactory->persistentVectorFromArray([$k, $v]));
-            }
-
-            return;
-        }
-
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             yield $f($value);
         }
     }
@@ -74,7 +63,7 @@ final class TransformGenerator
      */
     public static function filter(callable $predicate, mixed $iterable): Generator
     {
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             if (Truthy::isTruthy($predicate($value))) {
                 yield $value;
             }
@@ -95,7 +84,7 @@ final class TransformGenerator
      */
     public static function keep(callable $f, mixed $iterable): Generator
     {
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             $result = $f($value);
             if ($result !== null) {
                 yield $result;
@@ -148,7 +137,7 @@ final class TransformGenerator
      */
     public static function mapcat(callable $f, mixed $iterable): Generator
     {
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             $result = $f($value);
 
             // Skip null results - they contribute nothing to concatenation
@@ -156,7 +145,7 @@ final class TransformGenerator
                 continue;
             }
 
-            foreach (SequenceGenerator::toIterable($result) as $item) {
+            foreach (SequenceGenerator::elementsOf($result) as $item) {
                 yield $item;
             }
         }
@@ -202,7 +191,7 @@ final class TransformGenerator
         yield $init;
 
         $acc = $init;
-        foreach (self::entriesOf($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             $acc = $f($acc, $value);
 
             if ($acc instanceof Reduced) {
@@ -281,31 +270,5 @@ final class TransformGenerator
         }
 
         return is_array($value) && ($value === [] || array_is_list($value));
-    }
-
-    /**
-     * A map is walked as `[key value]` pairs, as {@see self::map()} walks it,
-     * not as bare values: `(reductions + 0 {:a 1})` has to reach `+` with the
-     * entry it always did, which is what makes it raise rather than quietly
-     * summing the values.
-     *
-     * @return Generator<int, mixed>
-     */
-    private static function entriesOf(mixed $iterable): Generator
-    {
-        if ($iterable instanceof PersistentMapInterface) {
-            $typeFactory = TypeFactory::getInstance();
-            foreach ($iterable as $k => $v) {
-                yield $typeFactory->persistentVectorFromArray([$k, $v]);
-            }
-
-            return;
-        }
-
-        // Values, not `yield from`: that would carry the source's keys
-        // through, and this generator is declared with `int` keys.
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
-            yield $value;
-        }
     }
 }

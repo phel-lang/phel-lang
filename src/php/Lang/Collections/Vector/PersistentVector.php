@@ -15,6 +15,7 @@ use RuntimeException;
 use Traversable;
 
 use function array_slice;
+use function array_values;
 use function count;
 use function is_array;
 use function sprintf;
@@ -84,6 +85,10 @@ final class PersistentVector extends AbstractPersistentVector
             /** @var self<TValue> $empty */
             $empty = self::empty($hasher, $equalizer);
             return $empty;
+        }
+
+        if (count($values) <= self::BRANCH_FACTOR) {
+            return new self($hasher, $equalizer, null, count($values), self::SHIFT, [], array_values($values));
         }
 
         /** @var TransientVector<TValue> $tv */
