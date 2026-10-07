@@ -8,8 +8,8 @@
   static $__phel_const_0, $__phel_call_0;
   /** @var int $b_1 */
   $b_1 = 10;
-  foreach (($__phel_const_0 ??= \Phel::vector([1, 2, 3])) as $b) {
-    ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "println"))->__invoke($b);
+  foreach (($__phel_const_0 ??= \Phel::vector([1, 2, 3])) as $b_2) {
+    ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "println"))->__invoke($b_2);
   }
   return null;
 });

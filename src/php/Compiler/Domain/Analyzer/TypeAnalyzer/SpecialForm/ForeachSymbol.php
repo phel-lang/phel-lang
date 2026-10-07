@@ -108,13 +108,14 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
             $valueSymbol = $tmpSym;
         }
 
-        $bodyEnv = $env->withMergedLocals([$valueSymbol]);
+        $valueShadow = $this->shadow($valueSymbol);
+        $bodyEnv = $env->withLocalAndShadow($valueSymbol, $valueShadow);
         $listExpr = $this->analyzer->analyze(
             $foreachTuple->get(1),
             $env->withExpressionContext(),
         );
 
-        return new ForeachSymbolTuple($lets, $bodyEnv, $listExpr, $valueSymbol);
+        return new ForeachSymbolTuple($lets, $bodyEnv, $listExpr, $valueShadow);
     }
 
     /**
@@ -140,13 +141,17 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
             $valueSymbol = $tmpSym;
         }
 
-        $bodyEnv = $env->withMergedLocals([$valueSymbol, $keySymbol]);
+        $valueShadow = $this->shadow($valueSymbol);
+        $keyShadow = $this->shadow($keySymbol);
+        $bodyEnv = $env
+            ->withLocalAndShadow($valueSymbol, $valueShadow)
+            ->withLocalAndShadow($keySymbol, $keyShadow);
         $listExpr = $this->analyzer->analyze(
             $foreachTuple->get(2),
             $env->withExpressionContext(),
         );
 
-        return new ForeachSymbolTuple($lets, $bodyEnv, $listExpr, $valueSymbol, $keySymbol);
+        return new ForeachSymbolTuple($lets, $bodyEnv, $listExpr, $valueShadow, $keyShadow);
     }
 
     /**
@@ -175,6 +180,15 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
             Symbol::create(Symbol::NAME_DO),
             ...$bodys,
         ]);
+    }
+
+    /**
+     * A fresh PHP name, as `let` gives its locals, so the loop variable never
+     * overwrites a param or another local that munges to the same name.
+     */
+    private function shadow(Symbol $local): Symbol
+    {
+        return Symbol::gen($local->getName() . '_')->copyLocationFrom($local);
     }
 
     private function canonicalizeTag(mixed $binding): mixed

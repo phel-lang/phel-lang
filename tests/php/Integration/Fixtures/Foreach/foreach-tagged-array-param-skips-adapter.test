@@ -9,8 +9,8 @@
 
     public function __invoke(array $arr) {
       static $__phel_call_0;
-      foreach ($arr as $x) {
-        ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "println"))->__invoke($x);
+      foreach ($arr as $x_1) {
+        ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "println"))->__invoke($x_1);
       }
       return null;
     }

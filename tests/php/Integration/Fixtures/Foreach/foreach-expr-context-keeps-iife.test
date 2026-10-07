@@ -6,8 +6,8 @@
 (function() {
   static $__phel_const_0;
   $y_1 = (function() use(&$__phel_const_0) {
-    foreach (($__phel_const_0 ??= \Phel::vector([1, 2, 3])) as $v) {
-      ($v + $v);
+    foreach (($__phel_const_0 ??= \Phel::vector([1, 2, 3])) as $v_2) {
+      ($v_2 + $v_2);
     }
     return null;
   })();
