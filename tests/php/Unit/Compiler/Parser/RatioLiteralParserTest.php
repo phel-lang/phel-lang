@@ -18,7 +18,7 @@ final class RatioLiteralParserTest extends TestCase
     public function test_zero_denominator_reports_a_coded_error_at_the_literal(): void
     {
         $parser = new Parser(new ExpressionParserFactory(), new GlobalEnvironment());
-        $tokenStream = (new Lexer())->lexString("(+ 1\n   1/0)", 'ratio.phel');
+        $tokenStream = new Lexer()->lexString("(+ 1\n   1/0)", 'ratio.phel');
 
         try {
             $parser->parseAll($tokenStream);
