@@ -1,0 +1,79 @@
+(ns phel-test.core.seq-fns-map-entries
+  (:require phel.test :refer [deftest is]))
+
+(defstruct seq-entries-point [x y z])
+
+(def- colls
+  {:hash-map   {:a 1 :b 2 :c 3}
+   :sorted-map (sorted-map :a 1 :b 2 :c 3)
+   :struct     (seq-entries-point 1 2 3)})
+
+(defn- first-key? [m]
+  (let [k (ffirst (vec m))]
+    (fn [e] (= k (first e)))))
+
+(deftest test-struct-reference-is-entries
+  (is (= [[:x 1] [:y 2] [:z 3]] (vec (seq-entries-point 1 2 3)))))
+
+(deftest test-sorted-map-gives-clojure-results
+  (let [m (sorted-map :a 1 :b 2 :c 3)]
+    (is (= [[:a 1]] (take 1 m)) "take")
+    (is (= [[:b 2] [:c 3]] (drop 1 m)) "drop")
+    (is (= [[:a 1] [:b 2] [:c 3]] (remove nil? m)) "remove")
+    (is (= [[[:a 1]] [[:b 2]] [[:c 3]]] (partition 1 m)) "partition")
+    (is (= [[0 [:a 1]] [1 [:b 2]] [2 [:c 3]]] (map-indexed vector m)) "map-indexed")
+    (is (= [:c 3] (last m)) "last")
+    (is (= [[:b 2] [:c 3]] (rest m)) "rest")
+    (is (= [[:a 1] [:b 2]] (butlast m)) "butlast")
+    (is (= [[:a 1] [:b 2] [:c 3]] (reduce conj [] m)) "reduce with init")
+    (is (= [[:a 1] [:b 2] [:c 3]] (filterv vector? m)) "filterv")))
+
+(deftest test-every-function-sees-entries
+  (foreach [label m colls]
+    (let [es (vec m)
+          k? (first-key? m)]
+      (is (= (dedupe es) (dedupe m)) (str "dedupe " label))
+      (is (= (compact es) (compact m)) (str "compact " label))
+      (is (= (partition 2 es) (partition 2 m)) (str "partition " label))
+      (is (= (partition 2 1 es) (partition 2 1 m)) (str "partition step " label))
+      (is (= (partition-all 2 es) (partition-all 2 m)) (str "partition-all " label))
+      (is (= (partition-by k? es) (partition-by k? m)) (str "partition-by " label))
+      (is (= (take 2 es) (take 2 m)) (str "take " label))
+      (is (= (drop 1 es) (drop 1 m)) (str "drop " label))
+      (is (= (take-while k? es) (take-while k? m)) (str "take-while " label))
+      (is (= (drop-while k? es) (drop-while k? m)) (str "drop-while " label))
+      (is (= (take-nth 2 es) (take-nth 2 m)) (str "take-nth " label))
+      (is (= (split-at 1 es) (split-at 1 m)) (str "split-at " label))
+      (is (= (butlast es) (butlast m)) (str "butlast " label))
+      (is (= (keep first es) (keep first m)) (str "keep " label))
+      (is (= (keep-indexed vector es) (keep-indexed vector m)) (str "keep-indexed " label))
+      (is (= (filter vector? es) (filter vector? m)) (str "filter " label))
+      (is (= (remove nil? es) (remove nil? m)) (str "remove " label))
+      (is (= (filterv vector? es) (filterv vector? m)) (str "filterv " label))
+      (is (= es (random-sample 1 m)) (str "random-sample " label))
+      (is (= (concat es [:x]) (concat m [:x])) (str "concat " label))
+      (is (= (concat [:x] es es) (concat [:x] m m)) (str "concat many " label))
+      (is (= (map-indexed vector es) (map-indexed vector m)) (str "map-indexed " label))
+      (is (= es (reduce conj [] m)) (str "reduce with init " label))
+      (is (= es (transduce (map identity) conj [] m)) (str "transduce " label))
+      (is (= es (sequence (map identity) m)) (str "sequence " label))
+      (is (= (take 4 (cycle es)) (take 4 (cycle m))) (str "cycle " label))
+      (is (= (last es) (last m)) (str "last " label))
+      (is (= (rest es) (rest m)) (str "rest " label)))))
+
+(deftest test-callers-that-already-see-entries-are-unchanged
+  (foreach [label m colls]
+    (let [es (vec m)]
+      (is (= es (into [] m)) (str "into " label))
+      (is (= (apply concat es) (mapcat identity m)) (str "mapcat " label))
+      (is (= (second es) (second m)) (str "second " label))
+      (is (= es (map identity m)) (str "map " label))
+      (is (= (reductions conj [] es) (reductions conj [] m)) (str "reductions " label)))))
+
+(deftest test-mapcat-flattens-a-map-result-into-entries
+  (is (= [[:a 1]] (mapcat identity [(sorted-map :a 1)]))))
+
+(deftest test-empty-maps
+  (is (= [] (take 1 {})))
+  (is (= [] (rest {})))
+  (is (nil? (last {}))))

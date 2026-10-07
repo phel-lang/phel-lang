@@ -37,7 +37,7 @@ final class DedupeGenerator
         $equalizer = $typeFactory->getEqualizer();
         $seen = [];
 
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             $hash = $hasher->hash($value);
 
             $found = false;
@@ -74,7 +74,7 @@ final class DedupeGenerator
         $first = true;
         $prev = null;
 
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             if ($first || !$equalizer->equals($value, $prev)) {
                 yield $value;
                 $prev = $value;
@@ -122,7 +122,7 @@ final class DedupeGenerator
 
         $lookups = self::prepareCompactLookups($valuesToRemove);
 
-        foreach (SequenceGenerator::toIterable($iterable) as $item) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $item) {
             if (!self::shouldRemoveItem($item, $lookups['scalarLookup'], $lookups['objects'])) {
                 yield $item;
             }
@@ -136,7 +136,7 @@ final class DedupeGenerator
      */
     private static function compactSingleValue(mixed $iterable, mixed $valueToRemove): Generator
     {
-        foreach (SequenceGenerator::toIterable($iterable) as $item) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $item) {
             if ($item !== $valueToRemove) {
                 yield $item;
             }
