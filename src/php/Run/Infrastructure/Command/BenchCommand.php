@@ -14,6 +14,7 @@ use Phel\Run\Domain\QuotedNamespaceList;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\ExistingPaths;
 use Phel\Shared\NamespaceInformation;
 use Phel\Shared\Process\PhelBinaryLocator;
 use Phel\Shared\ScalarCoercion;
@@ -29,6 +30,7 @@ use function defined;
 use function function_exists;
 use function getcwd;
 use function implode;
+use function is_file;
 use function is_numeric;
 use function is_string;
 use function json_encode;
@@ -148,8 +150,21 @@ final class BenchCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        /** @var list<string> $requestedPaths */
+        $requestedPaths = (array) $input->getArgument(self::ARG_PATHS);
+        if (!ExistingPaths::reportMissing($requestedPaths, $output)) {
+            return self::INVALID;
+        }
+
         if ($input->getOption(self::OPT_AB) !== null || $input->getParameterOption('--' . self::OPT_PAIRS, null, true) !== null) {
             return $this->executeAb($input, $output);
+        }
+
+        $ref = $input->getOption(self::OPT_REF);
+        if (is_string($ref) && !is_file($ref)) {
+            $output->writeln(sprintf('<error>Baseline file not found: %s</error>', $ref));
+
+            return self::INVALID;
         }
 
         try {

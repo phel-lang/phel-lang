@@ -108,7 +108,7 @@ final class NsCommandTest extends AbstractTestCommand
         $exitCode = $this->runInspect($facade, 'app\\nope');
         $output = (string) ob_get_clean();
 
-        self::assertSame(NsCommand::FAILURE, $exitCode);
+        self::assertSame(NsCommand::INVALID, $exitCode);
         self::assertStringContainsString('Namespace "app.nope" not found in any source directory.', $output);
     }
 

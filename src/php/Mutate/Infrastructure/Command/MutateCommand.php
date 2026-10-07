@@ -31,6 +31,7 @@ use function array_values;
 use function count;
 use function explode;
 use function file_put_contents;
+use function in_array;
 use function is_numeric;
 use function is_string;
 use function microtime;
@@ -59,8 +60,6 @@ use function trim;
 final class MutateCommand extends Command
 {
     use ServiceResolverAwareTrait;
-
-    public const int EXIT_INVOCATION_ERROR = 2;
 
     public const string COMMAND_NAME = 'mutate';
 
@@ -133,7 +132,7 @@ HELP);
         } catch (InvalidArgumentException $invalidArgumentException) {
             $output->writeln('<error>' . $invalidArgumentException->getMessage() . '</error>');
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         try {
@@ -142,7 +141,7 @@ HELP);
         } catch (InvalidArgumentException|GitUnavailableException $exception) {
             $output->writeln('<error>' . $exception->getMessage() . '</error>');
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         $output->writeln(sprintf(
@@ -195,6 +194,11 @@ HELP);
         $mutators = is_string($only) && trim($only) !== ''
             ? array_values(array_filter(array_map(trim(...), explode(',', $only)), static fn(string $id): bool => $id !== ''))
             : [];
+
+        $reporter = ScalarCoercion::toString($input->getOption(self::OPT_REPORTER), self::REPORTER_TEXT);
+        if (!in_array($reporter, [self::REPORTER_TEXT, self::REPORTER_JSON], true)) {
+            throw new InvalidArgumentException(sprintf('Unknown reporter: %s. Known: text, json.', $reporter));
+        }
 
         $minMsi = $input->getOption(self::OPT_MIN_MSI);
         if ($minMsi !== null && !is_numeric($minMsi)) {

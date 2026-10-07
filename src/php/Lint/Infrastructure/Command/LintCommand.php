@@ -25,6 +25,7 @@ use Throwable;
 
 use function getcwd;
 use function implode;
+use function is_file;
 use function is_string;
 use function rtrim;
 use function sprintf;
@@ -47,8 +48,6 @@ use function sprintf;
 final class LintCommand extends Command
 {
     use ServiceResolverAwareTrait;
-
-    public const int EXIT_INVOCATION_ERROR = 2;
 
     private const string COMMAND_NAME = 'lint';
 
@@ -107,6 +106,10 @@ HELP)
     {
         /** @var list<string> $paths */
         $paths = (array) $input->getArgument(self::ARG_PATHS);
+        if (!ExistingPaths::reportMissing($paths, $output)) {
+            return self::INVALID;
+        }
+
         if ($paths === []) {
             $paths = $this->defaultPaths();
         }
@@ -115,7 +118,7 @@ HELP)
         if ($paths === []) {
             $output->writeln('<error>No readable .phel files or directories found to lint.</error>');
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         $format = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
@@ -127,7 +130,7 @@ HELP)
                 implode(', ', $formatters->names()),
             ));
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         try {
@@ -135,7 +138,7 @@ HELP)
         } catch (LintConfigException $lintConfigException) {
             $output->writeln(sprintf('<error>%s</error>', $lintConfigException->getMessage()));
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         $cache = $this->maybeCache($input, $settings);
@@ -150,7 +153,7 @@ HELP)
         } catch (Throwable $throwable) {
             $output->writeln(sprintf('<error>Lint failed: %s</error>', $throwable->getMessage()));
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         $output->write($formatters->get($format)->format($result));
@@ -175,6 +178,8 @@ HELP)
         $configPath = $input->getOption(self::OPT_CONFIG);
         if (!is_string($configPath) || $configPath === '') {
             $configPath = $this->defaultConfigPath();
+        } elseif (!is_file($configPath)) {
+            throw LintConfigException::notFound($configPath);
         }
 
         return $this->getFacade()->loadSettings($configPath, $defaults);

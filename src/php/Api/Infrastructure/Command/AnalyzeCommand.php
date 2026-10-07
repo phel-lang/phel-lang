@@ -66,14 +66,14 @@ HELP)
                 // as a clean result for source that was never analyzed.
                 if (!is_readable($path)) {
                     $output->writeln(sprintf('<error>Unable to read directory: %s</error>', $path));
-                    return self::FAILURE;
+                    return self::INVALID;
                 }
 
                 try {
                     $found = iterator_to_array(PhelFileIterator::iterate($path), false);
                 } catch (UnexpectedValueException $unexpectedValueException) {
                     $output->writeln(sprintf('<error>Unable to read directory: %s</error>', $unexpectedValueException->getMessage()));
-                    return self::FAILURE;
+                    return self::INVALID;
                 }
 
                 sort($found);
@@ -84,7 +84,7 @@ HELP)
 
             if (!is_file($path)) {
                 $output->writeln(sprintf('<error>File not found: %s</error>', $path));
-                return self::FAILURE;
+                return self::INVALID;
             }
 
             $files[] = $path;
@@ -95,7 +95,7 @@ HELP)
             $source = file_get_contents($file);
             if ($source === false) {
                 $output->writeln(sprintf('<error>Unable to read file: %s</error>', $file));
-                return self::FAILURE;
+                return self::INVALID;
             }
 
             $diagnostics = [...$diagnostics, ...$this->getFacade()->analyzeSource($source, $file)];

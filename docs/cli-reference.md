@@ -102,7 +102,7 @@ same fields. Next to `code` (the lint rule, or the `PHELxxx` code for
 `analyze`), `errorCode` holds the `PHELxxx` code behind it (`null` for a
 lint-only rule), `suggestions` the names a "did you mean" offers, and `fix` the
 catalog's advice. `phel analyze` takes files or directories and exits 1 when a
-diagnostic is an error.
+diagnostic is an error, 2 when a path does not exist.
 
 An unknown code exits 1. The text comes from the same catalog the pages under
 `docs/errors/` are generated from, so the terminal and the docs cannot drift.

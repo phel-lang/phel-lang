@@ -11,6 +11,7 @@ use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\RunFacade;
 use Phel\Run\RunProvider;
 use Phel\Shared\Exceptions\Hint\ClassNotFoundHint;
+use Phel\Shared\ExistingPaths;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Shared\FrameworkNamespaces;
 use Phel\Shared\NoColor;
@@ -142,6 +143,7 @@ final class PublicApiSurfaceTest extends TestCase
         $members = [
             ['class' => OptimizationLevel::class, 'method' => 'pin'],
             ['class' => NoColor::class, 'method' => 'followOutput'],
+            ['class' => ExistingPaths::class, 'method' => 'reportMissing'],
             ['class' => ClassNotFoundHint::class, 'method' => 'javaClassHint'],
             ['class' => FrameworkNamespaces::class, 'method' => 'clojureTarget'],
             ['class' => FrameworkNamespaces::class, 'method' => 'isPhel'],

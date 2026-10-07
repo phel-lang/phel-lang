@@ -80,7 +80,7 @@ final class AnalyzeCommandTest extends TestCase
         $tester = new CommandTester(new AnalyzeCommand());
         $exit = $tester->execute(['paths' => ['/nonexistent/file.phel']]);
 
-        self::assertSame(1, $exit);
+        self::assertSame(2, $exit);
     }
 
     public function test_analyze_command_fails_on_an_unreadable_subdirectory(): void
@@ -105,7 +105,7 @@ final class AnalyzeCommandTest extends TestCase
             rmdir($dir);
         }
 
-        self::assertSame(1, $exit);
+        self::assertSame(2, $exit);
         self::assertStringContainsString('Unable to read directory', $tester->getDisplay());
     }
 
@@ -128,7 +128,7 @@ final class AnalyzeCommandTest extends TestCase
             rmdir($dir);
         }
 
-        self::assertSame(1, $exit);
+        self::assertSame(2, $exit);
         self::assertStringContainsString('Unable to read directory', $tester->getDisplay());
     }
 

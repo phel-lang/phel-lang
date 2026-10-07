@@ -67,6 +67,13 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->getDependenciesForNamespace($directories, $ns);
     }
 
+    public function namespaceExists(string $namespace): bool
+    {
+        return $this->getFactory()
+            ->createNamespaceCollector()
+            ->exists($namespace);
+    }
+
     public function evalFile(NamespaceInformation $info): void
     {
         $this->getFactory()

@@ -7,6 +7,7 @@ namespace Phel\Api\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Api\ApiFacade;
+use Phel\Shared\ExistingPaths;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -59,6 +60,9 @@ HELP)
     {
         /** @var list<string> $dirs */
         $dirs = (array) $input->getArgument('dirs');
+        if (!ExistingPaths::reportMissing($dirs, $output)) {
+            return self::INVALID;
+        }
 
         $index = $this->getFacade()->indexProject($dirs);
 

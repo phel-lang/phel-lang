@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function in_array;
 use function json_encode;
 use function sprintf;
 
@@ -62,9 +63,21 @@ HELP)
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $format = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
+        if (!in_array($format, [self::FORMAT_TEXT, self::FORMAT_JSON], true)) {
+            $output->writeln(sprintf(
+                '<error>Unknown format: %s. Known: %s, %s.</error>',
+                $format,
+                self::FORMAT_TEXT,
+                self::FORMAT_JSON,
+            ));
+
+            return Command::INVALID;
+        }
+
         $effective = $this->reader->read();
 
-        if (ScalarCoercion::toString($input->getOption(self::OPT_FORMAT)) === self::FORMAT_JSON) {
+        if ($format === self::FORMAT_JSON) {
             $output->writeln($this->toJson($effective->values));
 
             return Command::SUCCESS;

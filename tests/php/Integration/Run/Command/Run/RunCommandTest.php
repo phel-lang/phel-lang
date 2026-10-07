@@ -25,7 +25,7 @@ final class RunCommandTest extends AbstractTestCommand
             $this->stubOutput(),
         );
 
-        self::assertSame(1, $exitCode);
+        self::assertSame(2, $exitCode);
     }
 
     public function test_run_by_namespace(): void

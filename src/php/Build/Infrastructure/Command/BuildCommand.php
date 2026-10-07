@@ -29,6 +29,7 @@ use Throwable;
 use function array_filter;
 use function count;
 use function hrtime;
+use function preg_match;
 use function sprintf;
 
 /**
@@ -89,6 +90,17 @@ HELP)
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $rawLevel = $input->getOption(self::OPTION_OPTIMIZATION_LEVEL);
+        $level = ScalarCoercion::toString($rawLevel);
+        if ($rawLevel !== null && preg_match('/^\d+$/', $level) !== 1) {
+            $output->writeln(sprintf(
+                '<error>--optimization-level must be a non-negative integer such as 0 or 2, got "%s".</error>',
+                $level,
+            ));
+
+            return self::INVALID;
+        }
+
         $this->warnAboutLockedVersion($output);
         $buildOptions = $this->getBuildOptions($input);
         $report = (bool) $input->getOption(self::OPTION_REPORT);
@@ -225,7 +237,7 @@ HELP)
         return new BuildOptions(
             $input->getOption(self::OPTION_CACHE) === true,
             $input->getOption(self::OPTION_SOURCE_MAP) === true,
-            $rawLevel === null ? null : max(0, ScalarCoercion::toInt($rawLevel)),
+            $rawLevel === null ? null : ScalarCoercion::toInt($rawLevel),
         );
     }
 

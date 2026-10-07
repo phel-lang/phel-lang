@@ -25,6 +25,19 @@ final readonly class NamespaceCollector
     ) {}
 
     /**
+     * Whether a source, test or vendor directory defines this namespace.
+     */
+    public function exists(string $namespace): bool
+    {
+        $deps = $this->buildFacade->getDependenciesForNamespace(
+            $this->commandFacade->getAllPhelDirectories(),
+            [$namespace],
+        );
+
+        return array_any($deps, static fn(NamespaceInformation $info): bool => $info->getNamespace() === $namespace);
+    }
+
+    /**
      * @param list<string> $paths
      *
      * @return list<NamespaceInformation>

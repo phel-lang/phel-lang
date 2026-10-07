@@ -128,15 +128,16 @@ final class BenchCommandTest extends TestCase
         self::assertStringNotContainsString('Slower than the baseline', $output);
     }
 
-    public function test_it_ignores_a_missing_baseline_file(): void
+    public function test_a_missing_baseline_file_is_an_invocation_error(): void
     {
+        $baseline = $this->baselinePath();
         [$exitCode, $output] = $this->project->runPhelCommand(
             'bench',
-            ['--ref=' . $this->baselinePath(), '--tolerance=1'],
+            ['--ref=' . $baseline, '--tolerance=1'],
         );
 
-        self::assertSame(0, $exitCode, $output);
-        self::assertStringContainsString('new', $output);
+        self::assertSame(2, $exitCode, $output);
+        self::assertStringContainsString('Baseline file not found: ' . $baseline, $output);
     }
 
     private function baselinePath(): string

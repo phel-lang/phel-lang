@@ -95,7 +95,7 @@ HELP)
     {
         $path = $this->resolvePath($input, $output);
         if ($path === null) {
-            return self::FAILURE;
+            return self::INVALID;
         }
 
         $sortOption = ScalarCoercion::toString($input->getOption(self::OPT_SORT));
@@ -103,7 +103,7 @@ HELP)
         if ($sort === null) {
             $this->writeUnknownOption($output, self::OPT_SORT, $sortOption, SortOrder::cases());
 
-            return self::FAILURE;
+            return self::INVALID;
         }
 
         $formatOption = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
@@ -111,7 +111,7 @@ HELP)
         if ($format === null) {
             $this->writeUnknownOption($output, self::OPT_FORMAT, $formatOption, ReportFormat::cases());
 
-            return self::FAILURE;
+            return self::INVALID;
         }
 
         /** @var list<string>|string|null $rawArgv */
@@ -207,6 +207,12 @@ HELP)
         /** @var string|null $path */
         $path = $input->getArgument(self::ARG_PATH);
         if ($path !== null && $path !== '') {
+            if (!file_exists($path) && !$this->getFactory()->getRunFacade()->namespaceExists(Munge::canonicalNs($path))) {
+                $output->writeln(sprintf('<error>Path or namespace "%s" not found.</error>', $path));
+
+                return null;
+            }
+
             return $path;
         }
 

@@ -106,7 +106,7 @@ HELP)
                 $path = $this->getFacade()->autoDetectEntryPoint();
                 if ($path === null) {
                     $output->writeln('<error>No entry point found. Create src/main.phel or specify a path.</error>');
-                    return self::FAILURE;
+                    return self::INVALID;
                 }
 
                 if ($output->isVerbose()) {
@@ -124,9 +124,9 @@ HELP)
                 $this->getFacade()->runFile($path);
             } else {
                 $namespace = Munge::canonicalNs($path);
-                if (!$this->namespaceExists($namespace)) {
+                if (!$this->getFacade()->namespaceExists($namespace)) {
                     $output->writeln(sprintf('<error>Namespace "%s" not found in any source directory.</error>', $path));
-                    return self::FAILURE;
+                    return self::INVALID;
                 }
 
                 $this->getFacade()->runNamespace($namespace);
@@ -148,21 +148,5 @@ HELP)
         }
 
         return self::FAILURE;
-    }
-
-    private function namespaceExists(string $namespace): bool
-    {
-        $deps = $this->getFacade()->getDependenciesForNamespace(
-            $this->getFacade()->getAllPhelDirectories(),
-            [$namespace],
-        );
-
-        foreach ($deps as $info) {
-            if ($info->getNamespace() === $namespace) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
