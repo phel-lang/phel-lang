@@ -10,6 +10,7 @@ use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Api\Location;
 use Phel\Shared\Api\ProjectIndex;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\VersionResolver;
 use Throwable;
 
 use function is_array;
@@ -24,7 +25,7 @@ use function sprintf;
  * Response shape: {"id": <any>, "result": ...} | {"id": <any>, "error": {code, message}}
  *
  * The dispatcher owns a single in-memory ProjectIndex created by `indexProject`
- * or `setIndex` so subsequent resolveSymbol / findReferences / completeAtPoint
+ * so subsequent resolveSymbol / findReferences / completeAtPoint
  * calls can reference it by a session-stable handle rather than re-sending a
  * serialized index on every request.
  *
@@ -86,6 +87,7 @@ final class JsonRpcDispatcher
             'resolveSymbol' => $this->resolveSymbol($params),
             'findReferences' => $this->findReferences($params),
             'completeAtPoint' => $this->completeAtPoint($params),
+            'version' => VersionResolver::current(),
             default => throw new UnknownMethodException(sprintf('Unknown method: %s', $method)),
         };
     }
