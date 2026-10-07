@@ -16,6 +16,7 @@ use Phel\Shared\BuildOptions;
 use Phel\Shared\ByteSize;
 use Phel\Shared\CompiledFile;
 use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\InvocationError;
 use Phel\Shared\ResourceUsageFormatter;
 use Phel\Shared\ScalarCoercion;
 use Phel\Shared\VersionFinder;
@@ -93,12 +94,10 @@ HELP)
         $rawLevel = $input->getOption(self::OPTION_OPTIMIZATION_LEVEL);
         $level = ScalarCoercion::toString($rawLevel);
         if ($rawLevel !== null && preg_match('/^\d+$/', $level) !== 1) {
-            $output->writeln(sprintf(
-                '<error>--optimization-level must be a non-negative integer such as 0 or 2, got "%s".</error>',
+            return InvocationError::report($output, sprintf(
+                '--optimization-level must be a non-negative integer such as 0 or 2, got "%s".',
                 $level,
             ));
-
-            return self::INVALID;
         }
 
         $this->warnAboutLockedVersion($output);

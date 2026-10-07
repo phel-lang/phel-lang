@@ -4,15 +4,20 @@
 (use Phel.Lang.BigDecimal)
 (use Phel.Lang.BigInt)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
-(use Phel.Lang.Collections.LinkedList.PersistentListInterface)
+(use Phel.Lang.Collections.HashSet.TransientHashSetInterface)
+(use Phel.Lang.Collections.Map.MapEntry)
 (use Phel.Lang.Collections.Map.PersistentMapInterface)
+(use Phel.Lang.Collections.Map.TransientMapInterface)
+(use Phel.Lang.Collections.Queue.PersistentQueue)
 (use Phel.Lang.Collections.Vector.PersistentVectorInterface)
+(use Phel.Lang.Collections.Vector.TransientVectorInterface)
 (use Phel.Lang.ContainsInterface)
 (use Phel.Lang.Hasher)
 (use Phel.Lang.IdenticalInterface)
 (use Phel.Lang.Keyword)
 (use Phel.Lang.NumericOperations)
 (use Phel.Lang.Ratio)
+(use Phel.Lang.SeqInterface)
 (use Phel.Lang.Symbol)
 (use Phel.Lang.Truthy)
 
@@ -520,8 +525,15 @@
 
 (defn- comparable-sequential?
   [x]
-  (or (php/instanceof x PersistentVectorInterface)
-      (php/instanceof x PersistentListInterface)))
+  (or (php/instanceof x SeqInterface)
+      (php/instanceof x MapEntry)
+      (php/instanceof x PersistentQueue)))
+
+(defn- transient-collection?
+  [x]
+  (or (php/instanceof x TransientVectorInterface)
+      (php/instanceof x TransientMapInterface)
+      (php/instanceof x TransientHashSetInterface)))
 
 (defn- named-comparison-category?
   [category]
@@ -540,17 +552,18 @@
     (comparable-sequential? x)                    :sequential
     (php/instanceof x PersistentMapInterface)     :map
     (php/instanceof x PersistentHashSetInterface) :set
+    (transient-collection? x)                     :transient
     :else                                         :other))
 
 (declare compare)
 
 (defn- compare-sequential
   [xs ys]
-  (loop [xs xs
-         ys ys]
+  (loop [xs (seq xs)
+         ys (seq ys)]
     (cond
-      (= 0 (count xs)) (if (= 0 (count ys)) 0 -1)
-      (= 0 (count ys)) 1
+      (nil? xs) (if (nil? ys) 0 -1)
+      (nil? ys) 1
       :else
       (let [c (compare (first xs) (first ys))]
         (if (= c 0)
@@ -570,6 +583,13 @@
       ns-cmp
       (php/<=> (.getName x) (.getName y)))))
 
+(defn- compare-unordered
+  [category x y]
+  (if (= x y)
+    0
+    (throw (new InvalidArgumentException
+                (str "Cannot compare " category " with " category)))))
+
 (defn- compare-same-category [category x y]
   (cond
     (named-comparison-category? category)
@@ -581,6 +601,14 @@
     (= category :number)
     (NumericOperations/compare x y)
 
+    (or (= category :map) (= category :set))
+    (compare-unordered category x y)
+
+    (= category :transient)
+    (throw (new InvalidArgumentException
+                (str "Cannot compare " (php/get_class x) " with " (php/get_class y)
+                     ": transient collections are not comparable")))
+
     :else
     (php/<=> x y)))
 
@@ -591,8 +619,10 @@
 
   `nil` is less than every non-nil value and equal to itself. Numbers are
   compared across the numeric tower (int, float, `Ratio`, `BigInt`,
-  `BigDecimal`). Throws `InvalidArgumentException` when `x` and `y` come from
-  mutually incomparable categories (e.g. `(compare 1 [])`)."
+  `BigDecimal`). Vectors, lists and seqs compare element-wise, so a shorter
+  prefix sorts first. Equal maps or sets compare 0. Throws
+  `InvalidArgumentException` for unequal maps or sets, and when `x` and `y`
+  come from mutually incomparable categories (e.g. `(compare 1 [])`)."
   {:example "(compare 1 2) ; => -1\n(compare :a :a) ; => 0"
    :see-also ["<=>" "sort" "sort-by"]}
   ^int [x y]

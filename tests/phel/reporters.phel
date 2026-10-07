@@ -691,10 +691,12 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-run-tests-throws-on-unknown-reporter-keyword
-  (is (thrown-with-msg? InvalidArgumentException
-                        "Unknown reporter: :does-not-exist"
-                        (t/run-tests {:reporters [:does-not-exist]}))
-      "run-tests rejects unknown reporter keywords at configure time"))
+  (let [message (try
+                  (t/run-tests {:reporters [:does-not-exist]})
+                  nil
+                  (catch InvalidArgumentException e (.getMessage e)))]
+    (is (php/str_starts_with message "Unknown reporter: does-not-exist. Known: default, testdox, dot, tap, junit-xml, github")
+        "run-tests rejects unknown reporter keywords at configure time, naming the known ones")))
 
 (deftest test-run-tests-throws-on-invalid-reporter-value
   (is (thrown-with-msg? InvalidArgumentException
