@@ -22,6 +22,7 @@ use RuntimeException;
 use function dirname;
 use function filemtime;
 use function sprintf;
+use function time;
 
 /**
  * @internal
@@ -158,6 +159,7 @@ final readonly class ProjectCompiler
                 continue;
             }
 
+            $compiledAt = time();
             $result[] = $this->fileCompiler->compileFile(
                 $info->getFile(),
                 $targetFile,
@@ -165,7 +167,7 @@ final readonly class ProjectCompiler
                 $optimizationLevel,
             );
 
-            touch($targetFile, $this->getFileMtime($info->getFile()));
+            touch($targetFile, $this->cacheStamp($info->getFile(), $compiledAt));
             $recompiledNamespaces[$info->getNamespace()] = true;
         }
 
@@ -240,6 +242,14 @@ final readonly class ProjectCompiler
         }
 
         return array_all($this->config->getPathsToAvoidCache(), static fn(string $path): bool => !str_contains($targetFile, $path));
+    }
+
+    // A source not older than its compile's second may have changed after the read (#3564), so its target never matches.
+    private function cacheStamp(string $sourceFile, int $compiledAt): int
+    {
+        $sourceMtime = $this->getFileMtime($sourceFile);
+
+        return $sourceMtime < $compiledAt ? $sourceMtime : 0;
     }
 
     private function storedOptimizationLevel(string $dest): int
