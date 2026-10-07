@@ -17,7 +17,6 @@ use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Munge;
 use ReflectionClass;
 
-use function class_implements;
 use function count;
 use function interface_exists;
 use function is_a;
@@ -134,13 +133,11 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
             return false;
         }
 
-        foreach ([$interfaceName, ...class_implements($interfaceName)] as $declaring) {
-            if (method_exists($declaring, $phpName) && is_a(AbstractPersistentStruct::class, $declaring, true)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(
+            [$interfaceName, ...new ReflectionClass($interfaceName)->getInterfaceNames()],
+            static fn(string $declaring): bool => method_exists($declaring, $phpName)
+                && is_a(AbstractPersistentStruct::class, $declaring, true),
+        );
     }
 
     /**
