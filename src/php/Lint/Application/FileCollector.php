@@ -61,7 +61,31 @@ final class FileCollector
             }
         }
 
-        return $files;
+        return $this->inLoadOrder($files);
+    }
+
+    /**
+     * Sorted, so the run reads the same on every filesystem, with the files
+     * that join a namespace through `in-ns` last: a `load` pulls them in, and
+     * their loader has to be read first, as at runtime.
+     *
+     * @param list<string> $files
+     *
+     * @return list<string>
+     */
+    private function inLoadOrder(array $files): array
+    {
+        sort($files);
+        $parts = array_values(array_filter($files, $this->joinsNamespace(...)));
+
+        return [...array_values(array_diff($files, $parts)), ...$parts];
+    }
+
+    private function joinsNamespace(string $file): bool
+    {
+        $head = (string) @file_get_contents($file, length: 4096);
+
+        return preg_match('/\A(?:\s|;[^\n]*)*\(in-ns\b/', $head) === 1;
     }
 
     /**
