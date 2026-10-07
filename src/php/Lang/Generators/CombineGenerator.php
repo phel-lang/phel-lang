@@ -40,7 +40,7 @@ final class CombineGenerator
                 continue;
             }
 
-            foreach (SequenceGenerator::toIterable($iterable) as $value) {
+            foreach (SequenceGenerator::elementsOf($iterable) as $value) {
                 yield $value;
             }
         }
@@ -102,7 +102,7 @@ final class CombineGenerator
     public static function interpose(mixed $separator, mixed $iterable): Generator
     {
         $first = true;
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             if (!$first) {
                 yield $separator;
             }

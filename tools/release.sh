@@ -13,6 +13,7 @@ source "$SCRIPT_DIR/release-lib.sh"
 VERSION_FILE="$REPO_ROOT/src/php/Shared/VersionFinder.php"
 CHANGELOG_FILE="$REPO_ROOT/CHANGELOG.md"
 AGENTS_VERSION_FILE="$REPO_ROOT/resources/agents/VERSION"
+CITATION_FILE="$REPO_ROOT/CITATION.cff"
 PHAR_SCRIPT="$REPO_ROOT/build/phar.sh"
 PHAR_OUTPUT="$REPO_ROOT/build/out/phel.phar"
 
@@ -30,7 +31,7 @@ cleanup_backup() {
 rollback() {
     if [[ -n "$BACKUP_DIR" ]] && [[ -d "$BACKUP_DIR" ]]; then
         log "[WARN] Rolling back..."
-        restore_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE" "$AGENTS_VERSION_FILE"
+        restore_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE" "$AGENTS_VERSION_FILE" "$CITATION_FILE"
         cleanup_backup
     fi
 }
@@ -54,7 +55,7 @@ run_preflight_checks() {
     check_gh_cli
     check_git_state "$REPO_ROOT"
     check_branch "$REPO_ROOT"
-    check_required_files "$VERSION_FILE" "$CHANGELOG_FILE" "$PHAR_SCRIPT" "$AGENTS_VERSION_FILE"
+    check_required_files "$VERSION_FILE" "$CHANGELOG_FILE" "$PHAR_SCRIPT" "$AGENTS_VERSION_FILE" "$CITATION_FILE"
     check_changelog_unreleased "$CHANGELOG_FILE"
     check_network
     check_tag_exists "$NEW_VERSION" "$REPO_ROOT"
@@ -73,7 +74,7 @@ confirm_release() {
     echo ""
     log "${BOLD}Release: v$current_version → v$version${NC}"
     [[ -n "$RELEASE_NAME" ]] && log "Name: $RELEASE_NAME"
-    log "Files: VersionFinder.php, CHANGELOG.md, resources/agents/VERSION"
+    log "Files: VersionFinder.php, CHANGELOG.md, resources/agents/VERSION, CITATION.cff"
     log "Actions: update files, commit, build PHAR, tag, push, create release"
     echo ""
 
@@ -184,7 +185,7 @@ main() {
     # Backup (always create, even in dry-run, so we can restore after showing changes)
     log "\n${BOLD}Creating backup${NC}"
     BACKUP_DIR=$(mktemp -d)
-    create_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE" "$AGENTS_VERSION_FILE"
+    create_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE" "$AGENTS_VERSION_FILE" "$CITATION_FILE"
     if [[ $DRY_RUN -eq 1 ]]; then
         log "[DRY-RUN] Backup created: $BACKUP_DIR"
     else
@@ -196,6 +197,7 @@ main() {
     update_version_finder "$NEW_VERSION" "$VERSION_FILE"
     update_changelog "$NEW_VERSION" "$CHANGELOG_FILE" "$base_version"
     update_agents_version "$NEW_VERSION" "$AGENTS_VERSION_FILE"
+    update_citation "$NEW_VERSION" "$(date +%Y-%m-%d)" "$CITATION_FILE"
     local changelog_note="Updated CHANGELOG.md"
     if is_prerelease "$NEW_VERSION"; then
         changelog_note="Left CHANGELOG.md untouched (pre-release keeps ## Unreleased)"
@@ -205,10 +207,12 @@ main() {
         log "[DRY-RUN] Updated VersionFinder.php to v$NEW_VERSION"
         log "[DRY-RUN] $changelog_note"
         log "[DRY-RUN] Updated resources/agents/VERSION to $NEW_VERSION"
+        log "[DRY-RUN] Updated CITATION.cff to $NEW_VERSION"
     else
         log_ok "Updated VersionFinder.php"
         log_ok "$changelog_note"
         log_ok "Updated resources/agents/VERSION"
+        log_ok "Updated CITATION.cff"
     fi
 
     # Git commit
@@ -216,7 +220,7 @@ main() {
     if [[ $DRY_RUN -eq 1 ]]; then
         log "[DRY-RUN] Would: git commit -m 'chore(release): v$NEW_VERSION'"
     else
-        git_commit_release "$NEW_VERSION" "$REPO_ROOT" "$VERSION_FILE" "$CHANGELOG_FILE" "$AGENTS_VERSION_FILE"
+        git_commit_release "$NEW_VERSION" "$REPO_ROOT" "$VERSION_FILE" "$CHANGELOG_FILE" "$AGENTS_VERSION_FILE" "$CITATION_FILE"
         log_ok "Created release commit"
     fi
 
@@ -295,7 +299,7 @@ main() {
     echo ""
     if [[ $DRY_RUN -eq 1 ]]; then
         # Restore files in dry-run mode
-        restore_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE" "$AGENTS_VERSION_FILE"
+        restore_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE" "$AGENTS_VERSION_FILE" "$CITATION_FILE"
         cleanup_backup
         log_ok "Dry-run complete - files restored, no changes made"
     else

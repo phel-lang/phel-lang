@@ -102,7 +102,9 @@
           (rest-of-set coll)
           (if (php/is_array coll)
             (php/array_slice coll 1)
-            (throw (new InvalidArgumentException "cannot do rest"))))))))
+            (if (php/instanceof coll PersistentMapInterface)
+              (Phel/vector (php/array_slice (to-array coll) 1))
+              (throw (new InvalidArgumentException "cannot do rest")))))))))
 
 (defn nfirst
   "Same as `(next (first coll))`."
