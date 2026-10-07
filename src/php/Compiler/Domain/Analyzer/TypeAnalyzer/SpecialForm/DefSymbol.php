@@ -164,7 +164,10 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
     private function assertDefinedInCurrentNamespace(Symbol $nameSymbol, string $namespace): void
     {
         $symbolNamespace = $nameSymbol->getNamespace();
-        if ($symbolNamespace === null || Munge::canonicalNs($symbolNamespace) === Munge::canonicalNs($namespace)) {
+        if ($symbolNamespace === null
+            || $nameSymbol->getName() === ''
+            || Munge::canonicalNs($symbolNamespace) === Munge::canonicalNs($namespace)
+        ) {
             return;
         }
 

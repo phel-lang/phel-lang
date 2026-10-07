@@ -89,6 +89,19 @@ final class DefSymbolTest extends TestCase
         self::assertSame('x', $defNode->getName()->getName());
     }
 
+    /**
+     * The reader splits a name ending in `/`, such as `test-/`, into a
+     * namespace and an empty name, yet the whole symbol names one var.
+     */
+    public function test_accepts_a_name_ending_in_a_slash(): void
+    {
+        $list = Phel::list([Symbol::create(Symbol::NAME_DEF), Symbol::create('test-/'), 1]);
+
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame('test-/', $defNode->getName()->getFullName());
+    }
+
     public function test_nested_def_is_allowed(): void
     {
         $list = Phel::list([
