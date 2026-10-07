@@ -24,7 +24,7 @@ final class PartitionGenerator
         }
 
         $partition = [];
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             $partition[] = $value;
 
             if (count($partition) === $n) {
@@ -46,7 +46,7 @@ final class PartitionGenerator
         }
 
         $partition = [];
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             $partition[] = $value;
 
             if (count($partition) === $n) {
@@ -72,7 +72,7 @@ final class PartitionGenerator
         $prevKey = null;
         $first = true;
 
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             $key = $f($value);
 
             if ($first || $equalizer->equals($key, $prevKey)) {
