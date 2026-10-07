@@ -36,6 +36,7 @@ Tooling:
 - A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
 - `phel lint` and `phel analyze` resolve symbols defined in a file the namespace pulls in with `(load ...)`, as `phel run` does. A call to such a function after the `load` used to fail with `phel/unresolved-symbol`. (#3551)
 - `.phel/` ignores itself after `phel run`, `phel build` and every other command. Only `phel lint`, `phel test`, the REPL and the error log wrote `.phel/.gitignore`, so a fresh project showed over a thousand untracked files under `.phel/`. (#3537)
+- `phel lint` does not report `phel/arity-mismatch` on quoted data. `'(add 1)` and each `'x` or backtick form used to be read as a call when the file defines `add` or its own `quote`. A call inside `~x` is still checked. (#3550)
 
 PHP API:
 
@@ -58,6 +59,7 @@ Compiler:
 - A `binding` or `with-redefs` target that is not a var, such as a local or `php/PHP_EOL`, fails with `PHEL008` on that target. It used to fail an internal assertion after emitting half the PHP. (#3534)
 - A `defstruct` or `defrecord` method named like a method every struct already has, such as `merge` or `find`, fails with `PHEL007` on the method, also in a `defstruct*` `:php` block. A method of an interface structs implement already (such as `\Stringable`) and a magic method such as `__invoke` in a `:php` block still override. `merge` used to stop PHP with `Declaration of ...::merge($x) must be compatible`; `find` compiled and replaced the struct's own lookup, so `get`, `=` and printing returned the method's result. (#3576)
 - A `foreach` or `catch` binding that maps to the same PHP variable as a parameter or another local, such as `a-b` and `a_b`, no longer overwrites it. (#3576)
+- A `defprotocol` that declares one method in two forms, `(m [this]) (m [this x])`, fails with `PHEL005`: `Function m in protocol P was redefined`, as in Clojure. It used to compile and keep only the second. (#3568)
 
 Runtime:
 
@@ -65,6 +67,7 @@ Runtime:
 - **BREAKING**: `phel.http-client` accepts only `http` and `https` URLs, including redirect targets. `(hc/get "file:///etc/hosts")` and `php://` or `data://` URLs used to read local data through `file_get_contents`. A redirect to another origin keeps only `accept`, `accept-encoding`, `accept-language`, `user-agent` and `content-type`: custom headers such as the `x-api-key` `phel.ai` sends used to follow it. More than 20 redirects throw. (#3531)
 - On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. A fn returning `(php/=& target value)` runs with OPcache's default optimizer; PHP 8.6 RC2 used to stop with `Invalid opcode 62/4/0`. (#3522)
 - `range` accepts a ratio, `BigInt` or `BigDecimal` bound or step, so `(repeat 1/2 :x)`, `(repeatedly 5/2 f)`, `(dotimes [i 5/2] ...)` and `(for [i :range [5/2]] i)` run as they do with a float. They used to fail with a `TypeError` from `Seq::range()`. (#3557)
+- `take`, `drop`, `take-last`, `drop-last`, `take-nth` and `split-at` accept a ratio, float, `BigInt` or `BigDecimal` count and round it up, as Clojure does: `(take 5/2 (range 10))` is `(0 1 2)`. A ratio used to throw, and `(drop 2.5 xs)` dropped 2 and printed a PHP deprecation. `partition` with a count that is not an integer returns `()`, as in Clojure, since no chunk can match it. (#3566)
 
 ## [0.54.0](https://github.com/phel-lang/phel-lang/compare/v0.53.0...v0.54.0) - 2026-10-04
 
