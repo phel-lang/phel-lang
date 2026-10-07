@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 use function get_debug_type;
@@ -37,10 +38,7 @@ final readonly class PhpCallableSymbol implements SpecialFormAnalyzerInterface
     {
         $count = count($list);
         if ($count < 2 || $count > 3) {
-            throw AnalyzerException::withLocation(
-                "One or two arguments are expected for 'php/callable'",
-                $list,
-            );
+            throw AnalyzerException::wrongArity($list, '(php/callable fn) or (php/callable target method)');
         }
 
         if ($count === 2) {
@@ -62,6 +60,7 @@ final readonly class PhpCallableSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation(
                 "First argument of 'php/callable' must be a Symbol",
                 $list,
+                errorCode: ErrorCode::TYPE_ERROR,
             );
         }
 
@@ -87,6 +86,7 @@ final readonly class PhpCallableSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation(
                 sprintf("Method argument of 'php/callable' must be a Symbol, got %s", get_debug_type($methodSymbol)),
                 $list,
+                errorCode: ErrorCode::TYPE_ERROR,
             );
         }
 

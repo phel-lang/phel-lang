@@ -26,7 +26,7 @@ The analyzer walks the parsed forms and resolves every symbol, arity and binding
 
 Enum case: `ErrorCode::UNDEFINED_SYMBOL`
 
-The analyzer reached a symbol that is bound nowhere: not in the current namespace, not in a required namespace, and not in a local binding.
+The analyzer reached a symbol that is bound nowhere: not in the current namespace, not in a required namespace, and not in a local binding. A `catch` type, a `var` target or a `use` class that resolves to nothing reports here too.
 
 ```phel
 (undefined-fn 1 2)
@@ -38,7 +38,7 @@ The analyzer reached a symbol that is bound nowhere: not in the current namespac
 
 Enum case: `ErrorCode::ARITY_ERROR`
 
-The call does not match the arity the analyzer knows. For a function or a macro that means a global definition the compiler has already seen; a macro is checked before it expands, without counting `&form` and `&env`. A special form given too few arguments reports here too, and names the shape it wanted.
+The call does not match the arity the analyzer knows. For a function or a macro that means a global definition the compiler has already seen; a macro is checked before it expands, without counting `&form` and `&env`. A special form given too few or too many arguments reports here too, such as `(if)`.
 
 ```phel
 (map)
@@ -50,7 +50,7 @@ The call does not match the arity the analyzer knows. For a function or a macro 
 
 Enum case: `ErrorCode::TYPE_ERROR`
 
-A special form got the wrong kind of value in a fixed position. The analyzer checks these shapes before any code runs.
+A special form got the wrong kind of value in a fixed position, or a literal argument or tail expression contradicts a declared type tag. The analyzer checks these shapes before any code runs.
 
 ```phel
 (def 1 2)
@@ -102,10 +102,10 @@ The `:inline` function on a definition threw while the analyzer was expanding a 
 
 Enum case: `ErrorCode::INVALID_SPECIAL_FORM`
 
-The fallback code for an analyzer error that carries no more specific one, such as a special form given the wrong number of arguments..
+The fallback code for an analyzer error that carries no more specific one, such as an unknown option in an `ns` form or a form after `finally` in a `try`.
 
 ```phel
-(if)
+(try 1 (finally 2) 3)
 ```
 
 **Fix:** Read the message: it names the form and what it expected there.
@@ -114,7 +114,7 @@ The fallback code for an analyzer error that carries no more specific one, such 
 
 Enum case: `ErrorCode::BINDING_ERROR`
 
-A `let`, `loop` or destructuring binding has the wrong shape. The binding list must be a vector of an even number of forms, and every bound name must be an unqualified symbol. A `binding` or `with-redefs` target must name a var defined with `def`, not a local or a PHP constant.
+A `let`, `loop`, `fn` parameter or destructuring binding has the wrong shape. The binding list must be a vector of an even number of forms, and every bound name must be an unqualified symbol. A `binding` or `with-redefs` target must name a var defined with `def`, not a local or a PHP constant.
 
 ```phel
 (let (a 1) a)

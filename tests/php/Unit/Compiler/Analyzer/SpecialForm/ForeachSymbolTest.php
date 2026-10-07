@@ -25,7 +25,7 @@ final class ForeachSymbolTest extends TestCase
     public function test_requires_at_least_two_arg(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("At least two arguments are required for 'foreach");
+        $this->expectExceptionMessage("Wrong number of arguments for 'foreach. Usage: (foreach [x coll] body ...)");
 
         // (foreach)
         $list = Phel::list([

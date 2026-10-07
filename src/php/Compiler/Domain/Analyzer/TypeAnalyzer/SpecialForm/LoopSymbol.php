@@ -48,7 +48,7 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
 
         $listCount = count($list);
         if ($listCount < 2) {
-            throw AnalyzerException::withLocation("At least two arguments are required for 'loop.", $list);
+            throw AnalyzerException::wrongArity($list, '(loop [bindings] body ...)');
         }
 
         $loopBindings = $list->get(1);

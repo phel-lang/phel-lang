@@ -28,7 +28,7 @@ final class PhaseFallbackErrorCodeTest extends TestCase
 
     public static function providerUncodedErrors(): iterable
     {
-        yield 'special form with too few arguments' => ['(if)', ErrorCode::INVALID_SPECIAL_FORM];
+        yield 'form after finally' => ['(try 1 (finally 2) 3)', ErrorCode::INVALID_SPECIAL_FORM];
         yield 'keyword with an unknown alias' => ['::nope/foo', ErrorCode::PARSER_ERROR];
         yield 'octal escape out of range' => ['"\777"', ErrorCode::PARSER_ERROR];
         yield 'top-level reader conditional splicing' => ['#?@(:phel [1])', ErrorCode::PARSER_ERROR];
@@ -36,8 +36,25 @@ final class PhaseFallbackErrorCodeTest extends TestCase
         yield 'metadata on a value that cannot hold it' => ['^:m 1', ErrorCode::READER_ERROR];
     }
 
+    public static function providerSpecialFormErrors(): iterable
+    {
+        yield 'special form with too few arguments' => ['(if)', ErrorCode::ARITY_ERROR];
+        yield 'special form with too many arguments' => ['(in-ns a b)', ErrorCode::ARITY_ERROR];
+        yield 'wrong kind of value in a fixed position' => ['(fn 1)', ErrorCode::TYPE_ERROR];
+        yield 'literal tail contradicting the return tag' => ['(fn ^int [] "x")', ErrorCode::TYPE_ERROR];
+        yield 'qualified fn parameter' => ['(fn [a/b] 1)', ErrorCode::BINDING_ERROR];
+        yield 'var with no global definition' => ['(var nope)', ErrorCode::UNDEFINED_SYMBOL];
+        yield 'catch type that resolves to nothing' => ['(try 1 (catch nope e 2))', ErrorCode::UNDEFINED_SYMBOL];
+    }
+
     #[DataProvider('providerUncodedErrors')]
     public function test_an_error_without_a_specific_code_carries_its_phase_code(string $source, ErrorCode $expected): void
+    {
+        self::assertSame($expected, $this->errorCodeOf($source));
+    }
+
+    #[DataProvider('providerSpecialFormErrors')]
+    public function test_a_special_form_error_carries_the_code_of_its_mistake(string $source, ErrorCode $expected): void
     {
         self::assertSame($expected, $this->errorCodeOf($source));
     }

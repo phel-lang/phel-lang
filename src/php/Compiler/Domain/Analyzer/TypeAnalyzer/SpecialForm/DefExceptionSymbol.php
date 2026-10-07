@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 use function sprintf;
@@ -32,7 +33,7 @@ final class DefExceptionSymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefExceptionNode
     {
         if (count($list) < 2 || count($list) > 3) {
-            throw AnalyzerException::withLocation("One or two arguments are required for 'defexception", $list);
+            throw AnalyzerException::withLocation("One or two arguments are required for 'defexception", $list, errorCode: ErrorCode::ARITY_ERROR);
         }
 
         $name = $list->get(1);
@@ -94,6 +95,7 @@ final class DefExceptionSymbol implements SpecialFormAnalyzerInterface
                     $parent::class,
                 ),
                 $list,
+                errorCode: ErrorCode::TYPE_ERROR,
             );
         }
 

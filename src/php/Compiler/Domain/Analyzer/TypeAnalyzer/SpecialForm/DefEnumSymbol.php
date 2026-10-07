@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function array_slice;
 use function count;
@@ -44,7 +45,7 @@ final readonly class DefEnumSymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefEnumNode
     {
         if (count($list) < 2) {
-            throw AnalyzerException::withLocation("At least one argument is required for 'defenum", $list);
+            throw AnalyzerException::withLocation("At least one argument is required for 'defenum", $list, errorCode: ErrorCode::ARITY_ERROR);
         }
 
         $name = $list->get(1);

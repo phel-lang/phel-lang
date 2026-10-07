@@ -54,7 +54,7 @@ final class IfSymbol implements SpecialFormAnalyzerInterface
         $listCount = count($list);
 
         if ($listCount < 3 || $listCount > 4) {
-            throw AnalyzerException::withLocation("'if requires two or three arguments", $list);
+            throw AnalyzerException::wrongArity($list, '(if test then) or (if test then else)');
         }
     }
 

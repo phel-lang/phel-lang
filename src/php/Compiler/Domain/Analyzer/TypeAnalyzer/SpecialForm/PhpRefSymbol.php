@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 
@@ -35,7 +36,7 @@ final class PhpRefSymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): PhpRefNode
     {
         if (count($list) !== 2) {
-            throw AnalyzerException::withLocation("Exactly one argument is required for 'php/ref", $list);
+            throw AnalyzerException::wrongArity($list, '(php/ref local)');
         }
 
         $symbol = $list->get(1);
@@ -45,7 +46,7 @@ final class PhpRefSymbol implements SpecialFormAnalyzerInterface
 
         $resolved = $this->analyzer->analyze($symbol, $env->withExpressionContext());
         if (!$resolved instanceof LocalVarNode) {
-            throw AnalyzerException::withLocation("'php/ref expects a local variable", $list);
+            throw AnalyzerException::withLocation("'php/ref expects a local variable", $list, errorCode: ErrorCode::TYPE_ERROR);
         }
 
         return new PhpRefNode($env, $resolved, $list->getStartLocation());

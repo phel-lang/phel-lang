@@ -11,6 +11,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Destructure;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Munge;
 
 use function array_slice;
@@ -129,6 +130,7 @@ final class FnSymbolTuple
                     "Can't bind qualified name: " . $param->getFullName()
                     . '. Use a bare name, or `' . $param->getName() . '#` for an auto-gensym inside a quasiquote.',
                     $this->parentList,
+                    errorCode: ErrorCode::BINDING_ERROR,
                 );
             }
 
@@ -138,6 +140,7 @@ final class FnSymbolTuple
                 throw AnalyzerException::withLocation(
                     'Variable names must start with a letter or underscore: ' . $param->getName(),
                     $this->parentList,
+                    errorCode: ErrorCode::BINDING_ERROR,
                 );
             }
         }
@@ -274,6 +277,7 @@ final class FnSymbolTuple
         throw AnalyzerException::withLocation(
             'Unsupported parameter form, only one symbol can follow the & parameter',
             $this->parentList,
+            errorCode: ErrorCode::BINDING_ERROR,
         );
     }
 }

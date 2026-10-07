@@ -28,7 +28,7 @@ final class UseSymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): UseNode
     {
         if ($list->count() < 2) {
-            throw AnalyzerException::withLocation("'use requires at least one argument", $list);
+            throw AnalyzerException::wrongArity($list, '(use Class :as Alias ...)');
         }
 
         $ns = $this->analyzer->getNamespace();

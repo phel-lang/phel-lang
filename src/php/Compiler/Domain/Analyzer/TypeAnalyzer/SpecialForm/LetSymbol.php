@@ -49,7 +49,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
         }
 
         if (count($list) < 2) {
-            throw AnalyzerException::withLocation("At least two arguments are required for 'let", $list);
+            throw AnalyzerException::wrongArity($list, '(let [bindings] body ...)');
         }
 
         if (!($list->get(1) instanceof PersistentVectorInterface)) {
