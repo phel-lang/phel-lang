@@ -41,6 +41,7 @@ Tooling:
 - A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
 - `.phel/` ignores itself after `phel run`, `phel build` and every other command. Only `phel lint`, `phel test`, the REPL and the error log wrote `.phel/.gitignore`, so a fresh project showed over a thousand untracked files under `.phel/`. (#3537)
 - `phel lint` does not report `phel/arity-mismatch` on quoted data. `'(add 1)` and each `'x` or backtick form used to be read as a call when the file defines `add` or its own `quote`. A call inside `~x` is still checked. (#3550)
+- A `deftest` whose body throws outside an `is` is reported as an error for that test, and `phel test` runs the tests after it and prints the summary. The exception used to stop a serial run with a stack trace and no summary, and `--parallel` dropped the whole namespace as `Failed running <ns>` with no error counted. (#3537)
 - A `PHEL402` error for an argument of the wrong type names the `.phel` file and line that made the call: `must be of type int, string given, called in src/main.phel on line 5`. It used to name the generated temp file, `.../phel/tmp/__phel_*.php`. (#3537)
 
 PHP API:
@@ -64,6 +65,7 @@ Compiler:
 - A `binding` or `with-redefs` target that is not a var, such as a local or `php/PHP_EOL`, fails with `PHEL008` on that target. It used to fail an internal assertion after emitting half the PHP. (#3534)
 - A `foreach` or `catch` binding that maps to the same PHP variable as a parameter or another local, such as `a-b` and `a_b`, no longer overwrites it. (#3576)
 - `reify` and `extend-type` name a method the protocol does not declare: `reify: protocol P has no method nope`. It used to fail with `Cannot resolve symbol 'P--nope--dispatch'`. (#3537)
+- `(defn f (a b) a)` fails with `Parameter declaration of f must be a vector`, also for `defn-`, `defmacro` and a bad arity of a multi-arity `defn`. It used to fail with `apply final argument must be nil, string, array, or Traversable`. (#3537)
 
 Runtime:
 
