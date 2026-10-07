@@ -14,6 +14,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 
@@ -67,7 +68,7 @@ final readonly class MethodBodyAnalyzer
     {
         $arguments = $list->get(1);
         if (!$arguments instanceof PersistentVectorInterface) {
-            throw AnalyzerException::withLocation('Method arguments must be a vector', $list);
+            throw AnalyzerException::withLocation('Method arguments must be a vector', $list, errorCode: ErrorCode::TYPE_ERROR);
         }
 
         if (count($arguments) < 1) {

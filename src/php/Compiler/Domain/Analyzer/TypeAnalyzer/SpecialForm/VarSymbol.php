@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 use function sprintf;
@@ -34,12 +35,12 @@ final readonly class VarSymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): VarNode
     {
         if (count($list) !== 2) {
-            throw AnalyzerException::withLocation("Exactly one argument is required for 'var", $list);
+            throw AnalyzerException::wrongArity($list, '(var name)');
         }
 
         $arg = $list->get(1);
         if (!$arg instanceof Symbol) {
-            throw AnalyzerException::withLocation("'var expects a symbol", $list);
+            throw AnalyzerException::withLocation("'var expects a symbol", $list, errorCode: ErrorCode::TYPE_ERROR);
         }
 
         $resolved = $this->analyzer->resolve($arg, $env);
@@ -47,6 +48,7 @@ final readonly class VarSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation(
                 sprintf("Cannot resolve '%s' to a var: no global definition with that name", $arg->getFullName()),
                 $list,
+                errorCode: ErrorCode::UNDEFINED_SYMBOL,
             );
         }
 

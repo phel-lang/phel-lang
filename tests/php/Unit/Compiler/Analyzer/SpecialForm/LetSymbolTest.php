@@ -44,7 +44,7 @@ final class LetSymbolTest extends TestCase
     public function test_wrong_arguments(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("At least two arguments are required for 'let");
+        $this->expectExceptionMessage("Wrong number of arguments for 'let. Usage: (let [bindings] body ...)");
 
         $list = Phel::list([Symbol::create('let')]);
         $env = NodeEnvironment::empty();

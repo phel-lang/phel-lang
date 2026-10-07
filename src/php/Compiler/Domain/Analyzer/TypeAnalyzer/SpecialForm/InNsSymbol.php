@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function is_string;
 use function str_replace;
@@ -42,17 +43,17 @@ final class InNsSymbol implements SpecialFormAnalyzerInterface
         $listCount = $list->count();
 
         if ($listCount < 2) {
-            throw AnalyzerException::withLocation("'in-ns requires exactly 1 argument (the namespace)", $list);
+            throw AnalyzerException::withLocation("'in-ns requires exactly 1 argument (the namespace)", $list, errorCode: ErrorCode::ARITY_ERROR);
         }
 
         if ($listCount > 2) {
-            throw AnalyzerException::withLocation("'in-ns requires exactly 1 argument, got " . ($listCount - 1), $list);
+            throw AnalyzerException::withLocation("'in-ns requires exactly 1 argument, got " . ($listCount - 1), $list, errorCode: ErrorCode::ARITY_ERROR);
         }
 
         $nsArg = $list->get(1);
 
         if (!($nsArg instanceof Symbol) && !is_string($nsArg)) {
-            throw AnalyzerException::withLocation("First argument of 'in-ns must be a Symbol or String, got: " . get_debug_type($nsArg), $list);
+            throw AnalyzerException::withLocation("First argument of 'in-ns must be a Symbol or String, got: " . get_debug_type($nsArg), $list, errorCode: ErrorCode::TYPE_ERROR);
         }
 
         if ($nsArg instanceof Symbol) {
