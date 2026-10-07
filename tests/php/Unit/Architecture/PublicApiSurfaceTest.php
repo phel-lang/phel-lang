@@ -14,6 +14,7 @@ use Phel\Shared\Exceptions\Hint\ClassNotFoundHint;
 use Phel\Shared\ExistingPaths;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Shared\FrameworkNamespaces;
+use Phel\Shared\InvocationError;
 use Phel\Shared\NoColor;
 use Phel\Shared\OptimizationLevel;
 use Phel\Shared\Performance\OpcacheReexec;
@@ -105,6 +106,7 @@ final class PublicApiSurfaceTest extends TestCase
             RunFacade::class,
             RunFacadeInterface::class,
             OpcacheReexec::class,
+            InvocationError::class,
         ];
 
         foreach ($internal as $className) {

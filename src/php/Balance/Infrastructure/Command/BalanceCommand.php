@@ -14,6 +14,7 @@ use Phel\Balance\Domain\BalanceReport;
 use Phel\Balance\Domain\Exception\BalanceSourceException;
 use Phel\Balance\Domain\FileOutcome;
 use Phel\Shared\ExistingPaths;
+use Phel\Shared\InvocationError;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -101,17 +102,13 @@ HELP)
         $paths = ExistingPaths::filter($requestedPaths === [] ? $this->defaultPaths() : $requestedPaths);
 
         if ($paths === []) {
-            $output->writeln('<error>No readable files or directories to scan.</error>');
-
-            return self::INVALID;
+            return InvocationError::report($output, 'No readable files or directories to scan.');
         }
 
         try {
             $result = $this->getFacade()->balance($paths, $fix);
         } catch (BalanceSourceException $balanceSourceException) {
-            $output->writeln(sprintf('<error>%s</error>', $balanceSourceException->getMessage()));
-
-            return self::INVALID;
+            return InvocationError::report($output, $balanceSourceException->getMessage());
         }
 
         $repaired = $result->withOutcome(BalanceOutcome::Repaired);

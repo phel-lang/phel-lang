@@ -19,6 +19,7 @@ use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\ExistingPaths;
+use Phel\Shared\InvocationError;
 use Phel\Shared\NamespaceInformation;
 use Phel\Shared\Process\GitUnavailableException;
 use Phel\Shared\ResourceUsageFormatter;
@@ -36,6 +37,7 @@ use function count;
 use function file_put_contents;
 use function getcwd;
 use function getenv;
+use function implode;
 use function is_array;
 use function is_dir;
 use function is_string;
@@ -106,7 +108,7 @@ HELP)
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 'Reporter to emit test events through. Repeatable. Built-ins: default, testdox, dot, tap, junit-xml, github (workflow-command annotations; added next to the default one when GITHUB_ACTIONS is set).',
                 [],
-                ['default', 'testdox', 'dot', 'tap', 'junit-xml', 'github'],
+                TestCommandOptionParser::BUILT_IN_REPORTERS,
             )->addOption(
                 TestCommandOptionParser::OPT_OUTPUT,
                 'o',
@@ -216,6 +218,15 @@ HELP)
         }
 
         $optionParser = new TestCommandOptionParser();
+        $unknownReporters = $optionParser->unknownReporters($input);
+        if ($unknownReporters !== []) {
+            return InvocationError::report($output, sprintf(
+                'Unknown reporter: %s. Known: %s.',
+                implode(', ', $unknownReporters),
+                implode(', ', TestCommandOptionParser::BUILT_IN_REPORTERS),
+            ));
+        }
+
         $feedback = TestLoadingFeedback::fromOutput($output);
 
         try {

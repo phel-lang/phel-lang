@@ -14,6 +14,8 @@ use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function array_filter;
+use function array_values;
 use function getcwd;
 use function getenv;
 use function in_array;
@@ -43,6 +45,8 @@ final readonly class TestCommandOptionParser
     public const string OPT_STACK_TRACE = StackTraceOption::NAME;
 
     public const string OPT_REPORTER = 'reporter';
+
+    public const array BUILT_IN_REPORTERS = ['default', 'testdox', 'dot', 'tap', 'junit-xml', 'github'];
 
     public const string OPT_OUTPUT = 'output';
 
@@ -159,6 +163,20 @@ final readonly class TestCommandOptionParser
         }
 
         return $value === 1 ? null : $value;
+    }
+
+    /**
+     * @return list<string> the `--reporter` values that name no built-in reporter
+     */
+    public function unknownReporters(InputInterface $input): array
+    {
+        /** @var list<string> $reporters */
+        $reporters = (array) $input->getOption(self::OPT_REPORTER);
+
+        return array_values(array_filter(
+            $reporters,
+            static fn(string $reporter): bool => !in_array($reporter, self::BUILT_IN_REPORTERS, true),
+        ));
     }
 
     /**

@@ -8,6 +8,7 @@ use Phel\Run\Domain\Config\ConfigDiagnostics;
 use Phel\Run\Domain\Config\ConfigIssue;
 use Phel\Run\Domain\Config\EffectiveConfigReader;
 use Phel\Run\Domain\Config\EffectiveConfigResult;
+use Phel\Shared\InvocationError;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -65,14 +66,12 @@ HELP)
     {
         $format = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
         if (!in_array($format, [self::FORMAT_TEXT, self::FORMAT_JSON], true)) {
-            $output->writeln(sprintf(
-                '<error>Unknown format: %s. Known: %s, %s.</error>',
+            return InvocationError::report($output, sprintf(
+                'Unknown format: %s. Known: %s, %s.',
                 $format,
                 self::FORMAT_TEXT,
                 self::FORMAT_JSON,
             ));
-
-            return Command::INVALID;
         }
 
         $effective = $this->reader->read();

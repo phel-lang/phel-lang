@@ -9,6 +9,7 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Api\ApiFacade;
 use Phel\Api\Application\PhelFileIterator;
 use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\InvocationError;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -65,15 +66,13 @@ HELP)
                 // An unreadable directory iterates as empty, which would pass
                 // as a clean result for source that was never analyzed.
                 if (!is_readable($path)) {
-                    $output->writeln(sprintf('<error>Unable to read directory: %s</error>', $path));
-                    return self::INVALID;
+                    return InvocationError::report($output, sprintf('Unable to read directory: %s', $path));
                 }
 
                 try {
                     $found = iterator_to_array(PhelFileIterator::iterate($path), false);
                 } catch (UnexpectedValueException $unexpectedValueException) {
-                    $output->writeln(sprintf('<error>Unable to read directory: %s</error>', $unexpectedValueException->getMessage()));
-                    return self::INVALID;
+                    return InvocationError::report($output, sprintf('Unable to read directory: %s', $unexpectedValueException->getMessage()));
                 }
 
                 sort($found);
@@ -83,8 +82,7 @@ HELP)
             }
 
             if (!is_file($path)) {
-                $output->writeln(sprintf('<error>File not found: %s</error>', $path));
-                return self::INVALID;
+                return InvocationError::report($output, sprintf('File not found: %s', $path));
             }
 
             $files[] = $path;
@@ -94,8 +92,7 @@ HELP)
         foreach ($files as $file) {
             $source = file_get_contents($file);
             if ($source === false) {
-                $output->writeln(sprintf('<error>Unable to read file: %s</error>', $file));
-                return self::INVALID;
+                return InvocationError::report($output, sprintf('Unable to read file: %s', $file));
             }
 
             $diagnostics = [...$diagnostics, ...$this->getFacade()->analyzeSource($source, $file)];
