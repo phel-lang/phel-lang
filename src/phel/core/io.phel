@@ -571,6 +571,8 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   "Takes an expression and a set of test/form pairs. Threads `expr` (via `->`) through each form for which the corresponding test expression is true. Note that, unlike `cond` branching, `cond->` threading does not short-circuit after the first true test expression."
   {:example "(cond-> 1 true inc false (* 42) true (* 3)) ; => 6"}
   [expr & clauses]
+  (when (odd? (count clauses))
+    (throw (new InvalidArgumentException "cond-> requires an even number of test/form clauses")))
   (let [g     (gensym)
         steps (map (fn [pair]
                      (let [test (first pair)
@@ -585,6 +587,8 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   "Takes an expression and a set of test/form pairs. Threads `expr` (via `->>`) through each form for which the corresponding test expression is true. Note that, unlike `cond` branching, `cond->>` threading does not short-circuit after the first true test expression."
   {:example "(cond->> [1 2 3] true (map inc) false (filter odd?)) ; => (2 3 4)"}
   [expr & clauses]
+  (when (odd? (count clauses))
+    (throw (new InvalidArgumentException "cond->> requires an even number of test/form clauses")))
   (let [g     (gensym)
         steps (map (fn [pair]
                      (let [test (first pair)
@@ -634,6 +638,7 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   `:dynamic`. To swap a non-dynamic var for the duration of an
   expression (e.g. mocking in tests), use `with-redefs`."
   [bindings & body]
+  (assert-binding-pairs "binding" bindings)
   (emit-binding-form 'openBindingFrame bindings body))
 
 (defmacro with-redefs
@@ -647,6 +652,7 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   production code. Use `binding` for fiber-local rebinding of
   `^:dynamic` vars."
   [bindings & body]
+  (assert-binding-pairs "with-redefs" bindings)
   (emit-binding-form 'openRedefsFrame bindings body))
 
 (defmacro with-bindings
