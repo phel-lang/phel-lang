@@ -7,6 +7,7 @@ namespace Phel\Run\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Run\RunFacade;
+use Phel\Shared\InvocationError;
 use Phel\Shared\Munge;
 use Phel\Shared\NamespaceInformation;
 use Symfony\Component\Console\Command\Command;
@@ -90,12 +91,10 @@ HELP)
         // typo'd namespace must not print a plausible-looking listing and exit
         // 0, the way `phel run <unknown>` already refuses to.
         if (!$this->containsNamespace($nsInfoList, $ns)) {
-            $output->writeln(sprintf(
-                '<error>Namespace "%s" not found in any source directory.</error>',
+            return InvocationError::report($output, sprintf(
+                'Namespace "%s" not found in any source directory.',
                 Munge::displayNs($ns),
             ));
-
-            return self::INVALID;
         }
 
         if ($simple) {

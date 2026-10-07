@@ -9,6 +9,7 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Phel;
 use Phel\Run\RunFacade;
 use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\InvocationError;
 use Phel\Shared\Munge;
 use Phel\Shared\ResourceUsageFormatter;
 
@@ -105,8 +106,7 @@ HELP)
             if ($path === null || $path === '') {
                 $path = $this->getFacade()->autoDetectEntryPoint();
                 if ($path === null) {
-                    $output->writeln('<error>No entry point found. Create src/main.phel or specify a path.</error>');
-                    return self::INVALID;
+                    return InvocationError::report($output, 'No entry point found. Create src/main.phel or specify a path.');
                 }
 
                 if ($output->isVerbose()) {
@@ -125,8 +125,7 @@ HELP)
             } else {
                 $namespace = Munge::canonicalNs($path);
                 if (!$this->getFacade()->namespaceExists($namespace)) {
-                    $output->writeln(sprintf('<error>Namespace "%s" not found in any source directory.</error>', $path));
-                    return self::INVALID;
+                    return InvocationError::report($output, sprintf('Namespace "%s" not found in any source directory.', $path));
                 }
 
                 $this->getFacade()->runNamespace($namespace);
