@@ -26,7 +26,7 @@ final class ThrowSymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): ThrowNode
     {
         if (count($list) !== 2) {
-            throw AnalyzerException::withLocation("Exact one argument is required for 'throw", $list);
+            throw AnalyzerException::wrongArity($list, '(throw exception)');
         }
 
         return new ThrowNode(

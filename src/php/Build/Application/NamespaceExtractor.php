@@ -22,7 +22,6 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\CompilerException;
-use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Exceptions\MissingNsFormException;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\NamespaceInformation;
@@ -132,7 +131,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                 $node = $this->compilerFacade->analyze($ast, $this->compilerFacade->emptyNodeEnvironment());
             } catch (AnalyzerException $analyzerException) {
                 if (!$this->isNsForm($ast)) {
-                    if ($analyzerException->getErrorCode() === ErrorCode::UNDEFINED_SYMBOL) {
+                    if ($analyzerException->isUnresolvedSymbol()) {
                         throw MissingNsFormException::inFile($path, $analyzerException);
                     }
 

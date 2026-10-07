@@ -33,7 +33,7 @@ final class UseSymbolTest extends TestCase
     public function test_requires_at_least_one_argument(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("'use requires at least one argument");
+        $this->expectExceptionMessage("Wrong number of arguments for 'use. Usage: (use Class :as Alias ...)");
 
         $list = Phel::list([Symbol::create(Symbol::NAME_USE)]);
         $this->analyze($list);

@@ -15,6 +15,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 use function sprintf;
@@ -40,7 +41,7 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
             : Symbol::NAME_PHP_OBJECT_CALL;
 
         if (count($list) < 3) {
-            throw AnalyzerException::withLocation("At least two arguments are expected for '" . $fnName, $list);
+            throw AnalyzerException::withLocation("At least two arguments are expected for '" . $fnName, $list, errorCode: ErrorCode::ARITY_ERROR);
         }
 
         $targetEnv = $env->withExpressionContext()->withDisallowRecurFrame();
@@ -56,6 +57,7 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
                 throw AnalyzerException::withLocation(
                     sprintf("Argument %d of '%s' must be a List or a Symbol", $i, $fnName),
                     $list,
+                    errorCode: ErrorCode::TYPE_ERROR,
                 );
             }
 

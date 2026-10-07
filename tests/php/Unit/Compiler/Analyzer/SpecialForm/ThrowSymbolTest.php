@@ -27,7 +27,7 @@ final class ThrowSymbolTest extends TestCase
     public function test_requires_exactly_one_argument(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Exact one argument is required for 'throw");
+        $this->expectExceptionMessage("Wrong number of arguments for 'throw. Usage: (throw exception)");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_THROW),

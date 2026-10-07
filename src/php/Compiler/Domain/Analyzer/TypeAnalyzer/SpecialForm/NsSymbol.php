@@ -74,7 +74,7 @@ TXT;
             $import = $forms->first();
 
             if (!($import instanceof PersistentListInterface)) {
-                throw AnalyzerException::withLocation("Import in 'ns must be Lists.", $list);
+                throw AnalyzerException::withLocation("Import in 'ns must be Lists.", $list, errorCode: ErrorCode::TYPE_ERROR);
             }
 
             $value = $import->get(0);
@@ -171,6 +171,7 @@ TXT;
                 throw AnalyzerException::withLocation(
                     'First argument in :require must be a symbol or vector.',
                     $import,
+                    errorCode: ErrorCode::TYPE_ERROR,
                 );
             }
 
@@ -217,6 +218,7 @@ TXT;
                 throw AnalyzerException::withLocation(
                     'Unexpected argument in :require. Expected a keyword.',
                     $import,
+                    errorCode: ErrorCode::TYPE_ERROR,
                 );
             }
 
@@ -264,6 +266,7 @@ TXT;
             throw AnalyzerException::withLocation(
                 'First element of :require vector must be a symbol.',
                 $import,
+                errorCode: ErrorCode::TYPE_ERROR,
             );
         }
 
@@ -272,6 +275,7 @@ TXT;
             throw AnalyzerException::withLocation(
                 'First element of :require vector must be a symbol.',
                 $import,
+                errorCode: ErrorCode::TYPE_ERROR,
             );
         }
 
@@ -289,6 +293,7 @@ TXT;
                 throw AnalyzerException::withLocation(
                     'Unexpected argument in :require vector. Expected a keyword.',
                     $import,
+                    errorCode: ErrorCode::TYPE_ERROR,
                 );
             }
 
@@ -464,7 +469,7 @@ TXT;
     {
         $file = $import->get(1);
         if (!is_string($file)) {
-            throw AnalyzerException::withLocation('First argument in :require-file must be a string.', $import);
+            throw AnalyzerException::withLocation('First argument in :require-file must be a string.', $import, errorCode: ErrorCode::TYPE_ERROR);
         }
 
         return $file;

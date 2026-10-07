@@ -47,6 +47,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation(
                 "At least two arguments are required for 'defstruct. Got " . count($list),
                 $list,
+                errorCode: ErrorCode::ARITY_ERROR,
             );
         }
 
@@ -153,7 +154,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         $inherited = $this->inheritedPropertyNames();
         foreach ($vector as $element) {
             if (!($element instanceof Symbol)) {
-                throw AnalyzerException::withLocation('Defstruct field elements must be Symbols.', $vector);
+                throw AnalyzerException::withLocation('Defstruct field elements must be Symbols.', $vector, errorCode: ErrorCode::TYPE_ERROR);
             }
 
             $phpName = $munge->encode($element->getName());

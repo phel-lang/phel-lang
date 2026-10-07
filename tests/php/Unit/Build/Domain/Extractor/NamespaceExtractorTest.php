@@ -19,6 +19,7 @@ use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Exceptions\MissingNsFormException;
 use Phel\Shared\NamespaceInformation;
 use PhelTest\Support\CapturesDeprecationsTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -102,6 +103,23 @@ final class NamespaceExtractorTest extends TestCase
             self::assertSame(ErrorCode::UNDEFINED_SYMBOL, $previous->getErrorCode());
             self::assertStringContainsString('does not start with an (ns ...) form', $missingNsFormException->getMessage());
         }
+    }
+
+    #[DataProvider('providerUnresolvableNamesThatAreNotSymbolReads')]
+    public function test_an_unresolvable_name_that_is_not_a_symbol_read_is_not_a_missing_ns(string $firstForm): void
+    {
+        try {
+            $this->extractNamespace($firstForm . "\n(ns app\\main)");
+            self::fail('Expected an AnalyzerException.');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertSame(ErrorCode::UNDEFINED_SYMBOL, $analyzerException->getErrorCode());
+        }
+    }
+
+    public static function providerUnresolvableNamesThatAreNotSymbolReads(): iterable
+    {
+        yield 'var target' => ['(var nope)'];
+        yield 'catch type' => ['(try 1 (catch nope e 2))'];
     }
 
     public function test_other_analyzer_errors_in_a_first_form_that_is_not_ns_are_left_alone(): void

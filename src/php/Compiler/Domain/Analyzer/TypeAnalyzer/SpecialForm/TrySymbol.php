@@ -16,6 +16,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Munge;
 use Throwable;
 
@@ -265,7 +266,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         $resolvedType = $this->analyzer->resolve($type, $env);
 
         if (!$resolvedType instanceof AbstractNode) {
-            throw AnalyzerException::withLocation('Can not resolve type ' . $type->getName(), $catch);
+            throw AnalyzerException::withLocation('Can not resolve type ' . $type->getName(), $catch, errorCode: ErrorCode::UNDEFINED_SYMBOL);
         }
 
         // `(defexception Name)` defines a class and a constructor fn of the same
