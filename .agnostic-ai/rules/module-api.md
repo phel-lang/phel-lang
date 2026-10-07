@@ -58,7 +58,7 @@ All collaborators degrade to empty/null on unknown types or reflection failure.
 
 ## Key Constraints
 
-- Every analyzer diagnostic is built by `Shared\Api\Diagnostic::fromLocatedException()`, which fills `errorCode`, `suggestions` and the catalog `fix`, so `phel analyze` and `phel lint` report one error the same way (#3464). `phel analyze` takes files or directories and exits 1 on an error diagnostic.
+- Every analyzer diagnostic is built by `Shared\Api\Diagnostic::fromLocatedException()`, which fills `errorCode`, `suggestions` and the catalog `fix`, so `phel analyze` and `phel lint` report one error the same way (#3464). `phel analyze` takes files or directories, exits 1 on an error diagnostic and 2 on a missing path.
 - `SourceAnalyzer` runs a pipeline of `list<AnalysisStageInterface>` (`Application/Analysis/`: Preload → LexAndParse → ReadAndAnalyze); add/remove stages in `ApiFactory::createSourceAnalyzer()`.
 - `ReadAndAnalyzeStage` wraps its pass in `GlobalEnvironment::enterAnalysisMode()`/`leaveAnalysisMode()`. `PreloadDependenciesStage` really evaluates the bundled `phel.*` modules and the file's dependencies, so the namespace under analysis is usually already bound; without that guard every top-level `def` raises `DuplicateDefinitionException` and kills the run. Any new stage that re-analyzes loaded sources needs the same guard.
 - Analysis routes through `CompilerFacade` phases only; never bypass.

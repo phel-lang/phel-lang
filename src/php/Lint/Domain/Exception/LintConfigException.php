@@ -18,6 +18,11 @@ use function sprintf;
  */
 final class LintConfigException extends RuntimeException
 {
+    public static function notFound(string $path): self
+    {
+        return new self(sprintf('Lint config file not found: %s', $path));
+    }
+
     public static function cannotRead(string $path): self
     {
         return new self(sprintf('Cannot read lint config file: %s', $path));

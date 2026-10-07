@@ -95,7 +95,7 @@ HELP)
                 Munge::displayNs($ns),
             ));
 
-            return self::FAILURE;
+            return self::INVALID;
         }
 
         if ($simple) {

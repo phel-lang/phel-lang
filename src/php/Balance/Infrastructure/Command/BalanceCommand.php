@@ -96,6 +96,9 @@ HELP)
         /** @var list<string> $requestedPaths */
         $requestedPaths = $input->getArgument(self::ARG_PATHS);
         $fix = (bool) $input->getOption(self::OPT_FIX);
+        if (!ExistingPaths::reportMissing($requestedPaths, $output)) {
+            return self::EXIT_INVOCATION_ERROR;
+        }
 
         $paths = ExistingPaths::filter($requestedPaths === [] ? $this->defaultPaths() : $requestedPaths);
 

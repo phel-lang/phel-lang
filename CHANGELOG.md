@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **BREAKING**: A command that cannot run as asked exits 2 and names the problem on stderr: a path that does not exist, an unknown `--format`, `--reporter` or `-O` value, or a `--config` or `--ref` file that is not there. This covers `lint`, `balance`, `analyze`, `test`, `bench`, `run`, `ns`, `format`, `index`, `profile`, `config`, `mutate` and `build`. They used to exit 0 or 1 depending on the command, and `phel lint ok.phel missing.phel` dropped the missing path and passed. Exit 1 still means the command ran and found something. (#3525)
 - **BREAKING (PHP API)**: `EmitterResult`, `ReaderResult` and `BuildOptions` move to `Phel\Shared`, where a PHP host can construct and inspect them. Use the Shared names in imports. Tooling facades and the listed Shared plumbing are internal; internal types named by public facade signatures remain supported as opaque handles. (#3521, ADR 0021)
 - **BREAKING (PHP API)**: `DynamicScope::$boundNames` and `Registry::$profilerHook` are private. Use `DynamicScope::hasBoundName()` and `Registry::{getProfilerHook,setProfilerHook}()`; the unused `DynamicScope::$anyActive` property is removed. (#3521)
 

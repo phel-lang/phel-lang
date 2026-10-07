@@ -8,6 +8,7 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Formatter\FormatterConfig;
 use Phel\Formatter\FormatterFacade;
+use Phel\Shared\ExistingPaths;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -70,6 +71,10 @@ HELP)
     {
         /** @var list<string> $paths */
         $paths = $input->getArgument('paths');
+        if (!ExistingPaths::reportMissing($paths, $output)) {
+            return self::INVALID;
+        }
+
         $dryRun = (bool) $input->getOption('dry-run');
         /** @var list<string> $excludeOption */
         $excludeOption = (array) $input->getOption(self::OPT_EXCLUDE);

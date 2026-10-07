@@ -18,6 +18,7 @@ use Phel\Run\Domain\Test\TestNamespacePruner;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\ExistingPaths;
 use Phel\Shared\NamespaceInformation;
 use Phel\Shared\Process\GitUnavailableException;
 use Phel\Shared\ResourceUsageFormatter;
@@ -206,6 +207,12 @@ HELP)
     {
         if ((bool) $input->getOption(TestCommandOptionParser::OPT_WATCH)) {
             return $this->runWatchMode($output);
+        }
+
+        /** @var list<string> $requestedPaths */
+        $requestedPaths = (array) $input->getArgument(TestCommandOptionParser::ARG_PATHS);
+        if (!ExistingPaths::reportMissing($requestedPaths, $output)) {
+            return self::INVALID;
         }
 
         $optionParser = new TestCommandOptionParser();

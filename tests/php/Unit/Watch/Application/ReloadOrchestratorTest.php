@@ -218,6 +218,11 @@ final readonly class FakeBuildFacade implements BuildFacadeInterface
         return $this->dependencies;
     }
 
+    public function namespaceExists(string $namespace): bool
+    {
+        return false;
+    }
+
     public function getNamespaceFromFile(string $filename): NamespaceInformation
     {
         throw new RuntimeException('not implemented');
@@ -320,6 +325,11 @@ final class FakeRunFacade implements RunFacadeInterface
     public function getDependenciesForNamespace(array $directories, array $ns): array
     {
         return [];
+    }
+
+    public function namespaceExists(string $namespace): bool
+    {
+        return false;
     }
 
     public function getDependenciesFromPaths(array $paths): array

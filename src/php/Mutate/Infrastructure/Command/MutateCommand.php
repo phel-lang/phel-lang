@@ -31,6 +31,7 @@ use function array_values;
 use function count;
 use function explode;
 use function file_put_contents;
+use function in_array;
 use function is_numeric;
 use function is_string;
 use function microtime;
@@ -195,6 +196,11 @@ HELP);
         $mutators = is_string($only) && trim($only) !== ''
             ? array_values(array_filter(array_map(trim(...), explode(',', $only)), static fn(string $id): bool => $id !== ''))
             : [];
+
+        $reporter = ScalarCoercion::toString($input->getOption(self::OPT_REPORTER), self::REPORTER_TEXT);
+        if (!in_array($reporter, [self::REPORTER_TEXT, self::REPORTER_JSON], true)) {
+            throw new InvalidArgumentException(sprintf('Unknown reporter: %s. Known: text, json.', $reporter));
+        }
 
         $minMsi = $input->getOption(self::OPT_MIN_MSI);
         if ($minMsi !== null && !is_numeric($minMsi)) {

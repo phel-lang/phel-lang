@@ -38,7 +38,7 @@ It has no `Phel\Shared\Facade` contract, matching `Lint`, `Lsp`, `Nrepl`,
 `./bin/phel balance [paths]... [--fix]`
 
 Exit codes: `0` all balanced, or `--fix` repaired everything it found; `1` an
-imbalance remains; `2` invocation error (no readable path, unwalkable dir).
+imbalance remains; `2` invocation error (a missing path, unwalkable dir).
 
 **Detection is the default.** Writing is opt-in because the intended caller is
 an agent post-write hook, and a hook that silently guesses wrong is worse than

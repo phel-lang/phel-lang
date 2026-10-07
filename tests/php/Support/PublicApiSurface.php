@@ -15,6 +15,7 @@ use Phel\Nrepl\NreplFacade;
 use Phel\Profile\ProfileFacade;
 use Phel\Run\RunFacade;
 use Phel\Shared\Exceptions\Hint\ClassNotFoundHint;
+use Phel\Shared\ExistingPaths;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Shared\FrameworkNamespaces;
@@ -220,6 +221,7 @@ final readonly class PublicApiSurface
         return in_array($className . '::' . $memberName, [
             OptimizationLevel::class . '::pin',
             NoColor::class . '::followOutput',
+            ExistingPaths::class . '::reportMissing',
             ClassNotFoundHint::class . '::javaClassHint',
             FrameworkNamespaces::class . '::clojureTarget',
             FrameworkNamespaces::class . '::isPhel',

@@ -57,6 +57,11 @@ interface RunFacadeInterface
      */
     public function getDependenciesForNamespace(array $directories, array $ns): array;
 
+    /**
+     * Whether a source, test or vendor directory defines this namespace.
+     */
+    public function namespaceExists(string $namespace): bool;
+
     public function evalFile(NamespaceInformation $info): void;
 
     /**
