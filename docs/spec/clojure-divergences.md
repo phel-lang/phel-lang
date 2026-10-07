@@ -77,7 +77,7 @@ compares them structurally.
 
 | Function | Behaviour |
 |---|---|
-| `compare` | vectors, lists, sets and maps compare element-wise or by count. Comparing across *kinds* still throws. Lazy seqs, `range` included, are a known gap (section 11) |
+| `compare` | vectors, lists, map entries and seqs (`range`, `map`, `lazy-seq` results included) compare element-wise, shorter prefix first, and with each other: `(compare (range 3) [0 1 2])` is `0`. Sets and maps compare by count, then by their sorted elements. Comparing across *kinds* still throws, and so do transients. Two infinite seqs that agree never return, as with `=` |
 | `min`, `max` | strings compare lexicographically; `nil` is still rejected |
 | `min-key`, `max-key` | strings, vectors, maps and sets are comparable, so a value comes back instead of a throw |
 | `sort-by` | a `nil`, `[]` or `{}` comparator yields an empty result instead of throwing. Other non-callable comparators, such as `5` or `:b`, throw |
@@ -356,7 +356,6 @@ open issue. Expect them to change:
 
 | Clojure | Phel today |
 |---|---|
-| `(compare (range 5) (range 5))` is `0` | `1`: two lazy seqs fall through to PHP `<=>` on objects ([#3555](https://github.com/phel-lang/phel-lang/issues/3555)) |
 | `(set {:a 1 :b 2})` is `#{[:a 1] [:b 2]}` | `#{1 2}`: `set` collects a map's values ([#3556](https://github.com/phel-lang/phel-lang/issues/3556)) |
 | `(repeatedly 1/2 +)` is `(0)` | a ratio count throws a `TypeError` in `repeat` and `repeatedly` ([#3557](https://github.com/phel-lang/phel-lang/issues/3557)) |
 

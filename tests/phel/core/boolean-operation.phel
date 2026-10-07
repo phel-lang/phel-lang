@@ -424,3 +424,43 @@
   (is (thrown? InvalidArgumentException (compare 'x '(x))) "symbol vs list throws")
   (is (thrown? InvalidArgumentException (compare :a "a")) "keyword vs string throws")
   (is (thrown? InvalidArgumentException (compare {} [])) "map vs vector throws"))
+
+(deftest test-compare-seqs
+  (is (= 0 (compare (range 5) (range 5))) "equal ranges")
+  (is (= -1 (compare (range 4) (range 5))) "shorter range sorts first")
+  (is (= 1 (compare (range 5) (range 4))) "longer range sorts last")
+  (is (= -1 (compare (range 3) (range 1 3))) "ranges compare element-wise")
+  (is (= 0 (compare (map inc [1 2]) (map inc [1 2]))) "equal map results")
+  (is (= -1 (compare (map inc [1 2]) (map inc [1 3]))) "map results compare element-wise")
+  (is (= 0 (compare (lazy-seq [1]) (lazy-seq [1]))) "equal lazy-seqs")
+  (is (= 1 (compare (lazy-seq [2]) (lazy-seq [1]))) "lazy-seqs compare element-wise")
+  (is (= 0 (compare (cons 1 [2]) (cons 1 [2]))) "equal cons cells")
+  (is (= 0 (compare (range 3) [0 1 2])) "a seq equals a vector of the same elements")
+  (is (= -1 (compare [0 1] (range 3))) "a vector prefix sorts before a longer seq")
+  (is (= 0 (compare '(0 1 2) (range 3))) "a list equals a seq of the same elements")
+  (is (= 0 (compare (first {:a 1}) [:a 1])) "a map entry compares like a vector")
+  (is (= [(range 1) (range 2) (range 3)] (sort [(range 3) (range 1) (range 2)]))
+      "sort orders seqs element-wise")
+  (is (thrown? InvalidArgumentException (compare (range 3) {})) "seq vs map throws")
+  (is (thrown? InvalidArgumentException (compare (range 1) [[]])) "incomparable elements throw"))
+
+(deftest test-compare-vectors-and-lists-unchanged
+  (is (= 0 (compare [] '())) "empty vector equals empty list")
+  (is (= 0 (compare [1 2] '(1 2))) "vector equals list of the same elements")
+  (is (= -1 (compare '(1 2) [1 3])) "list vs vector compares element-wise")
+  (is (= 1 (compare [3] [1])) "vectors compare by first differing element")
+  (is (= 1 (compare [9] [1 2])) "vectors compare element-wise, not by length"))
+
+(deftest test-compare-maps-and-sets
+  (is (= 0 (compare #{1} #{1})) "equal sets")
+  (is (= 0 (compare {1 2} {1 2})) "equal maps")
+  (is (= -1 (compare #{3} #{1 2})) "a smaller set sorts first")
+  (is (= 1 (compare {:a 1 :b 2} {:c 3})) "a larger map sorts last")
+  (is (= -1 (compare #{1 2} #{1 3})) "same-size sets compare sorted elements")
+  (is (= -1 (compare {:a 1} {:a 2})) "same-size maps compare sorted entries")
+  (is (= 1 (compare {:b 1} {:a 1})) "map entries compare by key first"))
+
+(deftest test-compare-queues-and-transients
+  (is (= 0 (compare (conj (queue) 1 2) [1 2])) "a queue compares element-wise")
+  (is (thrown? InvalidArgumentException (compare (transient [1]) (transient [1])))
+      "transient collections are not comparable"))
