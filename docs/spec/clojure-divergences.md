@@ -328,6 +328,8 @@ would break working interop code with no way to opt out.
 |---|---|
 | `cond` | an odd trailing form is the default: `(cond false 1 2)` is `2`. Clojure rejects an odd number of forms |
 | string literals | an unknown escape keeps its backslash, as in PHP: `"a\qb"` is four characters. Clojure's reader rejects it |
+| `[a &]` | a parameter vector ending in a bare `&` is accepted, where Clojure expects a rest parameter after it. `(fn [a &] a)` compiles and behaves as a variadic fn that binds no rest: `((fn [a &] [a]) 1 2 3)` is `[1]`, and `((fn [a &] a))` fails with `PHEL002`, "Expected: at least 1". Kept lenient on purpose ([#3524](https://github.com/phel-lang/phel-lang/issues/3524)): the form does nothing wrong at run time, so a compile error buys little against the [stability promise](../stability.md#two-promises) |
+| `letfn` | a repeated name is accepted and the last definition wins everywhere, earlier bodies included: `(letfn [(f [] 1) (f [] 2)] (f))` is `2`, and in `(letfn [(f [] 1) (g [] (f)) (f [] 2)] [(f) (g)])` both calls give `2`. Clojure code does not repeat a name. Kept lenient for the same reason as `[a &]` |
 | `for` | each binding is a `binding :verb expr` triple, with `:in`, `:range`, `:keys` or `:pairs`. The Clojure pair form `(for [x [1 2 3]] x)` fails to expand with `PHEL005`; write `(for [x :in [1 2 3]] x)`. `doseq` accepts the pair form |
 
 The suite has no file for `cond`, `for` or the string reader, so these rows are
