@@ -1,12 +1,12 @@
 --PHEL--
 (ns my.cljc\mixed
   (:require first.lib)
-  (:require second\lib))
+  (:require second\other))
 --PHP--
 namespace my\cljc\mixed;
 require_once __DIR__ . '/../../phel/core.php';
 require_once __DIR__ . '/../../first/lib.php';
-require_once __DIR__ . '/../../second/lib.php';
+require_once __DIR__ . '/../../second/other.php';
 \Phel::addDefinition(
   "phel.core",
   "*file*",

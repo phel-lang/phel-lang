@@ -61,6 +61,8 @@ final class DuplicateDefinitionReportTest extends AbstractCompilerRuntimeTestCas
             [PHEL004] Alias 's' already names phel.string in repro.d, so it cannot also name phel.json.
             in duplicate.phel:3
 
+            1| (ns repro.d
+            2|   (:require [phel.string :as s]
             3|             [phel.json :as s]))
                                           ^
 
@@ -77,6 +79,8 @@ final class DuplicateDefinitionReportTest extends AbstractCompilerRuntimeTestCas
             [PHEL004] 'join' is already referred from phel.string in repro.e, so it cannot also be referred from phel.core.
             in duplicate.phel:3
 
+            1| (ns repro.e
+            2|   (:require [phel.string :refer [join]]
             3|             [phel.core :refer [join]]))
                                               ^^^^
 
@@ -93,6 +97,8 @@ final class DuplicateDefinitionReportTest extends AbstractCompilerRuntimeTestCas
             [PHEL004] Alias 'string' already names phel.string in repro.f, so it cannot also name app.string.
             in duplicate.phel:3
 
+            1| (ns repro.f
+            2|   (:require [phel.string]
             3|             [app.string]))
                             ^^^^^^^^^^
 
