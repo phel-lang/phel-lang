@@ -34,6 +34,7 @@ Tooling:
 - A `phel build` output finds a classpath-absolute `(load "/extra")`. The lookup searched only the load classpath, which nothing publishes in a built app, so it failed with "Cannot locate extra for (load ...)" where `phel run` worked. (#3542)
 - `phel debug:container`, `debug:dependencies`, `debug:modules`, `profile:report`, `validate:config` and `cache:warm` show `phel ...` usage examples in `--help`. They used to point at `bin/gacela` and a `gacela.php` file. `phel doctor` points at `phel cache:clear`; it used to name a `phel clear-cache` command that does not exist. (#3537 #3563 #3577)
 - A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
+- `phel lint` and `phel analyze` resolve symbols defined in a file the namespace pulls in with `(load ...)`, as `phel run` does. A call to such a function after the `load` used to fail with `phel/unresolved-symbol`. (#3551)
 - `.phel/` ignores itself after `phel run`, `phel build` and every other command. Only `phel lint`, `phel test`, the REPL and the error log wrote `.phel/.gitignore`, so a fresh project showed over a thousand untracked files under `.phel/`. (#3537)
 
 PHP API:

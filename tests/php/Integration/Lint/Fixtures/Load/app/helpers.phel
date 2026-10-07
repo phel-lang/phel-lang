@@ -1,0 +1,3 @@
+(in-ns fixtures.load.app)
+
+(defn helper [x] (base x))
