@@ -62,9 +62,8 @@
   (is (= [:a 1 :x :b 2 :y] (vec (mapcat list [:a :b] [1 2] [:x :y]))) "three collections")
   (is (= [:a 1] (vec (mapcat list [:a :b :c] [1]))) "stops at the shortest"))
 
-(deftest test-take-still-rejects-a-non-integer-count
-  (is (thrown? \InvalidArgumentException (take "2" nums)))
-  (is (thrown? \InvalidArgumentException (take 1.5 nums))))
+(deftest test-take-still-rejects-a-non-number-count
+  (is (thrown? \InvalidArgumentException (take "2" nums))))
 
 (deftest test-slice-arities
   (is (= [2 3 4] (vec (slice [1 2 3 4 5] 1 3))) "offset and length")

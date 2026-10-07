@@ -18,6 +18,7 @@
 (use Phel.Lang.Delay)
 (use Phel.Lang.Equalizer)
 (use Phel.Lang.Hasher)
+(use Phel.Lang.NumericCoercion)
 (use Phel.Lang.NumericOperations)
 (use Phel.Lang.BigDecimal)
 (use Phel.Lang.BigInt)
@@ -527,6 +528,14 @@ Creates intermediate maps if they don't exist."
         (assoc ds k (dissoc-in sub ks))))
     (dissoc ds k)))
 
+(defn- seq-count
+  "Clojure counts a non-int `n` down with `pos?` and `dec`, so it covers `(ceil n)` items."
+  [n]
+  (if (number? n)
+    (let [f (php/ceil (NumericCoercion/toFloat n))]
+      (if (php/< f php/PHP_INT_MAX) (php/intval f) php/PHP_INT_MAX))
+    n))
+
 (defn drop
   "Drops the first `n` elements of `coll`. Returns a lazy sequence. When called with n only, returns a transducer."
   {:example "(drop 2 [1 2 3 4 5]) ; => (3 4 5)"
@@ -543,7 +552,8 @@ Creates intermediate maps if they don't exist."
   ([n coll]
    (if (nil? coll)
      []
-     (let [n (if (php/< n 0) 0 n)]
+     (let [n (if (php/is_int n) n (seq-count n))
+           n (if (php/< n 0) 0 n)]
        (if (php/=== n 0)
          coll
          (let [result (lazy-seq-from-generator (Seq/drop n coll))]
@@ -622,7 +632,9 @@ Creates intermediate maps if they don't exist."
            (if (nil? result)
              []
              (copy-meta coll result)))))
-     (throw (new InvalidArgumentException (str "take expects an integer count, got " (type n)))))))
+     (if (number? n)
+       (take (seq-count n) coll)
+       (throw (new InvalidArgumentException (str "take expects an integer count, got " (type n))))))))
 
 (defn- take-last-buffered
   [n coll]
@@ -638,12 +650,13 @@ Creates intermediate maps if they don't exist."
   {:example "(take-last 3 [1 2 3 4 5]) ; => [3 4 5]"
    :see-also ["take" "drop-last"]}
   [n coll]
-  (cond
-    (php/<= (NumericOperations/compare n 0) 0) []
-    (nil? coll)    nil
-    (or (php-array? coll)
-        (php/instanceof coll SliceInterface)) (slice coll (NumericOperations/subtract 0 n))
-    :else (take-last-buffered n coll)))
+  (let [n (if (php/is_int n) n (seq-count n))]
+    (cond
+      (php/<= (NumericOperations/compare n 0) 0) []
+      (nil? coll)    nil
+      (or (php-array? coll)
+          (php/instanceof coll SliceInterface)) (slice coll (NumericOperations/subtract 0 n))
+      :else (take-last-buffered n coll))))
 
 (defn take-while
   "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence. When called with pred only, returns a transducer."
@@ -675,7 +688,8 @@ Creates intermediate maps if they don't exist."
                        (if (php/=== 0 (php/% i n))
                          (rf result input) result)))))))
   ([n coll]
-   (let [s (seq coll)]
+   (let [n (if (php/is_int n) n (seq-count n))
+         s (seq coll)]
      (cond
        (nil? s)     []
        (php/<= n 0) (copy-meta coll (lazy-seq-from-generator (Seq/repeat (first s))))
@@ -1865,10 +1879,12 @@ If map has duplicated values, some keys will be ignored."
    ;; `Seq/partition` takes exactly these two arguments, so the
    ;; `call_user_func_array` over a built PHP array was assembling a call the
    ;; arity already knows.
-   (let [result (lazy-seq-from-generator (Seq/partition n coll))]
-     (if (php/=== nil result)
-       '()
-       (copy-meta coll result))))
+   (if (php/is_int n)
+     (let [result (lazy-seq-from-generator (Seq/partition n coll))]
+       (if (php/=== nil result)
+         '()
+         (copy-meta coll result)))
+     (partition n n coll)))
   ([n step coll]
    (lazy-seq
      (let [s (seq coll)]
