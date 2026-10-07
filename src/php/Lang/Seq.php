@@ -45,6 +45,14 @@ final class Seq
     }
 
     /**
+     * @return iterable<mixed>
+     */
+    public static function elementsOf(mixed $value): iterable
+    {
+        return SequenceGenerator::elementsOf($value);
+    }
+
+    /**
      * Converts the final collection argument of `apply` to positional PHP args.
      *
      * @return list<mixed>

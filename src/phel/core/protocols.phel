@@ -580,6 +580,21 @@ When x is an object with no implementation for its exact type, dispatch looks fo
                  (conj current-methods item)
                  result))))))
 
+(defn- assert-protocol-methods!
+  "Throws when `header` resolves to a protocol that does not declare one of
+  `methods`. A header that does not resolve to a protocol is left to the caller."
+  [macro-name header methods]
+  (let [resolved (.resolveAsSymbol (GlobalEnvironmentSingleton/getInstance) header (NodeEnvironment/empty))]
+    (when resolved
+      (let [registry-ns (.encodeRegistryKey (new Munge) (.getNamespace resolved))
+            definition  (Phel/getDefinition registry-ns (.getName resolved))]
+        (when (and (map? definition) (contains? definition :dispatch))
+          (foreach [method methods]
+            (let [method-name (.getName (first method))]
+              (when (nil? (Phel/getDefinition registry-ns (php/. (.getName resolved) "--" method-name "--dispatch")))
+                (throw (new InvalidArgumentException
+                            (str macro-name ": protocol " header " has no method " method-name)))))))))))
+
 (defn- protocol-symbol-type-key
   "The dispatch key `extend-type` registers for a symbol: a struct of the
   current namespace, or a PHP class or interface named with a leading `\\`,
@@ -643,6 +658,7 @@ When x is an object with no implementation for its exact type, dispatch looks fo
                           proto-tag  (if proto-ns
                                        (.getFullName proto-name)
                                        (php/. *ns* "\\" proto-str))]
+                      (assert-protocol-methods! "extend-type" proto-name methods)
                       ;; Group the impls by method name so a method declared
                       ;; with several arities installs ONE multi-arity fn,
                       ;; instead of each arity overwriting the previous swap.
@@ -745,6 +761,8 @@ Equivalent to multiple `extend-type` calls."
         by-kind                (group-by #(if (reify-protocol-header? (first %)) :protocol :interface) groups)
         proto-groups           (get by-kind :protocol [])
         interface-groups       (get by-kind :interface [])
+        protocol-methods-valid (foreach [group proto-groups]
+                                 (assert-protocol-methods! "reify" (first group) (second group)))
         ;; Protocol methods lead, then each interface followed by its methods,
         ;; which is the order reify* reads them in.
         proto-methods          (reduce (fn [acc group] (concat acc (second group))) [] proto-groups)
