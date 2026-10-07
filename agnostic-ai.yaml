@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Chemaclass/agnostic-ai/main/docs/schemas/config.schema.json
 version: 1
 
-requires: ">=0.76.0 <0.77.0"
+requires: ">=0.80.0 <0.81.0"
 
 sources:
   agents: .agnostic-ai/agents
