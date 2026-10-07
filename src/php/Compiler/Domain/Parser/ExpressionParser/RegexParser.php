@@ -28,6 +28,7 @@ final class RegexParser
 
         // Escape unescaped forward slashes so /delimiter/ is never broken
         $pattern = preg_replace('/(?<!\\\\)\\//', '\\/', $pattern) ?? $pattern;
+
         $delimited = '/' . $pattern . '/';
 
         $this->assertCompiles($delimited, $token->getCode());

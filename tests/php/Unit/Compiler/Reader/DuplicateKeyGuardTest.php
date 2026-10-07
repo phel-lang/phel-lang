@@ -75,7 +75,7 @@ final class DuplicateKeyGuardTest extends TestCase
      */
     private function nodes(int $count): array
     {
-        return array_map(fn(): SymbolNode => $this->node(), range(1, $count));
+        return array_map($this->node(...), range(1, $count));
     }
 
     private function node(): SymbolNode
