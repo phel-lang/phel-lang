@@ -76,6 +76,20 @@ final class DuplicateArityReportTest extends AbstractCompilerRuntimeTestCase
         self::assertSame($expected, $this->report("(ns arity.d)\n(defprotocol P (m [this] [that]))"));
     }
 
+    /**
+     * The second form used to replace the first, so `(m obj)` dispatched to
+     * an arity that no longer existed (#3568).
+     */
+    public function test_a_protocol_method_in_two_forms_names_the_code(): void
+    {
+        self::assertStringStartsWith(
+            "[PHEL005] Error in expanding macro \"phel.core/defprotocol\"\n"
+            . "  Expanding: (defprotocol P (m [this]) (m [this x]))\n"
+            . '  Cause: Function m in protocol P was redefined. Specify all arities in single definition.',
+            $this->report("(ns arity.h)\n(defprotocol P (m [this]) (m [this x]))"),
+        );
+    }
+
     public function test_an_extend_type_impl_with_one_arity_twice_names_the_code(): void
     {
         $expected = <<<'REPORT'

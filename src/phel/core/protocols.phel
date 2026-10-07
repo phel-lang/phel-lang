@@ -513,6 +513,15 @@ When x is an object with no implementation for its exact type, dispatch looks fo
   {:example "(defprotocol Stringable (to-string [this]))"
    :see-also ["extend-type" "satisfies?" "extends?" "protocol-type-key"]}
   [protocol-name & method-specs]
+  (loop [specs method-specs, seen #{}]
+    (when specs
+      (let [spec  (first specs)
+            mname (first spec)]
+        (when (contains? seen mname)
+          (throw (new InvalidArgumentException
+                      (str "Function " mname " in protocol " protocol-name
+                           " was redefined. Specify all arities in single definition."))))
+        (recur (next specs) (conj seen mname)))))
   (let [pname-str (.getName protocol-name)
         ;; `arglists` holds every declared arity vector, so a multi-arity
         ;; method like `(say [this] [this name])` dispatches on all of them.
