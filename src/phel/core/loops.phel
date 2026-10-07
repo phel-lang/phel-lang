@@ -1,5 +1,7 @@
 (in-ns phel.core)
 
+(use InvalidArgumentException)
+
 ;; Side-effecting iteration that returns `nil`. Currently just `run!`;
 ;; `doseq` itself lives in the macro layer, but related helpers collect here.
 
@@ -17,6 +19,8 @@
   "Evaluates body `n` times with `binding` bound to integers from 0 to n-1. Returns nil."
   {:example "(dotimes [i 5] (println i))"}
   [[binding n] & body]
+  (when-not (= 2 (count (second &form)))
+    (throw (new InvalidArgumentException "dotimes requires exactly 2 forms in binding vector")))
   (let [n-sym (gensym)]
     `(let [~n-sym ~n]
        (doseq [~binding :range [0 ~n-sym]]
