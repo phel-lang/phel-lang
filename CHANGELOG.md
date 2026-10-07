@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Public PHP API: `\Phel::assertBuiltWith(string $version)` rejects generated PHP built with another Phel version and reports how to rebuild it. `Phel\Shared\VersionResolver::current()` and `currentReference()` expose the running version and commit for the process. (#3519)
 - Public PHP API: `PhelConfig::defaultTempDir()` and `Phel\Shared\CurrentUser`, which finds the effective uid also on a PHP built without the posix extension. (#3532)
 - `declare` takes several names, `(declare a b)`, as in Clojure. Anything but a symbol fails: `(declare f [x])` used to declare `f` and drop the vector. (#3524)
+- `phel api-daemon` answers a `version` request with the running Phel version, so an editor can check it is compatible. `phel lsp` reports the same version as `serverInfo.version` instead of `0.1.0`. (#3525)
 
 ### Fixed
 
