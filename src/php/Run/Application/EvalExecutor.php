@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application;
 
+use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Shared\ColorStyleInterface;
@@ -37,22 +38,22 @@ final readonly class EvalExecutor
             return true;
         }
 
-        if (!$this->compilerFacade->hasBalancedParentheses($input)) {
-            $this->io->writeln($this->style->red('Unbalanced parentheses.'));
-
-            return false;
-        }
-
         $options = new CompileOptions()
             ->setStartingLine(1)
             ->setOptimizationLevel($this->optimizationLevel);
 
         try {
+            if (!$this->compilerFacade->hasBalancedParentheses($input)) {
+                $this->io->writeln($this->style->red('Unbalanced parentheses.'));
+
+                return false;
+            }
+
             $result = $this->compilerFacade->eval($input, $options);
             $this->io->writeln($this->printer->print($result));
 
             return true;
-        } catch (UnfinishedParserException $e) {
+        } catch (UnfinishedParserException|LexerValueException $e) {
             $this->io->writeLocatedException($e, $e->getCodeSnippet());
 
             return false;

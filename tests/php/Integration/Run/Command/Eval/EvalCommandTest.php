@@ -93,6 +93,14 @@ final class EvalCommandTest extends AbstractTestCommand
         self::assertSame(1, $exitCode);
     }
 
+    public function test_lexer_error_reports_the_code_and_points_at_the_character(): void
+    {
+        $output = (string) preg_replace('/\e\[[\d;]*m/', '', $this->captureEvalOutput('#| x |# 1'));
+
+        self::assertStringContainsString("[PHEL310] Cannot lex '#': no token starts with it.", $output);
+        self::assertStringContainsString("1| #| x |# 1\n   ^", $output);
+    }
+
     public function test_eval_reads_from_stdin_when_dash_argument(): void
     {
         $command = new EvalCommand($this->stdinReader('(php/+ 10 20)'));
