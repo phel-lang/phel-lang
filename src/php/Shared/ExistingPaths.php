@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Shared;
 
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function is_dir;
 use function is_file;
-use function sprintf;
 
 /**
  * Checks the paths a user typed on the command line. A path that names
@@ -46,11 +44,10 @@ final class ExistingPaths
      */
     public static function reportMissing(array $paths, OutputInterface $output): bool
     {
-        $stderr = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
         $allExist = true;
         foreach ($paths as $path) {
             if (!self::exists($path)) {
-                $stderr->writeln(sprintf('<error>Path not found: %s</error>', $path));
+                InvocationError::report($output, 'Path not found: ' . $path);
                 $allExist = false;
             }
         }

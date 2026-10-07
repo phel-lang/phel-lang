@@ -10,7 +10,7 @@ use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
-use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -103,7 +103,8 @@ final class ReaderTest extends TestCase
 
     public function test_read_zero_denominator_ratio_throws_at_parse_time(): void
     {
-        $this->expectException(ZeroDenominatorRatioParserException::class);
+        $this->expectException(UnexpectedParserException::class);
+        $this->expectExceptionMessage('Invalid ratio 1/0: the denominator is zero');
         $this->read('1/0');
     }
 
@@ -649,9 +650,25 @@ final class ReaderTest extends TestCase
         $this->read($source);
     }
 
-    public function test_map_with_a_repeated_non_constant_key_keeps_the_last_value(): void
+    public function test_map_with_a_repeated_symbol_key_throws(): void
     {
-        self::assertSame('{x 2}', Printer::readable()->print($this->read('{x 1 x 2}')));
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Duplicate key: x');
+        $this->read('{x 1 x 2}');
+    }
+
+    public function test_map_with_a_repeated_vector_key_throws(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Duplicate key: [1 2]');
+        $this->read('{[1 2] :a [1 2] :b}');
+    }
+
+    public function test_set_with_a_repeated_symbol_throws(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Duplicate key: a');
+        $this->read('#{a a}');
     }
 
     public function test_set_with_a_repeated_call_keeps_one_element(): void

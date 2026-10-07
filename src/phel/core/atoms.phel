@@ -402,6 +402,16 @@ Returns the new value after the swap."
   [head binding verb coll-expr]
   (conj (conj (conj head binding) verb) coll-expr))
 
+(defn- odd-binding-vector-error
+  [macro-name]
+  (new InvalidArgumentException (str macro-name " requires an even number of forms in binding vector")))
+
+(defn- assert-binding-pairs
+  "Throws unless the `bindings` vector of a `macro-name` call holds an even number of forms."
+  [macro-name bindings]
+  (when (= 1 (php/% (count bindings) 2))
+    (throw (odd-binding-vector-error macro-name))))
+
 (defn- doseq-normalize
   "Transforms Clojure-style doseq bindings into Phel dofor format. Pairs `[x coll]` become triples `[x :in (doseq-iterable coll)]` so maps iterate as entry pairs. Already-present verb triples `[x :in coll]` pass through unchanged. Modifier keywords like `:when`, `:while`, `:let` pass through unchanged."
   [head]
@@ -411,6 +421,9 @@ Returns the new value after the swap."
       result
       (let [el      (aget head i)
             next-el (aget head (php/+ i 1))]
+        (when (or (>= (php/+ i 1) (count head))
+                  (and (for-verb? next-el) (>= (php/+ i 2) (count head))))
+          (throw (odd-binding-vector-error "doseq")))
         (cond
           ;; modifier keyword: keep pair as-is
           (keyword? el)

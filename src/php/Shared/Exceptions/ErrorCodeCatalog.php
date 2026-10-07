@@ -217,7 +217,7 @@ final class ErrorCodeCatalog
             new ErrorCodeExplanation(
                 code: ErrorCode::PARSER_ERROR,
                 title: 'Parser error',
-                summary: 'The fallback code for a parser error that carries no more specific one, such as a keyword alias the parser cannot resolve..',
+                summary: 'The fallback code for a parser error that carries no more specific one, such as a keyword alias the parser cannot resolve, a regex literal that does not compile, or an integer like `08` whose leading zero makes it octal.',
                 example: '::nope/foo',
                 fix: 'Read the message: it names the token the parser rejected.',
             ),
@@ -231,7 +231,7 @@ final class ErrorCodeCatalog
             new ErrorCodeExplanation(
                 code: ErrorCode::DUPLICATE_KEY,
                 title: 'Duplicate key in a literal',
-                summary: 'A map or set literal holds the same constant key twice, so one entry would be lost. Keywords, strings, numbers (ratios and big numbers included), booleans and `nil` count as constants. Numbers compare by value, so `{1/2 :a 2/4 :b}` repeats a key. A symbol or a call keeps the last value, as `hash-map` and `hash-set` do.',
+                summary: 'A map or set literal holds the same key twice, so one entry would be lost. Keywords, strings, numbers (ratios and big numbers included), booleans, `nil` and symbols compare as written, and so do vectors, maps and sets built from them: `{a 1 a 2}` and `{[1 2] :a [1 2] :b}` repeat a key. Numbers compare by value, so `{1/2 :a 2/4 :b}` repeats a key too. A key holding a call keeps the last value, as `hash-map` and `hash-set` do.',
                 example: '{:a 1 :a 2}',
                 fix: 'Remove the repeated key, or rename the one you meant to be different.',
             ),

@@ -101,6 +101,7 @@ These Shared classes are internal despite their namespace:
 - `Phel\Shared\Performance\*`
 - `Phel\Shared\SourceMap\SupersededSourceMaps`
 - `Phel\Shared\Lint\LintRuleExplainerInterface`
+- `Phel\Shared\InvocationError`
 
 The same applies to these individual methods on otherwise public classes:
 `OptimizationLevel::pin()`, `NoColor::followOutput()`,

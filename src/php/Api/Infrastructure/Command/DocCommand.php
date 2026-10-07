@@ -6,12 +6,12 @@ namespace Phel\Api\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
-use InvalidArgumentException;
 use Phel;
 use Phel\Api\ApiFacade;
 use Phel\Api\ApiFactory;
 use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\CompilerConstants;
+use Phel\Shared\InvocationError;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Completion\CompletionInput;
@@ -93,22 +93,20 @@ HELP)
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $format = strtolower(ScalarCoercion::toString($input->getOption(self::OPTION_FORMAT)));
+        if (!in_array($format, self::AVAILABLE_FORMATS, true)) {
+            return InvocationError::report($output, sprintf(
+                'Unknown format: %s. Known: %s.',
+                $format,
+                implode(', ', self::AVAILABLE_FORMATS),
+            ));
+        }
+
         $namespaces = $this->normalizeNamespaces(ScalarCoercion::toStringList($input->getOption(self::OPTION_NAMESPACES)));
         $phelFunctions = $this->getFacade()->getPhelFunctions($namespaces);
 
         $search = ScalarCoercion::toString($input->getArgument('search'));
         $normalized = $this->normalizeGroupedFunctions($phelFunctions, $search);
-
-        $format = strtolower(ScalarCoercion::toString($input->getOption(self::OPTION_FORMAT)));
-        if (!in_array($format, self::AVAILABLE_FORMATS, true)) {
-            $message = sprintf(
-                'Invalid format "%s". Allowed values: %s',
-                $format,
-                implode(', ', self::AVAILABLE_FORMATS),
-            );
-
-            throw new InvalidArgumentException($message);
-        }
 
         if ($format === 'json') {
             $this->printFunctionsAsJson($output, $normalized);
