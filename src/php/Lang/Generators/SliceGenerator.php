@@ -33,7 +33,7 @@ final class SliceGenerator
         }
 
         $count = 0;
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             yield $value;
             ++$count;
             if ($count >= $n) {
@@ -62,7 +62,7 @@ final class SliceGenerator
      */
     public static function takeWhile(callable $predicate, mixed $iterable): Generator
     {
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             if (!Truthy::isTruthy($predicate($value))) {
                 break;
             }
@@ -103,7 +103,7 @@ final class SliceGenerator
     public static function drop(int $n, mixed $iterable): Generator
     {
         $count = 0;
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             if ($count >= $n) {
                 yield $value;
             }
@@ -133,7 +133,7 @@ final class SliceGenerator
     public static function dropWhile(callable $predicate, mixed $iterable): Generator
     {
         $dropping = true;
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::elementsOf($iterable) as $value) {
             if ($dropping && Truthy::isTruthy($predicate($value))) {
                 continue;
             }

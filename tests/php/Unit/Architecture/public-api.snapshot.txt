@@ -1080,6 +1080,7 @@ final class Phel\Lang\Generators\PartitionGenerator
   public static function partitionBy(callable $f, mixed $iterable): Generator
 
 final class Phel\Lang\Generators\SequenceGenerator
+  public static function elementsOf(mixed $value): iterable
   public static function indexed(mixed $iterable): Generator
   public static function numericRange(mixed $start, mixed $end, mixed $step): Generator
   public static function range(float|int $start, float|int $end, float|int $step): Generator
@@ -1310,6 +1311,7 @@ final class Phel\Lang\Seq
   public static function distinct(mixed $iterable): Generator
   public static function drop(int $n, mixed $iterable): Generator
   public static function dropWhile(callable $predicate, mixed $iterable): Generator
+  public static function elementsOf(mixed $value): iterable
   public static function fileLines(string $filename): Generator
   public static function fileSeq(string $path): Generator
   public static function filter(callable $predicate, mixed $iterable): Generator
