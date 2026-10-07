@@ -1,0 +1,5 @@
+(ns self-load)
+
+(defn f [] 1)
+
+(load "self_load")

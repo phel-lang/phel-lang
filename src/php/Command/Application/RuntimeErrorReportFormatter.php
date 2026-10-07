@@ -23,6 +23,7 @@ use function count;
 use function implode;
 use function is_string;
 use function preg_replace;
+use function preg_replace_callback;
 use function rtrim;
 use function sprintf;
 use function str_ends_with;
@@ -111,9 +112,33 @@ final readonly class RuntimeErrorReportFormatter
 
         // PHP names the evaluator's temp path and an eval line number in the
         // messages it raises itself, neither of which the user can open.
-        $cleaned = preg_replace('/ in [^\s]+\(\d+\)\s*:\s*eval\(\)\'d code on line \d+/', '', $message);
+        $cleaned = preg_replace('/ in [^\s]+\(\d+\)\s*:\s*eval\(\)\'d code on line \d+/', '', $message) ?? $message;
+        $cleaned = preg_replace_callback(
+            '/, called in (\S+) on line (\d+)$/',
+            fn(array $m): string => $this->calledInTail($m[0], $m[1], (int) $m[2]),
+            $cleaned,
+        ) ?? $cleaned;
 
-        return $this->errorCodePrefix($cause) . trim($cleaned ?? $message);
+        return $this->errorCodePrefix($cause) . trim($cleaned);
+    }
+
+    /**
+     * PHP names the file that made a call with a bad argument. When that is
+     * the eval temp file or the compiled cache, the source map names the Phel
+     * source instead, and with no source map the tail is dropped.
+     */
+    private function calledInTail(string $tail, string $file, int $line): string
+    {
+        if (!$this->internalPathDetector->isInternalArtifact($file)) {
+            return $tail;
+        }
+
+        $position = $this->filePositionExtractor->getOriginal($file, $line);
+        if ($position->filename() === $file) {
+            return '';
+        }
+
+        return sprintf(', called in %s on line %d', $position->filename(), $position->line());
     }
 
     /**
