@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Parser\ExpressionParser;
 
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\NumberParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInt;
@@ -42,6 +43,8 @@ final readonly class AtomParser
     private const string REGEX_HEXADECIMAL_NUMBER = '/^([+-])?0[xX]([0-9a-fA-F]+(?:_[0-9a-fA-F]+)*)$/';
 
     private const string REGEX_OCTAL_NUMBER = '/^([+-])?0([0-7]+(?:_[0-7]+)*)$/';
+
+    private const string REGEX_LEADING_ZERO_NON_OCTAL = '/^[+-]?0[0-9_]*[89][0-9_]*N?$/';
 
     private const string REGEX_RADIX_NUMBER = '/^([+-])?(2|[3-9]|[12]\d|3[0-6])[rR]([0-9a-zA-Z]+(?:_[0-9a-zA-Z]+)*)$/';
 
@@ -104,6 +107,10 @@ final readonly class AtomParser
         $first = $word[0] ?? '';
         if (!$this->couldStartNumber($first)) {
             return new SymbolNode($word, $token->getStartLocation(), $token->getEndLocation(), Symbol::create($word));
+        }
+
+        if (preg_match(self::REGEX_LEADING_ZERO_NON_OCTAL, $word) === 1) {
+            throw new NumberParserException('Invalid number: ' . $word);
         }
 
         if (preg_match(self::REGEX_BINARY_NUMBER, $word, $matches)) {

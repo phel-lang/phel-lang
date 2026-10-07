@@ -18,7 +18,13 @@ final class DuplicateKeyRuleTest extends RuleTestCase
     public function test_it_flags_duplicate_symbol_keys(): void
     {
         $rule = new DuplicateKeyRule($this->compilerFacade());
-        $analysis = $this->buildAnalysis("{x 1 x 2}\n");
+        $analysis = new FileAnalysis(
+            uri: 'test.phel',
+            namespace: '',
+            source: "{x 1 x 2}\n",
+            forms: [],
+            projectIndex: new ProjectIndex([], []),
+        );
 
         $diagnostics = $rule->apply($analysis);
 
