@@ -15,6 +15,7 @@ use Phel\Run\Application\Test\SharedNamespaces;
 use Phel\Run\Domain\QuotedNamespaceList;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Domain\Test\TestNamespacePruner;
+use Phel\Run\Domain\Test\UnknownReporterException;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
@@ -37,7 +38,6 @@ use function count;
 use function file_put_contents;
 use function getcwd;
 use function getenv;
-use function implode;
 use function is_array;
 use function is_dir;
 use function is_string;
@@ -218,15 +218,6 @@ HELP)
         }
 
         $optionParser = new TestCommandOptionParser();
-        $unknownReporters = $optionParser->unknownReporters($input);
-        if ($unknownReporters !== []) {
-            return InvocationError::report($output, sprintf(
-                'Unknown reporter: %s. Known: %s.',
-                implode(', ', $unknownReporters),
-                implode(', ', TestCommandOptionParser::BUILT_IN_REPORTERS),
-            ));
-        }
-
         $feedback = TestLoadingFeedback::fromOutput($output);
 
         try {
@@ -385,6 +376,11 @@ HELP)
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
+            // Evaluated code wraps what the generated test form throws.
+            if ($e->getPrevious() instanceof UnknownReporterException) {
+                return InvocationError::report($output, $e->getPrevious()->getMessage());
+            }
+
             $this->getFacade()->writeStackTrace($output, $e, StackTraceOption::isEnabled($input));
         }
 

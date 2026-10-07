@@ -14,8 +14,7 @@ use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use function array_filter;
-use function array_values;
+use function array_diff;
 use function getcwd;
 use function getenv;
 use function in_array;
@@ -166,20 +165,6 @@ final readonly class TestCommandOptionParser
     }
 
     /**
-     * @return list<string> the `--reporter` values that name no built-in reporter
-     */
-    public function unknownReporters(InputInterface $input): array
-    {
-        /** @var list<string> $reporters */
-        $reporters = (array) $input->getOption(self::OPT_REPORTER);
-
-        return array_values(array_filter(
-            $reporters,
-            static fn(string $reporter): bool => !in_array($reporter, self::BUILT_IN_REPORTERS, true),
-        ));
-    }
-
-    /**
      * The reporters `phel.test` will run. On a GitHub Actions runner the
      * `github` reporter (inline annotations, step summary) joins the one the
      * run would have used anyway; an explicit `--reporter` is taken as is.
@@ -209,6 +194,10 @@ final readonly class TestCommandOptionParser
         $reporters = (array) $input->getOption(self::OPT_REPORTER);
         if (in_array('tap', $reporters, true)) {
             return 'TAP reporter requires a monotonic test counter';
+        }
+
+        if (array_diff($reporters, self::BUILT_IN_REPORTERS) !== []) {
+            return 'a custom reporter is registered by the test code this process loads';
         }
 
         if (Registry::getProfilerHook() instanceof ProfilerHookInterface) {

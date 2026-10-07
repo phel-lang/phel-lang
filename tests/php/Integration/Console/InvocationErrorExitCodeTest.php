@@ -42,6 +42,7 @@ final class InvocationErrorExitCodeTest extends TestCase
     protected function tearDown(): void
     {
         @unlink($this->dir . '/ok.phel');
+        @unlink($this->dir . '/reporter_test.phel');
         if (is_dir($this->dir)) {
             @rmdir($this->dir);
         }
@@ -70,7 +71,6 @@ final class InvocationErrorExitCodeTest extends TestCase
         yield 'mutate, unknown --reporter' => [['mutate', '--reporter=xml']];
         yield 'build, non-integer -O' => [['build', '-O', 'fast']];
         yield 'doc, unknown --format' => [['doc', '--format=xml']];
-        yield 'test, unknown --reporter' => [['test', '--reporter=xml']];
     }
 
     /**
@@ -87,6 +87,54 @@ final class InvocationErrorExitCodeTest extends TestCase
         self::assertSame(2, $result->exitCode, $result->stderr . $result->stdout);
         self::assertSame('', $result->stdout);
         self::assertNotSame('', $result->stderr);
+    }
+
+    /**
+     * @return iterable<string, array{list<string>}>
+     */
+    public static function provideTestModes(): iterable
+    {
+        yield 'serial' => [[]];
+        yield 'parallel' => [['--parallel=2']];
+    }
+
+    /**
+     * @param list<string> $mode
+     */
+    #[DataProvider('provideTestModes')]
+    public function test_a_reporter_registered_by_test_code_can_be_selected(array $mode): void
+    {
+        $this->writeTestRegisteringAReporter();
+
+        $result = Subprocess::run(
+            [PHP_BINARY, dirname(__DIR__, 4) . '/bin/phel', 'test', '--reporter=my-reporter', ...$mode, 'reporter_test.phel'],
+            $this->dir,
+        );
+
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertStringContainsString('my-reporter saw a test', $result->stdout);
+    }
+
+    /**
+     * @param list<string> $mode
+     */
+    #[DataProvider('provideTestModes')]
+    public function test_an_unknown_reporter_exits_2_listing_the_registered_ones(array $mode): void
+    {
+        $this->writeTestRegisteringAReporter();
+
+        $result = Subprocess::run(
+            [PHP_BINARY, dirname(__DIR__, 4) . '/bin/phel', 'test', '--reporter=xml', ...$mode, 'reporter_test.phel'],
+            $this->dir,
+        );
+
+        self::assertSame(2, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertSame('', $result->stdout);
+        self::assertStringContainsString(
+            'Unknown reporter: xml. Known: default, testdox, dot, tap, junit-xml, github, my-reporter.',
+            $result->stderr,
+        );
+        self::assertStringNotContainsString('saw a test', $result->stderr);
     }
 
     public function test_an_invalid_optimization_level_variable_exits_2_naming_it(): void
@@ -114,5 +162,22 @@ final class InvocationErrorExitCodeTest extends TestCase
 
         self::assertStringContainsString('Path not found: missing.phel', $result->stderr);
         self::assertStringNotContainsString('missing.phel', $result->stdout);
+    }
+
+    private function writeTestRegisteringAReporter(): void
+    {
+        file_put_contents($this->dir . '/reporter_test.phel', <<<'PHEL'
+            (ns app.reporter-test
+              (:require phel.test :refer [deftest is register-reporter!]))
+
+            (register-reporter! :my-reporter
+                                (fn [event]
+                                  (when (= (get event :type) :end-test)
+                                    (php/echo "my-reporter saw a test\n"))))
+
+            (deftest it-passes
+              (is (= 1 1)))
+
+            PHEL);
     }
 }
