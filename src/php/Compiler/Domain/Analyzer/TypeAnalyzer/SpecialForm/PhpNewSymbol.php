@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 use function preg_match;
@@ -32,7 +33,7 @@ final class PhpNewSymbol implements SpecialFormAnalyzerInterface
     {
         $listCount = count($list);
         if ($listCount < 2) {
-            throw AnalyzerException::withLocation("At least one arguments is required for 'php/new", $list);
+            throw AnalyzerException::withLocation("At least one arguments is required for 'php/new", $list, errorCode: ErrorCode::ARITY_ERROR);
         }
 
         $classEnv = $env->withExpressionContext()->withDisallowRecurFrame();

@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 
@@ -61,12 +62,12 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
     private function verifyArguments(PersistentListInterface $list): void
     {
         if (count($list) < 2) {
-            throw AnalyzerException::withLocation("At least two arguments are required for 'foreach", $list);
+            throw AnalyzerException::wrongArity($list, '(foreach [x coll] body ...)');
         }
 
         $foreachTuple = $list->get(1);
         if (!($foreachTuple instanceof PersistentVectorInterface)) {
-            throw AnalyzerException::withLocation("First argument of 'foreach must be a vector.", $list);
+            throw AnalyzerException::withLocation("First argument of 'foreach must be a vector.", $list, errorCode: ErrorCode::TYPE_ERROR);
         }
 
         $firstArgCount = count($foreachTuple);

@@ -67,7 +67,7 @@ final class PhpCallableSymbolTest extends TestCase
     public function test_too_few_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("One or two arguments are expected for 'php/callable'");
+        $this->expectExceptionMessage("Wrong number of arguments for 'php/callable. Usage: (php/callable fn) or (php/callable target method)");
 
         $this->analyze([Symbol::create(Symbol::NAME_PHP_CALLABLE)]);
     }
@@ -75,7 +75,7 @@ final class PhpCallableSymbolTest extends TestCase
     public function test_too_many_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("One or two arguments are expected for 'php/callable'");
+        $this->expectExceptionMessage("Wrong number of arguments for 'php/callable. Usage: (php/callable fn) or (php/callable target method)");
 
         $this->analyze([
             Symbol::create(Symbol::NAME_PHP_CALLABLE),

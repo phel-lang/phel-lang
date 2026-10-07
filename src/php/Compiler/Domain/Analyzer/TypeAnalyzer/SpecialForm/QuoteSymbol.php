@@ -29,7 +29,7 @@ final class QuoteSymbol implements SpecialFormAnalyzerInterface
         }
 
         if (count($list) !== 2) {
-            throw AnalyzerException::withLocation("Exactly one argument is required for 'quote", $list);
+            throw AnalyzerException::wrongArity($list, '(quote form)');
         }
 
         return new QuoteNode(
