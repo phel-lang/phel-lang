@@ -74,6 +74,16 @@ final class ReservedStructMethodReportTest extends AbstractCompilerRuntimeTestCa
         );
     }
 
+    public function test_a_method_inherited_from_an_interface_the_struct_base_implements_can_be_overridden(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        $this->compilerFacade->compile(
+            "(ns method.f)\n(defstruct s [a] PhelTest.Integration.Compiler.Analyzer.Fixtures.NamedStringable (__toString [this] \"s\") (name [this] \"n\"))",
+            new CompileOptions()->setSource(self::SOURCE),
+        );
+    }
+
     private function report(string $phelCode): string
     {
         try {

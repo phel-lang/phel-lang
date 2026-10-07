@@ -17,8 +17,11 @@ use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Munge;
 use ReflectionClass;
 
+use function class_implements;
 use function count;
+use function interface_exists;
 use function is_a;
+use function method_exists;
 use function sprintf;
 use function str_starts_with;
 
@@ -89,9 +92,9 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
     /**
      * A struct method overrides the base method of the same name. PHP rejects
      * the override when it drops the base's return type, and otherwise it
-     * silently replaces what lookups, equality and printing call. An
-     * interface the base already implements, or a magic method in a `:php`
-     * block (no interface name), is a deliberate override.
+     * silently replaces what lookups, equality and printing call. A method
+     * of an interface the base already implements, or a magic method in a
+     * `:php` block (no interface name), is a deliberate override.
      *
      * @param list<DefStructInterface> $interfaces
      */
@@ -101,16 +104,13 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         $munge = new Munge();
         foreach ($interfaces as $interface) {
             $interfaceName = $interface->getAbsoluteInterfaceName();
-            if (is_a(AbstractPersistentStruct::class, $interfaceName, true)) {
-                continue;
-            }
-
             foreach ($interface->getMethods() as $method) {
                 $name = $method->getName();
                 $phpName = $munge->encode($name->getName());
                 if (($interfaceName === '' && str_starts_with($phpName, '__'))
                     || !$base->hasMethod($phpName)
                     || $base->getMethod($phpName)->isPrivate()
+                    || $this->baseImplementsInterfaceDeclaring($interfaceName, $phpName)
                 ) {
                     continue;
                 }
@@ -122,6 +122,25 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
                 );
             }
         }
+    }
+
+    /**
+     * Whether the interface, or one it extends, declares the method and is
+     * implemented by the base, so the override keeps the base's signature.
+     */
+    private function baseImplementsInterfaceDeclaring(string $interfaceName, string $phpName): bool
+    {
+        if (!interface_exists($interfaceName)) {
+            return false;
+        }
+
+        foreach ([$interfaceName, ...class_implements($interfaceName)] as $declaring) {
+            if (method_exists($declaring, $phpName) && is_a(AbstractPersistentStruct::class, $declaring, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
