@@ -16,7 +16,7 @@ build, QA smoke test, git tag, and GitHub release creation. Publishing the relea
 fires `announce-release.yml`.
 
 **Always release with the script.** Doing it by hand misses steps: it is what
-updates `resources/agents/VERSION`, moves the `## Unreleased` section itself (so
+updates `resources/agents/VERSION` and `CITATION.cff`, moves the `## Unreleased` section itself (so
 leave that section populated and never pre-convert it), and smoke-tests the PHAR
 before anything is pushed. Run `--dry-run` first; the real run pushes to `main`
 and publishes publicly.
@@ -64,7 +64,8 @@ Before releasing, ensure you have:
 4. Updates [CHANGELOG.md](../CHANGELOG.md) (moves Unreleased to a versioned
    section and opens a fresh empty one)
 5. Updates [resources/agents/VERSION](../resources/agents/VERSION) (targeted
-   phel-lang release for agent docs/tests)
+   phel-lang release for agent docs/tests) and the `version` and
+   `date-released` of [CITATION.cff](../CITATION.cff)
 6. Commits changes with `chore(release): vX.Y.Z`
 7. Builds the PHAR with `OFFICIAL_RELEASE=true` and QA-smoke-tests it
 8. Creates the git tag
@@ -127,12 +128,13 @@ echo "0.50.0" > resources/agents/VERSION
 ```
 
 Tracked by `composer test-agents`, which runs the bundled example projects
-against that release.
+against that release. Set `version: 0.50.0` and `date-released` to today in
+`CITATION.cff` as well.
 
 ### Step 4: Commit and Push
 
 ```bash
-git add src/php/Shared/VersionFinder.php CHANGELOG.md resources/agents/VERSION
+git add src/php/Shared/VersionFinder.php CHANGELOG.md resources/agents/VERSION CITATION.cff
 git commit -m "chore(release): v0.50.0"
 git push origin main
 ```

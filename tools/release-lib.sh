@@ -273,6 +273,17 @@ update_agents_version() {
     printf '%s\n' "$version" > "$agents_version_file"
 }
 
+update_citation() {
+    local version="$1"
+    local release_date="$2"
+    local citation_file="$3"
+    sed -i.bak -E \
+        -e "s/^version: .*/version: $version/" \
+        -e "s/^date-released: .*/date-released: $release_date/" \
+        "$citation_file"
+    rm -f "$citation_file.bak"
+}
+
 update_changelog() {
     local version="$1"
     local changelog_file="$2"
