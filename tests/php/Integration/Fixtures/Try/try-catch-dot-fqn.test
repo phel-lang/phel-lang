@@ -3,6 +3,6 @@
 --PHP--
 try {
   (1 + 1);
-} catch (\Phel\Lang\ExInfoException $e) {
-  throw $e;
+} catch (\Phel\Lang\ExInfoException $e_1) {
+  throw $e_1;
 }

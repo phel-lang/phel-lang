@@ -223,12 +223,15 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         $this->validateCatchArguments($type, $name, $catch);
 
         $resolvedType = $this->resolveCatchType($type, $env, $catch);
-        $catchBody = $this->analyzeCatchBody($catch, $name, $env, $catchContext);
+        // A fresh PHP name, as `let` gives its locals, so the caught value
+        // never overwrites a param or local that munges to the same name.
+        $shadow = Symbol::gen($name->getName() . '_')->copyLocationFrom($name);
+        $catchBody = $this->analyzeCatchBody($catch, $name, $shadow, $env, $catchContext);
 
         return new CatchNode(
             $env,
             $resolvedType,
-            $name,
+            $shadow,
             $catchBody,
             $catch->getStartLocation(),
         );
@@ -295,7 +298,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
     /**
      * @param PersistentListInterface<mixed> $catch
      */
-    private function analyzeCatchBody(PersistentListInterface $catch, Symbol $name, NodeEnvironmentInterface $env, string $catchContext): AbstractNode
+    private function analyzeCatchBody(PersistentListInterface $catch, Symbol $name, Symbol $shadow, NodeEnvironmentInterface $env, string $catchContext): AbstractNode
     {
         /** @var PersistentListInterface<mixed> $rest1 */
         $rest1 = $catch->rest();
@@ -311,7 +314,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         return $this->analyzer->analyze(
             Phel::list($exprs),
             $env->withContext($catchContext)
-                ->withMergedLocals([$name])
+                ->withLocalAndShadow($name, $shadow)
                 ->withDisallowRecurFrame()
                 ->withinTry(true),
         );

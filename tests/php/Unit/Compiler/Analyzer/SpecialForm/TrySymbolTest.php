@@ -151,7 +151,7 @@ final class TrySymbolTest extends TestCase
         $catchNode = $actual->getCatches()[0];
         self::assertInstanceOf(CatchNode::class, $catchNode);
         self::assertInstanceOf(PhpClassNameNode::class, $catchNode->getType());
-        self::assertSame('e', $catchNode->getName()->getName());
+        self::assertMatchesRegularExpression('/^e_\d+$/', $catchNode->getName()->getName());
         self::assertInstanceOf(DoNode::class, $catchNode->getBody());
 
         $finallyNode = $actual->getFinally();
@@ -206,9 +206,9 @@ final class TrySymbolTest extends TestCase
         self::assertInstanceOf(TryNode::class, $actual);
         self::assertCount(3, $actual->getCatches());
 
-        self::assertSame('e', $actual->getCatches()[0]->getName()->getName());
-        self::assertSame('e2', $actual->getCatches()[1]->getName()->getName());
-        self::assertSame('e3', $actual->getCatches()[2]->getName()->getName());
+        self::assertMatchesRegularExpression('/^e_\d+$/', $actual->getCatches()[0]->getName()->getName());
+        self::assertMatchesRegularExpression('/^e2_\d+$/', $actual->getCatches()[1]->getName()->getName());
+        self::assertMatchesRegularExpression('/^e3_\d+$/', $actual->getCatches()[2]->getName()->getName());
     }
 
     public function test_analyze_try_with_only_catch_no_body(): void

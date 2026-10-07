@@ -77,18 +77,18 @@ final class ForeachSymbolTest extends TestCase
             Symbol::create('x'),
         ]);
 
+        Symbol::resetGen();
         $env = NodeEnvironment::empty();
+        $bodyEnv = $env
+            ->withLocalAndShadow(Symbol::create('x'), Symbol::createGenerated('x_1'))
+            ->withDisallowRecurFrame();
 
         self::assertEquals(
             new ForeachNode(
                 $env,
-                new DoNode(
-                    $env->withLocals([Symbol::create('x')])->withDisallowRecurFrame(),
-                    [],
-                    new LocalVarNode($env->withLocals([Symbol::create('x')])->withDisallowRecurFrame(), Symbol::create('x')),
-                ),
+                new DoNode($bodyEnv, [], new LocalVarNode($bodyEnv, Symbol::createGenerated('x_1'))),
                 new VectorNode($env->withExpressionContext(), []),
-                Symbol::create('x'),
+                Symbol::createGenerated('x_1'),
             ),
             $this->analyze($list),
         );
@@ -123,19 +123,20 @@ final class ForeachSymbolTest extends TestCase
             Symbol::create('key'),
         ]);
 
+        Symbol::resetGen();
         $env = NodeEnvironment::empty();
+        $bodyEnv = $env
+            ->withLocalAndShadow(Symbol::create('value'), Symbol::createGenerated('value_1'))
+            ->withLocalAndShadow(Symbol::create('key'), Symbol::createGenerated('key_2'))
+            ->withDisallowRecurFrame();
 
         self::assertEquals(
             new ForeachNode(
                 $env,
-                new DoNode(
-                    $env->withLocals([Symbol::create('value'), Symbol::create('key')])->withDisallowRecurFrame(),
-                    [],
-                    new LocalVarNode($env->withLocals([Symbol::create('value'), Symbol::create('key')])->withDisallowRecurFrame(), Symbol::create('key')),
-                ),
+                new DoNode($bodyEnv, [], new LocalVarNode($bodyEnv, Symbol::createGenerated('key_2'))),
                 new MapNode($env->withExpressionContext(), []),
-                Symbol::create('value'),
-                Symbol::create('key'),
+                Symbol::createGenerated('value_1'),
+                Symbol::createGenerated('key_2'),
             ),
             $this->analyze($list),
         );

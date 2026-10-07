@@ -17,6 +17,6 @@ require_once __DIR__ . '/phel/core.php';
 );
 try {
   (1 + 1);
-} catch (\Exception $e) {
-  throw $e;
+} catch (\Exception $e_1) {
+  throw $e_1;
 }

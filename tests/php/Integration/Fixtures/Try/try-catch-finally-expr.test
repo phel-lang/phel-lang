@@ -10,7 +10,7 @@
   (function() {
     try {
       return (1 + 1);
-    } catch (\Exception $e) {
+    } catch (\Exception $e_1) {
       return (2 + 2);
     } finally {
       (3 + 3);

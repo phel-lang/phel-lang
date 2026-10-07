@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\Ast\DefStructInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -17,7 +18,11 @@ use Phel\Shared\Munge;
 use ReflectionClass;
 
 use function count;
+use function interface_exists;
+use function is_a;
+use function method_exists;
 use function sprintf;
+use function str_starts_with;
 
 /**
  * (defstruct Name [fields...]).
@@ -66,17 +71,72 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         /** @var PersistentListInterface<mixed> $rest3 */
         $rest3 = $rest2->rest();
 
+        $interfaces = $this->implementationsAnalyzer->analyze(
+            $rest3,
+            $env->withMergedLocals($params),
+            'defstruct',
+        );
+        $this->rejectMethodsTheBaseDeclares($interfaces);
+
         return new DefStructNode(
             $env,
             $this->analyzer->getNamespace(),
             $structSymbol,
             $params,
-            $this->implementationsAnalyzer->analyze(
-                $rest3,
-                $env->withMergedLocals($params),
-                'defstruct',
-            ),
+            $interfaces,
             $list->getStartLocation(),
+        );
+    }
+
+    /**
+     * A struct method overrides the base method of the same name. PHP rejects
+     * the override when it drops the base's return type, and otherwise it
+     * silently replaces what lookups, equality and printing call. A method
+     * of an interface the base already implements, or a magic method in a
+     * `:php` block (no interface name), is a deliberate override.
+     *
+     * @param list<DefStructInterface> $interfaces
+     */
+    private function rejectMethodsTheBaseDeclares(array $interfaces): void
+    {
+        $base = new ReflectionClass(AbstractPersistentStruct::class);
+        $munge = new Munge();
+        foreach ($interfaces as $interface) {
+            $interfaceName = $interface->getAbsoluteInterfaceName();
+            foreach ($interface->getMethods() as $method) {
+                $name = $method->getName();
+                $phpName = $munge->encode($name->getName());
+                if (($interfaceName === '' && str_starts_with($phpName, '__'))
+                    || !$base->hasMethod($phpName)
+                    || $base->getMethod($phpName)->isPrivate()
+                    || $this->baseImplementsInterfaceDeclaring($interfaceName, $phpName)
+                ) {
+                    continue;
+                }
+
+                throw AnalyzerException::withLocation(
+                    sprintf('Method %s is reserved: every struct already has a %s() method', $name->getName(), $base->getMethod($phpName)->getName()),
+                    $name,
+                    errorCode: ErrorCode::INVALID_SPECIAL_FORM,
+                );
+            }
+        }
+    }
+
+    /**
+     * Whether the interface, or one it extends, declares the method and is
+     * implemented by the base, so the override keeps the base's signature.
+     */
+    private function baseImplementsInterfaceDeclaring(string $interfaceName, string $phpName): bool
+    {
+        if (!interface_exists($interfaceName)) {
+            return false;
+        }
+
+        return array_any(
+            [$interfaceName, ...new ReflectionClass($interfaceName)->getInterfaceNames()],
+            static fn(string $declaring): bool => method_exists($declaring, $phpName)
+                && is_a(AbstractPersistentStruct::class, $declaring, true),
         );
     }
 

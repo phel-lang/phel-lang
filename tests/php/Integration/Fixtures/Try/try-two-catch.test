@@ -5,8 +5,8 @@
 --PHP--
 try {
   (1 + 1);
-} catch (\Exception $e) {
-  throw $e;
-} catch (\Throwable $e) {
-  throw $e;
+} catch (\Exception $e_1) {
+  throw $e_1;
+} catch (\Throwable $e_2) {
+  throw $e_2;
 }

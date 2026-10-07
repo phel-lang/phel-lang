@@ -1,6 +1,6 @@
 --PHEL--
 (foreach [x [1 2 3]] (println x))
 --PHP--
-foreach (\Phel::vector([1, 2, 3]) as $x) {
-  (\Phel\Lang\Registry::readRoot("phel.core", "println"))->__invoke($x);
+foreach (\Phel::vector([1, 2, 3]) as $x_1) {
+  (\Phel\Lang\Registry::readRoot("phel.core", "println"))->__invoke($x_1);
 }

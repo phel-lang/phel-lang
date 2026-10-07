@@ -1,0 +1,30 @@
+(ns phel-test.core.foreach-catch-php-names
+  (:require phel.test :refer [deftest is]))
+
+(defn- foreach-keeps-param [a_b]
+  (foreach [a-b [1 2]] a-b)
+  a_b)
+
+(defn- foreach-key-keeps-param [k_v]
+  (foreach [k-v v {:a 1}] k-v)
+  k_v)
+
+(defn- catch-keeps-param [e_x]
+  (try
+    (throw (\Exception. "boom"))
+    (catch \Exception e-x (.getMessage e-x)))
+  e_x)
+
+(deftest a-foreach-binding-does-not-overwrite-a-local-of-the-same-php-name
+  (is (= :keep (foreach-keeps-param :keep)) "value")
+  (is (= :keep (foreach-key-keeps-param :keep)) "key")
+  (is (= 1 (let [a_b 1] (foreach [a-b [5]] a-b) a_b)) "let local"))
+
+(deftest a-catch-binding-does-not-overwrite-a-local-of-the-same-php-name
+  (is (= :keep (catch-keeps-param :keep)))
+  (is (= "boom" (try (throw (\Exception. "boom")) (catch \Exception e-x (.getMessage e-x))))))
+
+(deftest a-foreach-binding-is-captured-by-a-closure
+  (let [fs (transient [])]
+    (foreach [x [1 2]] (conj! fs (fn [] x)))
+    (is (= [1 2] (map (fn [f] (f)) (persistent fs))))))
