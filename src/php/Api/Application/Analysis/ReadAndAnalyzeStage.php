@@ -95,11 +95,12 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
             $this->compilerFacade->emptyNodeEnvironment()->withReturnContext(),
         );
 
-        if ($form instanceof PersistentListInterface
-            && $form->first() instanceof Symbol
-            && $form->first()->getFullName() === Symbol::NAME_LOAD
-            && is_string($form->get(1))
-        ) {
+        if (!$form instanceof PersistentListInterface) {
+            return;
+        }
+
+        $head = $form->first();
+        if ($head instanceof Symbol && $head->getFullName() === Symbol::NAME_LOAD && is_string($form->get(1))) {
             $this->analyzeLoadedFile($form->get(1), $uri, $loading);
         }
     }
