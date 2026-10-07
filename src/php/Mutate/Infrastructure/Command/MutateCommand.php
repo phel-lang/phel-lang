@@ -16,6 +16,7 @@ use Phel\Mutate\Domain\MutationReport;
 use Phel\Mutate\MutateConfig;
 use Phel\Mutate\MutateFacade;
 use Phel\Mutate\MutateFactory;
+use Phel\Shared\InvocationError;
 use Phel\Shared\OptimizationLevel;
 use Phel\Shared\Process\GitUnavailableException;
 use Phel\Shared\ScalarCoercion;
@@ -130,18 +131,14 @@ HELP);
         try {
             $options = $this->parseOptions($input);
         } catch (InvalidArgumentException $invalidArgumentException) {
-            $output->writeln('<error>' . $invalidArgumentException->getMessage() . '</error>');
-
-            return self::INVALID;
+            return InvocationError::report($output, $invalidArgumentException->getMessage());
         }
 
         try {
             $plan = $this->getFacade()->plan($options);
             $mutants = $this->getFacade()->generate($plan, $options);
         } catch (InvalidArgumentException|GitUnavailableException $exception) {
-            $output->writeln('<error>' . $exception->getMessage() . '</error>');
-
-            return self::INVALID;
+            return InvocationError::report($output, $exception->getMessage());
         }
 
         $output->writeln(sprintf(

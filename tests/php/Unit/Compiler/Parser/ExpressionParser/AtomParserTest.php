@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Compiler\Parser\ExpressionParser;
 
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\NumberParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
 use Phel\Compiler\Domain\Parser\ExpressionParser\AtomParser;
 use Phel\Lang\BigDecimal;
@@ -20,6 +21,7 @@ use Phel\Shared\Parser\Node\NilNode;
 use Phel\Shared\Parser\Node\NumberNode;
 use Phel\Shared\Parser\Node\SymbolNode;
 use Phel\Shared\Parser\Node\Token;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function strlen;
@@ -920,7 +922,7 @@ final class AtomParserTest extends TestCase
     public function test_parse_ratio_literal_zero_denominator_throws(): void
     {
         $this->expectException(ZeroDenominatorRatioParserException::class);
-        $this->expectExceptionMessage('Ratio literal denominator cannot be zero: 1/0');
+        $this->expectExceptionMessage('Invalid ratio 1/0: the denominator is zero');
 
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);
@@ -928,10 +930,56 @@ final class AtomParserTest extends TestCase
         $parser->parse(new Token(Token::T_ATOM, '1/0', $start, $end));
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function providerLeadingZeroWithNonOctalDigit(): iterable
+    {
+        yield '08' => ['08'];
+        yield '09' => ['09'];
+        yield 'negative' => ['-08'];
+        yield 'positive' => ['+09'];
+        yield 'longer' => ['0128'];
+        yield 'bigint suffix' => ['09N'];
+    }
+
+    #[DataProvider('providerLeadingZeroWithNonOctalDigit')]
+    public function test_parse_leading_zero_with_a_non_octal_digit_throws(string $word): void
+    {
+        $this->expectException(NumberParserException::class);
+        $this->expectExceptionMessage('Invalid number: ' . $word);
+
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, strlen($word));
+        $parser->parse(new Token(Token::T_ATOM, $word, $start, $end));
+    }
+
+    /**
+     * @return iterable<string, array{string, float|int}>
+     */
+    public static function providerLeadingZeroThatStillReads(): iterable
+    {
+        yield 'octal' => ['017', 15];
+        yield 'zero' => ['0', 0];
+        yield 'float' => ['08.5', 8.5];
+        yield 'exponent' => ['09e1', 90.0];
+    }
+
+    #[DataProvider('providerLeadingZeroThatStillReads')]
+    public function test_parse_leading_zero_that_still_reads(string $word, float|int $expected): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, strlen($word));
+
+        self::assertSame($expected, $parser->parse(new Token(Token::T_ATOM, $word, $start, $end))->getValue());
+    }
+
     public function test_parse_ratio_literal_zero_over_zero_throws(): void
     {
         $this->expectException(ZeroDenominatorRatioParserException::class);
-        $this->expectExceptionMessage('Ratio literal denominator cannot be zero: 0/0');
+        $this->expectExceptionMessage('Invalid ratio 0/0: the denominator is zero');
 
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);

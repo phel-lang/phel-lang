@@ -6,10 +6,13 @@ namespace Phel\Console\Infrastructure;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use InvalidArgumentException;
 use Override;
 use Phel\Console\Application\WarnDeprecationsFlag;
 use Phel\Console\ConsoleFactory;
+use Phel\Shared\InvocationError;
 use Phel\Shared\NoColor;
+use Phel\Shared\OptimizationLevel;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -81,6 +84,22 @@ final class ConsoleBootstrap extends Application
         $this->getFactory()->getFilesystemFacade()->clearAll();
 
         exit($exitCode);
+    }
+
+    /**
+     * A bad `PHEL_OPTIMIZATION_LEVEL` would otherwise surface mid-compile as a
+     * stack trace, after the command already started.
+     */
+    #[Override]
+    public function doRun(InputInterface $input, OutputInterface $output): int
+    {
+        try {
+            OptimizationLevel::resolve(null);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            return InvocationError::report($output, $invalidArgumentException->getMessage());
+        }
+
+        return parent::doRun($input, $output);
     }
 
     /**

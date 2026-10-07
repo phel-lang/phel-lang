@@ -46,6 +46,17 @@ Gacela registers a few more through `Console/Infrastructure/Command/FrameworkCom
 `profile:report` and `validate:config`. They inspect the module wiring rather than
 your Phel code, and `phel list` shows them alongside the commands above.
 
+`phel api-daemon` reads one JSON request per line on stdin and writes one JSON
+response per line. The methods are `analyzeSource`, `indexProject`,
+`resolveSymbol`, `findReferences`, `completeAtPoint` and `version`. `version`
+takes no params and returns the running Phel version, so an editor can check it
+is compatible:
+
+```sh
+echo '{"id":1,"method":"version"}' | phel api-daemon
+# {"id":1,"result":"v0.54.0"}
+```
+
 ## Editor setup
 
 `phel lsp` (Language Server, stdio) and `phel nrepl` (default `127.0.0.1:7888`) plug
