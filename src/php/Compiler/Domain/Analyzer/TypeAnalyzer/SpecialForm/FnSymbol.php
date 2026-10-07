@@ -21,7 +21,9 @@ use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\TagResolver;
 
 use function count;
+use function in_array;
 use function sprintf;
+use function strtolower;
 
 /**
  * (fn name? [params] body) or (fn name? ([params] body)+).
@@ -285,6 +287,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
     private function canonicalizeTags(PersistentListInterface $list): PersistentListInterface
     {
         $paramVector = $this->verifyArguments($list);
+        $this->rejectReturnOnlyParamTags($paramVector);
         $canonical = TagCanonicalizer::paramVector($paramVector, $this->analyzer);
         if ($canonical === $paramVector) {
             return $list;
@@ -296,6 +299,29 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         return Phel::list($elements)
             ->copyLocationFrom($list)
             ->withMeta($list->getMeta());
+    }
+
+    /**
+     * PHP accepts `void` and `never` only as return types.
+     *
+     * @param PersistentVectorInterface<mixed> $paramVector
+     */
+    private function rejectReturnOnlyParamTags(PersistentVectorInterface $paramVector): void
+    {
+        foreach ($paramVector as $param) {
+            if (!$param instanceof Symbol) {
+                continue;
+            }
+
+            $tag = TagResolver::fromMeta($param->getMeta());
+            if ($tag !== null && in_array(strtolower($tag), ['void', 'never'], true)) {
+                throw AnalyzerException::withLocation(
+                    sprintf('Parameter %s cannot be tagged ^%s: PHP allows %s only as a return type', $param->getName(), $tag, $tag),
+                    $param,
+                    errorCode: ErrorCode::INVALID_SPECIAL_FORM,
+                );
+            }
+        }
     }
 
     /**

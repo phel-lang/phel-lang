@@ -51,7 +51,9 @@ Compiler:
 - A `fn`, `defn`, `defmacro`, protocol method or `extend-type` impl that declares one arity twice fails with `PHEL007` on the second parameter vector. It used to stop PHP with `Cannot redeclare ...::invokeArity1()`. (#3534)
 - A `definterface` that declares one method name twice, or one parameter twice in a method, fails with `PHEL009`. A PHP method has a single signature, so a second arity needs its own name. It used to stop PHP with `Cannot redeclare app\main\I::m()` or `Redefinition of parameter $x`. (#3534)
 - A fn parameter named twice binds the last argument, as in Clojure: `((fn [x x] x) 1 2)` returns `2`. It used to stop PHP with `Redefinition of parameter $x`. (#3534)
-- A `defstruct`, `defrecord` or `deftype` field named twice fails with `PHEL007` on the repeated field. It used to stop PHP with `Redefinition of parameter $x`. (#3534)
+- A `defstruct`, `defrecord` or `deftype` field named twice, two fields that are one PHP property (`a-b` and `a_b`), or a field named `hasher`, `equalizer` or `meta`, which every struct already has, fail with `PHEL007` on that field. They used to stop PHP with `Redefinition of parameter $x`, `Cannot redeclare` or `Type of ...::$hasher must be HasherInterface`. (#3534)
+- Fn parameters that map to one PHP variable, such as `foo-bar` and `foo_bar` or `ok?` and `ok_QMARK_`, and a parameter named after a PHP superglobal such as `_SERVER`, bind as written. They used to stop PHP with `Redefinition of parameter $foo_bar` or `Cannot re-assign auto-global variable _SERVER`. (#3534)
+- A parameter tagged `^void` or `^never` fails with `PHEL007` on the parameter; PHP allows both only as a return type. It used to stop PHP with `void cannot be used as a parameter type`. (#3534)
 - A `binding` or `with-redefs` target that is not a var, such as a local or `php/PHP_EOL`, fails with `PHEL008` on that target. It used to fail an internal assertion after emitting half the PHP. (#3534)
 
 Runtime:

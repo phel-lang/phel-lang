@@ -125,6 +125,9 @@ Breaking for a public symbol, major only:
 - widening a return type, or changing it to an unrelated type
 - adding a method to an interface outside `Phel\Shared\Facade\`, or making an existing method abstract
 - changing a class from non-`final` to `final`, or removing a public constructor
+- adding a non-private property to a class generated code extends, such as
+  `AbstractPersistentStruct` and its parents: a `defstruct`, `defrecord` or
+  `deftype` field with that name stops compiling
 
 Not breaking, fine in a minor or patch:
 

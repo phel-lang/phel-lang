@@ -1,0 +1,14 @@
+(ns phel-test.core.fn-param-php-names
+  (:require phel.test :refer [deftest is]))
+
+(defn- both [foo-bar foo_bar] [foo-bar foo_bar])
+
+(deftest params-that-munge-to-one-php-name-stay-apart
+  (is (= [1 2] (both 1 2)) "defn")
+  (is (= [1 2] ((fn [ok? ok_QMARK_] [ok? ok_QMARK_]) 1 2)) "a munged character")
+  (is (= [1 [2 3]] ((fn [a-b & a_b] [a-b (vec a_b)]) 1 2 3)) "rest param")
+  (is (= [3 0] ((fn [a-b a_b] (if (< a-b 3) (recur (inc a-b) a_b) [a-b a_b])) 0 0)) "recur rebinds both"))
+
+(deftest a-param-can-take-a-superglobal-name
+  (is (= 1 ((fn [_SERVER] _SERVER) 1)))
+  (is (= [1 2] ((fn [GLOBALS _GET] [GLOBALS _GET]) 1 2))))

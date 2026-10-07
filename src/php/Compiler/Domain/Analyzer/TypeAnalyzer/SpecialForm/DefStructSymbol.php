@@ -9,9 +9,12 @@ use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\Munge;
+use ReflectionClass;
 
 use function count;
 use function sprintf;
@@ -85,24 +88,55 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
     private function params(PersistentVectorInterface $vector): array
     {
         $params = [];
-        $names = [];
+        $phpNames = [];
+        $munge = new Munge();
+        $inherited = $this->inheritedPropertyNames();
         foreach ($vector as $element) {
             if (!($element instanceof Symbol)) {
                 throw AnalyzerException::withLocation('Defstruct field elements must be Symbols.', $vector);
             }
 
-            if (isset($names[$element->getName()])) {
+            $phpName = $munge->encode($element->getName());
+            if (isset($phpNames[$phpName])) {
                 throw AnalyzerException::withLocation(
-                    sprintf('Field %s is declared more than once', $element->getName()),
+                    $phpNames[$phpName] === $element->getName()
+                        ? sprintf('Field %s is declared more than once', $element->getName())
+                        : sprintf('Fields %s and %s are the same PHP property $%s', $phpNames[$phpName], $element->getName(), $phpName),
                     $element,
                     errorCode: ErrorCode::INVALID_SPECIAL_FORM,
                 );
             }
 
-            $names[$element->getName()] = true;
+            if (isset($inherited[$phpName])) {
+                throw AnalyzerException::withLocation(
+                    sprintf('Field %s is reserved: every struct already has a $%s property', $element->getName(), $phpName),
+                    $element,
+                    errorCode: ErrorCode::INVALID_SPECIAL_FORM,
+                );
+            }
+
+            $phpNames[$phpName] = $element->getName();
             $params[] = TagCanonicalizer::symbol($element, $this->analyzer);
         }
 
         return $params;
+    }
+
+    /**
+     * Read off the base class, so a member added there is reported here
+     * instead of reaching PHP as a fatal error.
+     *
+     * @return array<string, true>
+     */
+    private function inheritedPropertyNames(): array
+    {
+        $names = [];
+        foreach (new ReflectionClass(AbstractPersistentStruct::class)->getProperties() as $property) {
+            if (!$property->isPrivate()) {
+                $names[$property->getName()] = true;
+            }
+        }
+
+        return $names;
     }
 }
