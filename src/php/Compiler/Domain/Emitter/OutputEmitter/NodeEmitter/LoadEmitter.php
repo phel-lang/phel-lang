@@ -55,7 +55,7 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->emitSrcDirsSearch();
         $this->emitCallerDirFallback($node);
         $this->emitNotFoundGuard($node);
-        $this->emitExecute($node->getCallerNamespace());
+        $this->emitExecute($node);
     }
 
     /**
@@ -201,7 +201,7 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('}');
     }
 
-    private function emitExecute(string $callerNamespace): void
+    private function emitExecute(LoadNode $node): void
     {
         $this->outputEmitter->emitLine('if (str_ends_with($__phelLoadPath, \'.php\')) {');
         $this->outputEmitter->increaseIndentLevel();
@@ -214,13 +214,14 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('} else {');
         $this->outputEmitter->increaseIndentLevel();
-        $this->emitPhelSourceLoad($callerNamespace);
+        $this->emitPhelSourceLoad($node);
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}');
     }
 
-    private function emitPhelSourceLoad(string $callerNamespace): void
+    private function emitPhelSourceLoad(LoadNode $node): void
     {
+        $callerNamespace = $node->getCallerNamespace();
         $this->outputEmitter->emitLine('$__phelPrevNs = \\' . GlobalEnvironmentSingleton::class . '::getInstance()->getNs();');
         $this->outputEmitter->emitLine('try {');
         $this->outputEmitter->increaseIndentLevel();
@@ -230,7 +231,7 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLiteral($callerNamespace);
         $this->outputEmitter->emitLine(') {');
         $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine('throw new \\RuntimeException(sprintf(');
+        $this->outputEmitter->emitLine('throw new \\RuntimeException(sprintf(', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitLine("'File %s must use (in-ns %s) to join the caller namespace, but found (in-ns %s) or (ns ...)',");
         $this->outputEmitter->emitLine('$__phelLoadPath,');

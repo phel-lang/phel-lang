@@ -119,6 +119,14 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
         self::assertMatchesRegularExpression('~^  at .*/Fixtures/load-missing-script\.phel:2$~m', $output);
     }
 
+    public function test_a_loaded_file_in_another_namespace_points_at_the_load_form(): void
+    {
+        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/load-wrong-ns-script.phel');
+
+        self::assertStringContainsString('must use (in-ns load-wrong-ns-script)', $output);
+        self::assertMatchesRegularExpression('~^  at .*/Fixtures/load-wrong-ns-script\.phel:2$~m', $output);
+    }
+
     /**
      * An exception Phel does not recognise stays uncoded rather than being
      * labelled with a code that does not describe it.
