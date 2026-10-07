@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 
@@ -36,6 +37,7 @@ final readonly class ReifySymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation(
                 "At least one method is required for 'reify*",
                 $list,
+                errorCode: ErrorCode::ARITY_ERROR,
             );
         }
 
@@ -44,7 +46,7 @@ final readonly class ReifySymbol implements SpecialFormAnalyzerInterface
         for (; $forms !== null && !$forms->first() instanceof Symbol; $forms = $forms->cdr()) {
             $methodSpec = $forms->first();
             if (!$methodSpec instanceof PersistentListInterface) {
-                throw AnalyzerException::withLocation('Each reify* method must be a list', $list);
+                throw AnalyzerException::withLocation('Each reify* method must be a list', $list, errorCode: ErrorCode::TYPE_ERROR);
             }
 
             $methods[] = $this->methodBodyAnalyzer->analyze($methodSpec, $env);

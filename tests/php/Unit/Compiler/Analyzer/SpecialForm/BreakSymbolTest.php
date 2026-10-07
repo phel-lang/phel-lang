@@ -42,7 +42,7 @@ final class BreakSymbolTest extends TestCase
     public function test_takes_no_arguments(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("'break takes no arguments");
+        $this->expectExceptionMessage("Wrong number of arguments for 'break. Usage: (break)");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_BREAK),

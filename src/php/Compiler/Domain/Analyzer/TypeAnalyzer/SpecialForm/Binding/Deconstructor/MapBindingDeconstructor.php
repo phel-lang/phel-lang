@@ -18,6 +18,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Printer\Printer;
 
 use function array_key_exists;
@@ -355,7 +356,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
             Printer::readable()->print(Phel::map($key, $bindTo)),
         );
 
-        throw AnalyzerException::withLocation($message, $binding);
+        throw AnalyzerException::withLocation($message, $binding, errorCode: ErrorCode::BINDING_ERROR);
     }
 
     /**
@@ -484,6 +485,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
             throw AnalyzerException::withLocation(
                 sprintf('`{%s [...]}` expects a vector of symbols', $directive),
                 $binding,
+                errorCode: ErrorCode::BINDING_ERROR,
             );
         }
 

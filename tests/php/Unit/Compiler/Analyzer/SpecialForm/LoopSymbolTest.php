@@ -48,7 +48,7 @@ final class LoopSymbolTest extends TestCase
     public function test_wrong_number_of_arguments(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("At least two arguments are required for 'loop.");
+        $this->expectExceptionMessage("Wrong number of arguments for 'loop. Usage: (loop [bindings] body ...)");
 
         $list = Phel::list([Symbol::create('loop')]);
         $env = NodeEnvironment::empty();

@@ -30,7 +30,7 @@ final class ApplySymbolTest extends TestCase
     public function test_less_than3_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("At least three arguments are required for 'apply");
+        $this->expectExceptionMessage("Wrong number of arguments for 'apply. Usage: (apply f x ... args)");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_APPLY),
