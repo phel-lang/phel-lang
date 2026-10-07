@@ -10,7 +10,7 @@ use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
-use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -103,7 +103,8 @@ final class ReaderTest extends TestCase
 
     public function test_read_zero_denominator_ratio_throws_at_parse_time(): void
     {
-        $this->expectException(ZeroDenominatorRatioParserException::class);
+        $this->expectException(UnexpectedParserException::class);
+        $this->expectExceptionMessage('Invalid ratio 1/0: the denominator is zero');
         $this->read('1/0');
     }
 
