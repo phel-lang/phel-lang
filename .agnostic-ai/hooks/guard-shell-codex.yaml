@@ -1,7 +1,7 @@
 name: guard-shell-codex
 description: Block destructive shell commands in Codex.
-event: PreToolUse
-matcher: Bash
+on: before-tool
+match: shell
 # Claude Code blocks these through permissions.deny in overlays/claude.settings.json.
 target: codex
 command: 'f="$CLAUDE_PROJECT_DIR/.agnostic-ai/scripts/guard-shell.sh"; [ -x "$f" ] || exit 0; exec "$f"'
