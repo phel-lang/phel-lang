@@ -45,7 +45,6 @@ final readonly class SymbolResolver
         private MagicConstantResolver $magicConstantResolver,
         private ?BackslashSeparatorDeprecator $backslashDeprecator = null,
         private ?DeprecatedDefinitionWarner $deprecatedDefinitionWarner = null,
-        private AmbiguousBareHostWarner $ambiguousBareHostWarner = new AmbiguousBareHostWarner(),
     ) {}
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
@@ -126,8 +125,6 @@ final readonly class SymbolResolver
         $strName = $name->getName();
 
         if ($this->looksLikePhpConstantName($strName)) {
-            $this->ambiguousBareHostWarner->maybeWarn($name);
-
             return new PhpVarNode($env, $strName, $name->getStartLocation());
         }
 
