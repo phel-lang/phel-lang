@@ -39,9 +39,12 @@ Tooling:
 - A `phel build` output finds a classpath-absolute `(load "/extra")`. The lookup searched only the load classpath, which nothing publishes in a built app, so it failed with "Cannot locate extra for (load ...)" where `phel run` worked. (#3542)
 - `phel debug:container`, `debug:dependencies`, `debug:modules`, `profile:report`, `validate:config` and `cache:warm` show `phel ...` usage examples in `--help`. They used to point at `bin/gacela` and a `gacela.php` file. `phel doctor` points at `phel cache:clear`; it used to name a `phel clear-cache` command that does not exist. (#3537 #3563 #3577)
 - A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
+- `phel lint` and `phel analyze` resolve symbols defined in a file the namespace pulls in with `(load ...)`, as `phel run` does. A call to such a function after the `load` used to fail with `phel/unresolved-symbol`. (#3551)
 - `.phel/` ignores itself after `phel run`, `phel build` and every other command. Only `phel lint`, `phel test`, the REPL and the error log wrote `.phel/.gitignore`, so a fresh project showed over a thousand untracked files under `.phel/`. (#3537)
 - `phel lint` does not report `phel/arity-mismatch` on quoted data. `'(add 1)` and each `'x` or backtick form used to be read as a call when the file defines `add` or its own `quote`. A call inside `~x` is still checked. (#3550)
 - A `deftest` whose body throws outside an `is` is reported as an error for that test, and `phel test` runs the tests after it and prints the summary. The exception used to stop a serial run with a stack trace and no summary, and `--parallel` dropped the whole namespace as `Failed running <ns>` with no error counted. (#3537)
+- A `PHEL402` error for an argument of the wrong type names the `.phel` file and line that made the call: `must be of type int, string given, called in src/main.phel on line 5`. It used to name the generated temp file, `.../phel/tmp/__phel_*.php`. (#3537)
+- `phel eval '#| x |# 1'` reports `[PHEL310]` with the offending line and a caret under the character, like `phel run`. It used to print the raw exception block. (#3537)
 
 PHP API:
 
@@ -65,6 +68,7 @@ Compiler:
 - A `foreach` or `catch` binding that maps to the same PHP variable as a parameter or another local, such as `a-b` and `a_b`, no longer overwrites it. (#3576)
 - `reify` and `extend-type` name a method the protocol does not declare: `reify: protocol P has no method nope`. It used to fail with `Cannot resolve symbol 'P--nope--dispatch'`. (#3537)
 - `(defn f (a b) a)` fails with `Parameter declaration of f must be a vector`, also for `defn-`, `defmacro` and a bad arity of a multi-arity `defn`. It used to fail with `apply final argument must be nil, string, array, or Traversable`. (#3537)
+- `phel run` prints the code of every compile error, the same one `phel analyze` reports: `(if)` prints `[PHEL007]`, `::nope/foo` and an octal escape out of range such as `"\777"` print `[PHEL120]`, and `{:a}` prints `[PHEL210]`. They used to print the message with no code. (#3537)
 - `(new PDO "sqlite::memory:")`, `(.-ATTR_ERRMODE PDO)` and `(php/callable PDO getAvailableDrivers)` compile without a warning. They used to print `warning: PDO reads as the global constant PDO here`, which only applies to a bare `PDO` in value position. (#3537)
 
 Runtime:
@@ -72,6 +76,8 @@ Runtime:
 - **BREAKING**: `phel.http-client` accepts only `http` and `https` URLs, including redirect targets. `(hc/get "file:///etc/hosts")` and `php://` or `data://` URLs used to read local data through `file_get_contents`. A redirect to another origin keeps only `accept`, `accept-encoding`, `accept-language`, `user-agent` and `content-type`: custom headers such as the `x-api-key` `phel.ai` sends used to follow it. More than 20 redirects throw. (#3531)
 - On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. A fn returning `(php/=& target value)` runs with OPcache's default optimizer; PHP 8.6 RC2 used to stop with `Invalid opcode 62/4/0`. (#3522)
 - `range` accepts a ratio, `BigInt` or `BigDecimal` bound or step, so `(repeat 1/2 :x)`, `(repeatedly 5/2 f)`, `(dotimes [i 5/2] ...)` and `(for [i :range [5/2]] i)` run as they do with a float. They used to fail with a `TypeError` from `Seq::range()`. (#3557)
+- `take`, `drop`, `take-last`, `drop-last`, `take-nth` and `split-at` accept a ratio, float, `BigInt` or `BigDecimal` count and round it up, as Clojure does: `(take 5/2 (range 10))` is `(0 1 2)`. A ratio used to throw, and `(drop 2.5 xs)` dropped 2 and printed a PHP deprecation. `partition` with a count that is not an integer returns `()`, as in Clojure, since no chunk can match it. (#3566)
+- `(load "missing")` reports the file and line of the `(load ...)` form. It used to name a line past the end of the file, the line of the generated PHP. (#3537)
 
 ## [0.54.0](https://github.com/phel-lang/phel-lang/compare/v0.53.0...v0.54.0) - 2026-10-04
 

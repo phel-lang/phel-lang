@@ -1,0 +1,2 @@
+(ns load-wrong-ns-script)
+(load "load_wrong_ns_part")

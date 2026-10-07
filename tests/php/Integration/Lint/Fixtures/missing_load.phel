@@ -1,0 +1,5 @@
+(ns fixtures.missing-load)
+
+(load "nowhere")
+
+(defn run [] 1)

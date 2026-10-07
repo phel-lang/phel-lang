@@ -126,7 +126,7 @@ final class ErrorCodeCatalog
             new ErrorCodeExplanation(
                 code: ErrorCode::INVALID_SPECIAL_FORM,
                 title: 'Invalid special form',
-                summary: 'The fallback code for an analyzer error that carries no more specific one, such as a special form given the wrong number of arguments. Editor diagnostics report it under this code; the terminal prints the same message with no code in front.',
+                summary: 'The fallback code for an analyzer error that carries no more specific one, such as a special form given the wrong number of arguments..',
                 example: '(if)',
                 fix: 'Read the message: it names the form and what it expected there.',
             ),
@@ -217,7 +217,7 @@ final class ErrorCodeCatalog
             new ErrorCodeExplanation(
                 code: ErrorCode::PARSER_ERROR,
                 title: 'Parser error',
-                summary: 'The fallback code for a parser error that carries no more specific one, such as a keyword alias the parser cannot resolve. Editor diagnostics report it under this code; the terminal prints the same message with no code in front.',
+                summary: 'The fallback code for a parser error that carries no more specific one, such as a keyword alias the parser cannot resolve..',
                 example: '::nope/foo',
                 fix: 'Read the message: it names the token the parser rejected.',
             ),
@@ -238,7 +238,7 @@ final class ErrorCodeCatalog
             new ErrorCodeExplanation(
                 code: ErrorCode::READER_ERROR,
                 title: 'Reader error',
-                summary: 'The fallback code for a reader error that carries no more specific one: an odd-length map literal, metadata on a value that cannot hold it, an unknown tagged literal. Editor diagnostics report it under this code; the terminal prints the same message with no code in front.',
+                summary: 'The fallback code for a reader error that carries no more specific one: an odd-length map literal, metadata on a value that cannot hold it, an unknown tagged literal..',
                 example: '{:a}',
                 fix: 'Read the message: it names the form the reader rejected.',
             ),

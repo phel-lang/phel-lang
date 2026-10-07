@@ -7,13 +7,18 @@ namespace Phel\Api\Application\Analysis;
 use Phel\Api\Domain\AnalysisStageInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
 
+use function file_get_contents;
+use function in_array;
 use function is_array;
+use function is_string;
 
 /**
  * Second stage: read each parse tree into a Phel value, then analyze
@@ -27,6 +32,7 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
 {
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
+        private LoadedSourceLocator $loadedSourceLocator = new LoadedSourceLocator(),
     ) {}
 
     public function run(string $source, string $uri, array &$context): array
@@ -67,10 +73,7 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
                 /** @var bool|float|int|string|TypeInterface|null $ast */
                 $ast = $readerResult->getAst();
                 $this->compilerFacade->rejectSupersededForms($ast);
-                $this->compilerFacade->analyze(
-                    $ast,
-                    $this->compilerFacade->emptyNodeEnvironment()->withReturnContext(),
-                );
+                $this->analyzeForm($ast, $uri);
             } catch (ReaderException $e) {
                 $diagnostics[] = Diagnostic::fromLocatedException($e, ErrorCode::READER_ERROR, $uri);
             } catch (AnalyzerException $e) {
@@ -79,5 +82,52 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
         }
 
         return $diagnostics;
+    }
+
+    /**
+     * @param bool|float|int|string|TypeInterface|null $form
+     * @param list<string>                             $loading files whose load is in progress, so a cycle stops
+     */
+    private function analyzeForm(mixed $form, string $uri, array $loading = []): void
+    {
+        $this->compilerFacade->analyze(
+            $form,
+            $this->compilerFacade->emptyNodeEnvironment()->withReturnContext(),
+        );
+
+        if (!$form instanceof PersistentListInterface) {
+            return;
+        }
+
+        $head = $form->first();
+        if ($head instanceof Symbol && $head->getFullName() === Symbol::NAME_LOAD && is_string($form->get(1))) {
+            $this->analyzeLoadedFile($form->get(1), $uri, $loading);
+        }
+    }
+
+    /**
+     * The loaded file's own diagnostics belong to an analysis of that file.
+     *
+     * @param list<string> $loading
+     */
+    private function analyzeLoadedFile(string $pathArg, string $callerUri, array $loading): void
+    {
+        $globalEnv = $this->compilerFacade->getGlobalEnvironment();
+        $callerNamespace = $globalEnv->getNs();
+        $path = $this->loadedSourceLocator->locate($callerNamespace, $pathArg, $callerUri);
+        if ($path === null || in_array($path, $loading, true)) {
+            return;
+        }
+
+        try {
+            foreach ($this->compilerFacade->readFormsBestEffort((string) file_get_contents($path), $path) as $form) {
+                try {
+                    $this->analyzeForm($form, $path, [...$loading, $callerUri, $path]);
+                } catch (AnalyzerException) {
+                }
+            }
+        } finally {
+            $globalEnv->setNs($callerNamespace);
+        }
     }
 }
