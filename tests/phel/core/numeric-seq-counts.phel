@@ -1,0 +1,44 @@
+(ns phel-test.core.numeric-seq-counts
+  (:require phel.test :refer [deftest is testing]))
+
+(deftest test-take-counts-down-a-non-int-count
+  (is (= '(0 1 2) (take 5/2 (range 10))))
+  (is (= '(0 1 2) (take 2.5 (range 10))))
+  (is (= '(0 1) (take 2N (range 10))))
+  (is (= '(0 1 2) (take 2.5M (range 10))))
+  (is (= '() (take -1/2 (range 10)))))
+
+(deftest test-drop-counts-down-a-non-int-count
+  (is (= '(3 4 5) (drop 5/2 (range 6))))
+  (is (= '(3 4 5) (drop 2.5 (range 6))))
+  (is (= '(2 3 4 5) (drop 2N (range 6))))
+  (is (= '(3 4 5) (drop 2.5M (range 6))))
+  (is (= '() (drop 100000000000000000000N (range 6)))))
+
+(deftest test-drop-last-counts-down-a-non-int-count
+  (is (= '(0 1 2) (drop-last 5/2 (range 6))))
+  (is (= '(0 1 2) (drop-last 2.5 (range 6))))
+  (is (= '(0 1 2 3) (drop-last 2N (range 6)))))
+
+(deftest test-take-last-counts-down-a-non-int-count
+  (is (= '(3 4 5) (take-last 5/2 (range 6))))
+  (is (= '(3 4 5) (take-last 2.5 (range 6))))
+  (is (= [3 4 5] (take-last 5/2 [0 1 2 3 4 5])))
+  (is (= [4 5] (take-last 2N [0 1 2 3 4 5]))))
+
+(deftest test-take-nth-steps-by-the-rounded-up-count
+  (is (= '(0 3 6 9) (take-nth 5/2 (range 10))))
+  (is (= '(0 3 6 9) (take-nth 2.5 (range 10))))
+  (is (= '(0 2 4 6 8) (take-nth 2N (range 10)))))
+
+(deftest test-split-at-counts-down-a-non-int-count
+  (is (= ['(0 1 2) '(3 4 5)] (split-at 5/2 (range 6))))
+  (is (= ['(0 1 2) '(3 4 5)] (split-at 2.5 (range 6))))
+  (is (= ['(0 1) '(2 3 4 5)] (split-at 2N (range 6)))))
+
+(deftest test-partition-keeps-only-chunks-equal-to-the-count
+  (testing "a chunk of 3 items never equals a count of 5/2 or 2.5"
+           (is (= '() (partition 5/2 (range 10))))
+           (is (= '() (partition 2.5 (range 10))))
+           (is (= '() (partition 2.5 2 (range 10)))))
+  (is (= '([0 1] [2 3]) (partition 2N (range 5)))))
