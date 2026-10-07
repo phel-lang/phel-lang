@@ -404,7 +404,7 @@ TXT;
         $alias = $this->createAliasFromSymbol($aliasValue, $resolvedSymbol);
         $referSymbols = $this->extractRefer($referValue, $import);
 
-        $this->assertAliasIsFree($ns, $aliasValue, $resolvedSymbol->getName(), $import);
+        $this->assertAliasIsFree($ns, $alias, $aliasValue ?? $requireSymbol, $resolvedSymbol->getName(), $import);
         $this->assertRefersAreFree($ns, $referSymbols, $resolvedSymbol->getName(), $referValue ?? $import);
 
         $this->analyzer->addRequireAlias($ns, $alias, $resolvedSymbol);
@@ -424,18 +424,19 @@ TXT;
     /**
      * @param PersistentListInterface<mixed> $import
      */
-    private function assertAliasIsFree(string $ns, ?Symbol $alias, string $requiredNs, PersistentListInterface $import): void
-    {
-        if (!$alias instanceof Symbol) {
-            return;
-        }
-
+    private function assertAliasIsFree(
+        string $ns,
+        Symbol $alias,
+        Symbol $aliasSource,
+        string $requiredNs,
+        PersistentListInterface $import,
+    ): void {
         $name = $alias->getName();
         $boundNs = $this->aliasesInForm[$name] ?? $requiredNs;
         if (!$this->isSameNamespace($boundNs, $requiredNs)) {
             throw AnalyzerException::withLocation(
                 sprintf("Alias '%s' already names %s in %s, so it cannot also name %s.", $name, $boundNs, $ns, $requiredNs),
-                $alias->getStartLocation() instanceof SourceLocation ? $alias : $import,
+                $aliasSource->getStartLocation() instanceof SourceLocation ? $aliasSource : $import,
                 errorCode: ErrorCode::DUPLICATE_DEFINITION,
             );
         }

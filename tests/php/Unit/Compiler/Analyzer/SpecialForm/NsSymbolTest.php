@@ -811,7 +811,7 @@ final class NsSymbolTest extends TestCase
             ]),
             Phel::list([
                 Keyword::create('require'),
-                Symbol::create('second.lib'),
+                Symbol::create('second.other'),
             ]),
         ]);
 
@@ -820,7 +820,7 @@ final class NsSymbolTest extends TestCase
         self::assertEquals([
             Symbol::create('phel.core'),
             Symbol::create('first.lib'),
-            Symbol::create('second.lib'),
+            Symbol::create('second.other'),
         ], $nsNode->getRequireNs());
     }
 
@@ -1370,6 +1370,62 @@ final class NsSymbolTest extends TestCase
                 Symbol::create('s'),
             ]),
         ]), NodeEnvironment::empty());
+    }
+
+    public function test_two_implicit_aliases_for_different_namespaces_fail_at_the_second_entry(): void
+    {
+        $secondEntry = Symbol::create('b.util');
+        $secondEntry->setStartLocation(new SourceLocation('/app/core.phel', 3, 13));
+
+        try {
+            new NsSymbol($this->analyzer)->analyze($this->nsRequiring(
+                Phel::vector([Symbol::create('a.util')]),
+                Phel::vector([$secondEntry]),
+            ), NodeEnvironment::empty());
+            self::fail('Expected an AnalyzerException.');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertSame(
+                "Alias 'util' already names a.util in app.core, so it cannot also name b.util.",
+                $analyzerException->getMessage(),
+            );
+            self::assertSame(ErrorCode::DUPLICATE_DEFINITION, $analyzerException->getErrorCode());
+            self::assertSame(3, $analyzerException->getStartLocation()?->getLine());
+            self::assertSame(13, $analyzerException->getStartLocation()?->getColumn());
+        }
+    }
+
+    public function test_explicit_alias_matching_an_implicit_alias_of_another_namespace_fails(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("Alias 'util' already names a.util in app.core, so it cannot also name x.y.");
+
+        new NsSymbol($this->analyzer)->analyze($this->nsRequiring(
+            Phel::vector([Symbol::create('a.util')]),
+            Phel::vector([Symbol::create('x.y'), Keyword::create('as'), Symbol::create('util')]),
+        ), NodeEnvironment::empty());
+    }
+
+    public function test_implicit_alias_matching_an_explicit_alias_of_another_namespace_fails(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("Alias 'util' already names x.y in app.core, so it cannot also name a.util.");
+
+        new NsSymbol($this->analyzer)->analyze($this->nsRequiring(
+            Phel::vector([Symbol::create('x.y'), Keyword::create('as'), Symbol::create('util')]),
+            Phel::vector([Symbol::create('a.util')]),
+        ), NodeEnvironment::empty());
+    }
+
+    public function test_same_namespace_required_with_and_without_its_implicit_alias_is_allowed(): void
+    {
+        new NsSymbol($this->analyzer)->analyze($this->nsRequiring(
+            Phel::vector([Symbol::create('a.util')]),
+            Phel::vector([Symbol::create('a.util'), Keyword::create('as'), Symbol::create('util')]),
+            Phel::vector([Symbol::create('clojure.string')]),
+            Phel::vector([Symbol::create('phel.string')]),
+        ), NodeEnvironment::empty());
+
+        self::assertSame('a.util', $this->globalEnv->getRequireAliases('app.core')['util']->getName());
     }
 
     public function test_same_alias_for_the_same_namespace_twice_is_allowed(): void

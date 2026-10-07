@@ -87,6 +87,22 @@ final class DuplicateDefinitionReportTest extends AbstractCompilerRuntimeTestCas
         self::assertSame($expected, $this->report($phelCode));
     }
 
+    public function test_two_implicit_aliases_for_different_namespaces_point_at_the_second_entry(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL004] Alias 'string' already names phel.string in repro.f, so it cannot also name app.string.
+            in duplicate.phel:3
+
+            3|             [app.string]))
+                            ^^^^^^^^^^
+
+            REPORT;
+
+        $phelCode = "(ns repro.f\n  (:require [phel.string]\n            [app.string]))";
+
+        self::assertSame($expected, $this->report($phelCode));
+    }
+
     private function report(string $phelCode): string
     {
         try {
