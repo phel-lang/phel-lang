@@ -22,7 +22,6 @@ You should receive a response within 48 hours. We'll work with you to understand
 | Version | Security fixes |
 |---|---|
 | Latest `1.x` minor | Yes |
-| Previous `1.x` minor | Yes, for 3 months after the next minor ships |
 | Older `1.x` minors | No |
 | `0.x` | No, once `1.0.0` is out |
 
