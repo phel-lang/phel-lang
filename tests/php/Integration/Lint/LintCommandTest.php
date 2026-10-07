@@ -43,6 +43,24 @@ final class LintCommandTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_a_repeated_symbol_map_key_is_reported_once(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new LintCommand());
+        $tester->execute([
+            'paths' => [__DIR__ . '/Fixtures/duplicate_symbol_key.phel'],
+            '--format' => 'json',
+            '--no-cache' => true,
+        ]);
+
+        $payload = json_decode(trim($tester->getDisplay()), true);
+        self::assertIsArray($payload);
+        self::assertSame(['PHEL203'], array_map(static fn(array $d): string => $d['errorCode'] ?? $d['code'], $payload));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_it_returns_zero_on_clean_fixture(): void
     {
         $this->bootstrap();

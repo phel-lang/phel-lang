@@ -148,13 +148,6 @@ final class LintRuleCatalog implements LintRuleExplainerInterface
                 fix: 'Remove the do and keep its body forms.',
             ),
             new LintRuleExplanation(
-                code: LintRuleCodes::DUPLICATE_KEY,
-                title: 'Duplicate map key',
-                summary: 'A map literal names the same key twice. The reader keeps only one of the values.',
-                example: '{:a 1 :a 2}',
-                fix: 'Remove or rename one of the keys.',
-            ),
-            new LintRuleExplanation(
                 code: LintRuleCodes::DUPLICATE_DEF,
                 title: 'Duplicate definition',
                 summary: 'A file defines the same top-level name twice. The second definition replaces the first.',
