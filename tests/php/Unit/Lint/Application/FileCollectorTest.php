@@ -9,12 +9,16 @@ use Phel\Lint\Domain\Exception\LintSourceException;
 use PHPUnit\Framework\TestCase;
 use UnexpectedValueException;
 
+use function array_map;
 use function chmod;
 use function file_put_contents;
 use function is_dir;
 use function mkdir;
+use function realpath;
 use function rmdir;
 use function scandir;
+use function strlen;
+use function substr;
 use function sys_get_temp_dir;
 use function uniqid;
 use function unlink;
@@ -36,6 +40,9 @@ final class FileCollectorTest extends TestCase
         @rmdir($this->baseDir . '/locked');
         @unlink($this->baseDir . '/a.phel');
         @unlink($this->baseDir . '/b.txt');
+        @unlink($this->baseDir . '/z.phel');
+        @unlink($this->baseDir . '/a/part.phel');
+        @rmdir($this->baseDir . '/a');
         @rmdir($this->baseDir);
     }
 
@@ -48,6 +55,25 @@ final class FileCollectorTest extends TestCase
 
         self::assertCount(1, $files);
         self::assertStringEndsWith('/a.phel', $files[0]);
+    }
+
+    /**
+     * A file that joins another namespace with `in-ns` is pulled in by a
+     * `load`, so it comes after the files that may load it, as at runtime.
+     */
+    public function test_it_lists_files_sorted_with_in_ns_parts_last(): void
+    {
+        mkdir($this->baseDir . '/a');
+        file_put_contents($this->baseDir . '/a/part.phel', "; part of z\n(in-ns z)\n");
+        file_put_contents($this->baseDir . '/z.phel', "(ns z)\n(load \"a/part\")\n");
+        file_put_contents($this->baseDir . '/a.phel', "(ns a)\n");
+
+        $files = new FileCollector()->collect([$this->baseDir]);
+
+        self::assertSame(
+            ['/a.phel', '/z.phel', '/a/part.phel'],
+            array_map(fn(string $file): string => substr($file, strlen((string) realpath($this->baseDir))), $files),
+        );
     }
 
     public function test_it_skips_a_path_that_does_not_exist(): void

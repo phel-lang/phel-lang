@@ -1,0 +1,7 @@
+(ns fixtures.load.app)
+
+(defn base [x] (* 2 x))
+
+(load "app/helpers")
+
+(defn run [] (helper 1))
