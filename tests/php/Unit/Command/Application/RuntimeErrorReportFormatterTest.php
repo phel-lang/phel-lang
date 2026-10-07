@@ -24,6 +24,8 @@ use RuntimeException;
 
 use function array_shift;
 
+use const PHP_EOL;
+
 final class RuntimeErrorReportFormatterTest extends TestCase
 {
     private const string PHEL_SRC_DIR = '/proj/vendor/phel-lang/phel-lang/src';
@@ -331,6 +333,54 @@ final class RuntimeErrorReportFormatterTest extends TestCase
         self::assertStringContainsString('0 passed and exactly 1 expected', $report);
         self::assertStringNotContainsString('InMemoryEvaluator.php', $report);
         self::assertStringNotContainsString("eval()'d code", $report);
+    }
+
+    public function test_maps_the_called_in_tail_of_a_param_type_error_to_the_phel_source(): void
+    {
+        $tempFile = '/private/var/folders/T/phel/tmp/__phel_abc123.php';
+        $extractor = $this->createStub(FilePositionExtractorInterface::class);
+        $extractor->method('getOriginal')->willReturnCallback(
+            static fn(string $file, int $line): FilePosition => $file === $tempFile && $line === 12
+                ? new FilePosition('/proj/src/main.phel', 5)
+                : new FilePosition($file, $line),
+        );
+
+        $message = 'f(): Argument #1 ($x) must be of type int, string given, called in ' . $tempFile . ' on line 12';
+
+        $report = $this->createFormatter($extractor)->format($this->errorAt($message, '/proj/src/main.phel', 3));
+
+        self::assertStringContainsString('string given, called in /proj/src/main.phel on line 5', $report);
+        self::assertStringNotContainsString('__phel_abc123.php', $report);
+    }
+
+    public function test_drops_the_called_in_tail_when_the_temp_file_has_no_source_map(): void
+    {
+        $extractor = $this->createStub(FilePositionExtractorInterface::class);
+        $extractor->method('getOriginal')->willReturnCallback(
+            static fn(string $file, int $line): FilePosition => new FilePosition($file, $line),
+        );
+
+        $message = 'f(): Argument #1 ($x) must be of type int, string given, called in '
+            . '/private/var/folders/T/phel/tmp/__phel_abc123.php on line 12';
+
+        $report = $this->createFormatter($extractor)->format($this->errorAt($message, '/proj/src/main.phel', 3));
+
+        self::assertStringContainsString('must be of type int, string given' . PHP_EOL, $report);
+        self::assertStringNotContainsString('__phel_abc123.php', $report);
+    }
+
+    public function test_keeps_the_called_in_tail_that_names_a_user_file(): void
+    {
+        $extractor = $this->createStub(FilePositionExtractorInterface::class);
+        $extractor->method('getOriginal')->willReturnCallback(
+            static fn(string $file, int $line): FilePosition => new FilePosition($file, $line),
+        );
+
+        $message = 'f(): Argument #1 ($x) must be of type int, string given, called in /proj/src/helper.php on line 7';
+
+        $report = $this->createFormatter($extractor)->format($this->errorAt($message, '/proj/src/main.phel', 3));
+
+        self::assertStringContainsString('called in /proj/src/helper.php on line 7', $report);
     }
 
     private function createFormatter(
