@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\StringParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
 use Phel\Compiler\Domain\Parser\ExpressionParser\AtomParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\ListParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\MetaParser;
@@ -265,6 +266,14 @@ final readonly class Parser implements ParserInterface
                 $keywordParserException->getMessage(),
                 null,
                 $keywordParserException,
+            );
+        } catch (ZeroDenominatorRatioParserException $zeroDenominatorRatioParserException) {
+            throw $this->createUnexpectedParserException(
+                $tokenStream,
+                $token,
+                $zeroDenominatorRatioParserException->getMessage(),
+                null,
+                $zeroDenominatorRatioParserException,
             );
         }
     }

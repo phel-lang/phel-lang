@@ -73,6 +73,7 @@ Compiler:
 - `(defn f (a b) a)` fails with `Parameter declaration of f must be a vector`, also for `defn-`, `defmacro` and a bad arity of a multi-arity `defn`. It used to fail with `apply final argument must be nil, string, array, or Traversable`. (#3537)
 - `phel run` prints the code of every compile error, the same one `phel analyze` reports: `(if)` prints `[PHEL007]`, `::nope/foo` and an octal escape out of range such as `"\777"` print `[PHEL120]`, and `{:a}` prints `[PHEL210]`. They used to print the message with no code. (#3537)
 - `(new PDO "sqlite::memory:")`, `(.-ATTR_ERRMODE PDO)` and `(php/callable PDO getAvailableDrivers)` compile without a warning. They used to print `warning: PDO reads as the global constant PDO here`, which only applies to a bare `PDO` in value position. (#3537)
+- `1/0` fails with `[PHEL120] Invalid ratio 1/0: the denominator is zero` and a caret on the literal. It used to escape as an exception with no error code and no location. (#3608)
 
 Runtime:
 

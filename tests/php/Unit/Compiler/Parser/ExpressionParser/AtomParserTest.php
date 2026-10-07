@@ -920,7 +920,7 @@ final class AtomParserTest extends TestCase
     public function test_parse_ratio_literal_zero_denominator_throws(): void
     {
         $this->expectException(ZeroDenominatorRatioParserException::class);
-        $this->expectExceptionMessage('Ratio literal denominator cannot be zero: 1/0');
+        $this->expectExceptionMessage('Invalid ratio 1/0: the denominator is zero');
 
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);
@@ -931,7 +931,7 @@ final class AtomParserTest extends TestCase
     public function test_parse_ratio_literal_zero_over_zero_throws(): void
     {
         $this->expectException(ZeroDenominatorRatioParserException::class);
-        $this->expectExceptionMessage('Ratio literal denominator cannot be zero: 0/0');
+        $this->expectExceptionMessage('Invalid ratio 0/0: the denominator is zero');
 
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);

@@ -414,7 +414,7 @@ final readonly class AtomParser
 
         if ($denominator->isZero()) {
             throw new ZeroDenominatorRatioParserException(
-                sprintf('Ratio literal denominator cannot be zero: %s', $word),
+                sprintf('Invalid ratio %s: the denominator is zero', $word),
             );
         }
 
