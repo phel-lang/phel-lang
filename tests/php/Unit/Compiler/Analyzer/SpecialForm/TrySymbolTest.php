@@ -16,6 +16,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\TrySymbol;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 use PHPUnit\Framework\TestCase;
 
 final class TrySymbolTest extends TestCase
@@ -37,6 +38,28 @@ final class TrySymbolTest extends TestCase
         ]);
 
         $this->analyze($list);
+    }
+
+    public function test_rejects_a_qualified_catch_name(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_TRY),
+            1,
+            Phel::list([
+                Symbol::create('catch'),
+                Symbol::create('\\Exception'),
+                Symbol::createForNamespace('foo', 'e'),
+                2,
+            ]),
+        ]);
+
+        try {
+            $this->analyze($list);
+            self::fail('Expected an AnalyzerException');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertStringStartsWith("Can't bind qualified name: foo/e.", $analyzerException->getMessage());
+            self::assertSame(ErrorCode::BINDING_ERROR, $analyzerException->getErrorCode());
+        }
     }
 
     /**

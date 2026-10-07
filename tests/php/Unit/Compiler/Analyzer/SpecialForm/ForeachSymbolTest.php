@@ -16,8 +16,10 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ForeachSymbol;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ErrorCode;
 use PHPUnit\Framework\TestCase;
 
 final class ForeachSymbolTest extends TestCase
@@ -33,6 +35,23 @@ final class ForeachSymbolTest extends TestCase
         ]);
 
         $this->analyze($list);
+    }
+
+    public function test_rejects_a_qualified_value_name(): void
+    {
+        $this->assertRejectsQualifiedName(Phel::vector([
+            Symbol::createForNamespace('foo', 'x'),
+            Phel::vector([1]),
+        ]));
+    }
+
+    public function test_rejects_a_qualified_key_name(): void
+    {
+        $this->assertRejectsQualifiedName(Phel::vector([
+            Symbol::createForNamespace('foo', 'x'),
+            Symbol::create('v'),
+            Phel::vector([1]),
+        ]));
     }
 
     public function test_first_arg_must_be_a_vector(): void
@@ -176,6 +195,17 @@ final class ForeachSymbolTest extends TestCase
         ]);
 
         $this->analyze($list);
+    }
+
+    private function assertRejectsQualifiedName(PersistentVectorInterface $bindings): void
+    {
+        try {
+            $this->analyze(Phel::list([Symbol::create(Symbol::NAME_FOREACH), $bindings, 1]));
+            self::fail('Expected an AbstractLocatedException');
+        } catch (AbstractLocatedException $abstractLocatedException) {
+            self::assertStringStartsWith("Can't bind qualified name: foo/x.", $abstractLocatedException->getMessage());
+            self::assertSame(ErrorCode::BINDING_ERROR, $abstractLocatedException->getErrorCode());
+        }
     }
 
     private function analyze(PersistentListInterface $list): ForeachNode

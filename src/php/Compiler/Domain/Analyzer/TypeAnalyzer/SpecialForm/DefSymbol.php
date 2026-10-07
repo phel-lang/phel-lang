@@ -24,6 +24,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\Munge;
 
 use function array_map;
 use function array_pop;
@@ -33,6 +34,7 @@ use function count;
 use function is_scalar;
 use function is_string;
 use function max;
+use function sprintf;
 
 /**
  * (def name value).
@@ -75,6 +77,7 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
         }
 
         $namespace = $this->analyzer->getNamespace();
+        $this->assertDefinedInCurrentNamespace($nameSymbol, $namespace);
 
         ReferShadowWarner::getInstance()->maybeWarn(
             $namespace,
@@ -155,6 +158,24 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
             $initNode,
             $list->getStartLocation(),
             $this->defonce,
+        );
+    }
+
+    private function assertDefinedInCurrentNamespace(Symbol $nameSymbol, string $namespace): void
+    {
+        $symbolNamespace = $nameSymbol->getNamespace();
+        if ($symbolNamespace === null || Munge::canonicalNs($symbolNamespace) === Munge::canonicalNs($namespace)) {
+            return;
+        }
+
+        throw AnalyzerException::withLocation(
+            sprintf(
+                "Can't def %s outside the current namespace, %s. Use the bare name %s.",
+                $nameSymbol->getFullName(),
+                Munge::displayNs($namespace),
+                $nameSymbol->getName(),
+            ),
+            $nameSymbol,
         );
     }
 

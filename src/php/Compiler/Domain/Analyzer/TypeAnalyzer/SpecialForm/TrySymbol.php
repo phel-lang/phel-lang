@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
@@ -256,6 +257,8 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         if (!($name instanceof Symbol)) {
             throw AnalyzerException::wrongArgumentType("Second argument of 'catch", 'Symbol', $name, $catch);
         }
+
+        new BindingValidator()->assertSupportedBinding($name);
     }
 
     /**
