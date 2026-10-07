@@ -55,7 +55,7 @@ final class BareHostClass
         ?AbstractNode $resolved,
         NodeEnvironmentInterface $env,
     ): ?PhpClassNameNode {
-        if (!self::isConstantFallback($form, $resolved)) {
+        if (!$form instanceof Symbol || !self::isConstantFallback($form, $resolved)) {
             return null;
         }
 
@@ -64,13 +64,9 @@ final class BareHostClass
         return new PhpClassNameNode($env, $fqn, $form->getStartLocation());
     }
 
-    /**
-     * @phpstan-assert-if-true Symbol $form
-     */
-    public static function isConstantFallback(mixed $form, ?AbstractNode $resolved): bool
+    public static function isConstantFallback(Symbol $form, ?AbstractNode $resolved): bool
     {
-        return $form instanceof Symbol
-            && $form->getNamespace() === null
+        return $form->getNamespace() === null
             && $resolved instanceof PhpVarNode
             && $resolved->getName() === $form->getName()
             && preg_match(self::ALL_CAPS, $form->getName()) === 1;
