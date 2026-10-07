@@ -603,6 +603,18 @@ function test_update_agents_version() {
     assert_equals "0.28.0" "$(cat "$agents_version_file")"
 }
 
+function test_update_citation_sets_version_and_release_date() {
+    local citation_file="$TEMP_DIR/CITATION.cff"
+    printf 'cff-version: 1.2.0\ntitle: "Phel"\nversion: 0.53.0\ndate-released: 2026-09-01\nlicense: MIT\n' > "$citation_file"
+
+    update_citation "0.54.1" "2026-10-07" "$citation_file"
+
+    assert_file_contains "$citation_file" "version: 0.54.1"
+    assert_file_contains "$citation_file" "date-released: 2026-10-07"
+    assert_file_contains "$citation_file" "cff-version: 1.2.0"
+    assert_file_contains "$citation_file" "license: MIT"
+}
+
 function test_update_agents_version_creates_file() {
     local agents_version_file="$TEMP_DIR/VERSION"
 
