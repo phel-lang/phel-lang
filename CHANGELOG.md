@@ -35,6 +35,7 @@ Tooling:
 - `phel debug:container`, `debug:dependencies`, `debug:modules`, `profile:report`, `validate:config` and `cache:warm` show `phel ...` usage examples in `--help`. They used to point at `bin/gacela` and a `gacela.php` file. `phel doctor` points at `phel cache:clear`; it used to name a `phel clear-cache` command that does not exist. (#3537 #3563 #3577)
 - A `phel build` output runs `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`. The generated entry point now boots the runtime with `\Phel::bootstrap()`; it used to fail with `GacelaNotBootstrappedException` once a program reached one of them. The `http-json-api` template serves `out/index.php` after a build, names its request namespace in `phel-config.php`, and preloads Phel's `build/preload.php`. (#3527)
 - `.phel/` ignores itself after `phel run`, `phel build` and every other command. Only `phel lint`, `phel test`, the REPL and the error log wrote `.phel/.gitignore`, so a fresh project showed over a thousand untracked files under `.phel/`. (#3537)
+- `phel lint` does not report `phel/arity-mismatch` on quoted data. `'(add 1)` and each `'x` or backtick form used to be read as a call when the file defines `add` or its own `quote`. A call inside `~x` is still checked. (#3550)
 
 PHP API:
 
@@ -57,6 +58,7 @@ Compiler:
 - A `binding` or `with-redefs` target that is not a var, such as a local or `php/PHP_EOL`, fails with `PHEL008` on that target. It used to fail an internal assertion after emitting half the PHP. (#3534)
 - A `defstruct` or `defrecord` method named like a method every struct already has, such as `merge` or `find`, fails with `PHEL007` on the method, also in a `defstruct*` `:php` block. A method of an interface structs implement already (such as `\Stringable`) and a magic method such as `__invoke` in a `:php` block still override. `merge` used to stop PHP with `Declaration of ...::merge($x) must be compatible`; `find` compiled and replaced the struct's own lookup, so `get`, `=` and printing returned the method's result. (#3576)
 - A `foreach` or `catch` binding that maps to the same PHP variable as a parameter or another local, such as `a-b` and `a_b`, no longer overwrites it. (#3576)
+- A `defprotocol` that declares one method in two forms, `(m [this]) (m [this x])`, fails with `PHEL005`: `Function m in protocol P was redefined`, as in Clojure. It used to compile and keep only the second. (#3568)
 
 Runtime:
 
