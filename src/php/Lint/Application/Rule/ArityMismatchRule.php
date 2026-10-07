@@ -168,6 +168,10 @@ final readonly class ArityMismatchRule implements LintRuleInterface
     {
         if ($form instanceof PersistentListInterface && count($form) > 0) {
             $head = $form->get(0);
+            if ($head instanceof Symbol && $head->getFullName() === Symbol::NAME_QUOTE) {
+                return;
+            }
+
             if ($head instanceof Symbol && $this->hasImplicitArgumentSegments($head)) {
                 $this->inspectSegmentedForm($form, $localFns, $uri, $result);
 
