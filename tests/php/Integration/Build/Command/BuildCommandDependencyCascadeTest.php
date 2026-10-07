@@ -52,6 +52,8 @@ final class BuildCommandDependencyCascadeTest extends TestCase
     {
         $baseSource = $this->workspace->path('src-cascade/cascade/base.phel');
         $dependentSource = $this->workspace->path('src-cascade/cascade/dependent.phel');
+        touch($baseSource, time() - 10);
+        touch($dependentSource, time() - 10);
 
         $this->bootstrapGacela();
 
@@ -77,6 +79,46 @@ final class BuildCommandDependencyCascadeTest extends TestCase
         $output = $this->dependentOutput();
         self::assertStringContainsString('VERSION_TWO', $output);
         self::assertStringNotContainsString('VERSION_ONE', $output);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_source_rewritten_in_the_second_it_was_compiled_is_recompiled(): void
+    {
+        $baseSource = $this->workspace->path('src-cascade/cascade/base.phel');
+        $sameSecond = time() + 100;
+        touch($baseSource, $sameSecond);
+
+        $this->bootstrapGacela();
+        $this->runBuild(['--no-source-map' => true]);
+
+        file_put_contents($baseSource, "(ns cascade.base)\n\n(defmacro greeting [] \"VERSION_TWO\")\n");
+        touch($baseSource, $sameSecond);
+
+        $this->runBuild(['--no-source-map' => true]);
+
+        self::assertStringContainsString('VERSION_TWO', $this->dependentOutput());
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_source_older_than_its_build_is_reused_without_recompiling(): void
+    {
+        $baseSource = $this->workspace->path('src-cascade/cascade/base.phel');
+        $dependentSource = $this->workspace->path('src-cascade/cascade/dependent.phel');
+        $past = time() - 10;
+        touch($baseSource, $past);
+        touch($dependentSource, $past);
+
+        $this->bootstrapGacela();
+        $this->runBuild(['--no-source-map' => true]);
+
+        file_put_contents($baseSource, "(ns cascade.base)\n\n(defmacro greeting [] \"VERSION_TWO\")\n");
+        touch($baseSource, $past);
+
+        $this->runBuild(['--no-source-map' => true]);
+
+        self::assertStringContainsString('VERSION_ONE', $this->dependentOutput());
     }
 
     /**
