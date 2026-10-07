@@ -1,0 +1,47 @@
+(ns phel-test.core.binding-vector-clauses
+  (:require phel.test :refer [deftest is thrown-with-msg?]))
+
+(deftest test-binding-rejects-an-odd-binding-vector
+  (is (thrown-with-msg? InvalidArgumentException "binding requires an even number of forms in binding vector"
+                        (macroexpand-1 '(binding [*x* 10 *y*] *x*)))))
+
+(deftest test-with-redefs-rejects-an-odd-binding-vector
+  (is (thrown-with-msg? InvalidArgumentException "with-redefs requires an even number of forms in binding vector"
+                        (macroexpand-1 '(with-redefs [x 10 y] x)))))
+
+(deftest test-doseq-rejects-an-odd-binding-vector
+  (is (thrown-with-msg? InvalidArgumentException "doseq requires an even number of forms in binding vector"
+                        (macroexpand-1 '(doseq [x [1 2] y] x)))))
+
+(deftest test-doseq-rejects-a-verb-without-a-collection
+  (is (thrown-with-msg? InvalidArgumentException "doseq requires an even number of forms in binding vector"
+                        (macroexpand-1 '(doseq [x :in] x)))))
+
+(deftest test-doseq-rejects-a-modifier-without-a-value
+  (is (thrown-with-msg? InvalidArgumentException "doseq requires an even number of forms in binding vector"
+                        (macroexpand-1 '(doseq [x [1 2] :when] x)))))
+
+(deftest test-dotimes-rejects-a-missing-count
+  (is (thrown-with-msg? InvalidArgumentException "dotimes requires exactly 2 forms in binding vector"
+                        (macroexpand-1 '(dotimes [i] i)))))
+
+(deftest test-dotimes-rejects-extra-forms
+  (is (thrown-with-msg? InvalidArgumentException "dotimes requires exactly 2 forms in binding vector"
+                        (macroexpand-1 '(dotimes [i 3 j] i)))))
+
+(deftest test-cond-thread-first-rejects-a-dangling-test
+  (is (thrown-with-msg? InvalidArgumentException "cond-> requires an even number of test/form clauses"
+                        (macroexpand-1 '(cond-> 1 true inc false)))))
+
+(deftest test-cond-thread-last-rejects-a-dangling-test
+  (is (thrown-with-msg? InvalidArgumentException "cond->> requires an even number of test/form clauses"
+                        (macroexpand-1 '(cond->> [1] true)))))
+
+(deftest test-valid-forms-still-expand
+  (is (= 6 (cond-> 1 true inc false (* 42) true (* 3))))
+  (is (= [2 3 4] (vec (cond->> [1 2 3] true (map inc)))))
+  (is (= 1 (cond-> 1)))
+  (let [acc (atom [])]
+    (doseq [x [1 2] :when (odd? x) y :in [:a]] (swap! acc conj [x y]))
+    (dotimes [i 2] (swap! acc conj i))
+    (is (= [[1 :a] 0 1] @acc))))
