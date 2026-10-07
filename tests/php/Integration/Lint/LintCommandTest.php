@@ -56,7 +56,10 @@ final class LintCommandTest extends TestCase
 
         $payload = json_decode(trim($tester->getDisplay()), true);
         self::assertIsArray($payload);
-        self::assertSame(['PHEL203'], array_map(static fn(array $d): string => $d['errorCode'] ?? $d['code'], $payload));
+        self::assertSame(
+            [['PHEL203', 4, 7]],
+            array_map(static fn(array $d): array => [$d['code'], $d['startLine'], $d['startCol']], $payload),
+        );
     }
 
     #[PreserveGlobalState(false)]
