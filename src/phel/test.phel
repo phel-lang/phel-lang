@@ -3,6 +3,7 @@
   (:use Phel.Lang.SourceLocationInterface)
   (:use Phel.Shared.Munge)
   (:use Phel.Command.CommandFacade)
+  (:use Phel.Run.Domain.Test.UnknownReporterException)
   (:use Phel.Shared.Printer.Printer)
   (:require phel.string :as s)
   (:require phel.test.selector :as selector))
@@ -1609,8 +1610,11 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 
     (or (keyword? r) (string? r))
     (or (resolve-reporter r)
-        (throw (new InvalidArgumentException
-                    (str "Unknown reporter: " r))))
+        (throw (new UnknownReporterException
+                    (str "Unknown reporter: " (name r) ". Known: "
+                         (s/join ", " (distinct (concat ["default" "testdox" "dot" "tap" "junit-xml" "github"]
+                                                        (sort (map name (keys (deref custom-reporters)))))))
+                         "."))))
 
     :else
     (throw (new InvalidArgumentException

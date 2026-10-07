@@ -16,6 +16,7 @@ use Phel\Profile\ProfileConfig;
 use Phel\Profile\ProfileFacade;
 use Phel\Profile\ProfileFactory;
 use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\InvocationError;
 use Phel\Shared\Munge;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
@@ -101,17 +102,13 @@ HELP)
         $sortOption = ScalarCoercion::toString($input->getOption(self::OPT_SORT));
         $sort = SortOrder::tryFrom($sortOption);
         if ($sort === null) {
-            $this->writeUnknownOption($output, self::OPT_SORT, $sortOption, SortOrder::cases());
-
-            return self::INVALID;
+            return $this->reportUnknownOption($output, self::OPT_SORT, $sortOption, SortOrder::cases());
         }
 
         $formatOption = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
         $format = ReportFormat::tryFrom($formatOption);
         if ($format === null) {
-            $this->writeUnknownOption($output, self::OPT_FORMAT, $formatOption, ReportFormat::cases());
-
-            return self::INVALID;
+            return $this->reportUnknownOption($output, self::OPT_FORMAT, $formatOption, ReportFormat::cases());
         }
 
         /** @var list<string>|string|null $rawArgv */
@@ -208,7 +205,7 @@ HELP)
         $path = $input->getArgument(self::ARG_PATH);
         if ($path !== null && $path !== '') {
             if (!file_exists($path) && !$this->getFactory()->getRunFacade()->namespaceExists(Munge::canonicalNs($path))) {
-                $output->writeln(sprintf('<error>Path or namespace "%s" not found.</error>', $path));
+                InvocationError::report($output, sprintf('Path or namespace "%s" not found.', $path));
 
                 return null;
             }
@@ -218,7 +215,7 @@ HELP)
 
         $detected = $this->getFactory()->getRunFacade()->autoDetectEntryPoint();
         if ($detected === null) {
-            $output->writeln('<error>No entry point found. Pass a file path or namespace.</error>');
+            InvocationError::report($output, 'No entry point found. Pass a file path or namespace.');
 
             return null;
         }
@@ -236,12 +233,12 @@ HELP)
     /**
      * @param list<BackedEnum> $cases
      */
-    private function writeUnknownOption(OutputInterface $output, string $option, string $value, array $cases): void
+    private function reportUnknownOption(OutputInterface $output, string $option, string $value, array $cases): int
     {
         $allowed = array_map(static fn(BackedEnum $c): string => (string) $c->value, $cases);
 
-        $output->writeln(sprintf(
-            '<error>Unknown %s: %s. Allowed: %s.</error>',
+        return InvocationError::report($output, sprintf(
+            'Unknown %s: %s. Allowed: %s.',
             $option,
             $value,
             implode(', ', $allowed),

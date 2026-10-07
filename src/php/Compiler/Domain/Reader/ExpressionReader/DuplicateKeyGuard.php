@@ -8,8 +8,12 @@ use Phel;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInt;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Ratio;
+use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Printer\Printer;
@@ -18,9 +22,9 @@ use function count;
 use function is_scalar;
 
 /**
- * Rejects a map or set literal whose constant keys repeat. A key that is not
- * a constant, such as a symbol or a call, can differ at runtime, so it keeps
- * last-wins.
+ * Rejects a map or set literal whose keys repeat. A constant, a symbol (the
+ * same binding twice) and a vector, map or set built from those compare as
+ * written. A key holding a call can differ at runtime, so it keeps last-wins.
  *
  * @internal
  */
@@ -40,7 +44,7 @@ final readonly class DuplicateKeyGuard
 
         $seen = Phel::set();
         foreach ($keys as $i => $key) {
-            if (!self::isConstant($key)) {
+            if (!self::isComparable($key)) {
                 continue;
             }
 
@@ -58,10 +62,31 @@ final readonly class DuplicateKeyGuard
         }
     }
 
-    private static function isConstant(mixed $key): bool
+    private static function isComparable(mixed $key): bool
     {
+        if ($key instanceof PersistentMapInterface) {
+            foreach ($key as $k => $v) {
+                if (!self::isComparable($k) || !self::isComparable($v)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        if ($key instanceof PersistentVectorInterface || $key instanceof PersistentHashSetInterface) {
+            foreach ($key as $element) {
+                if (!self::isComparable($element)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         return $key === null
             || is_scalar($key)
+            || $key instanceof Symbol
             || $key instanceof Keyword
             || $key instanceof Ratio
             || $key instanceof BigInt

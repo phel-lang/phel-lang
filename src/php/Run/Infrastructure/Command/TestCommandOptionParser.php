@@ -14,6 +14,7 @@ use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function array_diff;
 use function getcwd;
 use function getenv;
 use function in_array;
@@ -43,6 +44,8 @@ final readonly class TestCommandOptionParser
     public const string OPT_STACK_TRACE = StackTraceOption::NAME;
 
     public const string OPT_REPORTER = 'reporter';
+
+    public const array BUILT_IN_REPORTERS = ['default', 'testdox', 'dot', 'tap', 'junit-xml', 'github'];
 
     public const string OPT_OUTPUT = 'output';
 
@@ -191,6 +194,10 @@ final readonly class TestCommandOptionParser
         $reporters = (array) $input->getOption(self::OPT_REPORTER);
         if (in_array('tap', $reporters, true)) {
             return 'TAP reporter requires a monotonic test counter';
+        }
+
+        if (array_diff($reporters, self::BUILT_IN_REPORTERS) !== []) {
+            return 'a custom reporter is registered by the test code this process loads';
         }
 
         if (Registry::getProfilerHook() instanceof ProfilerHookInterface) {
