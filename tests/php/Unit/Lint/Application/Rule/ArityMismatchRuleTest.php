@@ -132,4 +132,59 @@ PHEL;
 
         self::assertCount(1, $rule->apply($analysis));
     }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_treat_quote_and_syntax_quote_as_a_call_to_a_local_quote_fn(): void
+    {
+        $rule = new ArityMismatchRule();
+        $source = <<<'PHEL'
+(ns user)
+
+(defn quote [s q] (str q s q))
+
+(defmacro twice [x]
+  `(do ~x ~x))
+
+(println (twice 1))
+PHEL;
+        $analysis = $this->buildAnalysis($source);
+
+        self::assertSame([], $rule->apply($analysis));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_flag_a_quoted_list_headed_by_a_local_fn(): void
+    {
+        $rule = new ArityMismatchRule();
+        $source = <<<'PHEL'
+(ns user)
+
+(defn add [a b] (+ a b))
+
+(def form '(add 1))
+(def nested '[(add 1) {:k (add)}])
+PHEL;
+        $analysis = $this->buildAnalysis($source);
+
+        self::assertSame([], $rule->apply($analysis));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_still_flags_a_wrong_arity_call_unquoted_inside_a_syntax_quote(): void
+    {
+        $rule = new ArityMismatchRule();
+        $source = <<<'PHEL'
+(ns user)
+
+(defn add [a b] (+ a b))
+
+(defmacro build [] `(do (add 1) ~(add 1)))
+PHEL;
+        $analysis = $this->buildAnalysis($source);
+
+        self::assertCount(1, $rule->apply($analysis));
+    }
 }
