@@ -19,6 +19,7 @@ use Phel\Shared\ExistingPaths;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Shared\FrameworkNamespaces;
+use Phel\Shared\InvocationError;
 use Phel\Shared\Lint\LintRuleExplainerInterface;
 use Phel\Shared\NoColor;
 use Phel\Shared\OptimizationLevel;
@@ -213,6 +214,7 @@ final readonly class PublicApiSurface
             RunFacadeInterface::class,
             SupersededSourceMaps::class,
             LintRuleExplainerInterface::class,
+            InvocationError::class,
         ], true);
     }
 

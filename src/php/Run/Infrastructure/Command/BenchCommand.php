@@ -15,6 +15,7 @@ use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\ExistingPaths;
+use Phel\Shared\InvocationError;
 use Phel\Shared\NamespaceInformation;
 use Phel\Shared\Process\PhelBinaryLocator;
 use Phel\Shared\ScalarCoercion;
@@ -162,9 +163,7 @@ final class BenchCommand extends Command
 
         $ref = $input->getOption(self::OPT_REF);
         if (is_string($ref) && !is_file($ref)) {
-            $output->writeln(sprintf('<error>Baseline file not found: %s</error>', $ref));
-
-            return self::INVALID;
+            return InvocationError::report($output, sprintf('Baseline file not found: %s', $ref));
         }
 
         try {
@@ -197,9 +196,7 @@ final class BenchCommand extends Command
     {
         $options = $this->abOptions($input);
         if (is_string($options)) {
-            $output->writeln('<error>' . $options . '</error>');
-
-            return self::INVALID;
+            return InvocationError::report($output, $options);
         }
 
         $this->abRunner = $this->getFacade()->createAbBenchRunner();

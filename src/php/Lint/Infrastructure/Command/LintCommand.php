@@ -14,6 +14,7 @@ use Phel\Lint\LintConfig;
 use Phel\Lint\LintFacade;
 use Phel\Lint\LintFactory;
 use Phel\Shared\ExistingPaths;
+use Phel\Shared\InvocationError;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
@@ -116,29 +117,23 @@ HELP)
 
         $paths = ExistingPaths::filter($paths);
         if ($paths === []) {
-            $output->writeln('<error>No readable .phel files or directories found to lint.</error>');
-
-            return self::INVALID;
+            return InvocationError::report($output, 'No readable .phel files or directories found to lint.');
         }
 
         $format = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
         $formatters = $this->getFacade()->formatters();
         if (!$formatters->has($format)) {
-            $output->writeln(sprintf(
-                '<error>Unknown format: %s. Known: %s.</error>',
+            return InvocationError::report($output, sprintf(
+                'Unknown format: %s. Known: %s.',
                 $format,
                 implode(', ', $formatters->names()),
             ));
-
-            return self::INVALID;
         }
 
         try {
             $settings = $this->loadSettings($input);
         } catch (LintConfigException $lintConfigException) {
-            $output->writeln(sprintf('<error>%s</error>', $lintConfigException->getMessage()));
-
-            return self::INVALID;
+            return InvocationError::report($output, $lintConfigException->getMessage());
         }
 
         $cache = $this->maybeCache($input, $settings);
@@ -151,9 +146,7 @@ HELP)
 
             $result = $this->getFacade()->lint($paths, $settings, $cache);
         } catch (Throwable $throwable) {
-            $output->writeln(sprintf('<error>Lint failed: %s</error>', $throwable->getMessage()));
-
-            return self::INVALID;
+            return InvocationError::report($output, sprintf('Lint failed: %s', $throwable->getMessage()));
         }
 
         $output->write($formatters->get($format)->format($result));

@@ -15,10 +15,12 @@ use Phel\Run\Application\Test\SharedNamespaces;
 use Phel\Run\Domain\QuotedNamespaceList;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Domain\Test\TestNamespacePruner;
+use Phel\Run\Domain\Test\UnknownReporterException;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\ExistingPaths;
+use Phel\Shared\InvocationError;
 use Phel\Shared\NamespaceInformation;
 use Phel\Shared\Process\GitUnavailableException;
 use Phel\Shared\ResourceUsageFormatter;
@@ -106,7 +108,7 @@ HELP)
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 'Reporter to emit test events through. Repeatable. Built-ins: default, testdox, dot, tap, junit-xml, github (workflow-command annotations; added next to the default one when GITHUB_ACTIONS is set).',
                 [],
-                ['default', 'testdox', 'dot', 'tap', 'junit-xml', 'github'],
+                TestCommandOptionParser::BUILT_IN_REPORTERS,
             )->addOption(
                 TestCommandOptionParser::OPT_OUTPUT,
                 'o',
@@ -374,6 +376,11 @@ HELP)
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
+            // Evaluated code wraps what the generated test form throws.
+            if ($e->getPrevious() instanceof UnknownReporterException) {
+                return InvocationError::report($output, $e->getPrevious()->getMessage());
+            }
+
             $this->getFacade()->writeStackTrace($output, $e, StackTraceOption::isEnabled($input));
         }
 
