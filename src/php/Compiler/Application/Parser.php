@@ -8,6 +8,8 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\NumberParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\RegexParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\StringParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
@@ -185,7 +187,7 @@ final readonly class Parser implements ParserInterface
                 Token::T_ATOM => $this->parseAtomNode($token, $tokenStream),
                 Token::T_STRING => $this->parseStringNode($token, $tokenStream),
                 Token::T_CHAR => $this->parseCharNode($token, $tokenStream),
-                Token::T_REGEX => $this->parseRegexNode($token),
+                Token::T_REGEX => $this->parseRegexNode($token, $tokenStream),
                 Token::T_HASH_FN,
                 Token::T_OPEN_PARENTHESIS => $this->parseListNode($token, $tokenStream, Token::T_CLOSE_PARENTHESIS),
                 Token::T_OPEN_BRACKET => $this->parseListNode($token, $tokenStream, Token::T_CLOSE_BRACKET),
@@ -258,13 +260,13 @@ final readonly class Parser implements ParserInterface
 
         try {
             return $this->atomParser->parse($token);
-        } catch (KeywordParserException $keywordParserException) {
+        } catch (KeywordParserException|NumberParserException $atomParserException) {
             throw $this->createUnexpectedParserException(
                 $tokenStream,
                 $token,
-                $keywordParserException->getMessage(),
+                $atomParserException->getMessage(),
                 null,
-                $keywordParserException,
+                $atomParserException,
             );
         }
     }
@@ -360,11 +362,21 @@ final readonly class Parser implements ParserInterface
         }
     }
 
-    private function parseRegexNode(Token $token): StringNode
+    private function parseRegexNode(Token $token, TokenStream $tokenStream): StringNode
     {
-        return $this->parserFactory
-            ->createRegexParser()
-            ->parse($token);
+        try {
+            return $this->parserFactory
+                ->createRegexParser()
+                ->parse($token);
+        } catch (RegexParserException $regexParserException) {
+            throw $this->createUnexpectedParserException(
+                $tokenStream,
+                $token,
+                $regexParserException->getMessage(),
+                null,
+                $regexParserException,
+            );
+        }
     }
 
     private function createUnexpectedParserException(

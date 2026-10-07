@@ -649,9 +649,25 @@ final class ReaderTest extends TestCase
         $this->read($source);
     }
 
-    public function test_map_with_a_repeated_non_constant_key_keeps_the_last_value(): void
+    public function test_map_with_a_repeated_symbol_key_throws(): void
     {
-        self::assertSame('{x 2}', Printer::readable()->print($this->read('{x 1 x 2}')));
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Duplicate key: x');
+        $this->read('{x 1 x 2}');
+    }
+
+    public function test_map_with_a_repeated_vector_key_throws(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Duplicate key: [1 2]');
+        $this->read('{[1 2] :a [1 2] :b}');
+    }
+
+    public function test_set_with_a_repeated_symbol_throws(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Duplicate key: a');
+        $this->read('#{a a}');
     }
 
     public function test_set_with_a_repeated_call_keeps_one_element(): void
