@@ -77,7 +77,7 @@ compares them structurally.
 
 | Function | Behaviour |
 |---|---|
-| `compare` | vectors, lists, map entries and seqs (`range`, `map`, `lazy-seq` results included) compare element-wise, shorter prefix first, and with each other: `(compare (range 3) [0 1 2])` is `0`. Sets and maps compare by count, then by their sorted elements. Comparing across *kinds* still throws, and so do transients. Two infinite seqs that agree never return, as with `=` |
+| `compare` | vectors, lists, map entries and seqs (`range`, `map`, `lazy-seq` results included) compare element-wise, shorter prefix first, and with each other: `(compare (range 3) [0 1 2])` is `0`. Two equal sets or maps compare `0`; unequal ones throw, as in Clojure. Comparing across *kinds* still throws, and so do transients. Two infinite seqs that agree never return, as with `=` |
 | `min`, `max` | strings compare lexicographically; `nil` is still rejected |
 | `min-key`, `max-key` | strings, vectors, maps and sets are comparable, so a value comes back instead of a throw |
 | `sort-by` | a `nil`, `[]` or `{}` comparator yields an empty result instead of throwing. Other non-callable comparators, such as `5` or `:b`, throw |

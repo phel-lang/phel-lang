@@ -556,7 +556,6 @@
     :else                                         :other))
 
 (declare compare)
-(declare sort)
 
 (defn- compare-sequential
   [xs ys]
@@ -585,11 +584,11 @@
       (php/<=> (.getName x) (.getName y)))))
 
 (defn- compare-unordered
-  [x y]
-  (cond
-    (= x y)                       0
-    (php/!== (count x) (count y)) (php/<=> (count x) (count y))
-    :else                         (compare-sequential (sort x) (sort y))))
+  [category x y]
+  (if (= x y)
+    0
+    (throw (new InvalidArgumentException
+                (str "Cannot compare " category " with " category)))))
 
 (defn- compare-same-category [category x y]
   (cond
@@ -603,7 +602,7 @@
     (NumericOperations/compare x y)
 
     (or (= category :map) (= category :set))
-    (compare-unordered x y)
+    (compare-unordered category x y)
 
     (= category :transient)
     (throw (new InvalidArgumentException
@@ -621,9 +620,9 @@
   `nil` is less than every non-nil value and equal to itself. Numbers are
   compared across the numeric tower (int, float, `Ratio`, `BigInt`,
   `BigDecimal`). Vectors, lists and seqs compare element-wise, so a shorter
-  prefix sorts first. Maps and sets compare by count, then by their sorted
-  elements. Throws `InvalidArgumentException` when `x` and `y` come from
-  mutually incomparable categories (e.g. `(compare 1 [])`)."
+  prefix sorts first. Equal maps or sets compare 0. Throws
+  `InvalidArgumentException` for unequal maps or sets, and when `x` and `y`
+  come from mutually incomparable categories (e.g. `(compare 1 [])`)."
   {:example "(compare 1 2) ; => -1\n(compare :a :a) ; => 0"
    :see-also ["<=>" "sort" "sort-by"]}
   ^int [x y]

@@ -1,5 +1,5 @@
 (ns phel-test.core.boolean-operation
-  (:require phel.test :refer [deftest is thrown?])
+  (:require phel.test :refer [deftest is thrown? thrown-with-msg?])
   (:require phel.string :as s))
 
 (deftest test-or
@@ -454,11 +454,13 @@
 (deftest test-compare-maps-and-sets
   (is (= 0 (compare #{1} #{1})) "equal sets")
   (is (= 0 (compare {1 2} {1 2})) "equal maps")
-  (is (= -1 (compare #{3} #{1 2})) "a smaller set sorts first")
-  (is (= 1 (compare {:a 1 :b 2} {:c 3})) "a larger map sorts last")
-  (is (= -1 (compare #{1 2} #{1 3})) "same-size sets compare sorted elements")
-  (is (= -1 (compare {:a 1} {:a 2})) "same-size maps compare sorted entries")
-  (is (= 1 (compare {:b 1} {:a 1})) "map entries compare by key first"))
+  (is (= 0 (compare (sorted-map 1 2) {1 2})) "a sorted map equals a hash map with the same entries")
+  (is (thrown-with-msg? InvalidArgumentException "Cannot compare :set with :set" (compare #{1} #{2}))
+      "unequal sets throw")
+  (is (thrown? InvalidArgumentException (compare #{3} #{1 2})) "sets of different size throw")
+  (is (thrown-with-msg? InvalidArgumentException "Cannot compare :map with :map" (compare {:a 1} {:a 2}))
+      "unequal maps throw")
+  (is (thrown? InvalidArgumentException (sort [#{1} #{2}])) "sorting unequal sets throws"))
 
 (deftest test-compare-queues-and-transients
   (is (= 0 (compare (conj (queue) 1 2) [1 2])) "a queue compares element-wise")
