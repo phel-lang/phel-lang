@@ -59,8 +59,9 @@ final class RegexParser
             return;
         }
 
-        $problem = preg_replace('/^preg_match\(\): (Compilation failed: )?/', '', $problem ?? preg_last_error_msg()) ?? $problem;
+        $message = $problem ?? preg_last_error_msg();
+        $message = preg_replace('/^preg_match\(\): (Compilation failed: )?/', '', $message) ?? $message;
 
-        throw new RegexParserException(sprintf('Invalid regex %s: %s', $literal, $problem));
+        throw new RegexParserException(sprintf('Invalid regex %s: %s', $literal, $message));
     }
 }
