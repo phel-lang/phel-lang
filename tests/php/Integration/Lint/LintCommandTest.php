@@ -89,7 +89,7 @@ final class LintCommandTest extends TestCase
             '--format' => 'bogus',
         ]);
 
-        self::assertSame(LintCommand::EXIT_INVOCATION_ERROR, $exit);
+        self::assertSame(LintCommand::INVALID, $exit);
     }
 
     #[PreserveGlobalState(false)]
@@ -103,7 +103,7 @@ final class LintCommandTest extends TestCase
             'paths' => ['/nonexistent/path/does/not/exist.phel'],
         ]);
 
-        self::assertSame(LintCommand::EXIT_INVOCATION_ERROR, $exit);
+        self::assertSame(LintCommand::INVALID, $exit);
     }
 
     #[PreserveGlobalState(false)]
@@ -266,7 +266,7 @@ final class LintCommandTest extends TestCase
             ]);
 
             self::assertNotSame(
-                LintCommand::EXIT_INVOCATION_ERROR,
+                LintCommand::INVALID,
                 $exit,
                 'Lint with no paths must not abort from re-binding bundled stdlib symbols. '
                 . 'Output: ' . $tester->getDisplay(),
@@ -323,7 +323,7 @@ final class LintCommandTest extends TestCase
 
         self::assertStringNotContainsString('already bound', $display);
         self::assertStringNotContainsString('Lint failed', $display);
-        self::assertNotSame(LintCommand::EXIT_INVOCATION_ERROR, $exit, 'Output: ' . $display);
+        self::assertNotSame(LintCommand::INVALID, $exit, 'Output: ' . $display);
 
         $payload = json_decode(trim($display), true);
         self::assertIsArray($payload);

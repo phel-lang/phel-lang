@@ -75,7 +75,7 @@ final class LintConfigFileTest extends TestCase
                 '--no-cache' => true,
             ]);
 
-            self::assertSame(LintCommand::EXIT_INVOCATION_ERROR, $exitCode);
+            self::assertSame(LintCommand::INVALID, $exitCode);
             self::assertStringContainsString('Cannot parse lint config file', $tester->getDisplay());
         } finally {
             @unlink($configPath);
@@ -100,7 +100,7 @@ final class LintConfigFileTest extends TestCase
                 '--no-cache' => true,
             ]);
 
-            self::assertSame(LintCommand::EXIT_INVOCATION_ERROR, $exitCode);
+            self::assertSame(LintCommand::INVALID, $exitCode);
             self::assertStringContainsString('must contain a single map', $tester->getDisplay());
         } finally {
             @unlink($configPath);

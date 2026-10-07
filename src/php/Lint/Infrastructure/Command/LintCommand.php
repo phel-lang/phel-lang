@@ -49,8 +49,6 @@ final class LintCommand extends Command
 {
     use ServiceResolverAwareTrait;
 
-    public const int EXIT_INVOCATION_ERROR = 2;
-
     private const string COMMAND_NAME = 'lint';
 
     private const string ARG_PATHS = 'paths';
@@ -109,7 +107,7 @@ HELP)
         /** @var list<string> $paths */
         $paths = (array) $input->getArgument(self::ARG_PATHS);
         if (!ExistingPaths::reportMissing($paths, $output)) {
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         if ($paths === []) {
@@ -120,7 +118,7 @@ HELP)
         if ($paths === []) {
             $output->writeln('<error>No readable .phel files or directories found to lint.</error>');
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         $format = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
@@ -132,7 +130,7 @@ HELP)
                 implode(', ', $formatters->names()),
             ));
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         try {
@@ -140,7 +138,7 @@ HELP)
         } catch (LintConfigException $lintConfigException) {
             $output->writeln(sprintf('<error>%s</error>', $lintConfigException->getMessage()));
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         $cache = $this->maybeCache($input, $settings);
@@ -155,7 +153,7 @@ HELP)
         } catch (Throwable $throwable) {
             $output->writeln(sprintf('<error>Lint failed: %s</error>', $throwable->getMessage()));
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         $output->write($formatters->get($format)->format($result));

@@ -91,10 +91,11 @@ HELP)
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $rawLevel = $input->getOption(self::OPTION_OPTIMIZATION_LEVEL);
-        if ($rawLevel !== null && preg_match('/^\d+$/', ScalarCoercion::toString($rawLevel)) !== 1) {
+        $level = ScalarCoercion::toString($rawLevel);
+        if ($rawLevel !== null && preg_match('/^\d+$/', $level) !== 1) {
             $output->writeln(sprintf(
                 '<error>--optimization-level must be a non-negative integer such as 0 or 2, got "%s".</error>',
-                ScalarCoercion::toString($rawLevel),
+                $level,
             ));
 
             return self::INVALID;

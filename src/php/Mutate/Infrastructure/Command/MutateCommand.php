@@ -61,8 +61,6 @@ final class MutateCommand extends Command
 {
     use ServiceResolverAwareTrait;
 
-    public const int EXIT_INVOCATION_ERROR = 2;
-
     public const string COMMAND_NAME = 'mutate';
 
     private const string ARG_PATHS = 'paths';
@@ -134,7 +132,7 @@ HELP);
         } catch (InvalidArgumentException $invalidArgumentException) {
             $output->writeln('<error>' . $invalidArgumentException->getMessage() . '</error>');
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         try {
@@ -143,7 +141,7 @@ HELP);
         } catch (InvalidArgumentException|GitUnavailableException $exception) {
             $output->writeln('<error>' . $exception->getMessage() . '</error>');
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         $output->writeln(sprintf(

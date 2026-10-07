@@ -46,8 +46,6 @@ final class BalanceCommand extends Command
 {
     use ServiceResolverAwareTrait;
 
-    public const int EXIT_INVOCATION_ERROR = 2;
-
     private const string COMMAND_NAME = 'balance';
 
     private const string ARG_PATHS = 'paths';
@@ -97,7 +95,7 @@ HELP)
         $requestedPaths = $input->getArgument(self::ARG_PATHS);
         $fix = (bool) $input->getOption(self::OPT_FIX);
         if (!ExistingPaths::reportMissing($requestedPaths, $output)) {
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         $paths = ExistingPaths::filter($requestedPaths === [] ? $this->defaultPaths() : $requestedPaths);
@@ -105,7 +103,7 @@ HELP)
         if ($paths === []) {
             $output->writeln('<error>No readable files or directories to scan.</error>');
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         try {
@@ -113,7 +111,7 @@ HELP)
         } catch (BalanceSourceException $balanceSourceException) {
             $output->writeln(sprintf('<error>%s</error>', $balanceSourceException->getMessage()));
 
-            return self::EXIT_INVOCATION_ERROR;
+            return self::INVALID;
         }
 
         $repaired = $result->withOutcome(BalanceOutcome::Repaired);

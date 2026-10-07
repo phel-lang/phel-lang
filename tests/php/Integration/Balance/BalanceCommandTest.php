@@ -188,7 +188,7 @@ final class BalanceCommandTest extends TestCase
         $tester = new CommandTester(new BalanceCommand());
         $exit = $tester->execute(['paths' => [sys_get_temp_dir() . '/phel-balance-does-not-exist']]);
 
-        self::assertSame(BalanceCommand::EXIT_INVOCATION_ERROR, $exit);
+        self::assertSame(BalanceCommand::INVALID, $exit);
     }
 
     private function writeFile(string $name, string $contents): string
