@@ -59,6 +59,7 @@ Compiler:
 - A `defstruct` or `defrecord` method named like a method every struct already has, such as `merge` or `find`, fails with `PHEL007` on the method, also in a `defstruct*` `:php` block. A method of an interface structs implement already (such as `\Stringable`) and a magic method such as `__invoke` in a `:php` block still override. `merge` used to stop PHP with `Declaration of ...::merge($x) must be compatible`; `find` compiled and replaced the struct's own lookup, so `get`, `=` and printing returned the method's result. (#3576)
 - A `foreach` or `catch` binding that maps to the same PHP variable as a parameter or another local, such as `a-b` and `a_b`, no longer overwrites it. (#3576)
 - A `defprotocol` that declares one method in two forms, `(m [this]) (m [this x])`, fails with `PHEL005`: `Function m in protocol P was redefined`, as in Clojure. It used to compile and keep only the second. (#3568)
+- `(defn f (a b) a)` fails with `Parameter declaration of f must be a vector`, also for `defn-`, `defmacro` and a bad arity of a multi-arity `defn`. It used to fail with `apply final argument must be nil, string, array, or Traversable`. (#3537)
 
 Runtime:
 
