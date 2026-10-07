@@ -61,6 +61,7 @@ Compiler:
 - A parameter tagged `^void` or `^never` fails with `PHEL007` on the parameter; PHP allows both only as a return type. It used to stop PHP with `void cannot be used as a parameter type`. (#3534)
 - A `binding` or `with-redefs` target that is not a var, such as a local or `php/PHP_EOL`, fails with `PHEL008` on that target. It used to fail an internal assertion after emitting half the PHP. (#3534)
 - A `foreach` or `catch` binding that maps to the same PHP variable as a parameter or another local, such as `a-b` and `a_b`, no longer overwrites it. (#3576)
+- `phel run` prints the code of every compile error, the same one `phel analyze` reports: `(if)` prints `[PHEL007]`, `::nope/foo` and an octal escape out of range such as `"\777"` print `[PHEL120]`, and `{:a}` prints `[PHEL210]`. They used to print the message with no code. (#3537)
 
 Runtime:
 

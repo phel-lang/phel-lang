@@ -9,6 +9,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelType;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
@@ -27,10 +28,24 @@ use function is_string;
 use function sprintf;
 
 /**
+ * Starts as `INVALID_SPECIAL_FORM`, the code `phel analyze` reports for an
+ * analyzer error with no more specific one, so `phel run` prints it too
+ * (#3537).
+ *
  * @internal
  */
 final class AnalyzerException extends AbstractLocatedException
 {
+    public function __construct(
+        string $message,
+        ?SourceLocation $startLocation = null,
+        ?SourceLocation $endLocation = null,
+        ?Throwable $nestedException = null,
+    ) {
+        parent::__construct($message, $startLocation, $endLocation, $nestedException);
+        $this->setErrorCode(ErrorCode::INVALID_SPECIAL_FORM);
+    }
+
     public static function withLocation(
         string $message,
         TypeInterface $type,

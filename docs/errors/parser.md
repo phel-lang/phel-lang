@@ -78,7 +78,7 @@ The parser found a closing delimiter with no open form to close, or a reader pre
 
 Enum case: `ErrorCode::PARSER_ERROR`
 
-The fallback code for a parser error that carries no more specific one, such as a keyword alias the parser cannot resolve. Editor diagnostics report it under this code; the terminal prints the same message with no code in front.
+The fallback code for a parser error that carries no more specific one, such as a keyword alias the parser cannot resolve..
 
 ```phel
 ::nope/foo

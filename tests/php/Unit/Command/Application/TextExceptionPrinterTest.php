@@ -69,7 +69,7 @@ final class TextExceptionPrinterTest extends TestCase
         $exception = AnalyzerException::withLocation('.', $type);
 
         $expectedOutput = <<<'MSG'
-.
+[PHEL007] .
 in example-file.phel:1
 
 1| (+ 1 2 3 unknown-symbol)

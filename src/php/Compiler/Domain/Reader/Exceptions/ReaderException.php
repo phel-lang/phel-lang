@@ -12,6 +12,9 @@ use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Throwable;
 
 /**
+ * Starts as `READER_ERROR`, the code `phel analyze` reports for a reader
+ * error with no more specific one, so `phel run` prints it too (#3537).
+ *
  * @internal
  */
 final class ReaderException extends AbstractLocatedException
@@ -24,6 +27,7 @@ final class ReaderException extends AbstractLocatedException
         ?Throwable $nestedException = null,
     ) {
         parent::__construct($message, $startLocation, $endLocation, $nestedException);
+        $this->setErrorCode(ErrorCode::READER_ERROR);
     }
 
     /**
