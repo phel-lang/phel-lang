@@ -67,6 +67,7 @@ Runtime:
 - On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. A fn returning `(php/=& target value)` runs with OPcache's default optimizer; PHP 8.6 RC2 used to stop with `Invalid opcode 62/4/0`. (#3522)
 - `range` accepts a ratio, `BigInt` or `BigDecimal` bound or step, so `(repeat 1/2 :x)`, `(repeatedly 5/2 f)`, `(dotimes [i 5/2] ...)` and `(for [i :range [5/2]] i)` run as they do with a float. They used to fail with a `TypeError` from `Seq::range()`. (#3557)
 - `take`, `drop`, `take-last`, `drop-last`, `take-nth` and `split-at` accept a ratio, float, `BigInt` or `BigDecimal` count and round it up, as Clojure does: `(take 5/2 (range 10))` is `(0 1 2)`. A ratio used to throw, and `(drop 2.5 xs)` dropped 2 and printed a PHP deprecation. `partition` with a count that is not an integer returns `()`, as in Clojure, since no chunk can match it. (#3566)
+- `(load "missing")` reports the file and line of the `(load ...)` form. It used to name a line past the end of the file, the line of the generated PHP. (#3537)
 
 ## [0.54.0](https://github.com/phel-lang/phel-lang/compare/v0.53.0...v0.54.0) - 2026-10-04
 

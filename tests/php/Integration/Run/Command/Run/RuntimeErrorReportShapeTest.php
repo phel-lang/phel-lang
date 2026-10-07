@@ -111,6 +111,14 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
         self::assertStringNotContainsString('Too few arguments', $output);
     }
 
+    public function test_a_missing_load_target_points_at_the_load_form(): void
+    {
+        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/load-missing-script.phel');
+
+        self::assertStringContainsString('Cannot locate missing for (load ...)', $output);
+        self::assertMatchesRegularExpression('~^  at .*/Fixtures/load-missing-script\.phel:2$~m', $output);
+    }
+
     /**
      * An exception Phel does not recognise stays uncoded rather than being
      * labelled with a code that does not describe it.

@@ -54,7 +54,7 @@ final class LoadEmitter implements NodeEmitterInterface
 
         $this->emitSrcDirsSearch();
         $this->emitCallerDirFallback($node);
-        $this->emitNotFoundGuard();
+        $this->emitNotFoundGuard($node);
         $this->emitExecute($node->getCallerNamespace());
     }
 
@@ -189,11 +189,14 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('}');
     }
 
-    private function emitNotFoundGuard(): void
+    private function emitNotFoundGuard(LoadNode $node): void
     {
         $this->outputEmitter->emitLine('if ($__phelLoadPath === null) {');
         $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine("throw new \\RuntimeException(sprintf('Cannot locate %s for (load ...)', \$__phelLoadKey));");
+        $this->outputEmitter->emitLine(
+            "throw new \\RuntimeException(sprintf('Cannot locate %s for (load ...)', \$__phelLoadKey));",
+            $node->getStartSourceLocation(),
+        );
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}');
     }
