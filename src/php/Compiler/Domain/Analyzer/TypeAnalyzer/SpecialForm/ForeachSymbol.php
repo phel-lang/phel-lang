@@ -80,7 +80,7 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         for ($i = 0; $i < $firstArgCount - 1; ++$i) {
             $binding = $foreachTuple->get($i);
             if ($binding instanceof Symbol) {
-                $bindingValidator->assertSupportedBinding($binding);
+                $bindingValidator->assertUnqualifiedName($binding);
             }
         }
     }

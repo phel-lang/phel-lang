@@ -258,7 +258,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::wrongArgumentType("Second argument of 'catch", 'Symbol', $name, $catch);
         }
 
-        new BindingValidator()->assertSupportedBinding($name);
+        new BindingValidator()->assertUnqualifiedName($name);
     }
 
     /**

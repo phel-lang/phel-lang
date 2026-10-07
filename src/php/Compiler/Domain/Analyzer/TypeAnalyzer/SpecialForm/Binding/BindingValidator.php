@@ -27,7 +27,9 @@ final class BindingValidator implements BindingValidatorInterface
     public function assertSupportedBinding(mixed $form): void
     {
         if ($this->isSupportedBinding($form)) {
-            $this->assertUnqualifiedName($form);
+            if ($form instanceof Symbol) {
+                $this->assertUnqualifiedName($form);
+            }
 
             return;
         }
@@ -52,9 +54,9 @@ final class BindingValidator implements BindingValidatorInterface
      *
      * @throws AnalyzerException
      */
-    private function assertUnqualifiedName(mixed $form): void
+    public function assertUnqualifiedName(Symbol $form): void
     {
-        if (!$form instanceof Symbol || $form->getNamespace() === null) {
+        if ($form->getNamespace() === null) {
             return;
         }
 

@@ -202,9 +202,9 @@ final class ForeachSymbolTest extends TestCase
         try {
             $this->analyze(Phel::list([Symbol::create(Symbol::NAME_FOREACH), $bindings, 1]));
             self::fail('Expected an AbstractLocatedException');
-        } catch (AbstractLocatedException $abstractLocatedException) {
-            self::assertStringStartsWith("Can't bind qualified name: foo/x.", $abstractLocatedException->getMessage());
-            self::assertSame(ErrorCode::BINDING_ERROR, $abstractLocatedException->getErrorCode());
+        } catch (AbstractLocatedException $locatedException) {
+            self::assertStringStartsWith("Can't bind qualified name: foo/x.", $locatedException->getMessage());
+            self::assertSame(ErrorCode::BINDING_ERROR, $locatedException->getErrorCode());
         }
     }
 
