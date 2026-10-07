@@ -1,0 +1,2 @@
+(ns load-missing-script)
+(load "missing")
