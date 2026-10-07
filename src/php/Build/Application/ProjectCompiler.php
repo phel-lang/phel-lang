@@ -244,7 +244,7 @@ final readonly class ProjectCompiler
         return array_all($this->config->getPathsToAvoidCache(), static fn(string $path): bool => !str_contains($targetFile, $path));
     }
 
-    // A source not older than its compile's second may have changed after the read (#3564), so its target never matches.
+    // A source not older than its compile's second may have changed after the read, so its target never matches.
     private function cacheStamp(string $sourceFile, int $compiledAt): int
     {
         $sourceMtime = $this->getFileMtime($sourceFile);
