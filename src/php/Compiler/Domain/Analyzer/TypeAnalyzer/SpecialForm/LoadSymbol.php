@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\Resolver\LoadPathResolver;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function get_debug_type;
 use function is_string;
@@ -64,17 +65,17 @@ final readonly class LoadSymbol implements SpecialFormAnalyzerInterface
         $listCount = $list->count();
 
         if ($listCount < 2) {
-            throw AnalyzerException::withLocation("'load requires exactly 1 argument (the file path)", $list);
+            throw AnalyzerException::withLocation("'load requires exactly 1 argument (the file path)", $list, errorCode: ErrorCode::ARITY_ERROR);
         }
 
         if ($listCount > 2) {
-            throw AnalyzerException::withLocation("'load requires exactly 1 argument, got " . ($listCount - 1), $list);
+            throw AnalyzerException::withLocation("'load requires exactly 1 argument, got " . ($listCount - 1), $list, errorCode: ErrorCode::ARITY_ERROR);
         }
 
         $pathArg = $list->get(1);
 
         if (!is_string($pathArg)) {
-            throw AnalyzerException::withLocation("First argument of 'load must be a string, got: " . get_debug_type($pathArg), $list);
+            throw AnalyzerException::withLocation("First argument of 'load must be a string, got: " . get_debug_type($pathArg), $list, errorCode: ErrorCode::TYPE_ERROR);
         }
 
         return $pathArg;

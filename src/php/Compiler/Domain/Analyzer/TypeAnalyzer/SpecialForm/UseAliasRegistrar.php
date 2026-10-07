@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\PhpClassLike;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 use function defined;
@@ -51,7 +52,7 @@ final readonly class UseAliasRegistrar
             $useSymbol = $elements[$i];
 
             if (!($useSymbol instanceof Symbol)) {
-                throw AnalyzerException::withLocation(sprintf('First argument in %s must be a symbol.', $label), $form);
+                throw AnalyzerException::withLocation(sprintf('First argument in %s must be a symbol.', $label), $form, errorCode: ErrorCode::TYPE_ERROR);
             }
 
             BackslashSeparatorDeprecator::getInstance()->maybeWarn($useSymbol);
@@ -73,7 +74,7 @@ final readonly class UseAliasRegistrar
                 }
 
                 if (!($option instanceof Keyword)) {
-                    throw AnalyzerException::withLocation(sprintf('Unexpected argument in %s. Expected a keyword.', $label), $form);
+                    throw AnalyzerException::withLocation(sprintf('Unexpected argument in %s. Expected a keyword.', $label), $form, errorCode: ErrorCode::TYPE_ERROR);
                 }
 
                 ++$i;
@@ -131,7 +132,7 @@ final readonly class UseAliasRegistrar
             return;
         }
 
-        throw AnalyzerException::withLocation(sprintf('Cannot import unknown PHP symbol %s.', $name), $form);
+        throw AnalyzerException::withLocation(sprintf('Cannot import unknown PHP symbol %s.', $name), $form, errorCode: ErrorCode::UNDEFINED_SYMBOL);
     }
 
     private function importExists(string $name): bool

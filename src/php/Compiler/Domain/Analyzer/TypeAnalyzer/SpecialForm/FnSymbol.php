@@ -54,7 +54,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         if (count($list) < 2) {
-            throw AnalyzerException::withLocation("'fn requires at least one argument", $list);
+            throw AnalyzerException::wrongArity($list, '(fn [params] body ...)');
         }
 
         [$name, $list] = $this->extractOptionalName($list);
@@ -65,7 +65,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         }
 
         if (!($second instanceof PersistentListInterface)) {
-            throw AnalyzerException::withLocation("Second argument of 'fn must be a vector", $list);
+            throw AnalyzerException::withLocation("Second argument of 'fn must be a vector", $list, errorCode: ErrorCode::TYPE_ERROR);
         }
 
         // Multi-arity defs do not get the deferred-then-grafted single walk
@@ -195,6 +195,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
                 throw AnalyzerException::withLocation(
                     sprintf("Fn return type '%s' is incompatible with tail expression of type '%s'", $declaredReturnType, $tailType),
                     $list,
+                    errorCode: ErrorCode::TYPE_ERROR,
                 );
             }
         }
@@ -358,12 +359,12 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
     private function verifyArguments(PersistentListInterface $list): PersistentVectorInterface
     {
         if (count($list) < 2) {
-            throw AnalyzerException::withLocation("'fn requires at least one argument", $list);
+            throw AnalyzerException::wrongArity($list, '(fn [params] body ...)');
         }
 
         $paramVector = $list->get(1);
         if (!$paramVector instanceof PersistentVectorInterface) {
-            throw AnalyzerException::withLocation("Second argument of 'fn must be a vector", $list);
+            throw AnalyzerException::withLocation("Second argument of 'fn must be a vector", $list, errorCode: ErrorCode::TYPE_ERROR);
         }
 
         return $paramVector;

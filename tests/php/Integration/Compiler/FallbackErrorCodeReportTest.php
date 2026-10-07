@@ -21,14 +21,14 @@ final class FallbackErrorCodeReportTest extends AbstractCompilerRuntimeTestCase
 
     public static function providerUncodedErrors(): iterable
     {
-        yield 'special form with too few arguments' => [
-            '(if)',
+        yield 'form after finally' => [
+            '(try 1 (finally 2) 3)',
             <<<'REPORT'
-                [PHEL007] 'if requires two or three arguments
+                [PHEL007] Unexpected form after 'finally
                 in fallback.phel:1
 
-                1| (if)
-                   ^^^^
+                1| (try 1 (finally 2) 3)
+                   ^^^^^^^^^^^^^^^^^^^^^
 
                 REPORT,
         ];

@@ -36,6 +36,8 @@ use function sprintf;
  */
 final class AnalyzerException extends AbstractLocatedException
 {
+    private bool $unresolvedSymbol = false;
+
     public function __construct(
         string $message,
         ?SourceLocation $startLocation = null,
@@ -141,6 +143,7 @@ final class AnalyzerException extends AbstractLocatedException
 
         $e = self::withLocation($message, $type, errorCode: ErrorCode::UNDEFINED_SYMBOL);
         $e->setSuggestions(array_values($suggestions));
+        $e->unresolvedSymbol = true;
 
         return $e;
     }
@@ -151,11 +154,24 @@ final class AnalyzerException extends AbstractLocatedException
      */
     public static function replOnlyRequire(TypeInterface $type): self
     {
-        return self::withLocation(
+        $e = self::withLocation(
             "Cannot resolve symbol 'require': require is only available in the REPL; use (:require ...) inside ns",
             $type,
             errorCode: ErrorCode::UNDEFINED_SYMBOL,
         );
+        $e->unresolvedSymbol = true;
+
+        return $e;
+    }
+
+    /**
+     * A symbol in evaluated position bound nowhere. A `catch` type, a `var`
+     * target or a `use` class that resolves to nothing shares its code but
+     * not this: only a bare symbol says a file may be missing its `ns` form.
+     */
+    public function isUnresolvedSymbol(): bool
+    {
+        return $this->unresolvedSymbol;
     }
 
     /**

@@ -4,7 +4,12 @@
 
 If you discover a security vulnerability in Phel, please report it responsibly.
 
-**Do not open a public issue.** Instead, email **phel@chemaclass.es** with:
+**Do not open a public issue.** Use one of two private channels:
+
+1. GitHub private vulnerability reporting: open the repository's [Security tab](https://github.com/phel-lang/phel-lang/security) and choose "Report a vulnerability".
+2. Email **phel@chemaclass.es**.
+
+Include:
 
 - A description of the vulnerability
 - Steps to reproduce
@@ -14,7 +19,17 @@ You should receive a response within 48 hours. We'll work with you to understand
 
 ## Supported Versions
 
-Security fixes are applied to the latest release only. We recommend always running the most recent version.
+| Version | Security fixes |
+|---|---|
+| Latest `1.x` minor | Yes |
+| Older `1.x` minors | No |
+| `0.x` | No, once `1.0.0` is out |
+
+Upgrade to the latest `1.x` minor to get a fix. A minor never breaks the [stability policy](../docs/stability.md), so the upgrade is safe to take.
+
+## Verifying a download
+
+Check `phel.phar` against the sha256 digest GitHub shows for the release asset. The steps are in the [README](../README.md#standalone-phar).
 
 ## Scope
 

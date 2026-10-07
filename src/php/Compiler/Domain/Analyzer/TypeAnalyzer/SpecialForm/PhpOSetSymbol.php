@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Shared\Exceptions\ErrorCode;
 
 /**
  * @internal
@@ -27,11 +28,11 @@ final class PhpOSetSymbol implements SpecialFormAnalyzerInterface
         $right = $this->analyzer->analyze($list->get(2), $env->withExpressionContext());
 
         if (!$left instanceof PhpObjectCallNode) {
-            throw AnalyzerException::withLocation('First argument of php/oget must be a property access', $list);
+            throw AnalyzerException::withLocation('First argument of php/oget must be a property access', $list, errorCode: ErrorCode::TYPE_ERROR);
         }
 
         if ($left->isMethodCall()) {
-            throw AnalyzerException::withLocation('First argument of php/oget must be a property access', $list);
+            throw AnalyzerException::withLocation('First argument of php/oget must be a property access', $list, errorCode: ErrorCode::TYPE_ERROR);
         }
 
         return new PhpObjectSetNode(

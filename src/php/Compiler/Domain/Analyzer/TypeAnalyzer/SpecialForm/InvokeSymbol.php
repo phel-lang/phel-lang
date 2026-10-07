@@ -24,6 +24,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Printer\Printer;
 use RuntimeException;
 use Throwable;
@@ -164,6 +165,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
             'Arg #' . ($i + 1) . " to '" . $f->getName()->getName()
             . sprintf("' has type '%s' but param is tagged '%s'", $literalType, $tag),
             $list,
+            errorCode: ErrorCode::TYPE_ERROR,
         );
     }
 

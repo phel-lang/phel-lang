@@ -23,6 +23,7 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function array_map;
 use function array_pop;
@@ -168,6 +169,7 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation(
                 "Two or three arguments are required for 'def. Got " . $listSize,
                 $list,
+                errorCode: ErrorCode::ARITY_ERROR,
             );
         }
     }

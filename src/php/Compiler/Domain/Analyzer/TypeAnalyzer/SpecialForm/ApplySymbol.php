@@ -31,7 +31,7 @@ final class ApplySymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): ApplyNode
     {
         if (count($list) < 3) {
-            throw AnalyzerException::withLocation("At least three arguments are required for 'apply", $list);
+            throw AnalyzerException::wrongArity($list, '(apply f x ... args)');
         }
 
         /** @var PersistentListInterface<mixed> $data */

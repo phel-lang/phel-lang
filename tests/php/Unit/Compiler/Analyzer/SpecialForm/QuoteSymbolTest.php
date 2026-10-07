@@ -25,7 +25,7 @@ final class QuoteSymbolTest extends TestCase
     public function test_list_without_argument(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("Exactly one argument is required for 'quote");
+        $this->expectExceptionMessage("Wrong number of arguments for 'quote. Usage: (quote form)");
 
         $list = Phel::list([Symbol::create(Symbol::NAME_QUOTE)]);
         new QuoteSymbol()->analyze($list, NodeEnvironment::empty());

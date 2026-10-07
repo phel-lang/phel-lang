@@ -44,7 +44,7 @@ final class FnSymbolTest extends TestCase
     public function test_requires_at_least_one_arg(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("'fn requires at least one argument");
+        $this->expectExceptionMessage("Wrong number of arguments for 'fn. Usage: (fn [params] body ...)");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),

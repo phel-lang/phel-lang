@@ -40,7 +40,7 @@ final class BreakSymbol implements SpecialFormAnalyzerInterface
         }
 
         if (count($list) !== 1) {
-            throw AnalyzerException::withLocation("'break takes no arguments", $list);
+            throw AnalyzerException::wrongArity($list, '(break)');
         }
 
         return $this->analyzer->analyze($this->synthesizeBreakpointCall($list, $env), $env);

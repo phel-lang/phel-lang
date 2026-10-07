@@ -21,7 +21,7 @@ final class SemanticAnalysisTest extends TestCase
 {
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
-    public function test_it_reports_invalid_special_form_diagnostic_for_if_with_too_many_args(): void
+    public function test_it_reports_an_arity_diagnostic_for_if_with_too_many_args(): void
     {
         $this->bootstrap();
         $facade = new ApiFacade();
@@ -33,7 +33,7 @@ final class SemanticAnalysisTest extends TestCase
 
         self::assertNotEmpty($diagnostics);
         $codes = array_map(static fn(Diagnostic $d): string => $d->code, $diagnostics);
-        self::assertContains('PHEL007', $codes);
+        self::assertContains('PHEL002', $codes);
 
         $first = $diagnostics[0];
         self::assertGreaterThan(0, $first->startLine);

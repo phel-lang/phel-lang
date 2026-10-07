@@ -15,6 +15,7 @@ use Phel\Lang\Destructure;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function sprintf;
 
@@ -304,6 +305,7 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
                 self::REST_SYMBOL_NAME,
             ),
             $binding,
+            errorCode: ErrorCode::BINDING_ERROR,
         );
     }
 }
