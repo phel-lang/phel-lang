@@ -39,6 +39,13 @@ final class LintLoadedFileTest extends TestCase
         $this->assertLintsClean(__DIR__ . '/Fixtures/missing_load.phel');
     }
 
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_lints_a_file_that_loads_itself(): void
+    {
+        $this->assertLintsClean(__DIR__ . '/Fixtures/SelfLoad/self_load.phel');
+    }
+
     private function assertLintsClean(string $path): void
     {
         Phel::bootstrap(__DIR__);

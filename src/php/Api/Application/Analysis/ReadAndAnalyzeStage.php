@@ -16,6 +16,7 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
 
 use function file_get_contents;
+use function in_array;
 use function is_array;
 use function is_string;
 
@@ -85,8 +86,9 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
 
     /**
      * @param bool|float|int|string|TypeInterface|null $form
+     * @param list<string>                             $loading files whose load is in progress, so a cycle stops
      */
-    private function analyzeForm(mixed $form, string $uri): void
+    private function analyzeForm(mixed $form, string $uri, array $loading = []): void
     {
         $this->compilerFacade->analyze(
             $form,
@@ -98,26 +100,28 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
             && $form->first()->getFullName() === Symbol::NAME_LOAD
             && is_string($form->get(1))
         ) {
-            $this->analyzeLoadedFile($form->get(1), $uri);
+            $this->analyzeLoadedFile($form->get(1), $uri, $loading);
         }
     }
 
     /**
      * The loaded file's own diagnostics belong to an analysis of that file.
+     *
+     * @param list<string> $loading
      */
-    private function analyzeLoadedFile(string $pathArg, string $callerUri): void
+    private function analyzeLoadedFile(string $pathArg, string $callerUri, array $loading): void
     {
         $globalEnv = $this->compilerFacade->getGlobalEnvironment();
         $callerNamespace = $globalEnv->getNs();
         $path = $this->loadedSourceLocator->locate($callerNamespace, $pathArg, $callerUri);
-        if ($path === null) {
+        if ($path === null || in_array($path, $loading, true)) {
             return;
         }
 
         try {
             foreach ($this->compilerFacade->readFormsBestEffort((string) file_get_contents($path), $path) as $form) {
                 try {
-                    $this->analyzeForm($form, $path);
+                    $this->analyzeForm($form, $path, [...$loading, $callerUri, $path]);
                 } catch (AnalyzerException) {
                 }
             }
