@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
+use Gacela\Framework\ServiceResolver\ServiceMap;
+use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Run\Domain\Config\ConfigDiagnostics;
 use Phel\Run\Domain\Config\ConfigIssue;
-use Phel\Run\Domain\Config\EffectiveConfigReader;
 use Phel\Run\Domain\Config\EffectiveConfigResult;
+use Phel\Run\RunFacade;
 use Phel\Shared\InvocationError;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
@@ -24,10 +26,15 @@ use const JSON_THROW_ON_ERROR;
 use const JSON_UNESCAPED_SLASHES;
 
 /**
+ * @method RunFacade getFacade()
+ *
  * @internal
  */
+#[ServiceMap(method: 'getFacade', className: RunFacade::class)]
 final class ConfigCommand extends Command
 {
+    use ServiceResolverAwareTrait;
+
     private const string OPT_FORMAT = 'format';
 
     private const string FORMAT_TEXT = 'text';
@@ -35,7 +42,6 @@ final class ConfigCommand extends Command
     private const string FORMAT_JSON = 'json';
 
     public function __construct(
-        private readonly EffectiveConfigReader $reader = new EffectiveConfigReader(),
         private readonly ConfigDiagnostics $diagnostics = new ConfigDiagnostics(),
     ) {
         parent::__construct();
@@ -46,7 +52,8 @@ final class ConfigCommand extends Command
         $this->setName('config')
             ->setDescription('Show the effective Phel configuration and where it comes from')
             ->setHelp(<<<'HELP'
-Prints the merged config (defaults + phel-config.php + overrides) and its source.
+Prints the config a command runs with and where it comes from: defaults,
+phel-config.php, phel-config-local.php, then the PHEL_* env vars and flags.
 
 <info>Examples:</info>
   <comment>phel config</comment>             Human-readable, annotated with origins
@@ -74,7 +81,7 @@ HELP)
             ));
         }
 
-        $effective = $this->reader->read();
+        $effective = $this->getFacade()->readEffectiveConfig();
 
         if ($format === self::FORMAT_JSON) {
             $output->writeln($this->toJson($effective->values));
@@ -88,7 +95,7 @@ HELP)
         $output->writeln($this->toJson($effective->values));
         $this->writeValidation(
             $output,
-            $this->diagnostics->analyze($effective->values, $effective->projectRoot),
+            $this->diagnostics->analyze($effective->configuredValues, $effective->projectRoot),
         );
 
         return Command::SUCCESS;

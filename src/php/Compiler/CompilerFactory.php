@@ -240,6 +240,11 @@ final class CompilerFactory extends AbstractFactory
         DeprecationWarnings::enable();
     }
 
+    public function deprecationWarningsEnabled(): bool
+    {
+        return $this->getConfig()->warnDeprecationsEnabled() || DeprecationWarnings::isEnabled();
+    }
+
     /**
      * @template T
      *
