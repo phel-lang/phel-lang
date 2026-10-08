@@ -29,9 +29,10 @@ interface ScanIndexCacheInterface
     /**
      * @param array<string, DirFingerprint> $perDir
      * @param list<NamespaceInformation>    $infos
-     * @param int                           $recordedAt the second the scan started; 0 stores an entry that never validates
+     * @param int                           $recordedAt   the second the scan started; 0 stores an entry that never validates
+     * @param list<string>                  $skippedFiles files the scan could not read a namespace from; stamped like the rest so an edit invalidates the entry
      */
-    public function put(string $dirSetKey, array $perDir, array $infos, int $recordedAt = 0): void;
+    public function put(string $dirSetKey, array $perDir, array $infos, int $recordedAt = 0, array $skippedFiles = []): void;
 
     public function clear(): void;
 }
