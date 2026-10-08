@@ -8,7 +8,7 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\RuleSettings;
-use Phel\Lint\Application\Formatter\HumanFormatter;
+use Phel\Lint\Application\Formatter\TextFormatter;
 use Phel\Lint\Domain\Exception\LintConfigException;
 use Phel\Lint\LintConfig;
 use Phel\Lint\LintFacade;
@@ -89,7 +89,7 @@ HELP)
                 'f',
                 InputOption::VALUE_REQUIRED,
                 'Output format: text, json, github.',
-                HumanFormatter::NAME,
+                TextFormatter::NAME,
             )
             ->addOption(
                 self::OPT_CONFIG,
@@ -124,7 +124,7 @@ HELP)
 
         $format = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
         if ($format === self::FORMER_TEXT_FORMAT) {
-            $format = HumanFormatter::NAME;
+            $format = TextFormatter::NAME;
         }
 
         $formatters = $this->getFacade()->formatters();

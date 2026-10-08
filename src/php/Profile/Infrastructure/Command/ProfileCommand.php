@@ -108,7 +108,7 @@ HELP)
 
         $formatOption = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
         $format = ReportFormat::fromOption($formatOption);
-        if ($format === null) {
+        if (!$format instanceof ReportFormat) {
             return $this->reportUnknownOption($output, self::OPT_FORMAT, $formatOption, ReportFormat::cases());
         }
 

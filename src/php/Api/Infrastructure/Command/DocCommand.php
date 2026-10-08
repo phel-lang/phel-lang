@@ -51,7 +51,11 @@ final class DocCommand extends Command
 
     private const int MIN_DESCRIPTION_WIDTH = 20;
 
-    private const array AVAILABLE_FORMATS = ['text', 'json'];
+    private const string FORMAT_TEXT = 'text';
+
+    private const string FORMAT_JSON = 'json';
+
+    private const array AVAILABLE_FORMATS = [self::FORMAT_TEXT, self::FORMAT_JSON];
 
     private const string FORMER_TEXT_FORMAT = 'table';
 
@@ -88,7 +92,7 @@ HELP)
                 'f',
                 InputOption::VALUE_REQUIRED,
                 'Output format: text, json.',
-                'text',
+                self::FORMAT_TEXT,
                 self::AVAILABLE_FORMATS,
             );
     }
@@ -97,7 +101,7 @@ HELP)
     {
         $format = strtolower(ScalarCoercion::toString($input->getOption(self::OPTION_FORMAT)));
         if ($format === self::FORMER_TEXT_FORMAT) {
-            $format = 'text';
+            $format = self::FORMAT_TEXT;
         }
 
         if (!in_array($format, self::AVAILABLE_FORMATS, true)) {
@@ -114,7 +118,7 @@ HELP)
         $search = ScalarCoercion::toString($input->getArgument('search'));
         $normalized = $this->normalizeGroupedFunctions($phelFunctions, $search);
 
-        if ($format === 'json') {
+        if ($format === self::FORMAT_JSON) {
             $this->printFunctionsAsJson($output, $normalized);
             return self::SUCCESS;
         }

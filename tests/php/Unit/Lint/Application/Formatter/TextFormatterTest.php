@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application\Formatter;
 
-use Phel\Lint\Application\Formatter\HumanFormatter;
+use Phel\Lint\Application\Formatter\TextFormatter;
 use Phel\Lint\Transfer\LintResult;
 use Phel\Shared\Api\Diagnostic;
 use PHPUnit\Framework\TestCase;
 
-final class HumanFormatterTest extends TestCase
+final class TextFormatterTest extends TestCase
 {
     public function test_it_formats_one_line_per_diagnostic_plus_summary(): void
     {
-        $formatter = new HumanFormatter();
+        $formatter = new TextFormatter();
         $result = new LintResult([
             new Diagnostic('phel/a', Diagnostic::SEVERITY_ERROR, 'bad', '/f.phel', 2, 4, 2, 6),
             new Diagnostic('phel/b', Diagnostic::SEVERITY_WARNING, 'meh', '/f.phel', 3, 1, 3, 5),
@@ -29,7 +29,7 @@ final class HumanFormatterTest extends TestCase
 
     public function test_it_reports_clean_run(): void
     {
-        $formatter = new HumanFormatter();
+        $formatter = new TextFormatter();
 
         self::assertSame('No lint issues found.', $formatter->format(new LintResult([])));
     }

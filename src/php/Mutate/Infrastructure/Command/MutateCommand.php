@@ -240,10 +240,6 @@ HELP);
         );
     }
 
-    /**
-     * `--reporter` is the name `--format` had before it followed the CLI flag
-     * conventions; it still works, with a notice on stderr.
-     */
     private function parseFormat(InputInterface $input, OutputInterface $output): string
     {
         $format = $input->getOption(self::OPT_FORMAT);

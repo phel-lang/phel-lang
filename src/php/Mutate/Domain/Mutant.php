@@ -37,15 +37,6 @@ final readonly class Mutant
     ) {}
 
     /**
-     * Stable identity for de-duplication and JSON: file, position, mutator,
-     * description.
-     */
-    public function id(): string
-    {
-        return $this->file . ':' . $this->line . ':' . $this->column . ' [' . $this->mutator . '] ' . $this->description;
-    }
-
-    /**
      * First and last line of the whole definition in the file. Coverage is
      * matched against the definition, not the single mutated line: a test
      * that runs the function is what can catch the mutant, and the source
