@@ -810,6 +810,19 @@ final class GlobalEnvironmentTest extends TestCase
         $env->addPhpClass('app', Symbol::create('my_point'));
     }
 
+    public function test_analysis_mode_neither_claims_nor_checks_a_php_class(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->addPhpClass('app', Symbol::create('point'));
+        $env->enterAnalysisMode();
+        $env->addPhpClass('app', Symbol::create('Point'));
+        $env->addPhpClass('app', Symbol::create('Box'));
+        $env->leaveAnalysisMode();
+        $env->addPhpClass('app', Symbol::create('box'));
+
+        $this->expectNotToPerformAssertions();
+    }
+
     public function test_an_ns_form_clears_the_claimed_php_classes_of_its_namespace(): void
     {
         $env = new GlobalEnvironment();

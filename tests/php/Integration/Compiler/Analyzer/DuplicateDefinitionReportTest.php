@@ -145,6 +145,15 @@ final class DuplicateDefinitionReportTest extends AbstractCompilerRuntimeTestCas
         self::assertSame($expected, $this->report($phelCode));
     }
 
+    public function test_a_struct_rejected_for_its_fields_does_not_claim_its_php_class(): void
+    {
+        $this->report("(ns repro.i)\n(defstruct* point 1)");
+
+        $this->compilerFacade->compile("(ns repro.i)\n(defstruct Point [x])", new CompileOptions()->setSource(self::SOURCE));
+
+        $this->expectNotToPerformAssertions();
+    }
+
     private function report(string $phelCode): string
     {
         try {

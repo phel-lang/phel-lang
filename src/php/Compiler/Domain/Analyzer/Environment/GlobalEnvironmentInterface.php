@@ -148,6 +148,7 @@ interface GlobalEnvironmentInterface
      *     requireAliases: array<string, array<string, Symbol>>,
      *     useAliases: array<string, array<string, Symbol>>,
      *     interfaces: array<string, array<string, Symbol>>,
+     *     phpClasses: array<string, array<string, Symbol>>,
      * }
      */
     public function snapshot(): array;
@@ -162,6 +163,7 @@ interface GlobalEnvironmentInterface
      *     requireAliases: array<string, array<string, Symbol>>,
      *     useAliases: array<string, array<string, Symbol>>,
      *     interfaces: array<string, array<string, Symbol>>,
+     *     phpClasses: array<string, array<string, Symbol>>,
      * } $snapshot
      */
     public function restore(array $snapshot): void;

@@ -314,6 +314,29 @@ final class StructuredEvaluatorTest extends TestCase
         self::assertFalse($env->hasRequireAlias('test-ns', Symbol::create('dirty')));
     }
 
+    public function test_eval_rolls_back_a_claimed_php_class_on_compiler_error(): void
+    {
+        $env = GlobalEnvironmentSingleton::initializeNew();
+        $env->setNs('test-ns');
+
+        $startLoc = new SourceLocation('string', 1, 0);
+        $endLoc = new SourceLocation('string', 1, 10);
+        $nested = new AnalyzerException('fail', $startLoc, $endLoc);
+        $snippet = new CodeSnippet($startLoc, $endLoc, '(do (defstruct thing [x]) (undefined-zzz))');
+        $compilerException = new CompilerException($nested, $snippet);
+
+        $facade = $this->compilerFacadeMock();
+        $facade->method('eval')->willReturnCallback(static function () use ($env, $compilerException): never {
+            $env->addPhpClass('test-ns', Symbol::create('thing'));
+            throw $compilerException;
+        });
+
+        $result = $this->eval($facade, '(do (defstruct thing [x]) (undefined-zzz))');
+        $env->addPhpClass('test-ns', Symbol::create('Thing'));
+
+        self::assertFalse($result->success);
+    }
+
     public function test_eval_rolls_back_on_malformed_code(): void
     {
         $env = GlobalEnvironmentSingleton::initializeNew();

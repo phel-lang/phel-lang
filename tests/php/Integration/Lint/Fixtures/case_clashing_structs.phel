@@ -1,0 +1,4 @@
+(ns lint-fixture.case-clash)
+
+(defstruct point [x])
+(defstruct Point [y])

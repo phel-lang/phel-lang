@@ -62,7 +62,7 @@ A special form got the wrong kind of value in a fixed position, or a literal arg
 
 Enum case: `ErrorCode::DUPLICATE_DEFINITION`
 
-The same name is defined twice in one namespace. The analyzer reports the second definition and names the line of the first. The REPL and `phel eval` stand this guard down, so it only fires on a file. One `ns` form that binds an `:as` alias, or a `:refer` name, to two different namespaces reports here too, wherever it runs. So do two structs, exceptions, enums or interfaces in one namespace whose names compile to the same PHP class, such as `point` and `Point`: PHP class names ignore case.
+The same name is defined twice in one namespace. The analyzer reports the second definition and names the line of the first. The REPL and `phel eval` stand this guard down, so it only fires on a file. One `ns` form that binds an `:as` alias, or a `:refer` name, to two different namespaces reports here too, wherever it runs. Compiling or running a file, or evaluating in the REPL, also reports two structs, exceptions, enums or interfaces in one namespace whose names compile to the same PHP class, such as `point` and `Point`: PHP class names ignore case.
 
 ```phel
 (ns app.core)

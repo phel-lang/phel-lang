@@ -57,7 +57,6 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         }
 
         ReservedDeclarationName::assertType($structSymbol);
-        $this->analyzer->addPhpClass($this->analyzer->getNamespace(), $structSymbol);
 
         $structParams = $list->get(2);
         if (!($structParams instanceof PersistentVectorInterface)) {
@@ -65,6 +64,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         }
 
         $params = $this->params($structParams);
+        $this->analyzer->addPhpClass($this->analyzer->getNamespace(), $structSymbol);
 
         /** @var PersistentListInterface<mixed> $rest1 */
         $rest1 = $list->rest();
