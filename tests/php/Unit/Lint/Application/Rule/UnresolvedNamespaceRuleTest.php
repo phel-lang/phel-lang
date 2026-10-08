@@ -22,7 +22,7 @@ final class UnresolvedNamespaceRuleTest extends RuleTestCase
         self::assertSame(LintRuleCodes::UNRESOLVED_NAMESPACE, $diagnostics[0]->code);
         self::assertSame("Cannot find namespace 'phel.strng'. Did you mean 'phel.string'?", $diagnostics[0]->message);
         self::assertSame(2, $diagnostics[0]->startLine);
-        self::assertSame(12, $diagnostics[0]->startCol);
+        self::assertSame(13, $diagnostics[0]->startCol);
     }
 
     public function test_it_flags_vector_entries_and_names_without_a_close_match(): void

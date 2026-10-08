@@ -57,8 +57,43 @@ final class LintCommandTest extends TestCase
         $payload = json_decode(trim($tester->getDisplay()), true);
         self::assertIsArray($payload);
         self::assertSame(
-            [['PHEL203', 4, 7]],
+            [['PHEL203', 4, 8]],
             array_map(static fn(array $d): array => [$d['code'], $d['startLine'], $d['startCol']], $payload),
+        );
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_human_format_prints_a_one_based_column(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new LintCommand());
+        $tester->execute([
+            'paths' => [__DIR__ . '/Fixtures/duplicate_symbol_key.phel'],
+            '--no-cache' => true,
+        ]);
+
+        self::assertStringContainsString('duplicate_symbol_key.phel:4:8 [error] PHEL203', $tester->getDisplay());
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_github_format_prints_a_one_based_column_and_a_working_directory_relative_file(): void
+    {
+        $this->bootstrap();
+        chdir(__DIR__);
+
+        $tester = new CommandTester(new LintCommand());
+        $tester->execute([
+            'paths' => ['Fixtures/duplicate_symbol_key.phel'],
+            '--format' => 'github',
+            '--no-cache' => true,
+        ]);
+
+        self::assertStringContainsString(
+            '::error file=Fixtures/duplicate_symbol_key.phel,line=4,col=8,endLine=4,endColumn=9,title=PHEL203::',
+            $tester->getDisplay(),
         );
     }
 
@@ -203,8 +238,8 @@ final class LintCommandTest extends TestCase
         );
 
         self::assertSame([
-            ['warning', 4, 8, "Binding 'inc' shadows the core function 'phel.core/inc'."],
-            ['warning', 7, 12, "Binding 'first' shadows the core function 'phel.core/first'."],
+            ['warning', 4, 9, "Binding 'inc' shadows the core function 'phel.core/inc'."],
+            ['warning', 7, 13, "Binding 'first' shadows the core function 'phel.core/first'."],
         ], $shadowed);
         self::assertSame(0, $exit, 'A shadowed core function is a warning, so the command still succeeds');
     }
