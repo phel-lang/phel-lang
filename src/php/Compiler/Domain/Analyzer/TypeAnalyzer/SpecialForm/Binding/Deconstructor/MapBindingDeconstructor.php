@@ -23,6 +23,7 @@ use Phel\Shared\Printer\Printer;
 
 use function array_key_exists;
 use function sprintf;
+use function str_ends_with;
 
 /**
  * @phpstan-import-type BindingTuple from DeconstructorInterface
@@ -85,6 +86,14 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
         }
 
         $this->orDefaults = [];
+        if ($orMap !== null && !$orMap instanceof PersistentMapInterface) {
+            throw AnalyzerException::withLocation(
+                '`{:or {...}}` expects a map of defaults, got ' . Printer::readable()->print($orMap),
+                $binding,
+                errorCode: ErrorCode::BINDING_ERROR,
+            );
+        }
+
         if ($orMap instanceof PersistentMapInterface) {
             foreach ($orMap as $sym => $default) {
                 if ($sym instanceof Symbol) {
@@ -484,6 +493,19 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
         if (!$bindTo instanceof PersistentVectorInterface) {
             throw AnalyzerException::withLocation(
                 sprintf('`{%s [...]}` expects a vector of symbols', $directive),
+                $binding,
+                errorCode: ErrorCode::BINDING_ERROR,
+            );
+        }
+
+        $acceptsKeywords = !str_ends_with($directive, 'strs');
+        foreach ($bindTo as $entry) {
+            if ($entry instanceof Symbol || ($acceptsKeywords && $entry instanceof Keyword)) {
+                continue;
+            }
+
+            throw AnalyzerException::withLocation(
+                sprintf('`{%s [...]}` expects a vector of symbols, got %s', $directive, Printer::readable()->print($entry)),
                 $binding,
                 errorCode: ErrorCode::BINDING_ERROR,
             );

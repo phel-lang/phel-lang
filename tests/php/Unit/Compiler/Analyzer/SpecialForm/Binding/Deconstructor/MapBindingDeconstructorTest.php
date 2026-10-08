@@ -13,6 +13,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 use PhelTest\Support\CapturesDeprecationsTrait;
 use PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding\MapBindingForms;
 use PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding\SequentialBindingForms;
@@ -762,6 +763,48 @@ final class MapBindingDeconstructorTest extends TestCase
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+    }
+
+    #[DataProvider('provideInvalidDirectiveEntries')]
+    public function test_directive_rejects_an_entry_it_cannot_bind(Keyword $directive, mixed $entry, string $message): void
+    {
+        $binding = Phel::map($directive, Phel::vector([$entry]));
+
+        try {
+            $bindings = [];
+            $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+            self::fail('Expected an AnalyzerException');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertSame($message, $analyzerException->getMessage());
+            self::assertSame(ErrorCode::BINDING_ERROR, $analyzerException->getErrorCode());
+        }
+    }
+
+    public static function provideInvalidDirectiveEntries(): iterable
+    {
+        yield 'int in :keys' => [Keyword::create('keys'), 1, '`{:keys [...]}` expects a vector of symbols, got 1'];
+        yield 'string in :syms' => [Keyword::create('syms'), 'a', '`{:syms [...]}` expects a vector of symbols, got "a"'];
+        yield 'keyword in :strs' => [Keyword::create('strs'), Keyword::create('a'), '`{:strs [...]}` expects a vector of symbols, got :a'];
+        yield 'vector in :keys' => [Keyword::create('keys'), Phel::vector([Symbol::create('a')]), '`{:keys [...]}` expects a vector of symbols, got [a]'];
+    }
+
+    public function test_or_requires_a_map(): void
+    {
+        $binding = Phel::map(
+            Keyword::create('keys'),
+            Phel::vector([Symbol::create('a')]),
+            Keyword::create('or'),
+            5,
+        );
+
+        try {
+            $bindings = [];
+            $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+            self::fail('Expected an AnalyzerException');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertSame('`{:or {...}}` expects a map of defaults, got 5', $analyzerException->getMessage());
+            self::assertSame(ErrorCode::BINDING_ERROR, $analyzerException->getErrorCode());
+        }
     }
 
     #[DataProvider('provideNamespacedDirectiveEntries')]

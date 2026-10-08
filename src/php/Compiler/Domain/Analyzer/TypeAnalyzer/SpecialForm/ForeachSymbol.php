@@ -8,6 +8,7 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReadModel\ForeachSymbolTuple;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -71,15 +72,17 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         }
 
         $firstArgCount = count($foreachTuple);
-        if ($firstArgCount === 2) {
-            return;
+        if ($firstArgCount !== 2 && $firstArgCount !== 3) {
+            throw AnalyzerException::withLocation("Vector of 'foreach must have exactly two or three elements.", $list);
         }
 
-        if ($firstArgCount === 3) {
-            return;
+        $bindingValidator = new BindingValidator();
+        for ($i = 0; $i < $firstArgCount - 1; ++$i) {
+            $binding = $foreachTuple->get($i);
+            if ($binding instanceof Symbol) {
+                $bindingValidator->assertUnqualifiedName($binding);
+            }
         }
-
-        throw AnalyzerException::withLocation("Vector of 'foreach must have exactly two or three elements.", $list);
     }
 
     /**

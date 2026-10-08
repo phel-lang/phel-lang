@@ -18,6 +18,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 use PhelTest\Support\CapturesCompilerWarningsTrait;
 use PHPUnit\Framework\TestCase;
 use stdClass;
@@ -61,6 +62,44 @@ final class DefSymbolTest extends TestCase
         new DefSymbol($this->analyzer)->analyze($this->locatedDefOf('doc'), NodeEnvironment::empty());
 
         self::assertSame([], $this->capturedCompilerWarnings());
+    }
+
+    public function test_rejects_a_name_qualified_with_another_namespace(): void
+    {
+        $list = Phel::list([Symbol::create(Symbol::NAME_DEF), Symbol::createForNamespace('other.ns', 'x'), 1]);
+
+        try {
+            new DefSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+            self::fail('Expected an AnalyzerException');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertSame(
+                "Can't def other.ns/x outside the current namespace, user. Use the bare name x.",
+                $analyzerException->getMessage(),
+            );
+            self::assertSame(ErrorCode::INVALID_SPECIAL_FORM, $analyzerException->getErrorCode());
+        }
+    }
+
+    public function test_accepts_a_name_qualified_with_the_current_namespace(): void
+    {
+        $list = Phel::list([Symbol::create(Symbol::NAME_DEF), Symbol::createForNamespace('user', 'x'), 1]);
+
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame('x', $defNode->getName()->getName());
+    }
+
+    /**
+     * The reader splits a name ending in `/`, such as `test-/`, into a
+     * namespace and an empty name, yet the whole symbol names one var.
+     */
+    public function test_accepts_a_name_ending_in_a_slash(): void
+    {
+        $list = Phel::list([Symbol::create(Symbol::NAME_DEF), Symbol::create('test-/'), 1]);
+
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame('test-/', $defNode->getName()->getFullName());
     }
 
     public function test_nested_def_is_allowed(): void
