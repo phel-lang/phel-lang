@@ -682,9 +682,12 @@ HELP)
      */
     private function generatePhelTestCodeFromOptions(array $options, array $namespacesInformation): string
     {
+        $testOptions = TestCommandOptions::fromArray($options);
+        $phelOptions = $testOptions->asPhelHashMap();
+
         return sprintf(
             '(do (phel.test/run-tests %s %s) [(phel.test/successful?) (get (get (phel.test/get-stats) :counts) :total) (phel.test/focused-run?)])',
-            TestCommandOptions::fromArray($options)->asPhelHashMap(),
+            $testOptions->ownsStdout() ? sprintf('(assoc %s :output-to-stderr true)', $phelOptions) : $phelOptions,
             QuotedNamespaceList::of($namespacesInformation),
         );
     }

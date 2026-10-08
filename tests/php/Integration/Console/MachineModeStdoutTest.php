@@ -67,6 +67,14 @@ final class MachineModeStdoutTest extends TestCase
             "(ns app.calc-test\n  (:require phel.test :refer [deftest is])\n  (:require app.calc :as calc))\n\n"
             . "(deftest adds\n  (is (= 3 (calc/add 1 2))))\n",
         );
+        mkdir(self::$projectDir . '/printing/app', 0o755, true);
+        file_put_contents(
+            self::$projectDir . '/printing/app/prints_test.phel',
+            "(ns app.prints-test\n  (:require phel.test :refer [deftest is]))\n\n"
+            . "(deftest prints\n  (println \"printed by the test body\")\n"
+            . "  (is (output? \"captured\" (print \"captured\")))\n"
+            . "  (is (= \"inner\" (with-out-str (print \"inner\")))))\n",
+        );
     }
 
     public static function tearDownAfterClass(): void
@@ -136,6 +144,41 @@ final class MachineModeStdoutTest extends TestCase
         self::assertStringStartsWith('TAP version 13', $result->stdout);
         self::assertStringEndsWith("\n1..1", trim($result->stdout));
         self::assertStringContainsString('Time: ', $result->stderr);
+    }
+
+    public function test_junit_xml_sends_what_a_test_body_prints_to_stderr(): void
+    {
+        $result = $this->phel(['test', '--reporter=junit-xml', 'printing/app/prints_test.phel']);
+
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        $xml = simplexml_load_string($result->stdout);
+        self::assertNotFalse($xml, $result->stdout);
+        self::assertSame('2', (string) $xml['tests']);
+        self::assertSame('0', (string) $xml['failures']);
+        self::assertStringContainsString('printed by the test body', $result->stderr);
+        self::assertStringNotContainsString('captured', $result->stderr);
+        self::assertStringNotContainsString('inner', $result->stderr);
+    }
+
+    public function test_tap_sends_what_a_test_body_prints_to_stderr(): void
+    {
+        $result = $this->phel(['test', '--reporter=tap', 'printing/app/prints_test.phel']);
+
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertSame(
+            ['TAP version 13', 'ok 1 - prints', 'ok 2 - prints', '1..2'],
+            explode("\n", trim($result->stdout)),
+        );
+        self::assertStringContainsString('printed by the test body', $result->stderr);
+        self::assertStringNotContainsString('captured', $result->stderr);
+    }
+
+    public function test_junit_xml_to_a_file_leaves_what_a_test_body_prints_on_stdout(): void
+    {
+        $result = $this->phel(['test', '--reporter=junit-xml', '-o', 'junit.xml', 'printing/app/prints_test.phel']);
+
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertStringContainsString('printed by the test body', $result->stdout);
     }
 
     public function test_the_default_reporter_keeps_its_timing_on_stdout(): void
