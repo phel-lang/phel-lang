@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Api;
 
+use Phel\Lang\SourceLocation;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Exceptions\ErrorCodeCatalog;
@@ -12,6 +13,8 @@ use Phel\Shared\Exceptions\ErrorCodeCatalog;
  * `code` is what the tool reports under: a `PHELxxx` code from `phel analyze`,
  * a lint rule code from `phel lint`. `errorCode` is the `PHELxxx` code behind
  * it either way, so one error reads the same through both tools.
+ *
+ * Lines and columns are 1-based, `endCol` one past the last character.
  */
 final readonly class Diagnostic
 {
@@ -45,22 +48,54 @@ final readonly class Diagnostic
         ErrorCode $fallbackCode,
         string $uri,
     ): self {
-        $start = $e->getStartLocation();
-        $end = $e->getEndLocation();
         $errorCode = $e->getErrorCode() ?? $fallbackCode;
 
-        return new self(
+        return self::fromSourceSpan(
             code: $errorCode->value,
             severity: self::SEVERITY_ERROR,
             message: $e->getMessage(),
             uri: $uri,
-            startLine: $start?->getLine() ?? 1,
-            startCol: $start?->getColumn() ?? 1,
-            endLine: $end?->getLine() ?? ($start?->getLine() ?? 1),
-            endCol: $end?->getColumn() ?? ($start?->getColumn() ?? 1),
+            start: $e->getStartLocation(),
+            end: $e->getEndLocation(),
             errorCode: $errorCode->value,
             suggestions: $e->getSuggestions(),
             fix: ErrorCodeCatalog::explain($errorCode)->fix,
+        );
+    }
+
+    /**
+     * The one place a 0-based {@see SourceLocation} column becomes a
+     * diagnostic's 1-based column. A missing start reads as 1:1, a missing
+     * end as the start.
+     *
+     * @param list<string> $suggestions
+     */
+    public static function fromSourceSpan(
+        string $code,
+        string $severity,
+        string $message,
+        string $uri,
+        ?SourceLocation $start,
+        ?SourceLocation $end,
+        ?string $errorCode = null,
+        array $suggestions = [],
+        ?string $fix = null,
+    ): self {
+        $startLine = $start?->getLine() ?? 1;
+        $startCol = $start instanceof SourceLocation ? $start->getColumn() + 1 : 1;
+
+        return new self(
+            code: $code,
+            severity: $severity,
+            message: $message,
+            uri: $uri,
+            startLine: $startLine,
+            startCol: $startCol,
+            endLine: $end?->getLine() ?? $startLine,
+            endCol: $end instanceof SourceLocation ? $end->getColumn() + 1 : $startCol,
+            errorCode: $errorCode,
+            suggestions: $suggestions,
+            fix: $fix,
         );
     }
 

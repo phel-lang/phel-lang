@@ -23,6 +23,7 @@ use function is_file;
 use function is_readable;
 use function iterator_to_array;
 use function json_encode;
+use function realpath;
 use function sort;
 use function sprintf;
 
@@ -95,7 +96,7 @@ HELP)
                 return InvocationError::report($output, sprintf('Unable to read file: %s', $file));
             }
 
-            $diagnostics = [...$diagnostics, ...$this->getFacade()->analyzeSource($source, $file)];
+            $diagnostics = [...$diagnostics, ...$this->getFacade()->analyzeSource($source, realpath($file) ?: $file)];
         }
 
         $payload = array_map(static fn(Diagnostic $d): array => $d->toArray(), $diagnostics);

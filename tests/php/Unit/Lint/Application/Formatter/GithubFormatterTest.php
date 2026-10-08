@@ -28,6 +28,26 @@ final class GithubFormatterTest extends TestCase
         self::assertStringContainsString('::boom', $out);
     }
 
+    public function test_it_prints_a_file_under_the_working_directory_relative_to_it(): void
+    {
+        $formatter = new GithubFormatter('/project');
+        $result = new LintResult([
+            new Diagnostic('phel/a', Diagnostic::SEVERITY_ERROR, 'boom', '/project/src/f.phel', 7, 3, 7, 9),
+        ]);
+
+        self::assertStringContainsString('file=src/f.phel,', $formatter->format($result));
+    }
+
+    public function test_it_keeps_a_file_outside_the_working_directory_absolute(): void
+    {
+        $formatter = new GithubFormatter('/project');
+        $result = new LintResult([
+            new Diagnostic('phel/a', Diagnostic::SEVERITY_ERROR, 'boom', '/project-other/f.phel', 7, 3, 7, 9),
+        ]);
+
+        self::assertStringContainsString('file=/project-other/f.phel,', $formatter->format($result));
+    }
+
     public function test_it_maps_warning_severity_to_warning_level(): void
     {
         $formatter = new GithubFormatter();

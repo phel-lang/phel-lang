@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Rule;
 
+use Phel\Lang\SourceLocation;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Api\Diagnostic;
@@ -94,15 +95,13 @@ final readonly class CommentStyleRule implements LintRuleInterface
     {
         $start = $token->getStartLocation();
 
-        return new Diagnostic(
+        return Diagnostic::fromSourceSpan(
             code: $this->code(),
             severity: Diagnostic::SEVERITY_WARNING,
             message: "Standalone comment should start with ';;'; a single ';' is reserved for comments that trail code on the same line.",
             uri: $uri,
-            startLine: $start->getLine(),
-            startCol: $start->getColumn(),
-            endLine: $start->getLine(),
-            endCol: $start->getColumn() + 1,
+            start: $start,
+            end: new SourceLocation($start->getFile(), $start->getLine(), $start->getColumn() + 1),
         );
     }
 }

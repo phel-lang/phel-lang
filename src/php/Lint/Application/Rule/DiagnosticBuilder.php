@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Rule;
 
-use Phel\Lang\SourceLocation;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Api\Diagnostic;
 
@@ -24,37 +23,13 @@ final class DiagnosticBuilder
         string $uri,
         TypeInterface|string|float|int|bool|null $form,
     ): Diagnostic {
-        [$startLine, $startCol, $endLine, $endCol] = self::locationOf($form);
-
-        return new Diagnostic(
+        return Diagnostic::fromSourceSpan(
             code: $code,
             severity: Diagnostic::SEVERITY_WARNING,
             message: $message,
             uri: $uri,
-            startLine: $startLine,
-            startCol: $startCol,
-            endLine: $endLine,
-            endCol: $endCol,
+            start: $form instanceof TypeInterface ? $form->getStartLocation() : null,
+            end: $form instanceof TypeInterface ? $form->getEndLocation() : null,
         );
-    }
-
-    /**
-     * @return array{int, int, int, int}
-     */
-    private static function locationOf(mixed $form): array
-    {
-        if ($form instanceof TypeInterface) {
-            $start = $form->getStartLocation();
-            $end = $form->getEndLocation();
-
-            $startLine = $start instanceof SourceLocation ? $start->getLine() : 1;
-            $startCol = $start instanceof SourceLocation ? $start->getColumn() : 1;
-            $endLine = $end instanceof SourceLocation ? $end->getLine() : $startLine;
-            $endCol = $end instanceof SourceLocation ? $end->getColumn() : $startCol;
-
-            return [$startLine, $startCol, $endLine, $endCol];
-        }
-
-        return [1, 1, 1, 1];
     }
 }

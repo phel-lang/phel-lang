@@ -139,6 +139,13 @@ is `PHEL002`, a wrong kind of value such as `(fn 1)` is `PHEL003`, a bad
 binding is `PHEL008`, and an unresolvable `catch` type, `var` target or `use`
 class is `PHEL001`.
 
+Tools that read diagnostic positions: `phel lint` (every format), `phel analyze`
+and the `api-daemon` `analyzeSource` method give 1-based columns, as they
+already did lines, so a column is one higher than before. The same holds for
+`Phel\Shared\Api\Diagnostic` from `ApiFacade::analyzeSource()`. `phel analyze`
+prints `uri` as an absolute path, and `phel lint --format=github` prints `file=`
+relative to the working directory. The LSP still sends 0-based positions.
+
 ## Step 7: the REPL history file
 
 `.phel-repl-history` in the project root is no longer read or migrated. History
