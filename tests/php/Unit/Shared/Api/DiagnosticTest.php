@@ -81,7 +81,28 @@ final class DiagnosticTest extends TestCase
         self::assertSame('PHEL001', $diagnostic->errorCode);
         self::assertSame(['println'], $diagnostic->suggestions);
         self::assertSame(ErrorCodeCatalog::explain(ErrorCode::UNDEFINED_SYMBOL)->fix, $diagnostic->fix);
-        self::assertSame([2, 3, 2, 3], [$diagnostic->startLine, $diagnostic->startCol, $diagnostic->endLine, $diagnostic->endCol]);
+        self::assertSame([2, 4, 2, 4], [$diagnostic->startLine, $diagnostic->startCol, $diagnostic->endLine, $diagnostic->endCol]);
+    }
+
+    public function test_a_source_span_reads_as_one_based_columns(): void
+    {
+        $diagnostic = Diagnostic::fromSourceSpan(
+            'phel/a',
+            Diagnostic::SEVERITY_WARNING,
+            'm',
+            'a.phel',
+            new SourceLocation('a.phel', 2, 13),
+            new SourceLocation('a.phel', 2, 15),
+        );
+
+        self::assertSame([2, 14, 2, 16], [$diagnostic->startLine, $diagnostic->startCol, $diagnostic->endLine, $diagnostic->endCol]);
+    }
+
+    public function test_a_span_without_locations_starts_at_the_first_column(): void
+    {
+        $diagnostic = Diagnostic::fromSourceSpan('phel/a', Diagnostic::SEVERITY_WARNING, 'm', 'a.phel', null, null);
+
+        self::assertSame([1, 1, 1, 1], [$diagnostic->startLine, $diagnostic->startCol, $diagnostic->endLine, $diagnostic->endCol]);
     }
 
     public function test_a_new_code_keeps_the_error_code_behind_it(): void

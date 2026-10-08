@@ -57,6 +57,13 @@ echo '{"id":1,"method":"version"}' | phel api-daemon
 # {"id":1,"result":"v0.54.0"}
 ```
 
+Diagnostics from `lint`, `analyze` and the `api-daemon` `analyzeSource` method
+use 1-based lines and columns, and `endCol` is one past the last character.
+`lint` and `analyze` print `uri` as an absolute path; `api-daemon` returns the
+`uri` the request sent. `lint --format=github` prints `file=` relative to the
+working directory, the form GitHub annotations expect. `phel lsp` sends the
+0-based positions the protocol defines.
+
 ## Editor setup
 
 `phel lsp` (Language Server, stdio) and `phel nrepl` (default `127.0.0.1:7888`) plug

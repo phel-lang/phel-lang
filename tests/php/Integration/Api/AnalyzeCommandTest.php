@@ -37,6 +37,24 @@ final class AnalyzeCommandTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_analyze_command_reports_an_absolute_uri_and_one_based_columns(): void
+    {
+        $this->bootstrap();
+        chdir(__DIR__);
+
+        $tester = new CommandTester(new AnalyzeCommand());
+        $tester->execute(['paths' => ['Fixtures/arity_mismatch.phel']]);
+
+        $decoded = json_decode(trim($tester->getDisplay()), true);
+        self::assertIsArray($decoded);
+        self::assertSame(
+            [realpath(__DIR__ . '/Fixtures/arity_mismatch.phel'), 3, 1, 3, 16],
+            [$decoded[0]['uri'], $decoded[0]['startLine'], $decoded[0]['startCol'], $decoded[0]['endLine'], $decoded[0]['endCol']],
+        );
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_analyze_command_resolves_core_macros(): void
     {
         $this->bootstrap();

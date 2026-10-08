@@ -1579,6 +1579,7 @@ final readonly class Phel\Shared\Api\Diagnostic
   public function withFix(?string $fix): Phel\Shared\Api\Diagnostic
   public function withSeverity(string $severity): Phel\Shared\Api\Diagnostic
   public static function fromLocatedException(Phel\Shared\Exceptions\AbstractLocatedException $e, Phel\Shared\Exceptions\ErrorCode $fallbackCode, string $uri): Phel\Shared\Api\Diagnostic
+  public static function fromSourceSpan(string $code, string $severity, string $message, string $uri, ?Phel\Lang\SourceLocation $start, ?Phel\Lang\SourceLocation $end, ?string $errorCode = null, array $suggestions = [], ?string $fix = null): Phel\Shared\Api\Diagnostic
 
 final readonly class Phel\Shared\Api\Location
   public readonly int $col

@@ -18,10 +18,10 @@ use function sort;
 final class LintCacheFingerprint
 {
     /**
-     * Bump when a cached diagnostic gains a field, so entries written without
-     * it are recomputed instead of read back with the field empty.
+     * Bump when a cached diagnostic gains a field or a field changes meaning,
+     * so entries written before are recomputed instead of read back.
      */
-    private const int ENTRY_FORMAT = 2;
+    private const int ENTRY_FORMAT = 3;
 
     /**
      * @param list<string> $ruleCodes

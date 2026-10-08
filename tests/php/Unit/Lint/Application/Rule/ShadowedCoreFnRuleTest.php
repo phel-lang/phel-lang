@@ -25,7 +25,7 @@ final class ShadowedCoreFnRuleTest extends RuleTestCase
         self::assertSame(LintRuleCodes::SHADOWED_CORE_FN, $diagnostics[0]->code);
         self::assertStringContainsString("'inc'", $diagnostics[0]->message);
         self::assertSame(1, $diagnostics[0]->startLine);
-        self::assertSame(6, $diagnostics[0]->startCol);
+        self::assertSame(7, $diagnostics[0]->startCol);
     }
 
     #[PreserveGlobalState(false)]
