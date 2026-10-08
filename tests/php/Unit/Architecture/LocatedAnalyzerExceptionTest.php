@@ -32,6 +32,7 @@ final class LocatedAnalyzerExceptionTest extends TestCase
      */
     private const array UNLOCATED = [
         'GlobalEnvironmentAlreadyInitializedException.php' => 'raised by a host caller misusing the environment API, never by a Phel source form, so there is no location to point at',
+        'UnevaluatedDefinitionException.php' => 'never raised on its own: it is the cause of the located macro expansion error, which carries the call site',
     ];
 
     public function test_every_analyzer_exception_is_located(): void

@@ -88,7 +88,7 @@ final readonly class LintRunner
                 semanticDiagnostics: $semantic,
             );
 
-            $fileDiagnostics = $this->pipeline->run($analysis, $settings);
+            $ruleDiagnostics = $this->pipeline->run($analysis, $settings);
 
             // A file that stopped reading was never fully seen, so no rule can
             // have an opinion about the part that is missing. The analyzer
@@ -96,21 +96,27 @@ final readonly class LintRunner
             // that is the one thing worth saying about the file. Without it
             // the run reports the file as clean and exits 0 (#3292).
             if ($read->failed) {
-                $fileDiagnostics = [...$semantic, ...$fileDiagnostics];
+                $passedThrough = $semantic;
             } else {
                 // Like a syntax error, a superseded form stops `phel run`, so
                 // it is reported under the analyzer's code, with no rule to
-                // switch it off (#3456). No rule owns an `ns` form the analyzer
-                // rejects either, so its own error is the only word on it;
-                // dropping it reported the file clean while every command that
-                // loads it fails (#3457).
+                // switch it off (#3456). An `ns` form the analyzer rejects is
+                // kept the same way, unless a dedicated rule reported it (#3457).
                 $superseded = $this->supersededForms($semantic);
-                $fileDiagnostics = [
+                $passedThrough = [
                     ...$superseded,
-                    ...$this->nsFormErrors($read->forms, $semantic, [...$superseded, ...$fileDiagnostics]),
-                    ...$fileDiagnostics,
+                    ...$this->nsFormErrors(
+                        $read->forms,
+                        $semantic,
+                        [...$superseded, ...$this->withoutCompileErrors($ruleDiagnostics)],
+                    ),
                 ];
             }
+
+            $fileDiagnostics = [
+                ...$passedThrough,
+                ...$this->withoutCoveredCompileErrors($ruleDiagnostics, $passedThrough),
+            ];
 
             // A rule crash is a fact about the linter, not about the file, and
             // fixing it changes neither the file hash nor the rule fingerprint.
@@ -170,6 +176,52 @@ final readonly class LintRunner
             $diagnostics,
             static fn(Diagnostic $diagnostic): bool => $diagnostic->code === ErrorCode::SUPERSEDED_FORM->value,
         ));
+    }
+
+    /**
+     * @param list<Diagnostic> $diagnostics
+     *
+     * @return list<Diagnostic>
+     */
+    private function withoutCompileErrors(array $diagnostics): array
+    {
+        return array_values(array_filter(
+            $diagnostics,
+            static fn(Diagnostic $diagnostic): bool => $diagnostic->code !== LintRuleCodes::COMPILE_ERROR,
+        ));
+    }
+
+    /**
+     * The analyzer stops at the first error in a top-level form, so an error
+     * another rule or a pass-through reports inside a `phel/compile-error`
+     * span is the same mistake: `(let [a] a)` is the analyzer's `PHEL008` on
+     * the whole form and `phel/invalid-destructuring` on its vector.
+     *
+     * @param list<Diagnostic> $ruleDiagnostics
+     * @param list<Diagnostic> $passedThrough
+     *
+     * @return list<Diagnostic>
+     */
+    private function withoutCoveredCompileErrors(array $ruleDiagnostics, array $passedThrough): array
+    {
+        $otherErrors = array_filter(
+            [...$passedThrough, ...$this->withoutCompileErrors($ruleDiagnostics)],
+            static fn(Diagnostic $diagnostic): bool => $diagnostic->severity === Diagnostic::SEVERITY_ERROR,
+        );
+
+        return array_values(array_filter(
+            $ruleDiagnostics,
+            static fn(Diagnostic $diagnostic): bool => $diagnostic->code !== LintRuleCodes::COMPILE_ERROR
+                || !array_any($otherErrors, static fn(Diagnostic $other): bool => self::startsInside($other, $diagnostic)),
+        ));
+    }
+
+    private static function startsInside(Diagnostic $inner, Diagnostic $outer): bool
+    {
+        $start = [$inner->startLine, $inner->startCol];
+
+        return $start >= [$outer->startLine, $outer->startCol]
+            && $start <= [$outer->endLine, $outer->endCol];
     }
 
     /**

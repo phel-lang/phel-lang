@@ -1949,6 +1949,7 @@ final readonly class Phel\Shared\Interop\Wrapper
 final class Phel\Shared\LintRuleCodes
   public const string ARITY_MISMATCH = 'phel/arity-mismatch'
   public const string COMMENT_STYLE = 'phel/comment-style'
+  public const string COMPILE_ERROR = 'phel/compile-error'
   public const string DISCOURAGED_VAR = 'phel/discouraged-var'
   public const string DUPLICATE_DEF = 'phel/duplicate-def'
   public const string DUPLICATE_KEY = 'phel/duplicate-key'

@@ -183,6 +183,13 @@ final class LintRuleCatalog implements LintRuleExplainerInterface
                 fix: 'Fix the class name or its :use, install the package that ships it, or call the Phel replacement the message names.',
             ),
             new LintRuleExplanation(
+                code: LintRuleCodes::COMPILE_ERROR,
+                title: 'Compile error',
+                summary: 'The analyzer rejects the form, so phel run would fail on it. The PHEL code in errorCode names the error; phel explain <code> describes it.',
+                example: '(defn f [x] (case x 1 :a 1 :b :d))',
+                fix: 'Fix the form the message names, as phel analyze or phel run would ask.',
+            ),
+            new LintRuleExplanation(
                 code: LintRuleCodes::INTERNAL_ERROR,
                 title: 'Lint rule crashed',
                 summary: 'A lint rule threw while checking the file. The finding is about the linter, not about your code.',

@@ -1,0 +1,3 @@
+(ns fixtures.duplicate-case)
+
+(defn f [x] (case x 1 :a 1 :b :d))

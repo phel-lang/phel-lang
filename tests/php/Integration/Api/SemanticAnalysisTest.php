@@ -54,6 +54,84 @@ final class SemanticAnalysisTest extends TestCase
         self::assertContains('PHEL001', $codes);
     }
 
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_call_to_a_macro_the_analysis_never_evaluated_is_not_an_error(): void
+    {
+        $this->bootstrap();
+        $facade = new ApiFacade();
+
+        $diagnostics = $facade->analyzeSource(
+            "(ns user)\n(defmacro twice [x] `(+ ~x ~x))\n(defn f [] (twice 1))\n(defn g [x] (case x 1 :a 1 :b :d))\n",
+            'user.phel',
+        );
+
+        self::assertSame(
+            [['PHEL005', 4]],
+            array_map(static fn(Diagnostic $d): array => [$d->code, $d->startLine], $diagnostics),
+        );
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_macro_that_runs_a_fn_the_analysis_never_evaluated_is_not_an_error(): void
+    {
+        $this->bootstrap();
+        $facade = new ApiFacade();
+
+        $path = realpath(__DIR__ . '/Fixtures/macro_runs_caller_code.phel');
+        self::assertIsString($path);
+        $source = file_get_contents($path);
+        self::assertIsString($source);
+
+        $diagnostics = $facade->analyzeSource($source, $path);
+
+        self::assertSame([], $diagnostics);
+    }
+
+    #[DataProvider('providerMacrosFailingOnTheirOwnInput')]
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_macro_that_fails_on_its_own_input_is_still_an_error(string $form): void
+    {
+        $this->bootstrap();
+        $facade = new ApiFacade();
+
+        $diagnostics = $facade->analyzeSource("(ns user)\n" . $form . "\n", 'user.phel');
+
+        self::assertSame(
+            [['PHEL005', 2]],
+            array_map(static fn(Diagnostic $d): array => [$d->code, $d->startLine], $diagnostics),
+        );
+    }
+
+    public static function providerMacrosFailingOnTheirOwnInput(): iterable
+    {
+        yield 'defstruct' => ['(defstruct 1 [x])'];
+        yield 'defrecord' => ['(defrecord 1 [a])'];
+        yield 'deftype' => ['(deftype 1 [a])'];
+        yield 'defprotocol' => ['(defprotocol P (1 [this]))'];
+        yield 'defmulti' => ['(defmulti 1 :k)'];
+        yield 'defenum' => ['(defenum 1 :a)'];
+        yield 'definterface' => ['(definterface 1 (foo [this]))'];
+        yield 'defexception' => ['(defexception 1)'];
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_macro_whose_value_is_not_a_fn_is_still_an_error(): void
+    {
+        $this->bootstrap();
+        $facade = new ApiFacade();
+
+        $diagnostics = $facade->analyzeSource("(ns user)\n(def ^{:macro true} fm 1)\n(defn f [] (fm 2))\n", 'user.phel');
+
+        self::assertSame(
+            [['PHEL005', 3]],
+            array_map(static fn(Diagnostic $d): array => [$d->code, $d->startLine], $diagnostics),
+        );
+    }
+
     #[DataProvider('providerSupersededForms')]
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]

@@ -6,6 +6,7 @@ namespace Phel\Api\Application\Analysis;
 
 use Phel\Api\Domain\AnalysisStageInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\Exceptions\UnevaluatedDefinitionException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
@@ -13,6 +14,7 @@ use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
+use Throwable;
 
 use function file_get_contents;
 use function in_array;
@@ -75,11 +77,31 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
             } catch (ReaderException $e) {
                 $diagnostics[] = Diagnostic::fromLocatedException($e, ErrorCode::READER_ERROR, $uri);
             } catch (AnalyzerException $e) {
+                if ($this->isAnalysisArtefact($e)) {
+                    continue;
+                }
+
                 $diagnostics[] = Diagnostic::fromLocatedException($e, ErrorCode::INVALID_SPECIAL_FORM, $uri);
             }
         }
 
         return $diagnostics;
+    }
+
+    /**
+     * This pass never evaluates a `def`, so a macro it defined has no fn yet
+     * and a macro that runs its arguments may call a fn that is still `null`.
+     * The compiler marks those causes; anything else is an error in the source.
+     */
+    private function isAnalysisArtefact(AnalyzerException $e): bool
+    {
+        for ($cause = $e->getPrevious(); $cause instanceof Throwable; $cause = $cause->getPrevious()) {
+            if ($cause instanceof UnevaluatedDefinitionException) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

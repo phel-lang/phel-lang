@@ -58,6 +58,8 @@ final class LintRuleCodes
 
     public const string UNKNOWN_CLASS = 'phel/unknown-class';
 
+    public const string COMPILE_ERROR = 'phel/compile-error';
+
     /**
      * Not a rule: the code `RulePipeline` reports under when a rule itself
      * throws. Deliberately absent from {@see self::allCodes()}: it has no
@@ -88,6 +90,7 @@ final class LintRuleCodes
             self::DISCOURAGED_VAR,
             self::COMMENT_STYLE,
             self::UNKNOWN_CLASS,
+            self::COMPILE_ERROR,
         ];
     }
 }

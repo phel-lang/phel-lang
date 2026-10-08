@@ -40,7 +40,7 @@ Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`
 
 ## Rule Set (v1)
 
-- Errors: `phel/unresolved-symbol`, `phel/unresolved-namespace`, `phel/unresolved-refer`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-def`
+- Errors: `phel/unresolved-symbol`, `phel/unresolved-namespace`, `phel/unresolved-refer`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-def`, `phel/compile-error`
 - Warnings: `phel/unused-binding`, `phel/unused-require`, `phel/unused-import`, `phel/shadowed-binding`, `phel/shadowed-core-fn`, `phel/redundant-do`, `phel/discouraged-var`, `phel/comment-style`, `phel/unknown-class`
 
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
@@ -51,7 +51,7 @@ Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code con
 
 The code `RulePipeline` reports under when a rule's `apply()` throws. It is the
 one diagnostic the linter emits about itself, so it plays by different rules
-from the fourteen above:
+from the rules above:
 
 - **Always `error` severity**, never `RuleSettings::severityFor()`. A configured
   severity grades a finding about the linted code; a crash is a finding about
@@ -96,6 +96,14 @@ can only check a namespace that is loaded; the Api analysis stage loads the
 linted file's dependencies first, so the rule sees every project and stdlib
 require. `definterface` and `defstruct` names count as defined through their PHP
 class.
+
+### `phel/compile-error`
+
+Reports every error-severity analyzer diagnostic no dedicated rule promotes, so a file `phel run` rejects never lints clean (#3621). The `PHELxxx` code stays in `errorCode` and the message is the analyzer's.
+
+- A rule that promotes an analyzer code implements `Domain\PromotingRuleInterface`; `CompileErrorRule::besides()` reads the promoted codes off the rule list in `LintFactory::createRules()`, so a new promoting rule cannot double-report.
+- `LintRunner` drops a `phel/compile-error` when an error from a pass-through (syntax error, `PHEL012`, rejected `ns` form) or another rule starts inside its span. The analyzer stops at the first error of a top-level form, so that is the same mistake: `(let [a] a)` is reported once, by `phel/invalid-destructuring`.
+- The analysis never evaluates a `def`, so it cannot expand a call to a macro the file defines, and a macro that runs the caller's code while expanding meets a fn that is still `null`. `ReadAndAnalyzeStage` drops those errors instead of reporting a `PHEL005` the compiler would not raise; see `.agnostic-ai/rules/module-api.md`.
 
 ### `phel/duplicate-def`
 
@@ -178,4 +186,4 @@ Warns on a static call `(Foo/bar ...)` whose class cannot be autoloaded, after r
 - The rule-level `catch (Throwable)` in `CommentStyleRule` exists for a source that does not lex or parse, not as a licence to swallow rule bugs. Because it catches `Throwable` around the whole `apply()` body, a genuine bug in it still bypasses `RulePipeline`'s guard; narrowing it to the documented lexer/parser exceptions is open work
 - A file that does not lex or parse is reported with the analyzer's own code (`PHEL310`, `PHEL100`, ...) and fails the run. `readFormsBestEffort` is still best-effort, but its `Generator::getReturn()` now says whether anything was dropped; `SourceReader` passes that through as `SourceRead::$failed`, and `LintRunner` emits the `analyzeSource` diagnostics for such a file. Rules still see the forms that did read (#3292)
 - A superseded form (`PHEL012`: `php/new`, `php/->`, `php/::`, `set-var`) is passed through from `analyzeSource` by `LintRunner` under the analyzer's code, like a syntax error: it stops `phel run`, so no rule can switch it off (#3456)
-- An `ns` form the analyzer rejects is reported the same way, with the analyzer's code (`PHEL007` for `:refer :all`): `LintRunner` keeps the `analyzeSource` diagnostics that fall inside the `ns` form, since no rule owns them. `LintCommand` loads the Phel namespaces inside its `try`, so a failure there is a `Lint failed:` line, not a bare console error (#3457)
+- An `ns` form the analyzer rejects is reported the same way, with the analyzer's code (`PHEL007` for `:refer :all`): `LintRunner` keeps the `analyzeSource` diagnostics that fall inside the `ns` form that no dedicated rule reported; `phel/compile-error` yields to them. `LintCommand` loads the Phel namespaces inside its `try`, so a failure there is a `Lint failed:` line, not a bare console error (#3457)
