@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Closure;
+use Error;
 use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
@@ -15,16 +16,18 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Analyzer\Exceptions\MacroNotCallableException;
+use Phel\Compiler\Domain\Analyzer\Exceptions\UnevaluatedDefinitionException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\CallInliner;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\UpdateLiteralFnLowering;
 use Phel\Lang\AbstractFn;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Printer\Printer;
@@ -39,6 +42,7 @@ use function is_float;
 use function is_int;
 use function is_string;
 use function sprintf;
+use function str_replace;
 
 /**
  * (f args...).
@@ -347,7 +351,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
             // A macro whose fn was analysed but never evaluated, which only a
             // source analysis leaves behind, differs from one bound to a value.
             $cause = $this->analyzer->getDefFnNode($macroNode->getNamespace(), $macroNode->getName()) instanceof FnNodeInterface
-                ? MacroNotCallableException::forMacro($ns, $nodeName)
+                ? UnevaluatedDefinitionException::macroNotCallable($ns, $nodeName)
                 : new RuntimeException(sprintf('Macro "%s::%s" is not callable.', $ns, $nodeName));
 
             throw AnalyzerException::whenExpandingMacro($list, $macroNode, $cause);
@@ -356,8 +360,62 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         try {
             return $this->callMacroFn($fn, $list, $env, $this->definitionLocation($macroNode));
         } catch (Throwable $throwable) {
+            // A macro that runs its arguments, such as `phel.router/compiled-router`,
+            // hits a PHP `Error` when one of them names a fn only analysed so far.
+            if ($this->isPhpError($throwable) && $this->namesUnevaluatedDefinition($list->rest(), $env)) {
+                $throwable = UnevaluatedDefinitionException::calledDuringExpansion($throwable);
+            }
+
             throw AnalyzerException::whenExpandingMacro($list, $macroNode, $throwable);
         }
+    }
+
+    private function isPhpError(Throwable $throwable): bool
+    {
+        for ($cause = $throwable; $cause instanceof Throwable; $cause = $cause->getPrevious()) {
+            if ($cause instanceof Error) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function namesUnevaluatedDefinition(mixed $form, NodeEnvironmentInterface $env): bool
+    {
+        if ($form instanceof Symbol) {
+            try {
+                $node = $this->analyzer->resolve($form, $env);
+            } catch (Throwable) {
+                return false;
+            }
+
+            return $node instanceof GlobalVarNode
+                && !Phel::hasDefinition(str_replace('-', '_', $node->getNamespace()), $node->getName()->getName());
+        }
+
+        if ($form instanceof PersistentMapInterface) {
+            foreach ($form as $key => $value) {
+                if ($this->namesUnevaluatedDefinition($key, $env) || $this->namesUnevaluatedDefinition($value, $env)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        if ($form instanceof PersistentListInterface
+            || $form instanceof PersistentVectorInterface
+            || $form instanceof PersistentHashSetInterface
+        ) {
+            foreach ($form as $element) {
+                if ($this->namesUnevaluatedDefinition($element, $env)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

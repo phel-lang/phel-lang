@@ -89,6 +89,34 @@ final class SemanticAnalysisTest extends TestCase
         self::assertSame([], $diagnostics);
     }
 
+    #[DataProvider('providerMacrosFailingOnTheirOwnInput')]
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_macro_that_fails_on_its_own_input_is_still_an_error(string $form): void
+    {
+        $this->bootstrap();
+        $facade = new ApiFacade();
+
+        $diagnostics = $facade->analyzeSource("(ns user)\n" . $form . "\n", 'user.phel');
+
+        self::assertSame(
+            [['PHEL005', 2]],
+            array_map(static fn(Diagnostic $d): array => [$d->code, $d->startLine], $diagnostics),
+        );
+    }
+
+    public static function providerMacrosFailingOnTheirOwnInput(): iterable
+    {
+        yield 'defstruct' => ['(defstruct 1 [x])'];
+        yield 'defrecord' => ['(defrecord 1 [a])'];
+        yield 'deftype' => ['(deftype 1 [a])'];
+        yield 'defprotocol' => ['(defprotocol P (1 [this]))'];
+        yield 'defmulti' => ['(defmulti 1 :k)'];
+        yield 'defenum' => ['(defenum 1 :a)'];
+        yield 'definterface' => ['(definterface 1 (foo [this]))'];
+        yield 'defexception' => ['(defexception 1)'];
+    }
+
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_a_macro_whose_value_is_not_a_fn_is_still_an_error(): void

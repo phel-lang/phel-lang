@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application\Analysis;
 
-use Error;
 use Phel\Api\Domain\AnalysisStageInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Analyzer\Exceptions\MacroNotCallableException;
+use Phel\Compiler\Domain\Analyzer\Exceptions\UnevaluatedDefinitionException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
@@ -92,15 +91,14 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
     }
 
     /**
-     * This pass never evaluates a `def`, so a macro it defined cannot be
-     * expanded, and a macro that runs the caller's code while expanding hits
-     * a fn that is still `null`: PHP raises an `Error`, not the exception a
-     * macro throws on purpose, such as `case` on a repeated constant.
+     * This pass never evaluates a `def`, so a macro it defined has no fn yet
+     * and a macro that runs its arguments may call a fn that is still `null`.
+     * The compiler marks those causes; anything else is an error in the source.
      */
     private function isAnalysisArtefact(AnalyzerException $e): bool
     {
         for ($cause = $e->getPrevious(); $cause instanceof Throwable; $cause = $cause->getPrevious()) {
-            if ($cause instanceof MacroNotCallableException || $cause instanceof Error) {
+            if ($cause instanceof UnevaluatedDefinitionException) {
                 return true;
             }
         }

@@ -13,6 +13,7 @@ use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
+use function count;
 use function fwrite;
 use function json_decode;
 use function json_encode;
@@ -90,31 +91,29 @@ final class ApiDaemonTest extends TestCase
         Symbol::resetGen();
         GlobalEnvironmentSingleton::initializeNew();
 
-        $in = fopen('php://temp', 'r+');
-        $out = fopen('php://temp', 'r+');
-        self::assertNotFalse($in);
-        self::assertNotFalse($out);
-
-        foreach (["(ns stale)\n\n(defmacro m [x] x)\n\n(defn f [] (m 2))\n", "(ns stale)\n\n(defn f [] (m 2))\n"] as $id => $source) {
-            fwrite($in, json_encode([
-                'id' => $id,
-                'method' => 'analyzeSource',
-                'params' => ['source' => $source, 'uri' => 'stale.phel'],
-            ]) . "\n");
-        }
-
-        rewind($in);
-        new ApiDaemon(new ApiFacade(), $in, $out)->run(2);
-        rewind($out);
-        $contents = stream_get_contents($out);
-        self::assertIsString($contents);
-
-        $codes = array_map(
-            static fn(string $line): array => array_column(json_decode($line, true)['result'], 'code'),
-            array_values(array_filter(explode("\n", $contents), static fn(string $l): bool => $l !== '')),
-        );
+        $codes = $this->analyzeInOneDaemon([
+            ['stale.phel', "(ns stale)\n\n(defmacro m [x] x)\n\n(defn f [] (m 2))\n"],
+            ['stale.phel', "(ns stale)\n\n(defn f [] (m 2))\n"],
+        ]);
 
         self::assertSame([[], ['PHEL001']], $codes);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_macro_added_to_one_namespace_expands_in_another_on_the_next_request(): void
+    {
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+
+        $codes = $this->analyzeInOneDaemon([
+            ['a.phel', "(ns daemon.a)\n\n(defmacro m [x] x)\n\n(defmacro m2 [x] x)\n"],
+            ['b.phel', "(ns daemon.b\n  (:require daemon.a :as a))\n\n(defn g [] (a/m 1) (a/m2 1))\n"],
+        ]);
+
+        self::assertSame([[], []], $codes);
     }
 
     #[PreserveGlobalState(false)]
@@ -151,5 +150,37 @@ final class ApiDaemonTest extends TestCase
         self::assertSame(99, $decoded['id']);
         self::assertArrayHasKey('error', $decoded);
         self::assertSame(-32601, $decoded['error']['code']);
+    }
+
+    /**
+     * @param list<array{string, string}> $requests uri and source, analysed in order by one daemon
+     *
+     * @return list<list<string>> the diagnostic codes of each response
+     */
+    private function analyzeInOneDaemon(array $requests): array
+    {
+        $in = fopen('php://temp', 'r+');
+        $out = fopen('php://temp', 'r+');
+        self::assertNotFalse($in);
+        self::assertNotFalse($out);
+
+        foreach ($requests as $id => [$uri, $source]) {
+            fwrite($in, json_encode([
+                'id' => $id,
+                'method' => 'analyzeSource',
+                'params' => ['source' => $source, 'uri' => $uri],
+            ]) . "\n");
+        }
+
+        rewind($in);
+        new ApiDaemon(new ApiFacade(), $in, $out)->run(count($requests));
+        rewind($out);
+        $contents = stream_get_contents($out);
+        self::assertIsString($contents);
+
+        return array_map(
+            static fn(string $line): array => array_column(json_decode($line, true)['result'], 'code'),
+            array_values(array_filter(explode("\n", $contents), static fn(string $l): bool => $l !== '')),
+        );
     }
 }

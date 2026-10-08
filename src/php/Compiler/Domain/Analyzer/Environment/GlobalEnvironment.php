@@ -111,15 +111,18 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
      */
     private int $analysisModeCounter = 0;
 
+    private int $analysisPass = 0;
+
     /**
-     * Names an analysis pass defined that had no definition before it. The
-     * pass never evaluates them, so a macro among them is dropped when the
-     * pass ends: a long-lived process (LSP, api-daemon, a directory-wide
-     * lint) would otherwise keep expanding a macro the next source no longer
-     * defines. Other names stay, because a file pulled in by `load` and
-     * linted on its own resolves the `defn`s of the file that loads it.
+     * Names an analysis pass defined that had no definition before it, with
+     * the pass. The pass never evaluates them, so the next pass over the same
+     * namespace drops the macros among them that nothing evaluated since: a
+     * long-lived process (LSP, api-daemon) would otherwise keep expanding a
+     * `defmacro` the source no longer has. Another namespace still sees them
+     * until then, and other names stay, because a file pulled in by `load`
+     * and linted on its own resolves the `defn`s of the file that loads it.
      *
-     * @var array<string, array<string, true>>
+     * @var array<string, array<string, int>>
      */
     private array $analysisOnlyDefinitions = [];
 
@@ -146,6 +149,10 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     public function setNs(string $ns): void
     {
         $this->ns = $ns;
+
+        if ($this->isAnalysisMode()) {
+            $this->forgetMacrosOfEarlierPasses($ns);
+        }
     }
 
     public function setBundledNamespaceResolver(?BundledNamespaceResolverInterface $resolver): void
@@ -177,7 +184,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         if ($this->isAnalysisMode() && !isset($this->definitions[$namespace][$name->getName()])) {
-            $this->analysisOnlyDefinitions[$namespace][$name->getName()] = true;
+            $this->analysisOnlyDefinitions[$namespace][$name->getName()] = $this->analysisPass;
         }
 
         $this->definitions[$namespace][$name->getName()] = true;
@@ -365,6 +372,10 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     public function enterAnalysisMode(): void
     {
+        if ($this->analysisModeCounter === 0) {
+            ++$this->analysisPass;
+        }
+
         ++$this->analysisModeCounter;
     }
 
@@ -372,10 +383,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     {
         if ($this->analysisModeCounter > 0) {
             --$this->analysisModeCounter;
-        }
-
-        if ($this->analysisModeCounter === 0) {
-            $this->forgetAnalysisOnlyDefinitions();
         }
     }
 
@@ -527,26 +534,28 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return $registryMeta;
     }
 
-    private function forgetAnalysisOnlyDefinitions(): void
+    private function forgetMacrosOfEarlierPasses(string $namespace): void
     {
-        foreach ($this->analysisOnlyDefinitions as $namespace => $names) {
-            foreach ($names as $name => $_) {
-                $meta = $this->compileTimeMeta[$namespace][$name] ?? null;
-                $isMacro = $meta instanceof PersistentMapInterface && $meta->find(Keyword::create('macro')) === true;
-                if (!$isMacro || Phel::hasDefinition($this->mungeEncodeNs($namespace), $name)) {
-                    continue;
-                }
-
-                unset(
-                    $this->definitions[$namespace][$name],
-                    $this->definitionLocations[$namespace][$name],
-                    $this->compileTimeMeta[$namespace][$name],
-                    $this->defFnNodes[$namespace][$name],
-                );
+        foreach ($this->analysisOnlyDefinitions[$namespace] ?? [] as $name => $pass) {
+            if ($pass === $this->analysisPass) {
+                continue;
             }
-        }
 
-        $this->analysisOnlyDefinitions = [];
+            unset($this->analysisOnlyDefinitions[$namespace][$name]);
+
+            $meta = $this->compileTimeMeta[$namespace][$name] ?? null;
+            $isMacro = $meta instanceof PersistentMapInterface && $meta->find(Keyword::create('macro')) === true;
+            if (!$isMacro || Phel::hasDefinition($this->mungeEncodeNs($namespace), $name)) {
+                continue;
+            }
+
+            unset(
+                $this->definitions[$namespace][$name],
+                $this->definitionLocations[$namespace][$name],
+                $this->compileTimeMeta[$namespace][$name],
+                $this->defFnNodes[$namespace][$name],
+            );
+        }
     }
 
     private function initializeNamespace(string $namespace): void
