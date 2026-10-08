@@ -115,7 +115,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         // Taken before the walk: see `ScanIndexEntry::isValid()`.
         $recordedAt = time();
         $allInfos = [];
-        $skippedFile = false;
+        $skippedFiles = [];
         foreach ($this->findAllPhelFiles($directories) as $file) {
             try {
                 $allInfos[] = $this->getNamespaceFromFile($file);
@@ -124,21 +124,14 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
                 // and does not analyse, or whose ns form does not analyse, so one stray file in a
                 // scanned directory does not abort the whole scan (e.g. `phel
                 // eval` in a cwd holding unrelated Clojure checkouts, #3484).
-                $skippedFile = true;
+                // The index still stamps it, so fixing it in place forces a new walk.
+                $skippedFiles[] = $file;
             }
         }
 
         $grouped = $this->grouper->groupAndSort($allInfos);
 
-        // Neither cache may hold a scan that skipped a file. The fingerprint
-        // records only the files it read, so fixing a skipped file in place
-        // would go unseen, and a build would never see the bad `ns` form it
-        // has to fail on.
-        if ($skippedFile) {
-            return $grouped;
-        }
-
-        $this->scanIndexCache->put($cacheKey, $this->perDirFingerprint($directories), $grouped, $recordedAt);
+        $this->scanIndexCache->put($cacheKey, $this->perDirFingerprint($directories), $grouped, $recordedAt, $skippedFiles);
 
         return $this->directoriesScanCache[$cacheKey] = $grouped;
     }

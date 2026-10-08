@@ -83,6 +83,7 @@ Tooling:
 - `phel eval '#| x |# 1'` reports `[PHEL310]` with the offending line and a caret under the character, like `phel run`. It used to print the raw exception block. (#3537)
 - `phel lint`, `phel analyze` and the LSP handle a file with an `#inst` literal and go on to the next file. The value an `#inst` reads as, a `DateTimeImmutable`, used to abort the whole run with `DateTimeImmutable given`. (#3610)
 - `phel config` and `phel config --format=json` report the values a command runs with: `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations` beat the config file, as they do when the command runs. The JSON has every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`. It used to show the config file's values only and leave those four keys out. (#3525)
+- A project with a `.phel` file that has no `ns` form, such as a data or scratch file, no longer re-reads every source on each `phel test` or `phel run`. That one file used to turn off the namespace index for the whole project, which made `phel test` on this repository about twice as slow. The file is read again once it changes, so adding an `ns` form to it is still picked up. (#3629)
 
 PHP API:
 

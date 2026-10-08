@@ -8,7 +8,9 @@ use Gacela\Framework\Cache\FileCache;
 use ParseError;
 use Phel\Build\Domain\Cache\ScanIndexCacheInterface;
 use Phel\Build\Domain\Cache\ScanIndexEntry;
+use Phel\Shared\NamespaceInformation;
 
+use function array_map;
 use function is_array;
 use function is_string;
 
@@ -45,11 +47,11 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
         return $this->entries[$dirSetKey] ?? null;
     }
 
-    public function put(string $dirSetKey, array $perDir, array $infos, int $recordedAt = 0): void
+    public function put(string $dirSetKey, array $perDir, array $infos, int $recordedAt = 0, array $skippedFiles = []): void
     {
         $files = [];
-        foreach ($infos as $info) {
-            $mtime = @filemtime($info->getFile());
+        foreach ([...array_map(static fn(NamespaceInformation $info): string => $info->getFile(), $infos), ...$skippedFiles] as $file) {
+            $mtime = @filemtime($file);
             if ($mtime === false) {
                 // A file we cannot stat must not be persisted as a validation
                 // anchor: skip the whole entry so we re-walk next time rather
@@ -57,7 +59,7 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
                 return;
             }
 
-            $files[] = ['file' => $info->getFile(), 'mtime' => $mtime];
+            $files[] = ['file' => $file, 'mtime' => $mtime];
         }
 
         $this->entries[$dirSetKey] = new ScanIndexEntry($perDir, $files, $infos, $recordedAt);
