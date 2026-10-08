@@ -73,9 +73,8 @@ final readonly class SourceMappedErrorHandler
             error_log(sprintf('PHP %s:  %s', $label, $text));
         }
 
-        $display = strtolower(trim((string) ini_get('display_errors')));
         if ($this->iniEnabled('display_errors')) {
-            $stream = fopen($display === 'stderr' ? 'php://stderr' : 'php://output', 'w');
+            $stream = fopen($this->displayStream(), 'w');
             if ($stream !== false) {
                 fwrite($stream, sprintf('%s%s: %s%s', PHP_EOL, $label, $text, PHP_EOL));
                 fclose($stream);
@@ -88,6 +87,15 @@ final readonly class SourceMappedErrorHandler
     public function install(): void
     {
         set_error_handler($this);
+    }
+
+    /**
+     * PHP's CLI display goes to stdout, through any output buffer, unless
+     * `display_errors=stderr`.
+     */
+    private function displayStream(): string
+    {
+        return strtolower(trim((string) ini_get('display_errors'))) === 'stderr' ? 'php://stderr' : 'php://output';
     }
 
     private function iniEnabled(string $directive): bool
