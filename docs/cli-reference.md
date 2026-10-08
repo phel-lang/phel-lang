@@ -180,7 +180,7 @@ problem on stderr and leaves stdout empty. The rule and what it covers:
 | `doctor` | a check failed | |
 | `init` | a file could not be written | |
 | `watch` | the watcher stopped on an error | |
-| `agent-install` | `--check` found a different docs version, or a file could not be written | an unknown platform |
+| `agent-install` | `--check` found no installed docs, or a version other than the bundled one | an unknown platform |
 | `api-daemon`, `lsp`, `nrepl` | the server could not start or stopped on an error | |
 
 Every command exits `2`, before it starts, on a `PHEL_OPTIMIZATION_LEVEL`,
