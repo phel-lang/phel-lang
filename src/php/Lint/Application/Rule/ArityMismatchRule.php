@@ -166,7 +166,7 @@ final readonly class ArityMismatchRule implements LintRuleInterface
      * @param array<string, ArityRange> $localFns
      * @param list<Diagnostic>          $result
      */
-    private function inspectCalls(mixed $form, array $localFns, string $uri, array &$result, bool $isMethod = false): void
+    private function inspectCalls(mixed $form, array $localFns, string $uri, array &$result): void
     {
         if ($form instanceof PersistentListInterface && count($form) > 0) {
             $head = $form->get(0);
@@ -180,7 +180,7 @@ final readonly class ArityMismatchRule implements LintRuleInterface
                 return;
             }
 
-            if ($head instanceof Symbol && $head->getFullName() === Symbol::NAME_NS) {
+            if ($head instanceof Symbol && in_array($head->getFullName(), [Symbol::NAME_NS, 'comment'], true)) {
                 return;
             }
 
@@ -205,22 +205,8 @@ final readonly class ArityMismatchRule implements LintRuleInterface
                 $this->checkArity($form, $literal[0], $literal[1], $uri, $result);
             }
 
-            $clausesFrom = $isMethod ? 1 : $this->arityClausesFrom($head);
-            $holdsMethods = $head instanceof Symbol && $this->holdsMethods($head);
-            foreach ($form as $i => $child) {
-                if ($child instanceof PersistentVectorInterface && $i >= $clausesFrom) {
-                    $clausesFrom = PHP_INT_MAX;
-                }
-
-                if ($i >= $clausesFrom && $child instanceof PersistentListInterface && $child->get(0) instanceof PersistentVectorInterface) {
-                    foreach ($child as $part) {
-                        $this->inspectCalls($part, $localFns, $uri, $result);
-                    }
-
-                    continue;
-                }
-
-                $this->inspectCalls($child, $localFns, $uri, $result, $holdsMethods);
+            foreach ($form as $child) {
+                $this->inspectCalls($child, $localFns, $uri, $result);
             }
 
             return;
@@ -228,7 +214,7 @@ final readonly class ArityMismatchRule implements LintRuleInterface
 
         if ($form instanceof PersistentVectorInterface) {
             foreach ($form as $child) {
-                $this->inspectCalls($child, $localFns, $uri, $result, $isMethod);
+                $this->inspectCalls($child, $localFns, $uri, $result);
             }
 
             return;
@@ -284,7 +270,7 @@ final readonly class ArityMismatchRule implements LintRuleInterface
             return [':' . $head->getFullName(), ['min' => 1, 'max' => 2]];
         }
 
-        if ($head instanceof PersistentVectorInterface) {
+        if ($head instanceof PersistentVectorInterface && !$this->isParamVector($head)) {
             return ['vector', ['min' => 1, 'max' => 1]];
         }
 
@@ -310,37 +296,31 @@ final readonly class ArityMismatchRule implements LintRuleInterface
     }
 
     /**
-     * The index from which a multi-arity definition holds its
-     * `([params] body)` clauses. Their vector head would otherwise read as a
-     * call on a vector literal. A single-arity definition has its param
-     * vector first, which ends the clauses.
+     * A `([params] body)` arity clause has a vector head, and any macro can
+     * pass one through to `fn`, so a vector of symbols and destructuring
+     * forms is read as params, never as a vector literal call. The cost is
+     * a missed `([a b] 0 1)`.
+     *
+     * @param PersistentVectorInterface<mixed> $vector
      */
-    private function arityClausesFrom(mixed $head): int
+    private function isParamVector(PersistentVectorInterface $vector): bool
     {
-        if (!$head instanceof Symbol) {
-            return PHP_INT_MAX;
+        foreach ($vector as $element) {
+            if (!$this->isParamShaped($element)) {
+                return false;
+            }
         }
 
-        return match ($head->getFullName()) {
-            Symbol::NAME_FN => 1,
-            'defn', 'defn-', 'defmacro', 'defmacro-' => 2,
-            'defmethod' => 3,
-            default => PHP_INT_MAX,
-        };
+        return true;
     }
 
-    /**
-     * Each method entry of these forms, `(name ([this] ...) ([this x] ...))`,
-     * holds arity clauses like an `fn` does; `letfn` holds them in its
-     * binding vector.
-     */
-    private function holdsMethods(Symbol $head): bool
+    private function isParamShaped(mixed $form): bool
     {
-        return in_array(
-            $head->getFullName(),
-            ['letfn', 'reify', 'defstruct', 'defrecord', 'deftype', 'definterface', 'defprotocol', 'defexception', 'extend-type', 'extend-protocol'],
-            true,
-        );
+        if ($form instanceof Symbol || $form instanceof PersistentMapInterface) {
+            return true;
+        }
+
+        return $form instanceof PersistentVectorInterface && $this->isParamVector($form);
     }
 
     /**

@@ -33,6 +33,7 @@ Runtime:
 Tooling:
 
 - **BREAKING**: A command that cannot run as asked exits 2 and names the problem on stderr, leaving stdout empty: a path that does not exist, an unknown `--format`, `--reporter` or `-O` value, a `--config` or `--ref` file that is not there, or a `PHEL_OPTIMIZATION_LEVEL` that is not a whole number. This covers `lint`, `balance`, `analyze`, `test`, `bench`, `run`, `ns`, `format`, `index`, `profile`, `config`, `mutate`, `build` and `doc`. They used to exit 0 or 1 depending on the command, print the problem on stdout or as a stack trace, and `phel lint ok.phel missing.phel` dropped the missing path and passed. Exit 1 still means the command ran and found something. (#3525)
+- **BREAKING**: `phel lint` reports `phel/arity-mismatch` on a call to a keyword, vector, map, set or `fn` literal with a number of arguments it does not take, such as `(:k m 1 2)`, `([1 2] 0 1)`, `(#{1})` or `((fn [x] x) 1 2)`, so a file that passed may now fail. A vector, map or set takes the key only: Phel drops a second argument, so `({:a 1} :b 2)` returns `nil`, not `2`. The message for a multi-arity function shows its whole range, `Expected 1 or 2`, where it used to show `Expected 1`. Remove the extra arguments, or use `(get m k default)`. (#3524)
 
 PHP API:
 
@@ -46,7 +47,6 @@ PHP API:
 - Security reports can go through GitHub's private vulnerability reporting as well as email, and `SECURITY.md` states that the latest 1.x minor gets security fixes. The README shows how to check a downloaded `phel.phar` against the sha256 digest of the release asset. (#3533)
 - `declare` takes several names, `(declare a b)`, as in Clojure. Anything but a symbol fails: `(declare f [x])` used to declare `f` and drop the vector. (#3524)
 - `phel api-daemon` answers a `version` request with the running Phel version, so an editor can check it is compatible. `phel lsp` reports the same version as `serverInfo.version` instead of `0.1.0`. (#3525)
-- `phel lint` reports `phel/arity-mismatch` on a call to a keyword, vector, map, set or `fn` literal with a number of arguments it does not take, such as `(:k m 1 2)`, `([1 2] 0 1)`, `(#{1})` or `((fn [x] x) 1 2)`. A vector, map or set takes the key only: Phel drops a second argument, so `({:a 1} :b 2)` returns `nil`, not `2`. (#3524)
 
 ### Fixed
 

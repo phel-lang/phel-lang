@@ -237,6 +237,8 @@ PHEL;
         yield 'multi-arity fn above its largest arity' => ['((fn ([x] x) ([x y z] y)) 1 2 3 4)', "Wrong number of arguments for 'fn'. Expected 1 to 3, given 4."];
         yield 'variadic fn below its fixed arity' => ['((fn [x y & r] x) 1)', "Wrong number of arguments for 'fn'. Expected 2+, given 1."];
         yield 'vector as a single-arity defn body' => ['([1 2] 0 m)', "Wrong number of arguments for 'vector'. Expected 1, given 2."];
+        yield 'vector of keywords' => ['([:a :b] 0 m)', "Wrong number of arguments for 'vector'. Expected 1, given 2."];
+        yield 'vector mixing a symbol and a literal' => ['([m 2] 0 1)', "Wrong number of arguments for 'vector'. Expected 1, given 2."];
     }
 
     #[DataProvider('providerLiteralHeadCallWithAcceptedArity')]
@@ -267,5 +269,10 @@ PHEL;
         yield 'multi-arity fn' => ['(def f (fn ([x] x) ([x y] x y)))'];
         yield 'multi-arity letfn binding' => ['(defn f [] (letfn [(g ([x] x) ([x y] x y))] (g 1)))'];
         yield 'multi-arity method of extend-type' => ["(defprotocol P (m [this] [this x]))\n(extend-type :string P (m ([this] this) ([this x] this x)))"];
+        yield 'multi-arity deftrace' => ["(ns probe (:require phel.trace :refer [deftrace]))\n(deftrace area \"Area.\" ([w] (println \"one\") (* w w)) ([w h] (println \"two\") (* w h)))"];
+        yield 'user macro passing clauses to fn' => ["(defmacro defn-logged [name & clauses] `(def ~name (fn ~@clauses)))\n(defn-logged f ([x] (prn x) x) ([x y] (prn y) y))"];
+        yield 'clauses with tagged and destructured params' => ['(def f (fn ([^int x] (prn x) x) ([{:keys [a] :or {a 1}} [b & c]] a b)))'];
+        yield 'vector of symbols, read as params (accepted miss)' => ['(defn f [a b] ([a b] 0 1))'];
+        yield 'comment body' => ['(comment (:k 1 2 3) ([1 2] 0 1) (#{1}))'];
     }
 }
