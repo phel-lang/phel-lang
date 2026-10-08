@@ -97,6 +97,44 @@ Before tagging `X.0.0`, do both by hand:
 
 ---
 
+## Ecosystem
+
+Packagist serves tags, not branches, so a library is only usable on a new
+release once it is tagged. Background: [#3535](https://github.com/phel-lang/phel-lang/issues/3535).
+
+### Before an RC or a stable major
+
+- [ ] VS Code extension column fix released: [phel-vs-code-extension#153](https://github.com/phel-lang/phel-vs-code-extension/issues/153). Since [#3625](https://github.com/phel-lang/phel-lang/pull/3625) the CLI reports 1-based columns.
+- [ ] Site fixes merged in [phel-lang.org](https://github.com/phel-lang/phel-lang.org): error reference entries, RC version parsing, RC lock display (list in #3535).
+
+### For an RC (`1.0.0-rc3`)
+
+- [ ] Release with `tools/release.sh`.
+- [ ] `tools/upgrade-ecosystem.sh --dry-run --version=1.0.0-rc3`, then the same with `--yes`. The constraint becomes `^1.0.0-rc3`.
+- [ ] Each PR branch passes on the RC. Any `minimum-stability: RC` stays on the PR branch only.
+- [ ] Leave the PRs open. Do not tag libraries on an RC.
+
+### For a stable major (`1.0.0`)
+
+- [ ] Hand edits from "What the script does not do at a major", then `tools/release.sh`.
+- [ ] Once Packagist lists the release: `tools/upgrade-ecosystem.sh --version=1.0.0 --yes`. The constraint becomes `^1.0`, with no stability keys.
+- [ ] Merge each PR once green, and tag each library within the hour:
+
+| Library | How to tag |
+|---|---|
+| phel-log, phel-sql, phel-pdo | `./release.sh --dry-run <version>`, then without `--dry-run`. Pass the version: phel-sql bumps the minor by default, phel-pdo the patch. |
+| phel-schema | No script. Tag `vX.Y.Z` and publish a GitHub release by hand, as for `v0.1.0`. |
+| cli-skeleton, web-skeleton | No tags: Packagist only has `dev-main`. Merging the PR is the release. |
+
+- [ ] For every library, `composer require phel-lang/phel-lang:^1.0 phel-lang/<lib>` resolves the new tag in an empty project.
+- [ ] `composer create-project --stability dev phel-lang/<skeleton> x` exits 0 and installs 1.0.0, for cli-skeleton and web-skeleton.
+- [ ] IntelliJ plugin: refresh the completion registry (`update-registry` command in [phel-intellij-plugin](https://github.com/phel-lang/phel-intellij-plugin)).
+- [ ] VS Code extension: regenerate the bundled core docs (`scripts/regen-core-docs.cjs`).
+- [ ] Site at 1.0.0: flip the pre-1.0 copy in `content/_index.md`, the FAQ, the stability page and `PRODUCT.md`, and add a `## 1.0` section to the upgrading page.
+- [ ] nixpkgs: bump `phel` by hand. The package has no maintainer.
+
+---
+
 ## Manual Release
 
 Only when the script itself is broken. It is the supported path, and every step

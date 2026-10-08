@@ -50,6 +50,8 @@ the script commits, pushes, and opens a PR (assignee @me, label
 
 Options:
   --version=X.Y.Z   Target version (default: latest GitHub release tag)
+                    A pre-release (1.0.0-rc2) becomes ^1.0.0-rc2, not ^1.0.
+                    Not allowed with --direct-push.
   --only=a,b,c      Limit to these repo names (comma-separated)
   --skip=a,b,c      Extra repos to skip (added to the built-in skip list)
   --root=PATH       Ecosystem root containing sibling repos (default:
@@ -110,6 +112,10 @@ fi
 VERSION="$(normalize_version "$VERSION")"
 CARET="$(derive_caret "$VERSION")"
 
+if is_prerelease_version "$VERSION" && (( DIRECT_PUSH )); then
+  fail "--direct-push would put the pre-release constraint $CARET on each default branch; open PRs instead"
+fi
+
 ARCHIVED="$(gh repo list phel-lang --limit 100 --json name,isArchived \
             --jq '.[] | select(.isArchived) | .name' 2>/dev/null \
             | paste -sd, - || true)"
@@ -162,8 +168,23 @@ else
   PERM_LABEL="scoped allowlist"
 fi
 
+PRERELEASE_NOTE=""
+if is_prerelease_version "$VERSION"; then
+  read -r -d '' PRERELEASE_NOTE <<EOF || true
+${VERSION} is a pre-release. In step 1 set the constraint to exactly ${CARET},
+even if the existing one is a range: ^X.Y and ranges without a pre-release
+suffix match stable releases only, so they cannot resolve ${VERSION}. That
+constraint alone resolves it in this repository. Only if step 2 still fails
+on stability (for example another dependency also requires phel-lang), add
+"minimum-stability" set to the version's stability (RC for -rcN) and
+"prefer-stable": true to composer.json. This branch stays unmerged until the
+stable release, so those keys never reach the default branch.
+EOF
+  PRERELEASE_NOTE=$'\n\n'"$PRERELEASE_NOTE"
+fi
+
 read -r -d '' PROMPT <<EOF || true
-Upgrade phel-lang/phel-lang to ${VERSION} in this repository.
+Upgrade phel-lang/phel-lang to ${VERSION} in this repository.${PRERELEASE_NOTE}
 
 Steps:
 1. Update the constraint in composer.json. Prefer the caret style ${CARET} unless the
@@ -553,6 +574,8 @@ if (( ${#PR_URLS[@]} > 0 )); then
   log ""
   log "==> Pull requests opened:"
   for u in "${PR_URLS[@]}"; do log "    $u"; done
+  log "    Tag each library by hand once its PR is merged and green:"
+  log "    see Ecosystem in .github/RELEASE.md."
 fi
 
 (( fail == 0 ))

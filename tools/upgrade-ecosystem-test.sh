@@ -102,6 +102,51 @@ function test_derive_caret_passthrough_two_segments() {
     assert_equals "^0.40" "$(derive_caret '0.40')"
 }
 
+function test_derive_caret_stable_major() {
+    assert_equals "^1.0" "$(derive_caret '1.0.0')"
+}
+
+function test_derive_caret_keeps_the_rc_suffix() {
+    # ^1.0 matches stable releases only and cannot resolve before 1.0.0.
+    assert_equals "^1.0.0-rc2" "$(derive_caret '1.0.0-rc2')"
+}
+
+function test_derive_caret_keeps_an_uppercase_rc_suffix() {
+    assert_equals "^1.0.0-RC1" "$(derive_caret '1.0.0-RC1')"
+}
+
+function test_derive_caret_keeps_a_beta_suffix() {
+    assert_equals "^1.1.0-beta.1" "$(derive_caret '1.1.0-beta.1')"
+}
+
+function test_derive_caret_keeps_a_dev_suffix() {
+    assert_equals "^1.1.0-dev" "$(derive_caret '1.1.0-dev')"
+}
+
+function test_derive_caret_leaves_a_dev_branch_as_is() {
+    assert_equals "dev-main" "$(derive_caret 'dev-main')"
+}
+
+# =============================================================================
+# is_prerelease_version
+# =============================================================================
+
+function test_is_prerelease_version_false_for_stable() {
+    assert_equals "1" "$(_rc is_prerelease_version '1.0.0')"
+}
+
+function test_is_prerelease_version_true_for_rc() {
+    assert_equals "0" "$(_rc is_prerelease_version '1.0.0-rc2')"
+}
+
+function test_is_prerelease_version_true_for_dev_suffix() {
+    assert_equals "0" "$(_rc is_prerelease_version '1.1.0-dev')"
+}
+
+function test_is_prerelease_version_true_for_dev_branch() {
+    assert_equals "0" "$(_rc is_prerelease_version 'dev-main')"
+}
+
 # =============================================================================
 # in_csv
 # =============================================================================
@@ -270,6 +315,28 @@ function test_script_dry_run_reports_target_version() {
     # v-prefix is normalized away before display.
     assert_contains "target version: 0.41.0" "$out"
     assert_contains "constraint: ^0.41" "$out"
+}
+
+function test_script_dry_run_keeps_the_rc_in_the_constraint() {
+    local out
+    out="$($SCRIPT --dry-run --version=v1.0.0-rc2 --only=__none__ 2>&1)"
+    assert_contains "constraint: ^1.0.0-rc2" "$out"
+    assert_contains "1.0.0-rc2 is a pre-release" "$out"
+    assert_contains '"prefer-stable": true' "$out"
+}
+
+function test_script_dry_run_leaves_the_prerelease_note_out_for_stable() {
+    local out
+    out="$($SCRIPT --dry-run --version=1.0.0 --only=__none__ 2>&1)"
+    assert_contains "constraint: ^1.0)" "$out"
+    assert_not_contains "is a pre-release" "$out"
+}
+
+function test_script_rejects_direct_push_for_a_prerelease() {
+    local out rc=0
+    out="$($SCRIPT --dry-run --version=1.0.0-rc2 --direct-push --only=__none__ 2>&1)" || rc=$?
+    assert_equals "1" "$rc"
+    assert_contains "--direct-push would put the pre-release constraint ^1.0.0-rc2" "$out"
 }
 
 function test_script_dry_run_shows_force_flag() {
