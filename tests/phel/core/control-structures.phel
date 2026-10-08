@@ -1,4 +1,5 @@
 (ns phel-test.core.control-structures
+  (:require phel.string :as s)
   (:require phel.test :refer [deftest is]))
 
 (deftest test-if-not
@@ -32,6 +33,23 @@
   (is (= :keyword (case :four (:four :five) :keyword :other)) "case list matcher supports keywords")
   (is (= :symbol (case 'range (range 0 5) :symbol :other)) "case list matcher treats symbols as constants")
   (is (= :default (case 3 (0 1) :small 2 :two :default)) "case list matcher falls through"))
+
+(defn- case-error [form]
+  (try
+    (eval form)
+    nil
+    (catch Throwable e (.getMessage e))))
+
+(deftest test-case-rejects-duplicate-test-constants
+  (is (s/contains? (case-error '(case 1 1 :a 1 :b :default)) "Duplicate case test constant: 1"))
+  (is (s/contains? (case-error '(case 1 (1 2) :a 2 :b)) "Duplicate case test constant: 2"))
+  (is (s/contains? (case-error '(case 1 (3 3) :a :b)) "Duplicate case test constant: 3"))
+  (is (s/contains? (case-error '(case :k :k :a (:j :k) :b)) "Duplicate case test constant: :k")))
+
+(deftest test-case-keeps-distinct-constants-and-default
+  (is (= :b (case 2 (1 3) :a 2 :b :default)))
+  (is (= :default (case 1 2 :a 3 :b :default)))
+  (is (= 1 (case 1 2 :a 1))))
 
 (defn- keyword-dispatch [k]
   (case k
