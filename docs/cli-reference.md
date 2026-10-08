@@ -57,6 +57,15 @@ echo '{"id":1,"method":"version"}' | phel api-daemon
 # {"id":1,"result":"v0.54.0"}
 ```
 
+`phel config` prints the values a command of the same shell runs with:
+`phel-config.php` and `phel-config-local.php`, then `PHEL_CACHE_DIR`,
+`PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and the
+`--warn-deprecations` flag on top. `phel config --format=json` prints one
+object with every key `PhelConfig` defines, in the same order, so
+`PHEL_OPTIMIZATION_LEVEL=2 phel config --format=json` reports
+`"optimization-level": 2`. Keys are only added, never renamed or removed. The
+validation in the text output checks the config files, not the env vars.
+
 Diagnostics from `lint`, `analyze` and the `api-daemon` `analyzeSource` method
 use 1-based lines and columns, and `endCol` is one past the last character.
 `lint` and `analyze` print `uri` as an absolute path; `api-daemon` returns the

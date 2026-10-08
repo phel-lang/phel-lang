@@ -13,6 +13,7 @@ use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Application\Test\Coverage\PerTestCoverageReport;
 use Phel\Run\Application\Test\ParallelTestOrchestrator;
+use Phel\Run\Domain\Config\EffectiveConfigResult;
 use Phel\Run\Domain\Test\ChangeSelection;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Eval\EvalResult;
@@ -176,6 +177,17 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
         return $this->getFactory()
             ->createNamespacesLoader()
             ->getLoadedNamespaces();
+    }
+
+    /**
+     * The config a command of this process runs with, env vars and flags
+     * applied, plus where it came from (`phel config`, `phel doctor`).
+     */
+    public function readEffectiveConfig(): EffectiveConfigResult
+    {
+        return $this->getFactory()
+            ->createEffectiveConfigReader()
+            ->read();
     }
 
     public function getVersion(): string

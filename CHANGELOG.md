@@ -80,6 +80,7 @@ Tooling:
 - A `PHEL402` error for an argument of the wrong type names the `.phel` file and line that made the call: `must be of type int, string given, called in src/main.phel on line 5`. It used to name the generated temp file, `.../phel/tmp/__phel_*.php`. (#3537)
 - `phel eval '#| x |# 1'` reports `[PHEL310]` with the offending line and a caret under the character, like `phel run`. It used to print the raw exception block. (#3537)
 - `phel lint`, `phel analyze` and the LSP handle a file with an `#inst` literal and go on to the next file. The value an `#inst` reads as, a `DateTimeImmutable`, used to abort the whole run with `DateTimeImmutable given`. (#3610)
+- `phel config` and `phel config --format=json` report the values a command runs with: `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations` beat the config file, as they do when the command runs. The JSON has every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`. It used to show the config file's values only and leave those four keys out. (#3525)
 
 PHP API:
 
@@ -143,6 +144,7 @@ PHP API:
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::withoutDeprecations()` runs a callable with deprecation notices held back. (#3381)
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::rejectSupersededForms()` throws on a superseded form in a form the reader returned. (#3456)
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::findSimilarNames()` returns the analyzer's "did you mean" candidates for a name. (#3454)
+- **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::deprecationWarningsEnabled()` says whether a compile in this process raises deprecation notices. (#3525)
 - Public PHP API: `Phel\Lang\Destructure` (with `nthNext()`, `kwargs()`, `lookupSource()` and `restKwargs()`), `Symbol::{createGenerated,isGenerated}()`, `LintFacade::ruleExplainer()`, `Diagnostic` error codes, suggestions, fixes and projections, `AbstractLocatedException::{getSuggestions,setSuggestions}()`, `LintRuleCodes::SHADOWED_CORE_FN`, the `VersionResolver` constructor, `\Phel::fnSlot()`, `Phel\Lang\ForeignFn`, `Phel\Shared\OptimizationLevel`, `Phel\Shared\SourceMap\SupersededSourceMaps`, the `MissingNsFormException` / `MissingNsFormHint` pair and `ClassNotFoundHint` in `Phel\Shared\Exceptions`, and `LintRuleCodes::UNKNOWN_CLASS`, `UNRESOLVED_NAMESPACE` and `UNRESOLVED_REFER`. (#3354 #3356 #3373 #3396 #3435 #3454 #3455 #3465 #3479 #3487)
 
 ### Performance

@@ -22,7 +22,7 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, test runner, an
 | Watch test | `runTestWatchLoop(callable $runTests, OutputInterface): int` |
 | Coverage | `detectCoverageDriver(): ?CoverageDriver`, `buildCoverageReport(array, string): CoverageReport`, `buildPerTestCoverageReport(array, string): PerTestCoverageReport`; on the interface for hosts that run `phel.test` themselves (the mutation worker): `beginPerTestCoverage(): ?string`, `perTestCoverageByLine(): array`, `endPerTestCoverage()` (`PerTestCoverageSession`, one collector per process) |
 | Errors | `writeLocatedException`, `writeStackTrace` |
-| Doctor | `getModuleHealthChecks()` (surfaced by `phel doctor`) |
+| Config and doctor | `readEffectiveConfig(): EffectiveConfigResult` (`phel config`, `phel doctor`: the config files, then the env vars and flags a command applies), `getModuleHealthChecks()` (surfaced by `phel doctor`) |
 
 The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
