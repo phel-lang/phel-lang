@@ -91,6 +91,12 @@ final class NamespaceExtractorTest extends TestCase
         $this->extractNamespace($fileContent);
     }
 
+    public function test_an_inst_literal_as_first_form_is_a_file_without_namespace(): void
+    {
+        $this->expectException(ExtractorException::class);
+        $this->extractNamespace('#inst "2026-01-01T00:00:00Z"');
+    }
+
     public function test_unresolved_symbol_in_a_first_form_that_is_not_ns_names_the_missing_ns(): void
     {
         try {

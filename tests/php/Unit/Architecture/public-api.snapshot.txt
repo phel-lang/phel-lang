@@ -88,7 +88,7 @@ final class Phel\Command\CommandFacade extends Gacela\Framework\AbstractFacade i
   public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
 
 final class Phel\Compiler\CompilerFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\CompilerFacadeInterface
-  public function analyze(Phel\Lang\TypeInterface|bool|float|int|null|string $x, Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface $env): Phel\Compiler\Domain\Analyzer\Ast\AbstractNode
+  public function analyze(mixed $x, Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface $env): Phel\Compiler\Domain\Analyzer\Ast\AbstractNode
   public function compile(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Shared\EmitterResult
   public function compileForCache(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Shared\EmitterResult
   public function compileForm(Phel\Lang\TypeInterface|bool|float|int|null|string $form, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Shared\EmitterResult
@@ -1881,7 +1881,7 @@ interface Phel\Shared\Facade\CommandFacadeInterface
   public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
 
 interface Phel\Shared\Facade\CompilerFacadeInterface
-  public function analyze(Phel\Lang\TypeInterface|bool|float|int|null|string $x, Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface $env): Phel\Compiler\Domain\Analyzer\Ast\AbstractNode
+  public function analyze(mixed $x, Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface $env): Phel\Compiler\Domain\Analyzer\Ast\AbstractNode
   public function compile(string $phelCode, Phel\Shared\CompileOptions $compileOptions): Phel\Shared\EmitterResult
   public function compileForCache(string $phelCode, Phel\Shared\CompileOptions $compileOptions): Phel\Shared\EmitterResult
   public function disableDebugLineTap(): void

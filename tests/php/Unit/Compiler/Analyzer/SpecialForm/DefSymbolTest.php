@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
+use DateTimeImmutable;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
@@ -21,7 +22,6 @@ use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
 use PhelTest\Support\CapturesCompilerWarningsTrait;
 use PHPUnit\Framework\TestCase;
-use stdClass;
 
 use function count;
 
@@ -160,14 +160,30 @@ final class DefSymbolTest extends TestCase
     public function test_false_init_value(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('$init must be TypeInterface|string|float|int|bool|null');
+        $this->expectExceptionMessage('$init must be an object, a scalar or null');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
-            new stdClass(),
+            [],
         ]);
         new DefSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_tagged_literal_object_init_value(): void
+    {
+        $instant = new DateTimeImmutable('2026-01-01T00:00:00Z');
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_DEF),
+            Symbol::create('name'),
+            $instant,
+        ]);
+
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        $init = $defNode->getInit();
+        self::assertInstanceOf(LiteralNode::class, $init);
+        self::assertSame($instant, $init->getValue());
     }
 
     public function test_init_values(): void

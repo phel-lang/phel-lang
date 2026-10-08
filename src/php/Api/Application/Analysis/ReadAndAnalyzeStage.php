@@ -10,7 +10,6 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\UnevaluatedDefinitionException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeInterface;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
@@ -72,7 +71,6 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
 
             try {
                 $readerResult = $this->compilerFacade->read($parseTree);
-                /** @var bool|float|int|string|TypeInterface|null $ast */
                 $ast = $readerResult->getAst();
                 $this->compilerFacade->rejectSupersededForms($ast);
                 $this->analyzeForm($ast, $uri);
@@ -107,8 +105,7 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
     }
 
     /**
-     * @param bool|float|int|string|TypeInterface|null $form
-     * @param list<string>                             $loading files whose load is in progress, so a cycle stops
+     * @param list<string> $loading files whose load is in progress, so a cycle stops
      */
     private function analyzeForm(mixed $form, string $uri, array $loading = []): void
     {
