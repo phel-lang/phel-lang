@@ -40,6 +40,9 @@ final class FrameKey
 
     public const string COUNTS = 'counts';
 
+    /** The namespace's `junit-xml` reporter document; empty without that reporter. */
+    public const string JUNIT_XML = 'junit-xml';
+
     public const string COUNT_PASS = 'pass';
 
     public const string COUNT_FAILED = 'failed';

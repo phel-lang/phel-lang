@@ -12,6 +12,7 @@ use Phel\Run\Application\Test\WorkRequest;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\Printer\Printer;
 use Phel\Shared\Process\WorkerFrame;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,6 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 use function fclose;
+use function file_get_contents;
 use function fopen;
 use function fwrite;
 use function is_array;
@@ -29,6 +31,9 @@ use function ob_get_clean;
 use function ob_start;
 use function putenv;
 use function sprintf;
+use function sys_get_temp_dir;
+use function tempnam;
+use function unlink;
 
 /**
  * Hidden subcommand: parallel-test worker. One process per pool slot,
@@ -48,7 +53,8 @@ use function sprintf;
  *   worker -> parent (one per work frame):
  *     {"index": 17, "ns": "...", "ok": true,
  *      "output": "...captured stdout...",
- *      "failed-tests": [...], "outcome": "verdict"}
+ *      "failed-tests": [...], "outcome": "verdict",
+ *      "junit-xml": "<?xml ...>"}
  *
  * `outcome` says whether the namespace or the worker is what failed, so
  * the parent retries only what a fresh worker can answer differently.
@@ -118,14 +124,17 @@ final class TestWorkerCommand extends Command
     private function handleWork(array $frame): array
     {
         $request = WorkRequest::fromFrame($frame);
+        $junitFile = (string) tempnam(sys_get_temp_dir(), 'phel-junit-');
 
         ob_start();
         try {
             $this->preloadDependencies($request);
-            $resultJson = $this->runTestsForNamespace($request);
+            $resultJson = $this->runTestsForNamespace($request, $junitFile);
             $captured = (string) ob_get_clean();
 
-            return $request->baseResponse() + $this->parseResult($resultJson, $captured);
+            return $request->baseResponse()
+                + $this->parseResult($resultJson, $captured)
+                + [FrameKey::JUNIT_XML => (string) @file_get_contents($junitFile)];
         } catch (CompilerException $compilerException) {
             // A file that does not compile fails the same way on every
             // worker; report it as a failed namespace, not a retryable
@@ -152,6 +161,8 @@ final class TestWorkerCommand extends Command
                 FrameKey::FAILED_TESTS => [],
                 FrameKey::OUTCOME => WorkerOutcome::WorkerError->value,
             ];
+        } finally {
+            @unlink($junitFile);
         }
     }
 
@@ -174,14 +185,20 @@ final class TestWorkerCommand extends Command
         }
     }
 
-    private function runTestsForNamespace(WorkRequest $request): mixed
+    /**
+     * The `junit-xml` reporter writes its document to `$junitFile` instead of
+     * the parent's `-o` file or stdout, so the parent can join every
+     * namespace's suites into one document (#3627).
+     */
+    private function runTestsForNamespace(WorkRequest $request, string $junitFile): mixed
     {
         $phelCode = sprintf(
-            "(do (phel.test/run-tests %s '%s) "
+            "(do (phel.test/set-junit-output! %s) (phel.test/run-tests %s '%s) "
             . '(phel.json/encode {"ok" (phel.test/successful?) '
             . '"failed-tests" (phel.test/get-failed-tests) '
             . '"focused" (phel.test/focused-run?) '
             . '"counts" (get (phel.test/get-stats) :counts)}))',
+            Printer::readable()->print($junitFile),
             $request->options,
             $request->ns,
         );

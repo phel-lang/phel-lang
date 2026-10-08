@@ -7,6 +7,7 @@ namespace Phel\Run\Application\Test;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Shared\NamespaceInformation;
 use Phel\Shared\Process\WorkerFrame;
+use Phel\Shared\StandardError;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_unique;
@@ -72,15 +73,17 @@ final readonly class ParallelTestOrchestrator
         $effectiveWorkerCount = max(1, min($workerCount, $total));
         $optionsPhel = $this->preparePhelOptionsForWorker($options);
         $loadOrders = new LoadOrderResolver($namespaces);
+        $testOptions = TestCommandOptions::fromArray($options);
+        $progress = $testOptions->ownsStdout() ? StandardError::of($output) : $output;
 
-        $output->writeln(sprintf(
+        $progress->writeln(sprintf(
             'Running %d namespace(s) across %d parallel worker(s)...',
             $total,
             $effectiveWorkerCount,
         ));
 
         $workers = $this->spawnWorkers($effectiveWorkerCount);
-        $buffer = new OrderedResultBuffer($total, $output);
+        $buffer = new OrderedResultBuffer($total, $progress);
 
         $startedAt = microtime(true);
         try {
@@ -93,7 +96,11 @@ final readonly class ParallelTestOrchestrator
 
         $buffer->finishProgress();
         $this->persistLastFailed($options, $buffer->allFailedTests());
-        $this->printSummary($output, $buffer->totals(), $total, $effectiveWorkerCount, microtime(true) - $startedAt, $recoveredByRetry);
+        $this->printSummary($progress, $buffer->totals(), $total, $effectiveWorkerCount, microtime(true) - $startedAt, $recoveredByRetry);
+        if ($testOptions->writesJunitXml()) {
+            $this->writeJunitXml($output, $testOptions->junitOutput(), $buffer->junitXml());
+        }
+
         if ($this->usesGithubReporter($options)) {
             GithubStepSummary::append($buffer->totals());
         }
@@ -131,6 +138,16 @@ final readonly class ParallelTestOrchestrator
         ));
     }
 
+    private function writeJunitXml(OutputInterface $output, ?string $path, string $xml): void
+    {
+        if ($path === null) {
+            $output->writeln($xml, OutputInterface::OUTPUT_RAW);
+            return;
+        }
+
+        file_put_contents($path, $xml);
+    }
+
     /**
      * @param array<string, mixed> $options
      */
@@ -146,9 +163,10 @@ final readonly class ParallelTestOrchestrator
      */
     private function preparePhelOptionsForWorker(array $options): string
     {
-        // Workers must not race on the shared last-failed.txt; the parent
-        // aggregates the union of failed tests once all workers finish.
+        // Workers must not race on the shared last-failed.txt or `-o` file;
+        // the parent writes both once all workers finish.
         $options[TestCommandOptions::LAST_FAILED_FILE] = null;
+        $options[TestCommandOptions::JUNIT_OUTPUT] = null;
 
         return TestCommandOptions::fromArray($options)->asPhelHashMap();
     }

@@ -49,6 +49,8 @@ final class OrderedResultBuffer
 
     private readonly Counts $totals;
 
+    private readonly JunitXmlReport $junitXml;
+
     private readonly ProgressBar $progressBar;
 
     public function __construct(
@@ -57,6 +59,7 @@ final class OrderedResultBuffer
     ) {
         $this->slots = array_fill(0, $total, null);
         $this->totals = new Counts();
+        $this->junitXml = new JunitXmlReport();
         $this->progressBar = $this->buildProgressBar($output, $total);
     }
 
@@ -78,6 +81,7 @@ final class OrderedResultBuffer
         }
 
         $this->totals->add($result->counts);
+        $this->junitXml->add($result->index, $result->junitXml);
         $this->flushReady();
     }
 
@@ -111,6 +115,11 @@ final class OrderedResultBuffer
     public function totals(): Counts
     {
         return $this->totals;
+    }
+
+    public function junitXml(): string
+    {
+        return $this->junitXml->render();
     }
 
     public function finishProgress(): void

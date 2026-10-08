@@ -82,6 +82,7 @@ Tooling:
 - `phel eval '#| x |# 1'` reports `[PHEL310]` with the offending line and a caret under the character, like `phel run`. It used to print the raw exception block. (#3537)
 - `phel lint`, `phel analyze` and the LSP handle a file with an `#inst` literal and go on to the next file. The value an `#inst` reads as, a `DateTimeImmutable`, used to abort the whole run with `DateTimeImmutable given`. (#3610)
 - `phel config` and `phel config --format=json` report the values a command runs with: `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations` beat the config file, as they do when the command runs. The JSON has every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`. It used to show the config file's values only and leave those four keys out. (#3525)
+- `phel test --reporter=junit-xml --parallel=N` prints the same JUnit XML document a serial run prints, on stdout or to the `-o` file, with the progress and summary on stderr. It used to print only the parallel summary, and with `-o` the workers overwrote each other's file. `--reporter=tap` still runs serially, and its `Ignoring --parallel` notice under `-v` goes to stderr. (#3627)
 
 PHP API:
 
