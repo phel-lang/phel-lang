@@ -102,13 +102,46 @@ playground primitive, and why that needs isolation: [playground.md](playground.m
 - `PHEL_OPTIMIZATION_LEVEL` in the environment, for every command of that
   process and the processes it starts: `PHEL_OPTIMIZATION_LEVEL=0 phel test`.
   The value is a non-negative integer (`0`, `1`, `2`; anything above 2 acts as
-  2). Any other value, such as `-1` or `fast`, stops the command with an error
-  naming the variable. An empty value counts as unset.
+  2). Any other value, such as `-1` or `fast`, exits 2 naming the variable
+  (see [Environment variables](#environment-variables)).
 - `phel build -O <level>`, for that build only. It beats the environment too.
 
 `phel mutate` always runs at 0: it sets `PHEL_OPTIMIZATION_LEVEL=0` for itself
 and its workers, because from level 1 up a caller inlines the body of the fn it
 calls, and a mutant of that fn would never run.
+
+## Environment variables
+
+Phel reads these from the environment of every command:
+
+| Variable | Kind | Effect |
+|---|---|---|
+| `PHEL_OPTIMIZATION_LEVEL` | number, 0 or more | The [optimization level](#optimization-level), over the config. |
+| `PHEL_WARN_DEPRECATIONS` | switch | Print deprecation notices, like `--warn-deprecations`. |
+| `PHEL_TEST_WORKERS` | number, 1 or more | Worker count for `test --parallel` and `mutate --parallel`, over the CPU count and its cap of 8. |
+| `PHEL_DIR` | path | Where Phel keeps its state, instead of `<project>/.phel` ([project layout](project-layout.md)). |
+| `PHEL_CACHE_DIR` | path | Where the compiled-code cache goes, over `PHEL_DIR`. |
+| `PHEL_OPCACHE_REEXEC` | switch | Restart with the OPcache file cache for every command ([runtime](internals/runtime.md)). |
+| `PHEL_NO_OPCACHE_REEXEC` | switch | Never restart with the OPcache file cache. |
+| `CI` | switch, lenient | A `^:focus` left in fails `phel test`. |
+| `NO_COLOR` | any value | No colour in Phel's own output. |
+| `GITHUB_ACTIONS` | `true` | `phel test` adds the [`github` reporter](#tests-on-github-actions). |
+
+A switch is on with `1`, `true`, `yes` or `on`, and off with `0`, `false`, `no`
+or `off`, in any case. Surrounding whitespace is ignored, and an unset or empty
+variable counts as not set. Any other value of a switch or a number stops the
+command with exit 2 and the variable named on stderr:
+
+```sh
+$ PHEL_TEST_WORKERS=abc phel test
+PHEL_TEST_WORKERS must be a whole number of at least 1, got "abc".
+```
+
+`CI` is the exception: CI services set it to their own values (`CI=woodpecker`),
+so any value other than an off spelling turns it on, and it never stops a
+command. `NO_COLOR` follows [no-color.org](https://no-color.org): any non-empty
+value, `0` included, turns colour off. The OPcache switches are a tuning knob,
+outside the stability promise.
 
 ## Error codes
 

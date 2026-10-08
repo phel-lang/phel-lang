@@ -14,6 +14,7 @@ use Phel\Mutate\MutateFacade;
 use Phel\Nrepl\NreplFacade;
 use Phel\Profile\ProfileFacade;
 use Phel\Run\RunFacade;
+use Phel\Shared\EnvVar;
 use Phel\Shared\Exceptions\Hint\ClassNotFoundHint;
 use Phel\Shared\ExistingPaths;
 use Phel\Shared\Facade\ApiFacadeInterface;
@@ -217,6 +218,7 @@ final readonly class PublicApiSurface
             LintRuleExplainerInterface::class,
             InvocationError::class,
             StandardError::class,
+            EnvVar::class,
         ], true);
     }
 

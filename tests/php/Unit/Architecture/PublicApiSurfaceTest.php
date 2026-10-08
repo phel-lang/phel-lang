@@ -10,6 +10,7 @@ use Phel\Compiler\CompilerFactory;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\RunFacade;
 use Phel\Run\RunProvider;
+use Phel\Shared\EnvVar;
 use Phel\Shared\Exceptions\Hint\ClassNotFoundHint;
 use Phel\Shared\ExistingPaths;
 use Phel\Shared\Facade\RunFacadeInterface;
@@ -109,6 +110,7 @@ final class PublicApiSurfaceTest extends TestCase
             OpcacheReexec::class,
             InvocationError::class,
             StandardError::class,
+            EnvVar::class,
         ];
 
         foreach ($internal as $className) {

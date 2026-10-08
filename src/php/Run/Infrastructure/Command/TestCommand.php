@@ -18,6 +18,7 @@ use Phel\Run\Domain\Test\TestNamespacePruner;
 use Phel\Run\Domain\Test\UnknownReporterException;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\EnvVar;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\ExistingPaths;
 use Phel\Shared\InvocationError;
@@ -38,7 +39,6 @@ use function array_values;
 use function count;
 use function file_put_contents;
 use function getcwd;
-use function getenv;
 use function in_array;
 use function is_array;
 use function is_dir;
@@ -412,8 +412,7 @@ HELP)
      */
     private function failsOnFocus(InputInterface $input, OutputInterface $output): bool
     {
-        $ci = getenv('CI');
-        $onCi = is_string($ci) && $ci !== '' && $ci !== '0' && strtolower($ci) !== 'false';
+        $onCi = EnvVar::isOn('CI');
         if (!$onCi && !(bool) $input->getOption(TestCommandOptionParser::OPT_FAIL_ON_FOCUS)) {
             return false;
         }

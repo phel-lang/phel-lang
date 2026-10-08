@@ -6,11 +6,8 @@ namespace Phel\Shared;
 
 use InvalidArgumentException;
 
-use function getenv;
 use function max;
-use function preg_match;
 use function putenv;
-use function sprintf;
 
 /**
  * The optimization level a process compiles at: `PHEL_OPTIMIZATION_LEVEL` when
@@ -39,20 +36,7 @@ final class OptimizationLevel
      */
     public static function resolve(mixed $configured): int
     {
-        $pinned = getenv(self::PIN_ENV);
-        if ($pinned === false || $pinned === '') {
-            return max(0, ScalarCoercion::toInt($configured, CompileOptions::DEFAULT_OPTIMIZATION_LEVEL));
-        }
-
-        // A typo must not quietly compile at another level than the one asked for.
-        if (preg_match('/^\d+$/', $pinned) !== 1) {
-            throw new InvalidArgumentException(sprintf(
-                '%s must be a non-negative integer such as 0 or 2, got "%s".',
-                self::PIN_ENV,
-                $pinned,
-            ));
-        }
-
-        return (int) $pinned;
+        return EnvVar::integer(self::PIN_ENV, 0)
+            ?? max(0, ScalarCoercion::toInt($configured, CompileOptions::DEFAULT_OPTIMIZATION_LEVEL));
     }
 }

@@ -14,6 +14,7 @@ if (function_exists('ini_set')) {
 
 use Phel\Config\ConfigLoadException;
 use Phel\Console\ConsoleFacade;
+use Phel\Shared\EnvVar;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ProjectRootResolver;
 use Phel\Shared\Performance\OpcacheFileCache;
@@ -32,6 +33,16 @@ use Phel\Shared\Performance\UserIniFlags;
  */
 function maybeReexecWithOpcacheFileCache(string $appRootDir): void
 {
+    // Read first, so a bad value stops every invocation the same way, not only
+    // the ones that reach the restart. The console is not up yet to report it.
+    try {
+        $optedOut = EnvVar::flag('PHEL_NO_OPCACHE_REEXEC') === true;
+        $optedIn = EnvVar::flag('PHEL_OPCACHE_REEXEC') === true;
+    } catch (\InvalidArgumentException $e) {
+        fwrite(STDERR, $e->getMessage().PHP_EOL);
+        exit(2);
+    }
+
     PhelProjectDirectory::ensure($appRootDir);
     $fileCacheDir = PhelProjectDirectory::opcachePath($appRootDir);
     if (!is_dir($fileCacheDir) && !@mkdir($fileCacheDir, 0o755, true) && !is_dir($fileCacheDir)) {
@@ -49,13 +60,13 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
     $decision = OpcacheReexec::decide(
         opcacheLoaded: extension_loaded('Zend OPcache'),
         fileCacheConfigured: (string) ini_get('opcache.file_cache') !== '',
-        optedOut: getenv('PHEL_NO_OPCACHE_REEXEC') !== false,
+        optedOut: $optedOut,
         pcntlAvailable: function_exists('pcntl_exec'),
         fileCacheDir: $fileCacheDir,
         reexecAlreadyDone: getenv(OpcacheReexec::REEXEC_DONE_ENV) !== false,
         compilesNothing: OpcacheReexec::compilesNothing($invocation),
         isMacOs: PHP_OS_FAMILY === 'Darwin',
-        optedIn: getenv('PHEL_OPCACHE_REEXEC') !== false,
+        optedIn: $optedIn,
         loadsManyFiles: OpcacheReexec::loadsManyFiles($invocation),
     );
 

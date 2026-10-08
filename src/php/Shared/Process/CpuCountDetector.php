@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Process;
 
+use Phel\Shared\EnvVar;
+
 use function fgets;
 use function file_exists;
 use function file_get_contents;
-use function getenv;
 use function is_resource;
 use function is_string;
 use function max;
@@ -22,7 +23,7 @@ use function trim;
  * used by `phel test --parallel` and `phel mutate --parallel`.
  *
  * Fallback chain:
- *   1. Env var PHEL_TEST_WORKERS (if a positive integer)
+ *   1. Env var PHEL_TEST_WORKERS (a positive integer; anything else throws)
  *   2. `nproc` on PATH
  *   3. `sysctl -n hw.ncpu` (macOS/BSD)
  *   4. /proc/cpuinfo line count (Linux without nproc)
@@ -42,32 +43,13 @@ final class CpuCountDetector
 
     public function detect(): int
     {
-        $override = $this->envOverride();
-        if ($override !== null) {
-            return $override;
-        }
-
-        return max(1, min($this->detectFromSystem(), self::DEFAULT_CAP));
+        return EnvVar::integer(EnvVar::TEST_WORKERS, 1)
+            ?? max(1, min($this->detectFromSystem(), self::DEFAULT_CAP));
     }
 
     public function detectMax(): int
     {
-        $override = $this->envOverride();
-        if ($override !== null) {
-            return $override;
-        }
-
-        return max(1, $this->detectFromSystem());
-    }
-
-    private function envOverride(): ?int
-    {
-        $value = $this->parseInt(getenv('PHEL_TEST_WORKERS'));
-        if ($value === null) {
-            return null;
-        }
-
-        return max(1, $value);
+        return EnvVar::integer(EnvVar::TEST_WORKERS, 1) ?? max(1, $this->detectFromSystem());
     }
 
     private function detectFromSystem(): int
