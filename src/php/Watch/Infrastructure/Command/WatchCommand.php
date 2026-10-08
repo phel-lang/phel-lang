@@ -6,9 +6,13 @@ namespace Phel\Watch\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use InvalidArgumentException;
 use Phel;
 use Phel\Shared\ExistingPaths;
+use Phel\Shared\InvocationError;
+use Phel\Shared\NumericOption;
 use Phel\Shared\ScalarCoercion;
+use Phel\Watch\Application\Watcher\FileWatcherBuilder;
 use Phel\Watch\WatchConfig;
 use Phel\Watch\WatchFacade;
 use Phel\Watch\WatchFactory;
@@ -20,7 +24,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 use function implode;
+use function in_array;
 use function sprintf;
+use function strtolower;
 
 /**
  * `./bin/phel watch [paths]...` — watch `.phel` files and reload them on
@@ -97,21 +103,32 @@ HELP)
     {
         /** @var list<string> $paths */
         $paths = (array) $input->getArgument(self::ARG_PATHS);
-        if ($paths === []) {
-            $paths = $this->defaultPaths();
+        if (!ExistingPaths::reportMissing($paths, $output)) {
+            return self::INVALID;
         }
 
-        $paths = ExistingPaths::filter($paths);
         if ($paths === []) {
-            $output->writeln('<error>No readable paths to watch.</error>');
-            return self::FAILURE;
+            $paths = ExistingPaths::filter($this->defaultPaths());
         }
 
-        $backend = ScalarCoercion::toString($input->getOption(self::OPT_BACKEND));
+        if ($paths === []) {
+            return InvocationError::report($output, 'No readable paths to watch: none of the configured source directories exists.');
+        }
+
+        $backend = strtolower(ScalarCoercion::toString($input->getOption(self::OPT_BACKEND)));
+        $knownBackends = [WatchConfig::defaultBackend(), ...FileWatcherBuilder::BACKENDS];
+        if (!in_array($backend, $knownBackends, true)) {
+            return InvocationError::report($output, sprintf('Unknown backend: %s. Known: %s.', $backend, implode(', ', $knownBackends)));
+        }
+
         $backend = $backend === WatchConfig::defaultBackend() ? null : $backend;
 
-        $poll = ScalarCoercion::toInt($input->getOption(self::OPT_POLL));
-        $debounce = ScalarCoercion::toInt($input->getOption(self::OPT_DEBOUNCE));
+        try {
+            $poll = (int) NumericOption::wholeNumber($input, self::OPT_POLL, 1);
+            $debounce = (int) NumericOption::wholeNumber($input, self::OPT_DEBOUNCE, 0);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            return InvocationError::report($output, $invalidArgumentException->getMessage());
+        }
 
         Phel::setupRuntimeArgs('watch', []);
         $this->getFactory()->getRunFacade()->loadPhelNamespaces();

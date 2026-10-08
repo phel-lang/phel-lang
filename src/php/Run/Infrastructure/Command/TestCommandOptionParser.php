@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Phel\Lang\ProfilerHookInterface;
 use Phel\Lang\Registry;
 use Phel\Run\Domain\Test\TestCommandOptions;
+use Phel\Shared\NumericOption;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\Process\CpuCountDetector;
 use Phel\Shared\ScalarCoercion;
@@ -106,8 +107,8 @@ final readonly class TestCommandOptionParser
             TestCommandOptions::LIST_ONLY => $listOnly,
             TestCommandOptions::ONLY_TESTS => $lastFailed ? $this->readLastFailed() : [],
             TestCommandOptions::LAST_FAILED_FILE => $listOnly ? null : $lastFailedFile,
-            TestCommandOptions::SLOWEST => ScalarCoercion::toInt($input->getOption(self::OPT_SLOWEST)),
-            TestCommandOptions::REPEAT => $this->parseRepeat($input),
+            TestCommandOptions::SLOWEST => NumericOption::wholeNumber($input, self::OPT_SLOWEST, 0) ?? 0,
+            TestCommandOptions::REPEAT => NumericOption::wholeNumber($input, self::OPT_REPEAT, 1) ?? 1,
             TestCommandOptions::SEED => $this->parseSeed($input),
             TestCommandOptions::RANDOM_ORDER => (bool) $input->getOption(self::OPT_RANDOM_ORDER),
         ];
@@ -217,31 +218,13 @@ final readonly class TestCommandOptionParser
         return PhelProjectDirectory::path($cwd, self::LAST_FAILED_FILENAME);
     }
 
-    private function parseRepeat(InputInterface $input): int
-    {
-        $raw = $input->getOption(self::OPT_REPEAT);
-        if (!is_numeric($raw) || (int) $raw < 1) {
-            throw new InvalidArgumentException(sprintf(
-                '--repeat must be a positive integer, got %s.',
-                ScalarCoercion::toString($raw),
-            ));
-        }
-
-        return (int) $raw;
-    }
-
     private function parseSeed(InputInterface $input): ?int
     {
-        $raw = $input->getOption(self::OPT_SEED);
-        if ($raw === null || $raw === '') {
+        if ($input->getOption(self::OPT_SEED) === '') {
             return null;
         }
 
-        if (!is_numeric($raw)) {
-            throw new InvalidArgumentException(sprintf('--seed must be an integer, got %s.', ScalarCoercion::toString($raw)));
-        }
-
-        return (int) $raw;
+        return NumericOption::wholeNumber($input, self::OPT_SEED, 0);
     }
 
     /**

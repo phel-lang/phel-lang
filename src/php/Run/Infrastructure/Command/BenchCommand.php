@@ -6,6 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use InvalidArgumentException;
 use Override;
 use Phel\Run\Application\Bench\AbBenchException;
 use Phel\Run\Application\Bench\AbBenchRunner;
@@ -17,6 +18,7 @@ use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\ExistingPaths;
 use Phel\Shared\InvocationError;
 use Phel\Shared\NamespaceInformation;
+use Phel\Shared\NumericOption;
 use Phel\Shared\Process\PhelBinaryLocator;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
@@ -26,13 +28,11 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-use function ctype_digit;
 use function defined;
 use function function_exists;
 use function getcwd;
 use function implode;
 use function is_file;
-use function is_numeric;
 use function is_string;
 use function json_encode;
 use function ob_end_clean;
@@ -157,6 +157,16 @@ final class BenchCommand extends Command
             return self::INVALID;
         }
 
+        try {
+            NumericOption::wholeNumber($input, self::OPT_REVS, 1);
+            NumericOption::wholeNumber($input, self::OPT_ITERATIONS, 1);
+            NumericOption::wholeNumber($input, self::OPT_WARMUP, 0);
+            NumericOption::wholeNumber($input, self::OPT_PAIRS, 1);
+            NumericOption::number($input, self::OPT_TOLERANCE, 0);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            return InvocationError::report($output, $invalidArgumentException->getMessage());
+        }
+
         if ($input->getOption(self::OPT_AB) !== null || $input->getParameterOption('--' . self::OPT_PAIRS, null, true) !== null) {
             return $this->executeAb($input, $output);
         }
@@ -230,16 +240,6 @@ final class BenchCommand extends Command
             }
         }
 
-        $pairs = ScalarCoercion::toString($input->getOption(self::OPT_PAIRS));
-        if (!ctype_digit($pairs) || (int) $pairs < 1) {
-            return sprintf('--pairs must be a whole number of at least 1, got "%s".', $pairs);
-        }
-
-        $tolerance = $input->getOption(self::OPT_TOLERANCE);
-        if ($tolerance !== null && !is_numeric($tolerance)) {
-            return sprintf('--tolerance must be a number, got "%s".', ScalarCoercion::toString($tolerance));
-        }
-
         $benchArguments = [];
         foreach ([self::OPT_FILTER, self::OPT_REVS, self::OPT_ITERATIONS, self::OPT_WARMUP] as $option) {
             $value = $input->getOption($option);
@@ -253,10 +253,10 @@ final class BenchCommand extends Command
 
         return new AbBenchOptions(
             $ref,
-            (int) $pairs,
+            (int) NumericOption::wholeNumber($input, self::OPT_PAIRS, 1),
             $paths,
             $benchArguments,
-            $tolerance === null ? null : (float) $tolerance,
+            NumericOption::number($input, self::OPT_TOLERANCE, 0),
         );
     }
 

@@ -32,7 +32,7 @@ final class TestCommandRepeatSeedTest extends TestCase
     public function test_repeat_zero_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('--repeat must be a positive integer');
+        $this->expectExceptionMessage('--repeat must be a whole number of at least 1');
 
         $this->collectAndPrint(['--repeat' => '0']);
     }
@@ -47,7 +47,7 @@ final class TestCommandRepeatSeedTest extends TestCase
     public function test_repeat_non_numeric_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('--repeat must be a positive integer, got abc');
+        $this->expectExceptionMessage('--repeat must be a whole number of at least 1, got "abc"');
 
         $this->collectAndPrint(['--repeat' => 'abc']);
     }
@@ -69,7 +69,7 @@ final class TestCommandRepeatSeedTest extends TestCase
     public function test_seed_non_numeric_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('--seed must be an integer');
+        $this->expectExceptionMessage('--seed must be a whole number of at least 0, got "abc"');
 
         $this->collectAndPrint(['--seed' => 'abc']);
     }

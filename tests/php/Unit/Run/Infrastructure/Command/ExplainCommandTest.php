@@ -64,14 +64,14 @@ final class ExplainCommandTest extends TestCase
         }
     }
 
-    public function test_an_unknown_code_fails_and_names_the_input(): void
+    public function test_an_unknown_code_exits_2_and_names_the_input(): void
     {
         $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
 
         $exitCode = $tester->execute(['code' => 'PHEL999']);
 
         $display = $tester->getDisplay();
-        self::assertSame(1, $exitCode);
+        self::assertSame(2, $exitCode);
         self::assertStringContainsString('Unknown error code "PHEL999".', $display);
         self::assertStringContainsString('phel explain', $display);
         self::assertStringContainsString('list every code', $display);
@@ -83,7 +83,7 @@ final class ExplainCommandTest extends TestCase
 
         $exitCode = $tester->execute(['code' => 'nonsense']);
 
-        self::assertSame(1, $exitCode);
+        self::assertSame(2, $exitCode);
         self::assertStringContainsString('Unknown error code "nonsense".', $tester->getDisplay());
     }
 
@@ -167,17 +167,17 @@ final class ExplainCommandTest extends TestCase
         self::assertSame(['code' => 'PHEL001', 'title' => ErrorCodeCatalog::explain(ErrorCode::UNDEFINED_SYMBOL)->title], $listing[0]);
     }
 
-    public function test_an_unknown_format_fails(): void
+    public function test_an_unknown_format_exits_2(): void
     {
         $tester = new CommandTester(new ExplainCommand(new LintRuleCatalog()));
 
-        self::assertSame(1, $tester->execute(['code' => 'PHEL001', '--format' => 'xml']));
+        self::assertSame(2, $tester->execute(['code' => 'PHEL001', '--format' => 'xml']));
     }
 
     public function test_without_the_lint_facade_only_error_codes_are_known(): void
     {
         $tester = new CommandTester(new ExplainCommand());
 
-        self::assertSame(1, $tester->execute(['code' => 'phel/unused-require']));
+        self::assertSame(2, $tester->execute(['code' => 'phel/unused-require']));
     }
 }

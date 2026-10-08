@@ -8,6 +8,7 @@ use Phel\Config\ProjectLayout;
 use Phel\Run\Domain\Init\NamespaceNormalizer;
 use Phel\Run\Domain\Init\ProjectTemplateGenerator;
 use Phel\Run\Domain\Init\ProjectTemplateScaffolder;
+use Phel\Shared\InvocationError;
 use Phel\Shared\ScalarCoercion;
 use Phel\Shared\VersionFinder;
 use Symfony\Component\Console\Command\Command;
@@ -16,7 +17,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function array_keys;
 use function dirname;
+use function implode;
 use function is_dir;
 use function mkdir;
 use function sprintf;
@@ -143,6 +146,15 @@ HELP)
             return Command::SUCCESS;
         }
 
+        $templateName = $template === false ? null : ScalarCoercion::toString($template);
+        if ($templateName !== null && !$this->templateScaffolder->hasTemplate($templateName)) {
+            return InvocationError::report($output, sprintf(
+                'Unknown template: %s. Known: %s.',
+                $templateName,
+                implode(', ', array_keys($this->templateScaffolder->availableTemplates())),
+            ));
+        }
+
         $cwd = getcwd();
         if ($cwd === false) {
             $output->writeln('<error>Unable to determine current working directory.</error>');
@@ -155,9 +167,9 @@ HELP)
             $output->writeln('');
         }
 
-        if ($template !== false) {
+        if ($templateName !== null) {
             return $this->scaffoldFromTemplate(
-                ScalarCoercion::toString($template),
+                $templateName,
                 $projectName,
                 $cwd,
                 $output,
@@ -386,14 +398,6 @@ HELP)
         bool $force,
         bool $dryRun,
     ): int {
-        if (!$this->templateScaffolder->hasTemplate($template)) {
-            $output->writeln(sprintf('<error>Unknown template "%s".</error>', $template));
-            $output->writeln('');
-            $this->printTemplates($output);
-
-            return Command::FAILURE;
-        }
-
         $files = $this->templateScaffolder->files($template, $projectName);
         foreach ($files as $relativePath => $content) {
             $fullPath = $cwd . '/' . $relativePath;

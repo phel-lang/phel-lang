@@ -23,6 +23,7 @@ use Phel\Shared\FrameworkNamespaces;
 use Phel\Shared\InvocationError;
 use Phel\Shared\Lint\LintRuleExplainerInterface;
 use Phel\Shared\NoColor;
+use Phel\Shared\NumericOption;
 use Phel\Shared\OptimizationLevel;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\Process\CpuCountDetector;
@@ -221,6 +222,7 @@ final readonly class PublicApiSurface
             InvocationError::class,
             StandardError::class,
             EnvVar::class,
+            NumericOption::class,
         ], true);
     }
 

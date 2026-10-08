@@ -7,6 +7,7 @@ namespace Phel\Run\Infrastructure\Command;
 use ArrayAccess;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use InvalidArgumentException;
 use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Application\Test\Coverage\HtmlCoverageRenderer;
@@ -220,6 +221,18 @@ HELP)
         }
 
         $optionParser = new TestCommandOptionParser();
+
+        try {
+            $workerCount = $optionParser->decideParallelism(
+                $input,
+                $output,
+                $this->getFacade()->createCpuCountDetector(),
+            );
+            $options = $optionParser->collectOptions($input);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            return InvocationError::report($output, $invalidArgumentException->getMessage());
+        }
+
         $feedback = TestLoadingFeedback::fromOutput($output);
 
         try {
@@ -252,13 +265,6 @@ HELP)
                     return self::FAILURE;
                 }
             }
-
-            $workerCount = $optionParser->decideParallelism(
-                $input,
-                $output,
-                $this->getFacade()->createCpuCountDetector(),
-            );
-            $options = $optionParser->collectOptions($input);
 
             // Coverage runs serially: workers are separate processes whose
             // coverage cannot be merged here. Tell the user and fall back.
@@ -374,7 +380,7 @@ HELP)
 
             return $successful ? self::SUCCESS : self::FAILURE;
         } catch (GitUnavailableException $e) {
-            $output->writeln('<error>' . $e->getMessage() . '</error>');
+            return InvocationError::report($output, $e->getMessage());
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {

@@ -49,10 +49,35 @@ final class InvocationErrorExitCodeTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{list<string>}>
+     * @return iterable<string, array{0: list<string>, 1?: string}>
      */
     public static function provideInvocationErrors(): iterable
     {
+        yield 'unknown command' => [['nope-cmd'], 'nope-cmd'];
+        yield 'unknown option' => [['lint', '--nope', 'ok.phel'], '--nope'];
+        yield 'too many arguments' => [['explain', 'PHEL001', 'extra'], 'Too many arguments'];
+        yield 'explain, unknown --format' => [['explain', '--format=xml', 'PHEL001'], 'xml'];
+        yield 'explain, unknown code' => [['explain', 'NOPE'], 'NOPE'];
+        yield 'explain --format=json, unknown code' => [['explain', '--format=json', 'NOPE'], 'NOPE'];
+        yield 'init, unknown --template' => [['init', '--template=nope'], 'nope'];
+        yield 'test, non-numeric --parallel' => [['test', '--parallel=abc', 'ok.phel'], '--parallel'];
+        yield 'test, non-numeric --repeat' => [['test', '--repeat=abc', 'ok.phel'], '--repeat'];
+        yield 'test, non-numeric --seed' => [['test', '--seed=abc', 'ok.phel'], '--seed'];
+        yield 'test, non-numeric --slowest' => [['test', '--slowest=abc', 'ok.phel'], '--slowest'];
+        yield 'test --changed, outside a git repository' => [['test', 'ok.phel', '--changed'], '--changed'];
+        yield 'mutate, missing path' => [['mutate', 'missing.phel'], 'missing.phel'];
+        yield 'mutate, missing --tests path' => [['mutate', '--tests=missing', 'ok.phel'], 'missing'];
+        yield 'watch, one of two paths missing' => [['watch', 'ok.phel', 'missing.phel'], 'missing.phel'];
+        yield 'watch, unknown --backend' => [['watch', '--backend=nope', 'ok.phel'], 'polling'];
+        yield 'watch, non-numeric --poll' => [['watch', '--poll=abc', 'ok.phel'], '--poll'];
+        yield 'watch, non-numeric --debounce' => [['watch', '--debounce=abc', 'ok.phel'], '--debounce'];
+        yield 'profile, non-numeric --top' => [['profile', '--top=abc', 'ok.phel'], '--top'];
+        yield 'profile, zero --top' => [['profile', '--top=0', 'ok.phel'], '--top'];
+        yield 'nrepl, non-numeric --port' => [['nrepl', '--port=abc'], '--port'];
+        yield 'bench, non-numeric --revs' => [['bench', '--revs=abc', 'ok.phel'], '--revs'];
+        yield 'bench, non-numeric --iterations' => [['bench', '--iterations=abc', 'ok.phel'], '--iterations'];
+        yield 'bench, non-numeric --warmup' => [['bench', '--warmup=abc', 'ok.phel'], '--warmup'];
+        yield 'bench, non-numeric --tolerance' => [['bench', '--tolerance=abc', 'ok.phel'], '--tolerance'];
         yield 'lint, missing path' => [['lint', 'missing.phel']];
         yield 'lint, one of two paths missing' => [['lint', 'ok.phel', 'missing.phel']];
         yield 'lint, missing --config' => [['lint', '--config=nope.phel', 'ok.phel']];
@@ -81,7 +106,7 @@ final class InvocationErrorExitCodeTest extends TestCase
      * @param list<string> $args
      */
     #[DataProvider('provideInvocationErrors')]
-    public function test_an_invocation_error_exits_2_with_the_problem_on_stderr_only(array $args): void
+    public function test_an_invocation_error_exits_2_with_the_problem_on_stderr_only(array $args, string $named = ''): void
     {
         $result = Subprocess::run(
             [PHP_BINARY, dirname(__DIR__, 4) . '/bin/phel', ...$args],
@@ -91,6 +116,7 @@ final class InvocationErrorExitCodeTest extends TestCase
         self::assertSame(2, $result->exitCode, $result->stderr . $result->stdout);
         self::assertSame('', $result->stdout);
         self::assertNotSame('', $result->stderr);
+        self::assertStringContainsString($named, $result->stderr);
     }
 
     /**
@@ -155,6 +181,17 @@ final class InvocationErrorExitCodeTest extends TestCase
             'PHEL_OPTIMIZATION_LEVEL must be a whole number of at least 0, got "fast".',
             trim($result->stderr),
         );
+    }
+
+    public function test_help_still_shows_with_an_unknown_option(): void
+    {
+        $result = Subprocess::run(
+            [PHP_BINARY, dirname(__DIR__, 4) . '/bin/phel', 'lint', '--nope', '--help'],
+            $this->dir,
+        );
+
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertStringContainsString('lint [options] [--] [<paths>...]', $result->stdout);
     }
 
     public function test_a_missing_path_is_named_on_stderr(): void

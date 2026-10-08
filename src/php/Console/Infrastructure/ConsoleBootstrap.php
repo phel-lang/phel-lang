@@ -16,10 +16,17 @@ use Phel\Shared\NoColor;
 use Phel\Shared\OptimizationLevel;
 use Phel\Shared\Process\CpuCountDetector;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\StandardError;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\HelpCommand;
+use Symfony\Component\Console\Exception\CommandNotFoundException;
+use Symfony\Component\Console\Exception\ExceptionInterface;
 use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 use function array_slice;
 use function array_values;
@@ -103,7 +110,35 @@ final class ConsoleBootstrap extends Application
             return InvocationError::report($output, $invalidArgumentException->getMessage());
         }
 
-        return parent::doRun($input, $output);
+        try {
+            return parent::doRun($input, $output);
+        } catch (CommandNotFoundException $commandNotFoundException) {
+            return $this->reportInvocationError($commandNotFoundException, $output);
+        }
+    }
+
+    /**
+     * Binds the input before the command runs, so an unknown option or a
+     * missing argument exits 2 instead of Symfony's 1. Once the command runs,
+     * a console exception is the command's own failure. `help` is skipped:
+     * it ignores the options it does not know, so `lint --nope --help` still
+     * shows help.
+     */
+    #[Override]
+    protected function doRunCommand(Command $command, InputInterface $input, OutputInterface $output): int
+    {
+        if ($command instanceof HelpCommand) {
+            return parent::doRunCommand($command, $input, $output);
+        }
+
+        try {
+            $input->bind($this->definitionOf($command));
+            $input->validate();
+        } catch (ExceptionInterface $exception) {
+            return $this->reportInvocationError($exception, $output);
+        }
+
+        return parent::doRunCommand($command, $input, $output);
     }
 
     /**
@@ -116,6 +151,32 @@ final class ConsoleBootstrap extends Application
         parent::configureIO($input, $output);
 
         NoColor::followOutput($output->isDecorated());
+    }
+
+    /**
+     * What `Command::run()` binds: the application's arguments, then the
+     * command's, and both sets of options, keyed by name so a definition that
+     * already holds the application's entries does not repeat them.
+     */
+    private function definitionOf(Command $command): InputDefinition
+    {
+        $application = $this->getDefinition();
+        $own = $command->getDefinition();
+
+        return new InputDefinition([
+            ...array_values([...$application->getArguments(), ...$own->getArguments()]),
+            ...array_values([...$application->getOptions(), ...$own->getOptions()]),
+        ]);
+    }
+
+    /**
+     * Symfony's own rendering, usage line and "Did you mean" included, on stderr.
+     */
+    private function reportInvocationError(Throwable $exception, OutputInterface $output): int
+    {
+        $this->renderThrowable($exception, StandardError::of($output));
+
+        return Command::INVALID;
     }
 
     /**
