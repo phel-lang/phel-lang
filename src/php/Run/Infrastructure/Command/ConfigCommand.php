@@ -52,9 +52,8 @@ final class ConfigCommand extends Command
         $this->setName('config')
             ->setDescription('Show the effective Phel configuration and where it comes from')
             ->setHelp(<<<'HELP'
-Prints the config commands run with (defaults + phel-config.php + overrides,
-then the PHEL_CACHE_DIR, PHEL_DIR, PHEL_OPTIMIZATION_LEVEL and
-PHEL_WARN_DEPRECATIONS env vars and the --warn-deprecations flag) and its source.
+Prints the config a command runs with and where it comes from: defaults,
+phel-config.php, phel-config-local.php, then the PHEL_* env vars and flags.
 
 <info>Examples:</info>
   <comment>phel config</comment>             Human-readable, annotated with origins
