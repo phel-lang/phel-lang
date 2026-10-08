@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Process;
 
+use InvalidArgumentException;
 use Phel\Shared\EnvVar;
 
 use function fgets;
@@ -41,15 +42,27 @@ final class CpuCountDetector
 {
     public const int DEFAULT_CAP = 8;
 
+    private const string WORKERS_ENV = 'PHEL_TEST_WORKERS';
+
+    /**
+     * @internal
+     *
+     * @throws InvalidArgumentException when the variable is not a whole number of at least 1
+     */
+    public static function fromEnv(): ?int
+    {
+        return EnvVar::integer(self::WORKERS_ENV, 1);
+    }
+
     public function detect(): int
     {
-        return EnvVar::integer(EnvVar::TEST_WORKERS, 1)
+        return self::fromEnv()
             ?? max(1, min($this->detectFromSystem(), self::DEFAULT_CAP));
     }
 
     public function detectMax(): int
     {
-        return EnvVar::integer(EnvVar::TEST_WORKERS, 1) ?? max(1, $this->detectFromSystem());
+        return self::fromEnv() ?? max(1, $this->detectFromSystem());
     }
 
     private function detectFromSystem(): int

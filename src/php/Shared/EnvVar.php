@@ -25,8 +25,6 @@ final class EnvVar
 {
     public const string WARN_DEPRECATIONS = 'PHEL_WARN_DEPRECATIONS';
 
-    public const string TEST_WORKERS = 'PHEL_TEST_WORKERS';
-
     private const array TRUE_SPELLINGS = ['1', 'true', 'yes', 'on'];
 
     private const array FALSE_SPELLINGS = ['0', 'false', 'no', 'off'];

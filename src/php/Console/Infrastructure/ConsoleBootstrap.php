@@ -14,6 +14,7 @@ use Phel\Shared\EnvVar;
 use Phel\Shared\InvocationError;
 use Phel\Shared\NoColor;
 use Phel\Shared\OptimizationLevel;
+use Phel\Shared\Process\CpuCountDetector;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -97,7 +98,7 @@ final class ConsoleBootstrap extends Application
         try {
             OptimizationLevel::resolve(null);
             EnvVar::flag(EnvVar::WARN_DEPRECATIONS);
-            EnvVar::integer(EnvVar::TEST_WORKERS, 1);
+            CpuCountDetector::fromEnv();
         } catch (InvalidArgumentException $invalidArgumentException) {
             return InvocationError::report($output, $invalidArgumentException->getMessage());
         }

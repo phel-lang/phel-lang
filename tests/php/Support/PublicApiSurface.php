@@ -24,6 +24,7 @@ use Phel\Shared\InvocationError;
 use Phel\Shared\Lint\LintRuleExplainerInterface;
 use Phel\Shared\NoColor;
 use Phel\Shared\OptimizationLevel;
+use Phel\Shared\Process\CpuCountDetector;
 use Phel\Shared\SourceMap\SupersededSourceMaps;
 use Phel\Shared\StandardError;
 use Phel\Shared\VersionFinder;
@@ -228,6 +229,7 @@ final readonly class PublicApiSurface
             OptimizationLevel::class . '::pin',
             NoColor::class . '::followOutput',
             ExistingPaths::class . '::reportMissing',
+            CpuCountDetector::class . '::fromEnv',
             ClassNotFoundHint::class . '::javaClassHint',
             FrameworkNamespaces::class . '::clojureTarget',
             FrameworkNamespaces::class . '::isPhel',
