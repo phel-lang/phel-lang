@@ -18,18 +18,34 @@ normalize_version() {
 
 # Convert a semver-ish version to a composer caret constraint pinned to the
 # MAJOR.MINOR pair (correct for 0.x lines too: composer's caret on 0.x pins
-# the minor).
-#   0.39.0    -> ^0.39
-#   0.40.1    -> ^0.40
-#   1.2.3     -> ^1.2
-#   weird     -> ^weird     (passthrough fallback)
+# the minor). A pre-release keeps its full version: ^1.0 only matches stable
+# releases, so it cannot resolve before 1.0.0 ships, while ^1.0.0-rc2 resolves
+# the RC in the library's own install and still matches 1.0.0 later.
+#   0.39.0      -> ^0.39
+#   0.40.1      -> ^0.40
+#   1.2.3       -> ^1.2
+#   1.0.0-rc2   -> ^1.0.0-rc2
+#   1.1.0-dev   -> ^1.1.0-dev
+#   dev-main    -> dev-main   (branch constraint, a caret would not parse)
+#   weird       -> ^weird     (passthrough fallback)
 derive_caret() {
   local v="$1"
-  if [[ "$v" =~ ^([0-9]+)\.([0-9]+)\. ]]; then
+  if [[ "$v" == dev-* ]]; then
+    printf '%s' "$v"
+  elif [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+-[A-Za-z0-9.]+$ ]]; then
+    printf '^%s' "$v"
+  elif [[ "$v" =~ ^([0-9]+)\.([0-9]+)\. ]]; then
     printf '^%s.%s' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"
   else
     printf '^%s' "$v"
   fi
+}
+
+# Return 0 for a version composer treats as below stable: a suffixed release
+# (1.0.0-rc2, 1.1.0-beta1, 1.1.0-dev) or a branch (dev-main).
+is_prerelease_version() {
+  local v="$1"
+  [[ "$v" == dev-* || "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+- ]]
 }
 
 # CSV membership check. Empty haystack always returns false.

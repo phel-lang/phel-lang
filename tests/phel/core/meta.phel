@@ -30,6 +30,15 @@
 (deftest meta-on-object-with-meta
   (is (= {:a 1} (meta (with-meta [] {:a 1}))) "meta on object implementing MetaInterface"))
 
+(deftest with-meta-on-a-fn-literal
+  (let [f (with-meta (fn [x] x) {:b 2})]
+    (is (= {:b 2} (meta f)) "a single-arity fn literal carries metadata")
+    (is (= 7 (f 7)) "the fn with metadata is still callable")
+    (is (fn? f) "the fn with metadata is still a fn")
+    (is (= [2 3] (map (with-meta inc {:b 2}) [1 2])) "a fn with metadata works as a higher-order argument"))
+  (is (= {:a 1 :b 2} (meta (vary-meta (fn [x] x) assoc :a 1 :b 2))) "vary-meta works on a fn literal")
+  (is (= {:c 3} (meta (with-meta (with-meta (fn [] 1) {:b 2}) {:c 3}))) "with-meta replaces the metadata of a fn literal"))
+
 (deftest meta-on-object-no-meta
   (is (= nil (meta [])) "meta on object without metadata returns nil"))
 

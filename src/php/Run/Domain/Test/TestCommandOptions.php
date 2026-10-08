@@ -7,6 +7,7 @@ namespace Phel\Run\Domain\Test;
 use Phel\Shared\Printer\Printer;
 use Phel\Shared\ScalarCoercion;
 
+use function in_array;
 use function is_array;
 use function is_int;
 use function is_string;
@@ -135,6 +136,26 @@ final readonly class TestCommandOptions
             $seed,
             !empty($options[self::RANDOM_ORDER]),
         );
+    }
+
+    public function hasReporter(string $name): bool
+    {
+        return in_array($name, $this->reporters, true);
+    }
+
+    public function junitOutput(): ?string
+    {
+        return $this->junitOutput;
+    }
+
+    /**
+     * TAP, and JUnit XML without `-o`, own stdout: a tool reads all of it,
+     * so everything else the run prints goes to stderr.
+     */
+    public function ownsStdout(): bool
+    {
+        return $this->hasReporter('tap')
+            || ($this->hasReporter('junit-xml') && $this->junitOutput === null);
     }
 
     public function asPhelHashMap(): string
