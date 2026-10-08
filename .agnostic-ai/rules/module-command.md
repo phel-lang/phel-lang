@@ -25,6 +25,7 @@ Error reporting, exception formatting, and directory discovery for CLI commands.
 | `getProjectSourceDirectories()` | user-configured only |
 | `getTestDirectories()` / `getVendorSourceDirectories()` / `getOutputDirectory()` | per name |
 | `readPhelConfig(absolutePath)` | parsed `phel-config.php` array |
+| `reportWarningsAtPhelSource()` | installs `Shared\Exceptions\SourceMappedErrorHandler`, so a PHP warning from the eval temp file or the compiled cache names the `.phel` file and line; called once by `bin/phel` (#3537) |
 
 Directory getters are `#[Cacheable]`.
 

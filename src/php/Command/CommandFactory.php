@@ -31,6 +31,7 @@ use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Exceptions\Hint\MissingNsFormHint;
 use Phel\Shared\Exceptions\Hint\NotCallableHint;
 use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
+use Phel\Shared\Exceptions\SourceMappedErrorHandler;
 use Phel\Shared\Munge;
 use Phel\Shared\NoColor;
 use Phel\Shared\Printer\Printer;
@@ -55,6 +56,23 @@ final class CommandFactory extends AbstractFactory
             $this->createExceptionHintResolver(),
             $this->createRuntimeErrorReportFormatter(),
         );
+    }
+
+    /**
+     * The mapping is built per warning, not at startup, so a command that
+     * raises none never pays for it.
+     */
+    public function createSourceMappedErrorHandler(): SourceMappedErrorHandler
+    {
+        return new SourceMappedErrorHandler(function (string $file, int $line): ?array {
+            if (!$this->createInternalPathDetector()->isInternalArtifact($file)) {
+                return null;
+            }
+
+            $position = $this->createFilePositionExtractor()->getOriginal($file, $line);
+
+            return $position->filename() === $file ? null : [$position->filename(), $position->line()];
+        });
     }
 
     public function createRuntimeErrorReportFormatter(): RuntimeErrorReportFormatter

@@ -86,6 +86,13 @@ interface CommandFacadeInterface
     public function readPhelConfig(string $absolutePath): array;
 
     /**
+     * Reports a PHP warning, notice or deprecation raised by compiled Phel
+     * code at the `.phel` file and line, instead of the eval temp file or the
+     * compiled cache. Installs a process-wide error handler.
+     */
+    public function reportWarningsAtPhelSource(): void;
+
+    /**
      * Maps every mapped generated line of a compiled PHP file back to its Phel
      * source, for coverage reporting. Empty filename when no source map.
      *

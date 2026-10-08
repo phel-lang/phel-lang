@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Diagnostic;
 
+use Phel\Shared\Exceptions\SourceMappedErrorHandler;
+
 use function error_reporting;
 use function fopen;
 use function fwrite;
@@ -30,9 +32,10 @@ use const PHP_EOL;
  * the notice is about, and the result looks like a PHP error rather than a
  * Phel diagnostic (#3262).
  *
- * A userland `set_error_handler` (PHPUnit's, a project's logger) still gets
- * the notice as a real `E_USER_*`, because a handler installed to collect PHP
- * notices asked for exactly this one. That path keeps the `display_errors`
+ * A userland `set_error_handler` (PHPUnit's, a project's logger, not Phel's
+ * own {@see SourceMappedErrorHandler}) still gets the notice as a real
+ * `E_USER_*`, because a handler installed to collect PHP notices asked for
+ * exactly this one. That path keeps the `display_errors`
  * redirect: a handler that declines the notice hands it back to PHP, and PHP
  * CLI's default display is STDOUT, which the emitter's `ob_start()` would
  * splice into the generated code (#2827).
@@ -121,7 +124,7 @@ final class ErrorNotice
         $handler = set_error_handler(null);
         restore_error_handler();
 
-        return $handler !== null;
+        return $handler !== null && !$handler instanceof SourceMappedErrorHandler;
     }
 
     /**

@@ -12,6 +12,7 @@ if (function_exists('ini_set')) {
     @ini_set('memory_limit', '-1');
 }
 
+use Phel\Command\CommandFacade;
 use Phel\Config\ConfigLoadException;
 use Phel\Console\ConsoleFacade;
 use Phel\Shared\EnvVar;
@@ -245,6 +246,8 @@ function pruneOpcacheFileCache(string $appRootDir): void
             $hostLoader->register(false);
         }
     }
+
+    new CommandFacade()->reportWarningsAtPhelSource();
 
     $facade = new ConsoleFacade();
     $facade->runConsole();

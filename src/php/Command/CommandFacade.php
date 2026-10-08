@@ -76,6 +76,13 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
         return $this->getFactory()->createExceptionHintResolver();
     }
 
+    public function reportWarningsAtPhelSource(): void
+    {
+        $this->getFactory()
+            ->createSourceMappedErrorHandler()
+            ->install();
+    }
+
     public function getCompiledFileLineMap(string $compiledFile): array
     {
         return $this->getFactory()

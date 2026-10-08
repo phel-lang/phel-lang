@@ -84,6 +84,7 @@ final class Phel\Command\CommandFacade extends Gacela\Framework\AbstractFacade i
   public function getVendorSourceDirectories(): array
   public function logStackTrace(Throwable $e): void
   public function readPhelConfig(string $absolutePath): array
+  public function reportWarningsAtPhelSource(): void
   public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\AbstractLocatedException $locatedException, Phel\Shared\Parser\ReadModel\CodeSnippet $snippet): void
   public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
 
@@ -1851,6 +1852,11 @@ final class Phel\Shared\Exceptions\MissingNsFormException extends RuntimeExcepti
 final readonly class Phel\Shared\Exceptions\RuntimeErrorCodeResolver
   public static function codeFor(Throwable $e): ?Phel\Shared\Exceptions\ErrorCode
 
+final readonly class Phel\Shared\Exceptions\SourceMappedErrorHandler
+  public function __construct(Closure $sourceOf)
+  public function __invoke(int $level, string $message, string $file = '', int $line = 0): bool
+  public function install(): void
+
 final class Phel\Shared\ExistingPaths
   public static function filter(array $paths): array
 
@@ -1878,6 +1884,7 @@ interface Phel\Shared\Facade\CommandFacadeInterface
   public function getVendorSourceDirectories(): array
   public function logStackTrace(Throwable $e): void
   public function readPhelConfig(string $absolutePath): array
+  public function reportWarningsAtPhelSource(): void
   public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\AbstractLocatedException $locatedException, Phel\Shared\Parser\ReadModel\CodeSnippet $snippet): void
   public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
 
