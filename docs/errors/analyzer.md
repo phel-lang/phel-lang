@@ -62,7 +62,7 @@ A special form got the wrong kind of value in a fixed position, or a literal arg
 
 Enum case: `ErrorCode::DUPLICATE_DEFINITION`
 
-The same name is defined twice in one namespace. The analyzer reports the second definition and names the line of the first. The REPL and `phel eval` stand this guard down, so it only fires on a file.
+The same name is defined twice in one namespace. The analyzer reports the second definition and names the line of the first. The REPL and `phel eval` stand this guard down, so it only fires on a file. One `ns` form that binds an `:as` alias, or a `:refer` name, to two different namespaces reports here too, wherever it runs.
 
 ```phel
 (ns app.core)
@@ -70,7 +70,7 @@ The same name is defined twice in one namespace. The analyzer reports the second
 (def a 2)
 ```
 
-**Fix:** Rename one of the two definitions, or delete the one you no longer need.
+**Fix:** Rename one of the two definitions, or delete the one you no longer need. For an alias or a refer, pick a different name for one of them.
 
 ## PHEL005: Error while expanding a macro
 
