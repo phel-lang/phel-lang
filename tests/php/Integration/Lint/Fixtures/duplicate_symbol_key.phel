@@ -1,0 +1,4 @@
+(ns fixtures.duplicate-symbol-key)
+
+(defn demo [a]
+  {a 1 a 2})

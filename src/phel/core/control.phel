@@ -54,10 +54,28 @@
     (cons 'or (case-list-match-tests v matcher))
     `(equals1 ~v '~matcher)))
 
+(defn- case-assert-distinct [constants seen]
+  (if (php/=== constants nil)
+    seen
+    (let [constant (first constants)]
+      (when (.contains seen constant)
+        (throw (new InvalidArgumentException
+                    (str "Duplicate case test constant: " constant))))
+      (recur (next constants) (.add seen constant)))))
+
+(defn- case-assert-distinct-tests [pairs seen]
+  (when (next pairs)
+    (let [matcher (first pairs)]
+      (recur (next (next pairs))
+             (if (php/instanceof matcher PersistentListInterface)
+               (case-assert-distinct (seq matcher) seen)
+               (case-assert-distinct (cons matcher nil) seen))))))
+
 (defmacro case
   "Evaluates expression and matches it against constant test values, returning the associated result."
   {:example "(case x 1 \"one\" 2 \"two\" \"other\") ; => \"one\" (when x is 1)"}
   [e & pairs]
+  (case-assert-distinct-tests pairs #{})
   (if (next pairs)
     (let [v (gensym)]
       `(let [~v ~e]
