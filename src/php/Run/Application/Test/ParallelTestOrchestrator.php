@@ -16,8 +16,6 @@ use function count;
 use function dirname;
 use function file_put_contents;
 use function implode;
-use function in_array;
-use function is_array;
 use function is_dir;
 use function is_string;
 use function max;
@@ -97,11 +95,11 @@ final readonly class ParallelTestOrchestrator
         $buffer->finishProgress();
         $this->persistLastFailed($options, $buffer->allFailedTests());
         $this->printSummary($progress, $buffer->totals(), $total, $effectiveWorkerCount, microtime(true) - $startedAt, $recoveredByRetry);
-        if ($testOptions->writesJunitXml()) {
+        if ($testOptions->hasReporter('junit-xml')) {
             $this->writeJunitXml($output, $testOptions->junitOutput(), $buffer->junitXml());
         }
 
-        if ($this->usesGithubReporter($options)) {
+        if ($testOptions->hasReporter('github')) {
             GithubStepSummary::append($buffer->totals());
         }
 
@@ -146,16 +144,6 @@ final readonly class ParallelTestOrchestrator
         }
 
         file_put_contents($path, $xml);
-    }
-
-    /**
-     * @param array<string, mixed> $options
-     */
-    private function usesGithubReporter(array $options): bool
-    {
-        $reporters = $options[TestCommandOptions::REPORTERS] ?? [];
-
-        return is_array($reporters) && in_array('github', $reporters, true);
     }
 
     /**

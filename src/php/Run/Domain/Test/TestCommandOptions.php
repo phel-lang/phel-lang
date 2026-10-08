@@ -138,9 +138,9 @@ final readonly class TestCommandOptions
         );
     }
 
-    public function writesJunitXml(): bool
+    public function hasReporter(string $name): bool
     {
-        return in_array('junit-xml', $this->reporters, true);
+        return in_array($name, $this->reporters, true);
     }
 
     public function junitOutput(): ?string
@@ -154,8 +154,8 @@ final readonly class TestCommandOptions
      */
     public function ownsStdout(): bool
     {
-        return in_array('tap', $this->reporters, true)
-            || ($this->writesJunitXml() && $this->junitOutput === null);
+        return $this->hasReporter('tap')
+            || ($this->hasReporter('junit-xml') && $this->junitOutput === null);
     }
 
     public function asPhelHashMap(): string
