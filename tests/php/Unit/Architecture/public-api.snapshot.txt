@@ -1852,11 +1852,6 @@ final class Phel\Shared\Exceptions\MissingNsFormException extends RuntimeExcepti
 final readonly class Phel\Shared\Exceptions\RuntimeErrorCodeResolver
   public static function codeFor(Throwable $e): ?Phel\Shared\Exceptions\ErrorCode
 
-final readonly class Phel\Shared\Exceptions\SourceMappedErrorHandler
-  public function __construct(Closure $sourceOf)
-  public function __invoke(int $level, string $message, string $file = '', int $line = 0): bool
-  public function install(): void
-
 final class Phel\Shared\ExistingPaths
   public static function filter(array $paths): array
 

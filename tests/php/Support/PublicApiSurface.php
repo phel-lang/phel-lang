@@ -16,6 +16,7 @@ use Phel\Profile\ProfileFacade;
 use Phel\Run\RunFacade;
 use Phel\Shared\EnvVar;
 use Phel\Shared\Exceptions\Hint\ClassNotFoundHint;
+use Phel\Shared\Exceptions\SourceMappedErrorHandler;
 use Phel\Shared\ExistingPaths;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
@@ -223,6 +224,7 @@ final readonly class PublicApiSurface
             StandardError::class,
             EnvVar::class,
             NumericOption::class,
+            SourceMappedErrorHandler::class,
         ], true);
     }
 
