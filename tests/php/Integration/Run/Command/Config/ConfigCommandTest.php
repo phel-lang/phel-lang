@@ -9,6 +9,7 @@ use Phel\Config\PhelConfig;
 use Phel\Run\Infrastructure\Command\ConfigCommand;
 use Symfony\Component\Console\Tester\CommandTester;
 
+use function array_keys;
 use function json_decode;
 
 use const JSON_THROW_ON_ERROR;
@@ -126,6 +127,19 @@ final class ConfigCommandTest extends GacelaTestCase
         self::assertSame(['src/phel'], $decoded[PhelConfig::SRC_DIRS]);
         self::assertSame('vendor', $decoded[PhelConfig::VENDOR_DIR]);
         self::assertArrayNotHasKey('Sources:', $decoded);
+    }
+
+    public function test_format_json_reports_every_key_of_the_config_model_even_when_the_config_sets_few(): void
+    {
+        $tester = new CommandTester(new ConfigCommand());
+        $tester->execute(['--format' => 'json']);
+
+        /** @var array<string, mixed> $decoded */
+        $decoded = json_decode($tester->getDisplay(), true, 512, JSON_THROW_ON_ERROR);
+        $model = new PhelConfig()->jsonSerialize();
+
+        self::assertSame(array_keys($model), array_keys($decoded));
+        self::assertSame($model[PhelConfig::CACHE_ENV_VARS], $decoded[PhelConfig::CACHE_ENV_VARS]);
     }
 
     public function test_the_removed_json_flag_is_gone(): void

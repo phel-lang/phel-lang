@@ -122,20 +122,42 @@ final class PhelProjectDirectory
      */
     public static function resolveCacheDir(string $projectRoot, string $configuredCacheDir, string $configuredDir = ''): string
     {
-        $envOverride = getenv(self::CACHE_DIR_ENV);
-        if (is_string($envOverride) && $envOverride !== '') {
-            return $envOverride;
-        }
+        return self::cacheDirOverride() ?? self::resolve($projectRoot, $configuredCacheDir, $configuredDir);
+    }
 
-        return self::resolve($projectRoot, $configuredCacheDir, $configuredDir);
+    /**
+     * The `PHEL_CACHE_DIR` value that beats the configured `cache-dir`, or
+     * null when it is unset or empty.
+     *
+     * @internal
+     */
+    public static function cacheDirOverride(): ?string
+    {
+        return self::envValue(self::CACHE_DIR_ENV);
+    }
+
+    /**
+     * The `PHEL_DIR` value that beats the configured `phel-dir`, or null when
+     * it is unset or empty.
+     *
+     * @internal
+     */
+    public static function dirOverride(): ?string
+    {
+        return self::envValue(self::DIR_ENV);
+    }
+
+    private static function envValue(string $name): ?string
+    {
+        $value = getenv($name);
+
+        return is_string($value) && $value !== '' ? $value : null;
     }
 
     private static function resolveBase(string $projectRoot, string $configuredDir): string
     {
-        $env = getenv(self::DIR_ENV);
-        $candidate = is_string($env) && $env !== ''
-            ? $env
-            : ($configuredDir !== '' ? $configuredDir : self::DIRECTORY_NAME);
+        $candidate = self::dirOverride()
+            ?? ($configuredDir !== '' ? $configuredDir : self::DIRECTORY_NAME);
 
         if (self::isAbsolutePath($candidate)) {
             return rtrim($candidate, '/\\');

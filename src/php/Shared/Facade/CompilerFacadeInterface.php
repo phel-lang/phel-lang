@@ -229,6 +229,13 @@ interface CompilerFacadeInterface
     public function enableDeprecationWarnings(): void;
 
     /**
+     * Whether a compile in this process raises deprecation notices: the
+     * `warn-deprecations` config key, `PHEL_WARN_DEPRECATIONS` or the
+     * `--warn-deprecations` flag turned them on.
+     */
+    public function deprecationWarningsEnabled(): bool;
+
+    /**
      * Raise the deprecation notices an earlier compile of a source recorded
      * (`EmitterResult::getDeprecations()`), each by its own rule: an announced
      * one always, the rest only when the notices are enabled. This is how a

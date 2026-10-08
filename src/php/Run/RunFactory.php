@@ -34,6 +34,7 @@ use Phel\Run\Application\Test\TestWatchLoop;
 use Phel\Run\Application\Test\TestWatchRunner;
 use Phel\Run\Application\Test\WatchFileScanner;
 use Phel\Run\Domain\Bench\AbReport;
+use Phel\Run\Domain\Config\EffectiveConfigReader;
 use Phel\Run\Domain\Repl\ReplCommandFallbackIo;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
@@ -111,6 +112,11 @@ class RunFactory extends AbstractFactory
     public function getBuildFacade(): BuildFacadeInterface
     {
         return $this->getProvidedDependency(BuildFacadeInterface::class);
+    }
+
+    public function createEffectiveConfigReader(): EffectiveConfigReader
+    {
+        return new EffectiveConfigReader($this->getCompilerFacade());
     }
 
     public function getCompilerFacade(): CompilerFacadeInterface

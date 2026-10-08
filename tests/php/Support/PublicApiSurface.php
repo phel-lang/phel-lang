@@ -23,6 +23,7 @@ use Phel\Shared\InvocationError;
 use Phel\Shared\Lint\LintRuleExplainerInterface;
 use Phel\Shared\NoColor;
 use Phel\Shared\OptimizationLevel;
+use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\SourceMap\SupersededSourceMaps;
 use Phel\Shared\StandardError;
 use Phel\Shared\VersionFinder;
@@ -224,6 +225,8 @@ final readonly class PublicApiSurface
     {
         return in_array($className . '::' . $memberName, [
             OptimizationLevel::class . '::pin',
+            PhelProjectDirectory::class . '::cacheDirOverride',
+            PhelProjectDirectory::class . '::dirOverride',
             NoColor::class . '::followOutput',
             ExistingPaths::class . '::reportMissing',
             ClassNotFoundHint::class . '::javaClassHint',

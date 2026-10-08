@@ -79,10 +79,12 @@ Tooling:
 - A `PHEL402` error for an argument of the wrong type names the `.phel` file and line that made the call: `must be of type int, string given, called in src/main.phel on line 5`. It used to name the generated temp file, `.../phel/tmp/__phel_*.php`. (#3537)
 - `phel eval '#| x |# 1'` reports `[PHEL310]` with the offending line and a caret under the character, like `phel run`. It used to print the raw exception block. (#3537)
 - `phel lint`, `phel analyze` and the LSP handle a file with an `#inst` literal and go on to the next file. The value an `#inst` reads as, a `DateTimeImmutable`, used to abort the whole run with `DateTimeImmutable given`. (#3610)
+- `phel config` and `phel config --format=json` report the values a command runs with: `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations` beat the config file, as they do when the command runs. The JSON has every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`. It used to show the config file's values only and leave those four keys out. (#3525)
 
 PHP API:
 
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::analyze()` takes any value the reader returns, `mixed` instead of `TypeInterface|string|float|int|bool|null`, so an `#inst` literal (a `DateTimeImmutable`) can be analysed. Callers are unaffected. (#3610)
+- **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::deprecationWarningsEnabled()` says whether a compile in this process raises deprecation notices. (#3525)
 - **BREAKING (PHP API)**: `Phel\Lang\LoadClasspath::NAMESPACE` is now `LoadClasspath::NS`. PHP 8.6 deprecates a class constant named `namespace`, and declaring one is what warns, so no alias can keep the old name. (#3522)
 - `Seq::range()` takes any Phel number, where it took only `int|float`, and `SequenceGenerator::numericRange()` is public. (#3557)
 

@@ -10,7 +10,6 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phar;
 use Phel\Run\Domain\Config\ConfigDiagnostics;
-use Phel\Run\Domain\Config\EffectiveConfigReader;
 use Phel\Run\Domain\Config\EffectiveConfigResult;
 use Phel\Run\RunFacade;
 use Phel\Shared\ByteSize;
@@ -53,7 +52,7 @@ HELP);
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $effectiveConfig = new EffectiveConfigReader()->read();
+        $effectiveConfig = $this->getFacade()->readEffectiveConfig();
 
         $systemOk = $this->checkSystemRequirements($output);
         $modulesOk = $this->checkModuleHealth($output);
@@ -123,7 +122,7 @@ HELP);
         $output->writeln('');
         $output->writeln('Checking configuration:');
 
-        $issues = new ConfigDiagnostics()->analyze($effective->values, $effective->projectRoot);
+        $issues = new ConfigDiagnostics()->analyze($effective->configuredValues, $effective->projectRoot);
 
         if ($issues === []) {
             $output->writeln(' - <info>OK</info> no configuration problems found');
