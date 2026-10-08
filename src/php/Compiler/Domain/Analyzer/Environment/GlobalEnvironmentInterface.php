@@ -117,6 +117,11 @@ interface GlobalEnvironmentInterface
 
     public function clearPhpClasses(string $namespace): void;
 
+    /**
+     * @return array<string, Symbol>
+     */
+    public function getInterfaces(string $namespace): array;
+
     public function addLevelToAllowPrivateAccess(): void;
 
     public function removeLevelToAllowPrivateAccess(): void;

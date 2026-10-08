@@ -26,7 +26,7 @@ The analyzer walks the parsed forms and resolves every symbol, arity and binding
 
 Enum case: `ErrorCode::UNDEFINED_SYMBOL`
 
-The analyzer reached a symbol that is bound nowhere: not in the current namespace, not in a required namespace, and not in a local binding. A `catch` type, a `var` target or a `use` class that resolves to nothing reports here too.
+The analyzer reached a symbol that is bound nowhere: not in the current namespace, not in a required namespace, and not in a local binding. A `catch` type, a `var` target or a `use` class that resolves to nothing reports here too, and so does a lower-case type tag on a parameter or return value that is neither a PHP type nor a known class, such as `^strng`, or `^long` as Clojure spells `int`.
 
 ```phel
 (undefined-fn 1 2)

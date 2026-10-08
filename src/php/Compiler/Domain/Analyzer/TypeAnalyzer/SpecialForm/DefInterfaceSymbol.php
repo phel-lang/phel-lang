@@ -197,15 +197,20 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
             }
 
             $argumentNames[$argument->getName()] = true;
-            $argumentSymbols[] = TagCanonicalizer::symbol($argument, $this->analyzer);
+            $argumentSymbol = TagCanonicalizer::symbol($argument, $this->analyzer);
+            TypeTagGuard::assertSymbol($argumentSymbol, $this->analyzer);
+            $argumentSymbols[] = $argumentSymbol;
         }
 
         if (count($method) > 2 && !is_string($method->get(2))) {
             throw AnalyzerException::withLocation('Method comments must be strings', $method, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
+        $methodName = TagCanonicalizer::symbol($name, $this->analyzer);
+        TypeTagGuard::assertSymbol($methodName, $this->analyzer);
+
         return new DefInterfaceMethod(
-            TagCanonicalizer::symbol($name, $this->analyzer),
+            $methodName,
             $argumentSymbols,
         );
     }

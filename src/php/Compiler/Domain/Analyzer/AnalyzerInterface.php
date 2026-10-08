@@ -88,6 +88,15 @@ interface AnalyzerInterface
     public function getInterfaceMethods(string $ns, Symbol $name): ?array;
 
     /**
+     * The interfaces and enums `$ns` declares, by name.
+     *
+     * @return array<string, Symbol>
+     */
+    public function getInterfaces(string $ns): array;
+
+    public function hasDefinition(string $ns, Symbol $name): bool;
+
+    /**
      * Returns all available symbol names that can be resolved in the current namespace.
      *
      * @return array<string> List of available symbol names

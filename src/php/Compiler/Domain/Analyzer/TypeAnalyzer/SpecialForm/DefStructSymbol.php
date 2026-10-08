@@ -63,9 +63,6 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::wrongArgumentType("Second argument of 'defstruct", 'Vector', $structParams, $list);
         }
 
-        $params = $this->params($structParams);
-        $this->analyzer->addPhpClass($this->analyzer->getNamespace(), $structSymbol);
-
         /** @var PersistentListInterface<mixed> $rest1 */
         $rest1 = $list->rest();
         /** @var PersistentListInterface<mixed> $rest2 */
@@ -73,11 +70,16 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         /** @var PersistentListInterface<mixed> $rest3 */
         $rest3 = $rest2->rest();
 
-        $interfaces = $this->implementationsAnalyzer->analyze(
-            $rest3,
-            $env->withMergedLocals($params),
-            'defstruct',
-        );
+        [$params, $interfaces] = TypeTagGuard::whileDeclaring($structSymbol, function () use ($structParams, $rest3, $env): array {
+            $params = $this->params($structParams);
+
+            return [$params, $this->implementationsAnalyzer->analyze(
+                $rest3,
+                $env->withMergedLocals($params),
+                'defstruct',
+            )];
+        });
+        $this->analyzer->addPhpClass($this->analyzer->getNamespace(), $structSymbol);
         $this->rejectMethodsTheBaseDeclares($interfaces);
 
         return new DefStructNode(
@@ -178,7 +180,9 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
             }
 
             $phpNames[$phpName] = $element->getName();
-            $params[] = TagCanonicalizer::symbol($element, $this->analyzer);
+            $param = TagCanonicalizer::symbol($element, $this->analyzer);
+            TypeTagGuard::assertSymbol($param, $this->analyzer);
+            $params[] = $param;
         }
 
         return $params;
