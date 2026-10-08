@@ -69,6 +69,10 @@ final class InvocationErrorExitCodeTest extends TestCase
         yield 'profile, unknown path or namespace' => [['profile', 'missing.phel']];
         yield 'config, unknown --format' => [['config', '--format=xml']];
         yield 'mutate, unknown --reporter' => [['mutate', '--reporter=xml']];
+        yield 'mutate, unknown --format' => [['mutate', '--format=xml']];
+        yield 'mutate, --format and --reporter disagree' => [['mutate', '--format=json', '--reporter=text']];
+        yield 'lint, unknown --format' => [['lint', '--format=xml', 'ok.phel']];
+        yield 'profile, unknown --format' => [['profile', '--format=xml', 'ok.phel']];
         yield 'build, non-integer -O' => [['build', '-O', 'fast']];
         yield 'doc, unknown --format' => [['doc', '--format=xml']];
     }

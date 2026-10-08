@@ -18,9 +18,9 @@ final class FormatterRegistryTest extends TestCase
         $registry->register(new HumanFormatter());
         $registry->register(new JsonFormatter());
 
-        self::assertTrue($registry->has('human'));
+        self::assertTrue($registry->has('text'));
         self::assertTrue($registry->has('json'));
-        self::assertInstanceOf(HumanFormatter::class, $registry->get('human'));
+        self::assertInstanceOf(HumanFormatter::class, $registry->get('text'));
     }
 
     public function test_it_throws_on_unknown_formatter(): void
@@ -42,7 +42,7 @@ final class FormatterRegistryTest extends TestCase
         $registry->register(new JsonFormatter());
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unknown lint formatter: nope. Known: human, json.');
+        $this->expectExceptionMessage('Unknown lint formatter: nope. Known: text, json.');
         $registry->get('nope');
     }
 
@@ -51,6 +51,6 @@ final class FormatterRegistryTest extends TestCase
         $registry = new FormatterRegistry();
         $registry->register(new HumanFormatter());
 
-        self::assertContains('human', $registry->names());
+        self::assertContains('text', $registry->names());
     }
 }

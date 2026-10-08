@@ -56,6 +56,8 @@ final class LintCommand extends Command
 
     private const string OPT_FORMAT = 'format';
 
+    private const string FORMER_TEXT_FORMAT = 'human';
+
     private const string OPT_CONFIG = 'config';
 
     private const string OPT_NO_CACHE = 'no-cache';
@@ -86,7 +88,7 @@ HELP)
                 self::OPT_FORMAT,
                 'f',
                 InputOption::VALUE_REQUIRED,
-                'Output format: human, json, github.',
+                'Output format: text, json, github.',
                 HumanFormatter::NAME,
             )
             ->addOption(
@@ -121,6 +123,10 @@ HELP)
         }
 
         $format = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
+        if ($format === self::FORMER_TEXT_FORMAT) {
+            $format = HumanFormatter::NAME;
+        }
+
         $formatters = $this->getFacade()->formatters();
         if (!$formatters->has($format)) {
             return InvocationError::report($output, sprintf(

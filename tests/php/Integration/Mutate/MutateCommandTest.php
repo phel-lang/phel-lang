@@ -89,7 +89,7 @@ final class MutateCommandTest extends TestCase
           (is (= 5 (calc/clamp 5 0 10))))
         PHEL);
 
-        [$exitCode, $output] = $this->runPhelMutate(['--reporter=json', '-o', $this->projectDir . '/mutation.json']);
+        [$exitCode, $output] = $this->runPhelMutate(['--format=json', '-o', $this->projectDir . '/mutation.json']);
 
         self::assertSame(0, $exitCode, $output);
         $report = json_decode((string) file_get_contents($this->projectDir . '/mutation.json'), true, 512, JSON_THROW_ON_ERROR);
@@ -243,8 +243,8 @@ final class MutateCommandTest extends TestCase
           (is (= 5 (calc/clamp 5 0 10))))
         PHEL);
 
-        [$serialExit, $serial] = $this->runPhelMutate(['--reporter=json', '-o', $this->projectDir . '/one.json']);
-        [$parallelExit, $parallel] = $this->runPhelMutate(['--parallel=3', '--reporter=json', '-o', $this->projectDir . '/three.json']);
+        [$serialExit, $serial] = $this->runPhelMutate(['--format=json', '-o', $this->projectDir . '/one.json']);
+        [$parallelExit, $parallel] = $this->runPhelMutate(['--parallel=3', '--format=json', '-o', $this->projectDir . '/three.json']);
 
         self::assertSame(0, $serialExit, $serial);
         self::assertSame(0, $parallelExit, $parallel);
@@ -264,7 +264,7 @@ final class MutateCommandTest extends TestCase
             . "(deftest add-works\n  (is (= 3 (calc/add 1 2)))\n  (is (= 0 (calc/add 0 0))))\n",
         );
 
-        [$exitCode, $output] = $this->runPhelMutate(['--reporter=json', '-o', $this->projectDir . '/cov.json'], ['XDEBUG_MODE=coverage']);
+        [$exitCode, $output] = $this->runPhelMutate(['--format=json', '-o', $this->projectDir . '/cov.json'], ['XDEBUG_MODE=coverage']);
 
         self::assertSame(0, $exitCode, $output);
         $report = json_decode((string) file_get_contents($this->projectDir . '/cov.json'), true, 512, JSON_THROW_ON_ERROR);
@@ -300,7 +300,7 @@ final class MutateCommandTest extends TestCase
         $this->git('commit -q -m init');
         $this->writeSource("(ns app.other)\n\n(defn twice [x]\n  (+ x x))\n");
 
-        [$exitCode, $output] = $this->runPhelMutate(['--changed', '--reporter=json', '-o', $this->projectDir . '/changed.json']);
+        [$exitCode, $output] = $this->runPhelMutate(['--changed', '--format=json', '-o', $this->projectDir . '/changed.json']);
 
         self::assertSame(0, $exitCode, $output);
         self::assertStringContainsString('Mutating 1 file(s)', $output);
@@ -341,7 +341,7 @@ final class MutateCommandTest extends TestCase
             );
             $json = sprintf('%s/level-%d.json', $this->projectDir, $level);
 
-            [$exitCode, $output] = $this->runPhelMutate(['--reporter=json', '-o', $json]);
+            [$exitCode, $output] = $this->runPhelMutate(['--format=json', '-o', $json]);
 
             self::assertSame(0, $exitCode, $output);
             $verdicts[$level] = $this->verdictsOf($json);

@@ -20,7 +20,7 @@ use function sprintf;
  */
 final class HumanFormatter implements DiagnosticFormatterInterface
 {
-    public const string NAME = 'human';
+    public const string NAME = 'text';
 
     public function name(): string
     {

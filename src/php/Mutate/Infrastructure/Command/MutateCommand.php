@@ -75,7 +75,9 @@ final class MutateCommand extends Command
 
     private const string OPT_MIN_COVERED_MSI = 'min-covered-msi';
 
-    private const string OPT_REPORTER = 'reporter';
+    private const string OPT_FORMAT = 'format';
+
+    private const string OPT_DEPRECATED_REPORTER = 'reporter';
 
     private const string OPT_OUTPUT = 'output';
 
@@ -85,9 +87,9 @@ final class MutateCommand extends Command
 
     private const string OPT_CHANGED = 'changed';
 
-    private const string REPORTER_TEXT = 'text';
+    private const string FORMAT_TEXT = 'text';
 
-    private const string REPORTER_JSON = 'json';
+    private const string FORMAT_JSON = 'json';
 
     public function __construct()
     {
@@ -103,7 +105,8 @@ final class MutateCommand extends Command
             ->addOption(self::OPT_ONLY, null, InputOption::VALUE_REQUIRED, 'Comma-separated mutator ids to use, e.g. "arith,compare". Default: all.')
             ->addOption(self::OPT_MIN_MSI, null, InputOption::VALUE_REQUIRED, 'Fail (exit 1) when the mutation score indicator is below this percentage.')
             ->addOption(self::OPT_MIN_COVERED_MSI, null, InputOption::VALUE_REQUIRED, 'Fail (exit 1) when the covered MSI (over the mutants some test reaches) is below this percentage.')
-            ->addOption(self::OPT_REPORTER, null, InputOption::VALUE_REQUIRED, 'Report format: "text" (default) or "json".', self::REPORTER_TEXT, [self::REPORTER_TEXT, self::REPORTER_JSON])
+            ->addOption(self::OPT_FORMAT, 'f', InputOption::VALUE_REQUIRED, 'Report format: "text" (default) or "json".', null, [self::FORMAT_TEXT, self::FORMAT_JSON])
+            ->addOption(self::OPT_DEPRECATED_REPORTER, null, InputOption::VALUE_REQUIRED, '[deprecated] use --format instead.', null, [self::FORMAT_TEXT, self::FORMAT_JSON])
             ->addOption(self::OPT_OUTPUT, 'o', InputOption::VALUE_REQUIRED, 'Write the report to a file instead of stdout.')
             ->addOption(self::OPT_TIMEOUT_FACTOR, null, InputOption::VALUE_REQUIRED, 'A mutant whose test run takes longer than this many times the baseline is a timeout (counts as killed). Never below 1 second.', '3')
             ->addOption(self::OPT_PARALLEL, null, InputOption::VALUE_REQUIRED, 'Worker subprocesses to run mutants on: an integer, or "auto" (CPU count, capped at 8).', '1', ['auto'])
@@ -118,7 +121,7 @@ Examples:
   phel mutate                              Mutate the project sources, run the project tests
   phel mutate src/app/calc.phel            One file
   phel mutate --only=arith,compare         Two mutators
-  phel mutate --min-msi=80 --reporter=json -o var/mutation.json
+  phel mutate --min-msi=80 --format=json -o var/mutation.json
   phel mutate --parallel=auto              One worker per CPU (capped at 8)
   phel mutate --changed                    Only the source files with uncommitted changes
 HELP);
@@ -130,6 +133,7 @@ HELP);
         OptimizationLevel::pin(0);
 
         try {
+            $format = $this->parseFormat($input, $output);
             $options = $this->parseOptions($input);
         } catch (InvalidArgumentException $invalidArgumentException) {
             return InvocationError::report($output, $invalidArgumentException->getMessage());
@@ -143,7 +147,7 @@ HELP);
         }
 
         // A JSON report on stdout leaves stdout to the report alone.
-        $jsonOnStdout = $this->writesJsonToStdout($input);
+        $jsonOnStdout = $format === self::FORMAT_JSON && !$this->writesToFile($input);
         $log = $jsonOnStdout ? StandardError::of($output) : $output;
 
         $log->writeln(sprintf(
@@ -176,7 +180,7 @@ HELP);
 
         $log->writeln('');
         $log->writeln('');
-        $this->writeReport($output, $report, $input);
+        $this->writeReport($output, $report, $input, $format);
 
         if (!$report->meetsMinimum($options->minMsi, $options->minCoveredMsi)) {
             $log->writeln(sprintf(
@@ -201,11 +205,6 @@ HELP);
         $mutators = is_string($only) && trim($only) !== ''
             ? array_values(array_filter(array_map(trim(...), explode(',', $only)), static fn(string $id): bool => $id !== ''))
             : [];
-
-        $reporter = ScalarCoercion::toString($input->getOption(self::OPT_REPORTER), self::REPORTER_TEXT);
-        if (!in_array($reporter, [self::REPORTER_TEXT, self::REPORTER_JSON], true)) {
-            throw new InvalidArgumentException(sprintf('Unknown reporter: %s. Known: text, json.', $reporter));
-        }
 
         $minMsi = $input->getOption(self::OPT_MIN_MSI);
         if ($minMsi !== null && !is_numeric($minMsi)) {
@@ -241,6 +240,31 @@ HELP);
         );
     }
 
+    /**
+     * `--reporter` is the name `--format` had before it followed the CLI flag
+     * conventions; it still works, with a notice on stderr.
+     */
+    private function parseFormat(InputInterface $input, OutputInterface $output): string
+    {
+        $format = $input->getOption(self::OPT_FORMAT);
+        $reporter = $input->getOption(self::OPT_DEPRECATED_REPORTER);
+        if (is_string($reporter)) {
+            StandardError::of($output)->writeln('<comment>Warning: --reporter is deprecated; use --format instead.</comment>');
+            if (is_string($format) && $format !== $reporter) {
+                throw new InvalidArgumentException(sprintf('--format=%s and --reporter=%s disagree; pass --format only.', $format, $reporter));
+            }
+
+            $format = $reporter;
+        }
+
+        $format = ScalarCoercion::toString($format, self::FORMAT_TEXT);
+        if (!in_array($format, [self::FORMAT_TEXT, self::FORMAT_JSON], true)) {
+            throw new InvalidArgumentException(sprintf('Unknown format: %s. Known: text, json.', $format));
+        }
+
+        return $format;
+    }
+
     private function parseWorkers(InputInterface $input): int
     {
         $raw = $input->getOption(self::OPT_PARALLEL);
@@ -255,10 +279,9 @@ HELP);
         return (int) $raw;
     }
 
-    private function writeReport(OutputInterface $output, MutationReport $report, InputInterface $input): void
+    private function writeReport(OutputInterface $output, MutationReport $report, InputInterface $input, string $format): void
     {
-        $reporter = ScalarCoercion::toString($input->getOption(self::OPT_REPORTER), self::REPORTER_TEXT);
-        $content = $reporter === self::REPORTER_JSON ? $report->toJson() : $report->toText();
+        $content = $format === self::FORMAT_JSON ? $report->toJson() : $report->toText();
 
         $path = $input->getOption(self::OPT_OUTPUT);
         if (is_string($path) && $path !== '') {
@@ -268,7 +291,7 @@ HELP);
             }
 
             $output->writeln(sprintf('Mutation report written to %s', $path));
-            if ($reporter === self::REPORTER_JSON) {
+            if ($format === self::FORMAT_JSON) {
                 $output->write($report->toText());
             }
 
@@ -278,12 +301,11 @@ HELP);
         $output->write($content);
     }
 
-    private function writesJsonToStdout(InputInterface $input): bool
+    private function writesToFile(InputInterface $input): bool
     {
         $path = $input->getOption(self::OPT_OUTPUT);
 
-        return ScalarCoercion::toString($input->getOption(self::OPT_REPORTER), self::REPORTER_TEXT) === self::REPORTER_JSON
-            && (!is_string($path) || $path === '');
+        return is_string($path) && $path !== '';
     }
 
     private static function marker(MutantResult $result): string

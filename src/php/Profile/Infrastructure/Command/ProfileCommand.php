@@ -82,7 +82,7 @@ HELP)
             ->addArgument(self::ARG_PATH, InputArgument::OPTIONAL, 'File path or namespace to profile.')
             ->addArgument(self::ARG_ARGV, InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Optional script arguments.', [])
             ->addOption(self::OPT_TOP, null, InputOption::VALUE_REQUIRED, 'Show top N fns in the table.', (string) ProfileConfig::DEFAULT_TOP)
-            ->addOption(self::OPT_FORMAT, 'f', InputOption::VALUE_REQUIRED, 'Output format: table, json, both.', ReportFormat::Table->value)
+            ->addOption(self::OPT_FORMAT, 'f', InputOption::VALUE_REQUIRED, 'Output format: text, json, both.', ReportFormat::Text->value)
             ->addOption(self::OPT_OUTPUT, 'o', InputOption::VALUE_REQUIRED, 'Write JSON report to this file.')
             ->addOption(self::OPT_SORT, 's', InputOption::VALUE_REQUIRED, 'Sort fns by: self, total, calls, avg.', SortOrder::SelfTime->value)
             ->addOption(self::OPT_NO_COMPILE_PHASES, null, InputOption::VALUE_NONE, 'Skip the compile-time phase report.');
@@ -107,7 +107,7 @@ HELP)
         }
 
         $formatOption = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
-        $format = ReportFormat::tryFrom($formatOption);
+        $format = ReportFormat::fromOption($formatOption);
         if ($format === null) {
             return $this->reportUnknownOption($output, self::OPT_FORMAT, $formatOption, ReportFormat::cases());
         }
@@ -174,7 +174,7 @@ HELP)
         $top = $this->resolveTop($input);
         $includeCompilePhases = !$input->getOption(self::OPT_NO_COMPILE_PHASES);
 
-        if ($format->emitsTable()) {
+        if ($format->emitsText()) {
             $output->write($this->getFacade()->renderTable($report, $top, $sort, $includeCompilePhases));
         }
 

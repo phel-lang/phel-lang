@@ -51,7 +51,9 @@ final class DocCommand extends Command
 
     private const int MIN_DESCRIPTION_WIDTH = 20;
 
-    private const array AVAILABLE_FORMATS = ['table', 'json'];
+    private const array AVAILABLE_FORMATS = ['text', 'json'];
+
+    private const string FORMER_TEXT_FORMAT = 'table';
 
     private const string INTEROP_LABEL = 'php';
 
@@ -85,8 +87,8 @@ HELP)
                 self::OPTION_FORMAT,
                 'f',
                 InputOption::VALUE_REQUIRED,
-                'Specify the output format.',
-                'table',
+                'Output format: text, json.',
+                'text',
                 self::AVAILABLE_FORMATS,
             );
     }
@@ -94,6 +96,10 @@ HELP)
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $format = strtolower(ScalarCoercion::toString($input->getOption(self::OPTION_FORMAT)));
+        if ($format === self::FORMER_TEXT_FORMAT) {
+            $format = 'text';
+        }
+
         if (!in_array($format, self::AVAILABLE_FORMATS, true)) {
             return InvocationError::report($output, sprintf(
                 'Unknown format: %s. Known: %s.',

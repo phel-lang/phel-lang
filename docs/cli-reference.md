@@ -69,10 +69,18 @@ too.
 In a machine mode stdout carries only the machine output, so a tool can parse
 all of it: `analyze`, `api-daemon`, `index`, `lint --format=json|github`,
 `config --format=json`, `explain --format=json`, `doc --format=json`,
-`profile --format=json`, `mutate --reporter=json`, and `test --reporter=tap` or
+`profile --format=json`, `mutate --format=json`, and `test --reporter=tap` or
 `--reporter=junit-xml` without `-o`. Progress, timings, notices and what the
 loaded code prints go to stderr. `index` prints its JSON summary on stdout with
 or without `-o`.
+
+`--format` (`-f`) picks the output of `lint`, `doc`, `profile`, `config`,
+`explain` and `mutate`, and `text` is the default for each. The former names
+`lint --format=human` and `doc` or `profile --format=table` still select
+`text`. `mutate --reporter` is the deprecated spelling of `mutate --format`: it
+still works, prints a notice on stderr, and exits 2 when passed with a
+different `--format`. `test --reporter` is a separate flag that selects one or
+more test reporters.
 
 ## Editor setup
 

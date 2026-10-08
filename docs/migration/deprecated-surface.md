@@ -20,8 +20,8 @@ is off by default and reports when you ask for it.
 
 Two things are outside it. A renamed CLI flag prints a one-line notice on stderr
 unconditionally, because it is a single unmissable event rather than something
-scattered through your source; no rename is in flight today, so there is no
-shared helper for it, see
+scattered through your source; see
+[`phel mutate --reporter`](#phel-mutate---reporter) and
 [cli-flag-conventions.md](../internals/cli-flag-conventions.md#renaming-an-option).
 And the `\` namespace separator announces without the flag, because it is the one
 deprecation scheduled for removal at the next major
@@ -62,6 +62,19 @@ release such a message promises inevitably ships and the text goes stale.
 Full detail, including what is and is not detected today, is in
 [backslash-to-dot.md](backslash-to-dot.md). Tracked in
 [#2827](https://github.com/phel-lang/phel-lang/issues/2827).
+
+## `phel mutate --reporter`
+
+`--format` is the flag that picks an output format on every other command, so
+`phel mutate` uses it too. `--reporter` still works and prints
+`Warning: --reporter is deprecated; use --format instead.` on stderr. Passing
+both with different values exits 2.
+
+```bash
+phel mutate --reporter=json -o var/mutation.json   phel mutate --format=json -o var/mutation.json
+```
+
+Tracked in [#3525](https://github.com/phel-lang/phel-lang/issues/3525).
 
 ## Redundant interop forms: `php/new`, `php/->`, `php/::`
 

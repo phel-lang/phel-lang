@@ -6,14 +6,17 @@ namespace PhelTest\Unit\Console;
 
 use Phel\Api\Infrastructure\Command\DocCommand;
 use Phel\Lint\Infrastructure\Command\LintCommand;
+use Phel\Mutate\Infrastructure\Command\MutateCommand;
 use Phel\Profile\Infrastructure\Command\ProfileCommand;
+use Phel\Run\Infrastructure\Command\ExplainCommand;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 
 /**
  * Guards the short-alias conventions documented in
- * docs/internals/cli-flag-conventions.md: --format=-f, --output=-o, --sort=-s.
+ * docs/internals/cli-flag-conventions.md: --format=-f, --output=-o, --sort=-s,
+ * and `text` as the default format.
  */
 final class CliFlagConventionsTest extends TestCase
 {
@@ -27,6 +30,19 @@ final class CliFlagConventionsTest extends TestCase
         yield 'profile --format' => [new ProfileCommand(), 'format', 'f'];
         yield 'profile --output' => [new ProfileCommand(), 'output', 'o'];
         yield 'profile --sort' => [new ProfileCommand(), 'sort', 's'];
+        yield 'mutate --format' => [new MutateCommand(), 'format', 'f'];
+        yield 'mutate --output' => [new MutateCommand(), 'output', 'o'];
+    }
+
+    /**
+     * @return iterable<string, array{Command}>
+     */
+    public static function provideFormatCommands(): iterable
+    {
+        yield 'doc' => [new DocCommand()];
+        yield 'explain' => [new ExplainCommand()];
+        yield 'lint' => [new LintCommand()];
+        yield 'profile' => [new ProfileCommand()];
     }
 
     #[DataProvider('provider')]
@@ -36,5 +52,11 @@ final class CliFlagConventionsTest extends TestCase
             $short,
             $command->getDefinition()->getOption($option)->getShortcut(),
         );
+    }
+
+    #[DataProvider('provideFormatCommands')]
+    public function test_the_default_format_is_text(Command $command): void
+    {
+        self::assertSame('text', $command->getDefinition()->getOption('format')->getDefault());
     }
 }
