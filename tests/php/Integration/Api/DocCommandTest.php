@@ -60,7 +60,7 @@ final class DocCommandTest extends TestCase
         $tester = new CommandCompletionTester(new DocCommand());
         $suggestions = $tester->complete(['--format', '']);
 
-        self::assertSame(['table', 'json'], $suggestions);
+        self::assertSame(['text', 'json'], $suggestions);
     }
 
     /**
@@ -82,6 +82,19 @@ final class DocCommandTest extends TestCase
         self::assertSame(Command::SUCCESS, $exitCode);
         self::assertStringContainsString('No function matches "zzzzqqqqxxxxwwww".', $display);
         self::assertStringNotContainsString('| function | signature | description |', $display);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_the_former_table_format_name_still_selects_the_text_format(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new DocCommand());
+        $exitCode = $tester->execute(['search' => 'mapp', '--format' => 'table']);
+
+        self::assertSame(Command::SUCCESS, $exitCode);
+        self::assertStringContainsString('| core/map ', $tester->getDisplay());
     }
 
     #[PreserveGlobalState(false)]

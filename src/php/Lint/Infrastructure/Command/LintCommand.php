@@ -8,7 +8,7 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\RuleSettings;
-use Phel\Lint\Application\Formatter\HumanFormatter;
+use Phel\Lint\Application\Formatter\TextFormatter;
 use Phel\Lint\Domain\Exception\LintConfigException;
 use Phel\Lint\LintConfig;
 use Phel\Lint\LintFacade;
@@ -56,6 +56,8 @@ final class LintCommand extends Command
 
     private const string OPT_FORMAT = 'format';
 
+    private const string FORMER_TEXT_FORMAT = 'human';
+
     private const string OPT_CONFIG = 'config';
 
     private const string OPT_NO_CACHE = 'no-cache';
@@ -86,8 +88,8 @@ HELP)
                 self::OPT_FORMAT,
                 'f',
                 InputOption::VALUE_REQUIRED,
-                'Output format: human, json, github.',
-                HumanFormatter::NAME,
+                'Output format: text, json, github.',
+                TextFormatter::NAME,
             )
             ->addOption(
                 self::OPT_CONFIG,
@@ -121,6 +123,10 @@ HELP)
         }
 
         $format = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
+        if ($format === self::FORMER_TEXT_FORMAT) {
+            $format = TextFormatter::NAME;
+        }
+
         $formatters = $this->getFacade()->formatters();
         if (!$formatters->has($format)) {
             return InvocationError::report($output, sprintf(

@@ -369,7 +369,7 @@ final class DeprecationWarnings
             $purpose,
             $replacement,
             $location instanceof SourceLocation
-                ? sprintf(' (at %s:%d:%d)', $location->getFile(), $location->getLine(), $location->getColumn())
+                ? sprintf(' (at %s:%d:%d)', $location->getFile(), $location->getLine(), $location->getColumn() + 1)
                 : '',
         );
     }

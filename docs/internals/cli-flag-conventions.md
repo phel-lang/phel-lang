@@ -7,7 +7,7 @@ muscle memory transfers between commands. New commands MUST follow these.
 
 | Concept | Long | Short | Notes |
 |---|---|---|---|
-| Output format | `--format` | `-f` | Value flag (`table`/`json`/...). `-f` is also `--filter` on `phel test` (pre-existing); a command never has both, so there is no in-command clash. |
+| Output format | `--format` | `-f` | Value flag (`text`/`json`/...); `text` is the default. `-f` is also `--filter` on `phel test` (pre-existing); a command never has both, so there is no in-command clash. |
 | Output destination (file) | `--output` | `-o` | Write the report/result to a file instead of stdout. |
 | Sort order | `--sort` | `-s` | Value flag (e.g. `phel profile --sort`). |
 | Disable caching | `--no-cache` | — | Boolean. Paired with `--cache` where a default-on cache exists (`build`). |
@@ -42,11 +42,16 @@ to fit the conventions above. Each kept its old spelling as a deprecated alias
 for a release cycle; both aliases are now removed (see
 [../migration/removed-deprecated-core-fns.md](../migration/removed-deprecated-core-fns.md)).
 
+`phel mutate --reporter` is renamed to `--format` (`-f`) and kept as a
+deprecated alias (#3525). The default format names `human` (`lint`) and `table`
+(`doc`, `profile`) became `text` and stay accepted as values.
+
 `phel test --reporter` stays a distinct, repeatable flag (it selects reporters,
 not a single output format) and is intentionally **not** renamed.
 
 When renaming an option: register the new name plus its short alias, keep the
 old option accepted for at least one release (mark it `[deprecated]` in the
-description) and read whichever is provided, new winning. The deprecation notice
-belongs on stderr so it never corrupts machine-readable stdout; there is no
-shared helper for it today, because no rename is currently in flight.
+description) and read whichever is provided; both with different values is an
+invocation error (exit 2). The deprecation notice belongs on stderr so it never
+corrupts machine-readable stdout. `mutate --reporter` is the only rename in
+flight, so the notice lives in `MutateCommand` rather than a shared helper.

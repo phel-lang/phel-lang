@@ -58,6 +58,7 @@ final class MutantGeneratorTest extends TestCase
         self::assertSame('app.calc', $first->namespace);
         self::assertSame('/src/calc.phel', $first->file);
         self::assertSame(10, $first->line);
+        self::assertSame(4, $first->column, 'the `+` in `  (+ a b))`, 1-based as in every CLI output');
         self::assertSame('arith', $first->mutator);
         self::assertSame("(defn add\n  \"Adds.\"\n  [a b]\n  (+ a b))", $first->originalForm);
         self::assertSame("(defn add\n  \"Adds.\"\n  [a b]\n  (- a b))", $first->mutatedForm);

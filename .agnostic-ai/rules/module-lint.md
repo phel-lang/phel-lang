@@ -34,7 +34,7 @@ All four getters return the Shared contract, never a concrete facade, and `Satel
 
 ## CLI
 
-`./bin/phel lint [paths]... [--format=human|json|github] [--config=path] [--no-cache]`
+`./bin/phel lint [paths]... [--format=text|json|github] [--config=path] [--no-cache]`
 
 Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`), `2` invocation error.
 
@@ -173,7 +173,7 @@ Warns on a static call `(Foo/bar ...)` whose class cannot be autoloaded, after r
 
 ## Output Formats
 
-`human` (`file:line:col [severity] code message` + summary), `json` (stable array of `Diagnostic`), `github` (workflow annotations, `file=` relative to the working directory). Lines and columns are 1-based: rules build diagnostics through `DiagnosticBuilder` or `Diagnostic::fromSourceSpan()`, the one place a 0-based `SourceLocation` column gains its `+ 1`. `json` carries `errorCode` (the `PHELxxx` code behind a promoted analyzer diagnostic, else `null`), `suggestions` and `fix` (from `ErrorCodeCatalog`, or `Domain\LintRuleCatalog` for a lint-only rule, filled in by `RulePipeline`). `LintFacade::ruleExplainer()` exposes the catalog to `phel explain` as a `Shared\Lint\LintRuleExplainerInterface`. Fields are only ever added: the codes are public API since #3315. A new cached field bumps `LintCacheFingerprint::ENTRY_FORMAT`. Add one: implement `DiagnosticFormatterInterface`, register on `FormatterRegistry`.
+`text` (`file:line:col [severity] code message` + summary; `human` is still accepted), `json` (stable array of `Diagnostic`), `github` (workflow annotations, `file=` relative to the working directory). Lines and columns are 1-based: rules build diagnostics through `DiagnosticBuilder` or `Diagnostic::fromSourceSpan()`, the one place a 0-based `SourceLocation` column gains its `+ 1`. `json` carries `errorCode` (the `PHELxxx` code behind a promoted analyzer diagnostic, else `null`), `suggestions` and `fix` (from `ErrorCodeCatalog`, or `Domain\LintRuleCatalog` for a lint-only rule, filled in by `RulePipeline`). `LintFacade::ruleExplainer()` exposes the catalog to `phel explain` as a `Shared\Lint\LintRuleExplainerInterface`. Fields are only ever added: the codes are public API since #3315. A new cached field bumps `LintCacheFingerprint::ENTRY_FORMAT`. Add one: implement `DiagnosticFormatterInterface`, register on `FormatterRegistry`.
 
 ## Key Constraints
 

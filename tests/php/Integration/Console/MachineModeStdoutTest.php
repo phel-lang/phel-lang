@@ -23,6 +23,7 @@ use function random_bytes;
 use function realpath;
 use function simplexml_load_string;
 use function sprintf;
+use function substr_count;
 use function sys_get_temp_dir;
 use function trim;
 
@@ -83,7 +84,7 @@ final class MachineModeStdoutTest extends TestCase
         yield 'doc --format=json' => [['doc', '--format=json', '--ns=app.calc', 'add'], 'loading app.calc'];
         yield 'profile --format=json' => [['profile', '--format=json', 'src/app/main.phel'], 'main says 3'];
         yield 'index -o' => [['index', 'src', '-o', 'index.json'], 'Index persisted to: index.json'];
-        yield 'mutate --reporter=json' => [['mutate', '--reporter=json', 'src/app/calc.phel'], 'Mutating 1 file(s)'];
+        yield 'mutate --format=json' => [['mutate', '--format=json', 'src/app/calc.phel'], 'Mutating 1 file(s)'];
     }
 
     /**
@@ -101,11 +102,20 @@ final class MachineModeStdoutTest extends TestCase
 
     public function test_mutate_json_sends_what_the_project_prints_while_loading_to_stderr(): void
     {
-        $result = $this->phel(['mutate', '--reporter=json', 'src/app/calc.phel']);
+        $result = $this->phel(['mutate', '--format=json', 'src/app/calc.phel']);
 
         self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
         self::assertStringNotContainsString('loading app.calc', $result->stdout);
         self::assertStringContainsString('loading app.calc', $result->stderr);
+    }
+
+    public function test_the_deprecated_mutate_reporter_alias_still_selects_the_format_and_says_so_once_on_stderr(): void
+    {
+        $result = $this->phel(['mutate', '--reporter=json', 'src/app/calc.phel']);
+
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        json_decode($result->stdout, true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame(1, substr_count($result->stderr, '--reporter is deprecated; use --format instead.'), $result->stderr);
     }
 
     public function test_junit_xml_without_output_file_is_one_xml_document(): void

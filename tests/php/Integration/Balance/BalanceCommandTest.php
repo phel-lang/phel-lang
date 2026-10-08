@@ -65,7 +65,8 @@ final class BalanceCommandTest extends TestCase
         $exit = $tester->execute(['paths' => [$path]]);
 
         self::assertSame(1, $exit);
-        self::assertStringContainsString("unclosed '('", $tester->getDisplay());
+        self::assertStringContainsString("broken.phel:1:1: unclosed '(', needs ')'", $tester->getDisplay());
+        self::assertStringContainsString("broken.phel:2:3: unclosed '(', needs ')'", $tester->getDisplay());
         self::assertStringContainsString('--fix', $tester->getDisplay());
         self::assertSame($source, file_get_contents($path), 'detection must not rewrite the file');
     }

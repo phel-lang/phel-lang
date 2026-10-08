@@ -159,7 +159,7 @@ HELP)
                     "  %s:%d:%d: unclosed '%s', needs '%s'",
                     $outcome->path,
                     $open->line,
-                    $open->column,
+                    $open->column + 1,
                     $open->openerText,
                     $open->closerText,
                 ));

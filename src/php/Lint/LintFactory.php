@@ -14,8 +14,8 @@ use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\FileCollector;
 use Phel\Lint\Application\Formatter\FormatterRegistry;
 use Phel\Lint\Application\Formatter\GithubFormatter;
-use Phel\Lint\Application\Formatter\HumanFormatter;
 use Phel\Lint\Application\Formatter\JsonFormatter;
+use Phel\Lint\Application\Formatter\TextFormatter;
 use Phel\Lint\Application\LintRunner;
 use Phel\Lint\Application\Rule\ArityMismatchRule;
 use Phel\Lint\Application\Rule\CommentStyleRule;
@@ -108,7 +108,7 @@ final class LintFactory extends AbstractFactory
     public function createFormatterRegistry(): FormatterRegistry
     {
         $registry = new FormatterRegistry();
-        $registry->register(new HumanFormatter());
+        $registry->register(new TextFormatter());
         $registry->register(new JsonFormatter());
         $registry->register(new GithubFormatter());
 
