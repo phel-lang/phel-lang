@@ -352,6 +352,31 @@ final class LintCommandTest extends TestCase
     }
 
     /**
+     * Two struct names that differ only in case share one PHP class. The
+     * compiler rejects that, but a lint pass re-reads sources the way it
+     * skips duplicate `def`s, so the claim must not abort the run.
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_lints_structs_whose_names_differ_only_in_case(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new LintCommand());
+        $exit = $tester->execute([
+            'paths' => [__DIR__ . '/Fixtures/case_clashing_structs.phel'],
+            '--format' => 'json',
+            '--no-cache' => true,
+        ]);
+
+        $display = $tester->getDisplay();
+
+        self::assertStringNotContainsString('Lint failed', $display);
+        self::assertNotSame(LintCommand::INVALID, $exit, 'Output: ' . $display);
+        self::assertIsArray(json_decode(trim($display), true));
+    }
+
+    /**
      * `definterface` implemented by a `defstruct` in the same file: the
      * generated PHP interface only exists once the form has been emitted AND
      * evaluated, which a lint pass never does.

@@ -15,9 +15,11 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
+use Phel\Shared\Munge;
 use Phel\Shared\ReplConstants;
 
 use function array_key_exists;
+use function strtolower;
 
 /**
  * @internal
@@ -83,6 +85,18 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
      * @var array<string, array<string, list<string>>>
      */
     private array $interfaceMethods = [];
+
+    /**
+     * The name that claimed each PHP class a struct, exception, enum or
+     * interface emits, keyed by the lowercased class because PHP class names
+     * ignore case. Cleared by each `ns` form, so reloading a file whose
+     * namespace is already loaded starts from that file alone. Analysis mode
+     * skips it, as it skips duplicate `def`s: re-reading a source is not a
+     * redefinition.
+     *
+     * @var array<string, array<string, Symbol>>
+     */
+    private array $phpClasses = [];
 
     private int $allowPrivateAccessCounter = 0;
 
@@ -375,6 +389,26 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return $this->interfaceMethods[$namespace][$name->getName()] ?? null;
     }
 
+    public function addPhpClass(string $namespace, Symbol $name): void
+    {
+        if ($this->isAnalysisMode()) {
+            return;
+        }
+
+        $phpName = strtolower(new Munge()->encode($name->getName()));
+        $claimedBy = $this->phpClasses[$namespace][$phpName] ?? $name;
+        if ($claimedBy->getName() !== $name->getName()) {
+            throw DuplicateDefinitionException::forPhpClass($namespace, $name, $claimedBy);
+        }
+
+        $this->phpClasses[$namespace][$phpName] = $name;
+    }
+
+    public function clearPhpClasses(string $namespace): void
+    {
+        unset($this->phpClasses[$namespace]);
+    }
+
     public function snapshot(): array
     {
         return [
@@ -384,6 +418,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             'requireAliases' => $this->requireAliases,
             'useAliases' => $this->useAliases,
             'interfaces' => $this->interfaces,
+            'phpClasses' => $this->phpClasses,
         ];
     }
 
@@ -395,6 +430,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->requireAliases = $snapshot['requireAliases'];
         $this->useAliases = $snapshot['useAliases'];
         $this->interfaces = $snapshot['interfaces'];
+        $this->phpClasses = $snapshot['phpClasses'];
     }
 
     public function getAllDefinitions(): array

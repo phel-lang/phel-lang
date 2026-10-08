@@ -1,0 +1,14 @@
+user:1> (defstruct point [x])
+#'user/point?
+user:2> (defstruct point [x])
+#'user/point?
+user:3> (:x (point 1))
+1
+user:4> (defstruct Point [x])
+[PHEL004] 'point' and 'Point' compile to the same PHP class in namespace 'user'
+in string:4
+
+4| (defstruct Point [x])
+              ^^^^^
+
+  first defined at string:2

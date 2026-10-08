@@ -52,6 +52,7 @@ final class DefExceptionSymbol implements SpecialFormAnalyzerInterface
         }
 
         $parent = $this->analyzeParent($parentSymbol, $env, $list);
+        $this->analyzer->addPhpClass($this->analyzer->getNamespace(), $name);
 
         return new DefExceptionNode(
             $env,

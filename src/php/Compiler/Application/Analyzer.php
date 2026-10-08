@@ -147,6 +147,16 @@ final class Analyzer implements AnalyzerInterface
         $this->globalEnvironment->addInterface($ns, $name);
     }
 
+    public function addPhpClass(string $ns, Symbol $name): void
+    {
+        $this->globalEnvironment->addPhpClass($ns, $name);
+    }
+
+    public function clearPhpClasses(string $ns): void
+    {
+        $this->globalEnvironment->clearPhpClasses($ns);
+    }
+
     /**
      * @param list<string> $methodNames
      */

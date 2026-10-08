@@ -79,6 +79,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
                 'defstruct',
             )];
         });
+        $this->analyzer->addPhpClass($this->analyzer->getNamespace(), $structSymbol);
         $this->rejectMethodsTheBaseDeclares($interfaces);
 
         return new DefStructNode(

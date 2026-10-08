@@ -109,6 +109,51 @@ final class DuplicateDefinitionReportTest extends AbstractCompilerRuntimeTestCas
         self::assertSame($expected, $this->report($phelCode));
     }
 
+    public function test_two_structs_whose_names_differ_only_in_case_point_at_the_second_name(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL004] 'point' and 'Point' compile to the same PHP class in namespace 'repro.g'
+            in duplicate.phel:3
+
+            3| (defstruct Point [x])
+                          ^^^^^
+
+              first defined at duplicate.phel:2
+
+            REPORT;
+
+        $phelCode = "(ns repro.g)\n(defstruct point [x])\n(defstruct Point [x])";
+
+        self::assertSame($expected, $this->report($phelCode));
+    }
+
+    public function test_a_deftype_that_reuses_an_exception_class_points_at_the_deftype_name(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL004] 'NotFound' and 'notfound' compile to the same PHP class in namespace 'repro.h'
+            in duplicate.phel:3
+
+            3| (deftype notfound [x])
+                        ^^^^^^^^
+
+              first defined at duplicate.phel:2
+
+            REPORT;
+
+        $phelCode = "(ns repro.h)\n(defexception NotFound)\n(deftype notfound [x])";
+
+        self::assertSame($expected, $this->report($phelCode));
+    }
+
+    public function test_a_struct_rejected_for_its_fields_does_not_claim_its_php_class(): void
+    {
+        $this->report("(ns repro.i)\n(defstruct* point 1)");
+
+        $this->compilerFacade->compile("(ns repro.i)\n(defstruct Point [x])", new CompileOptions()->setSource(self::SOURCE));
+
+        $this->expectNotToPerformAssertions();
+    }
+
     private function report(string $phelCode): string
     {
         try {

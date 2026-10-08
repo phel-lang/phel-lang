@@ -69,6 +69,10 @@ interface AnalyzerInterface
 
     public function addInterface(string $ns, Symbol $name): void;
 
+    public function addPhpClass(string $ns, Symbol $name): void;
+
+    public function clearPhpClasses(string $ns): void;
+
     /**
      * Record the method names declared by a `definterface`, so an inline
      * implementation can be validated without the generated PHP interface

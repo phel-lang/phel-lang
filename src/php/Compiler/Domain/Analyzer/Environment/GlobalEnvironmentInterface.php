@@ -109,6 +109,15 @@ interface GlobalEnvironmentInterface
     public function getInterfaceMethods(string $namespace, Symbol $name): ?array;
 
     /**
+     * Claim the PHP class a struct, exception, enum or interface named `$name`
+     * emits in `$namespace`. Throws when another name already claimed it, since
+     * PHP class names ignore case.
+     */
+    public function addPhpClass(string $namespace, Symbol $name): void;
+
+    public function clearPhpClasses(string $namespace): void;
+
+    /**
      * @return array<string, Symbol>
      */
     public function getInterfaces(string $namespace): array;
@@ -144,6 +153,7 @@ interface GlobalEnvironmentInterface
      *     requireAliases: array<string, array<string, Symbol>>,
      *     useAliases: array<string, array<string, Symbol>>,
      *     interfaces: array<string, array<string, Symbol>>,
+     *     phpClasses: array<string, array<string, Symbol>>,
      * }
      */
     public function snapshot(): array;
@@ -158,6 +168,7 @@ interface GlobalEnvironmentInterface
      *     requireAliases: array<string, array<string, Symbol>>,
      *     useAliases: array<string, array<string, Symbol>>,
      *     interfaces: array<string, array<string, Symbol>>,
+     *     phpClasses: array<string, array<string, Symbol>>,
      * } $snapshot
      */
     public function restore(array $snapshot): void;

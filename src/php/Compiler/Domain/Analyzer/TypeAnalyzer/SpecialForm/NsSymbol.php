@@ -78,6 +78,7 @@ TXT;
         $this->assertValidNamespace($parts, $nsSymbol);
 
         $this->analyzer->setNamespace($ns);
+        $this->analyzer->clearPhpClasses($ns);
         DefaultLangAliasesRegistrar::register($this->analyzer, $ns);
 
         $this->aliasesInForm = [];

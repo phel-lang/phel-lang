@@ -154,6 +154,7 @@ final readonly class StructuredEvaluator
      *     requireAliases: array<string, array<string, Symbol>>,
      *     useAliases: array<string, array<string, Symbol>>,
      *     interfaces: array<string, array<string, Symbol>>,
+     *     phpClasses: array<string, array<string, Symbol>>,
      * }|null $snapshot
      */
     private function restoreIfNeeded(?GlobalEnvironmentInterface $env, ?array $snapshot): void

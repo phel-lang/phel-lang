@@ -105,9 +105,9 @@ final class ErrorCodeCatalog
             new ErrorCodeExplanation(
                 code: ErrorCode::DUPLICATE_DEFINITION,
                 title: 'Duplicate definition',
-                summary: 'The same name is defined twice in one namespace. The analyzer reports the second definition and names the line of the first. The REPL and `phel eval` stand this guard down, so it only fires on a file. One `ns` form that binds an `:as` alias, or a `:refer` name, to two different namespaces reports here too, wherever it runs.',
+                summary: 'The same name is defined twice in one namespace. The analyzer reports the second definition and names the line of the first. The REPL and `phel eval` stand this guard down, so it only fires on a file. One `ns` form that binds an `:as` alias, or a `:refer` name, to two different namespaces reports here too, wherever it runs. Compiling or running a file, or evaluating in the REPL, also reports two structs, exceptions, enums or interfaces in one namespace whose names compile to the same PHP class, such as `point` and `Point`: PHP class names ignore case.',
                 example: "(ns app.core)\n(def a 1)\n(def a 2)",
-                fix: 'Rename one of the two definitions, or delete the one you no longer need. For an alias or a refer, pick a different name for one of them.',
+                fix: 'Rename one of the two definitions, or delete the one you no longer need. For an alias, a refer or a PHP class, pick a different name for one of them.',
             ),
             new ErrorCodeExplanation(
                 code: ErrorCode::MACRO_EXPANSION_ERROR,

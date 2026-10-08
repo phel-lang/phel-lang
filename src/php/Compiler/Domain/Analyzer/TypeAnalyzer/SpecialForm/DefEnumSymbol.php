@@ -54,6 +54,7 @@ final readonly class DefEnumSymbol implements SpecialFormAnalyzerInterface
         }
 
         ReservedDeclarationName::assertType($name);
+        $this->analyzer->addPhpClass($this->analyzer->getNamespace(), $name);
 
         // Register the enum's bare name so it resolves to the namespaced PHP
         // class (like `definterface`), enabling `EnumName/case` access.
