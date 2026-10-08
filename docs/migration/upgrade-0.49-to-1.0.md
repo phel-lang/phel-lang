@@ -128,10 +128,18 @@ Both printed a one-line stderr notice on every run before removal in 0.50.
 
 Scripts that check exit codes: a command that cannot run as asked (a missing
 path, an unknown `--format`, `--reporter` or `-O` value, a missing `--config`
-or `--ref` file, a `PHEL_OPTIMIZATION_LEVEL` that is not a whole number) exits
+or `--ref` file, a Phel environment variable with a value it cannot read) exits
 2 with one line on stderr and nothing on stdout. It used to exit 0 or 1
 depending on the command. Exit 1 still means the command ran and found
 something.
+
+Environment variables: every switch reads `1/true/yes/on` as on and
+`0/false/no/off` as off, and an empty value as not set. `PHEL_WARN_DEPRECATIONS=false`
+and `PHEL_NO_OPCACHE_REEXEC=0` used to turn their switch on, and
+`PHEL_OPCACHE_REEXEC=0` turned the restart on; each now does what it says. A
+`PHEL_TEST_WORKERS` that is not a whole number of at least 1 used to be
+ignored and now exits 2. The full list is in the
+[CLI reference](../cli-reference.md#environment-variables).
 
 Tools that match diagnostic codes: many analyzer errors that printed
 `PHEL007` now carry their own code. A wrong number of arguments such as `(if)`

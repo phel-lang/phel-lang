@@ -7,11 +7,11 @@ namespace Phel\Compiler\Domain\Deprecation;
 use Phel\Compiler\Domain\Diagnostic\ErrorNotice;
 use Phel\Compiler\Domain\Diagnostic\WorkingDirectoryPaths;
 use Phel\Lang\SourceLocation;
+use Phel\Shared\EnvVar;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use function array_pop;
 use function dirname;
-use function in_array;
 use function sprintf;
 
 use const E_USER_DEPRECATED;
@@ -534,8 +534,6 @@ final class DeprecationWarnings
 
     private static function readEnvFlag(): bool
     {
-        $flag = getenv('PHEL_WARN_DEPRECATIONS');
-
-        return !in_array($flag, [false, '', '0'], true);
+        return EnvVar::flag(EnvVar::WARN_DEPRECATIONS) === true;
     }
 }

@@ -103,10 +103,11 @@ These Shared classes are internal despite their namespace:
 - `Phel\Shared\Lint\LintRuleExplainerInterface`
 - `Phel\Shared\InvocationError`
 - `Phel\Shared\StandardError`
+- `Phel\Shared\EnvVar`
 
 The same applies to these individual methods on otherwise public classes:
 `OptimizationLevel::pin()`, `NoColor::followOutput()`,
-`ExistingPaths::reportMissing()`,
+`ExistingPaths::reportMissing()`, `CpuCountDetector::fromEnv()`,
 `ClassNotFoundHint::javaClassHint()` and
 `FrameworkNamespaces::{clojureTarget,isPhel}()`.
 

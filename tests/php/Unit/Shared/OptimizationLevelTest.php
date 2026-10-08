@@ -46,13 +46,20 @@ final class OptimizationLevelTest extends TestCase
         self::assertSame(2, OptimizationLevel::resolve(2));
     }
 
+    public function test_surrounding_whitespace_is_ignored(): void
+    {
+        putenv(OptimizationLevel::PIN_ENV . '= 2 ');
+
+        self::assertSame(2, OptimizationLevel::resolve(0));
+    }
+
     #[DataProvider('provideInvalidLevels')]
     public function test_an_invalid_value_is_rejected_by_name(string $value): void
     {
         putenv(OptimizationLevel::PIN_ENV . '=' . $value);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('PHEL_OPTIMIZATION_LEVEL must be a non-negative integer such as 0 or 2, got "' . $value . '".');
+        $this->expectExceptionMessage('PHEL_OPTIMIZATION_LEVEL must be a whole number of at least 0, got "' . $value . '".');
 
         OptimizationLevel::resolve(0);
     }
@@ -65,6 +72,5 @@ final class OptimizationLevelTest extends TestCase
         yield 'negative' => ['-1'];
         yield 'word' => ['fast'];
         yield 'decimal' => ['1.5'];
-        yield 'padded' => [' 2'];
     }
 }

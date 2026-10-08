@@ -10,9 +10,11 @@ use InvalidArgumentException;
 use Override;
 use Phel\Console\Application\WarnDeprecationsFlag;
 use Phel\Console\ConsoleFactory;
+use Phel\Shared\EnvVar;
 use Phel\Shared\InvocationError;
 use Phel\Shared\NoColor;
 use Phel\Shared\OptimizationLevel;
+use Phel\Shared\Process\CpuCountDetector;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -87,7 +89,7 @@ final class ConsoleBootstrap extends Application
     }
 
     /**
-     * A bad `PHEL_OPTIMIZATION_LEVEL` would otherwise surface mid-compile as a
+     * A bad Phel environment switch would otherwise surface mid-compile as a
      * stack trace, after the command already started.
      */
     #[Override]
@@ -95,6 +97,8 @@ final class ConsoleBootstrap extends Application
     {
         try {
             OptimizationLevel::resolve(null);
+            EnvVar::flag(EnvVar::WARN_DEPRECATIONS);
+            CpuCountDetector::fromEnv();
         } catch (InvalidArgumentException $invalidArgumentException) {
             return InvocationError::report($output, $invalidArgumentException->getMessage());
         }

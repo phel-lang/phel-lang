@@ -14,6 +14,7 @@ use Phel\Mutate\MutateFacade;
 use Phel\Nrepl\NreplFacade;
 use Phel\Profile\ProfileFacade;
 use Phel\Run\RunFacade;
+use Phel\Shared\EnvVar;
 use Phel\Shared\Exceptions\Hint\ClassNotFoundHint;
 use Phel\Shared\ExistingPaths;
 use Phel\Shared\Facade\ApiFacadeInterface;
@@ -24,6 +25,7 @@ use Phel\Shared\Lint\LintRuleExplainerInterface;
 use Phel\Shared\NoColor;
 use Phel\Shared\OptimizationLevel;
 use Phel\Shared\PhelProjectDirectory;
+use Phel\Shared\Process\CpuCountDetector;
 use Phel\Shared\SourceMap\SupersededSourceMaps;
 use Phel\Shared\StandardError;
 use Phel\Shared\VersionFinder;
@@ -218,6 +220,7 @@ final readonly class PublicApiSurface
             LintRuleExplainerInterface::class,
             InvocationError::class,
             StandardError::class,
+            EnvVar::class,
         ], true);
     }
 
@@ -229,6 +232,7 @@ final readonly class PublicApiSurface
             PhelProjectDirectory::class . '::dirOverride',
             NoColor::class . '::followOutput',
             ExistingPaths::class . '::reportMissing',
+            CpuCountDetector::class . '::fromEnv',
             ClassNotFoundHint::class . '::javaClassHint',
             FrameworkNamespaces::class . '::clojureTarget',
             FrameworkNamespaces::class . '::isPhel',
