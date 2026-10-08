@@ -108,6 +108,11 @@ interface GlobalEnvironmentInterface
      */
     public function getInterfaceMethods(string $namespace, Symbol $name): ?array;
 
+    /**
+     * @return array<string, Symbol>
+     */
+    public function getInterfaces(string $namespace): array;
+
     public function addLevelToAllowPrivateAccess(): void;
 
     public function removeLevelToAllowPrivateAccess(): void;
