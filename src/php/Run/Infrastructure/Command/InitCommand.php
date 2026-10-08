@@ -146,10 +146,11 @@ HELP)
             return Command::SUCCESS;
         }
 
-        if ($template !== false && !$this->templateScaffolder->hasTemplate(ScalarCoercion::toString($template))) {
+        $templateName = $template === false ? null : ScalarCoercion::toString($template);
+        if ($templateName !== null && !$this->templateScaffolder->hasTemplate($templateName)) {
             return InvocationError::report($output, sprintf(
                 'Unknown template: %s. Known: %s.',
-                ScalarCoercion::toString($template),
+                $templateName,
                 implode(', ', array_keys($this->templateScaffolder->availableTemplates())),
             ));
         }
@@ -166,9 +167,9 @@ HELP)
             $output->writeln('');
         }
 
-        if ($template !== false) {
+        if ($templateName !== null) {
             return $this->scaffoldFromTemplate(
-                ScalarCoercion::toString($template),
+                $templateName,
                 $projectName,
                 $cwd,
                 $output,

@@ -220,8 +220,7 @@ final readonly class TestCommandOptionParser
 
     private function parseSeed(InputInterface $input): ?int
     {
-        $raw = $input->getOption(self::OPT_SEED);
-        if ($raw === null || $raw === '') {
+        if ($input->getOption(self::OPT_SEED) === '') {
             return null;
         }
 
