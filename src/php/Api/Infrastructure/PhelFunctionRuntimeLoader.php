@@ -11,6 +11,7 @@ use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\StandardError;
 use RuntimeException;
 
 use function dirname;
@@ -72,9 +73,13 @@ final readonly class PhelFunctionRuntimeLoader
                 [$namespace, 'phel.core', ...$namespaces],
             );
 
-            foreach ($namespaceInformation as $info) {
-                $this->runFacade->evalFile($info);
-            }
+            // What a documented namespace prints is not documentation:
+            // `doc --format=json` and the LSP own stdout.
+            StandardError::redirectEcho(function () use ($namespaceInformation): void {
+                foreach ($namespaceInformation as $info) {
+                    $this->runFacade->evalFile($info);
+                }
+            });
         } finally {
             unlink($phelFile);
 

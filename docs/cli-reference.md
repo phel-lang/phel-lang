@@ -64,6 +64,14 @@ use 1-based lines and columns, and `endCol` is one past the last character.
 working directory, the form GitHub annotations expect. `phel lsp` sends the
 0-based positions the protocol defines.
 
+In a machine mode stdout carries only the machine output, so a tool can parse
+all of it: `analyze`, `api-daemon`, `index`, `lint --format=json|github`,
+`config --format=json`, `explain --format=json`, `doc --format=json`,
+`profile --format=json`, `mutate --reporter=json`, and `test --reporter=tap` or
+`--reporter=junit-xml` without `-o`. Progress, timings, notices and what the
+loaded code prints go to stderr. `index` prints its JSON summary on stdout with
+or without `-o`.
+
 ## Editor setup
 
 `phel lsp` (Language Server, stdio) and `phel nrepl` (default `127.0.0.1:7888`) plug
