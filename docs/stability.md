@@ -8,7 +8,7 @@ Until `1.0.0` ships this describes the *target*: what `1.x` will guarantee, with
 the enforceable parts already gated in CI. `0.x` remains free to break, and the
 changelog marks every such change **BREAKING**.
 
-## Two promises
+## Three promises
 
 1. **Language stability.** Phel source that compiles on `1.0.0` compiles on every
    later `1.x`. Reader syntax, special forms and the public `phel.*` core API do
@@ -17,6 +17,9 @@ changelog marks every such change **BREAKING**.
 2. **Embedding stability.** The PHP surface under [Public PHP API](#public-php-api)
    follows semver, so a project wiring Phel into its own tooling can take `1.x`
    updates without reading a diff.
+3. **Command-line stability.** The parts of `phel` a program reads, listed under
+   [Command-line interface](#command-line-interface), follow semver, so an
+   editor plugin or a CI script can take `1.x` updates the same way.
 
 Anything else is explicitly not promised. That is the boundary that makes the
 promise affordable, not a gap to fill later.
@@ -268,6 +271,47 @@ The `.phel/` layout ([project-layout.md](project-layout.md)) is likewise frozen:
 tool may rely on `.phel/cache/` and `.phel/repl-history` being where they are.
 `PHEL_DIR` relocates the tree.
 
+## Command-line interface
+
+Editor plugins, `setup-phel-action` and CI scripts drive Phel through `phel`,
+not through PHP. What they read is covered; what a person reads is not. Why the
+line falls there: [ADR 0022](adr/0022-the-cli-machine-surface-is-under-semver.md).
+The details of each surface: [CLI reference](cli-reference.md).
+
+Covered, changed only in a major:
+
+| Surface | What is frozen |
+|---|---|
+| Commands | `agent-install`, `analyze`, `api-daemon`, `balance`, `bench`, `build` (`b`), `cache:clear`, `compile`, `config`, `doc`, `doctor`, `eval` (`e`), `explain`, `export`, `format` (`fmt`), `index`, `init`, `lint`, `lsp`, `mutate`, `nrepl`, `ns` (`loaded-ns`), `profile`, `repl`, `run` (`r`), `test` (`t`), `watch` |
+| Options | every option a command's `--help` lists, with the values it documents, and the global `--warn-deprecations` |
+| Exit codes | `0` nothing to fail on, `1` found something, `2` could not run as asked, with the problem on stderr ([per command](cli-reference.md#exit-codes)) |
+| Positions | every line and column a command prints is 1-based; the LSP sends the 0-based positions its protocol defines |
+| Paths | a JSON field naming a source file is absolute; the `api-daemon` returns the `uri` it was sent; `--format=github` prints `file=` relative to the working directory |
+| Machine output on stdout | `analyze`, `api-daemon`, `index`, `lint --format=json\|github`, `config`, `doc`, `explain` and `mutate` with `--format=json`, `test --reporter=tap`, and `test --reporter=junit-xml` without `-o` print that output and nothing else on stdout |
+| Field names and meaning | of every output above ([shapes](cli-reference.md#output-shapes)); fields are only added, so a reader ignores fields it does not know |
+| Output formats | `--format` (`-f`) picks one format, and `text` is the default; `mutate --reporter` is its deprecated alias; `test --reporter` selects test reporters |
+| `api-daemon` methods | `analyzeSource`, `indexProject`, `resolveSymbol`, `findReferences`, `completeAtPoint`, `version` |
+| Versions | `api-daemon` `version` and the LSP's `serverInfo.version` report the running Phel version |
+| nREPL | Phel's own ops `reload` and `run-tests` with their params, and the `.nrepl-port` file in the working directory |
+| Environment variables | `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS`, `PHEL_TEST_WORKERS`, `PHEL_DIR`, `PHEL_CACHE_DIR`, `CI`, `NO_COLOR`, `GITHUB_ACTIONS`; a `PHEL_*` switch or number with a value the shared parser does not know exits 2 naming the variable ([details](cli-reference.md#environment-variables)) |
+| `config --format=json` | reports the values after the environment, with every key `PhelConfig` defines |
+
+Not covered, free to change in any release:
+
+- Human text: messages, tables, colours, help wording, progress lines, and every
+  `text` format. Match on a code or a field, never on a message.
+- Command prefixes. Symfony runs `phel li` as `phel lint` while the prefix is
+  unique; a new command can make it ambiguous.
+- Symfony's `help`, `list` and `completion` and its global options, and the
+  Gacela commands `cache:warm`, `debug:*`, `list:modules`, `profile:report` and
+  `validate:config`. They follow those projects.
+- The hidden worker commands `_test-worker` and `_mutate-worker`.
+- `profile --format=json`.
+- The baseline file `bench --store` writes and `bench --ref` reads.
+- The OPcache switches `PHEL_OPCACHE_REEXEC` and `PHEL_NO_OPCACHE_REEXEC`.
+- What a program run by `run`, `eval`, `test` or `repl` prints, and the exit
+  code it picks.
+
 ## Explicitly not covered
 
 Not under semver, in any release:
@@ -287,7 +331,8 @@ Not under semver, in any release:
   Phel version and the fingerprint of the declared `cache-env-vars`, so a
   version bump invalidates it by design.
 - Anything under `tests/`, `tools/`, `build/` or `resources/`.
-- The nREPL and LSP wire protocols beyond the upstream specifications.
+- The nREPL and LSP wire protocols beyond the upstream specifications and the
+  surfaces listed under [Command-line interface](#command-line-interface).
 
 ## Quality gates behind the promises
 
@@ -297,6 +342,7 @@ Not under semver, in any release:
 | `@internal` annotations | `InternalAnnotationTest` | an internal class is unmarked, or a public one is marked |
 | Standard-library snapshot | `CoreApiSurfaceTest` | a definition or arity disappears |
 | Special-form list | `LanguageSurfaceSpecTest` | the spec and the analyzer disagree |
+| CLI reference | `CliReferenceCoverageTest` | the command or `api-daemon` method table and the code disagree |
 | Static analysis | `quality.yml` | PHPStan level 9 or Psalm level 1 reports anything |
 | Coverage floor | `coverage.yml` (nightly) | line coverage drops below the floor |
 | Benchmark regression | `tests.yml` | a benchmark is >25% slower than the base revision, the tolerance `phpbench.json` sets for CI and local runs alike |

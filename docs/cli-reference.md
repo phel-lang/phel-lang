@@ -18,8 +18,6 @@ enables tab-completion (setup in the [README](../README.md)).
 | `bench` | Run the `defbench` benchmarks (all of them, or the files/namespaces you pass) |
 | `build` `b` | Build the current project: compile every namespace to PHP in the output dir |
 | `cache:clear` | Clear the temp and cache directories, and empty the OPcache file cache |
-| `cache:warm` | Pre-resolve all module classes and warm the cache for production |
-| `completion` | Dump the shell completion script for bash, zsh, or fish |
 | `compile` | Compile a Phel snippet/file/stdin and print the emitted PHP — does not evaluate |
 | `config` | Show the effective Phel configuration and where it comes from |
 | `doc` | Display the docs for any/all Phel functions |
@@ -41,16 +39,19 @@ enables tab-completion (setup in the [README](../README.md)).
 | `test` `t` | Run the test suite (all tests, or the files/namespaces you pass) |
 | `watch` | Watch Phel files and reload changed namespaces on change |
 
-Gacela registers a few more through `Console/Infrastructure/Command/FrameworkCommands`:
+Symfony adds `help`, `list` and `completion`. Gacela registers a few more
+through `Console/Infrastructure/Command/FrameworkCommands`: `cache:warm`,
 `debug:container`, `debug:dependencies`, `debug:modules`, `list:modules`,
 `profile:report` and `validate:config`. They inspect the module wiring rather than
-your Phel code, and `phel list` shows them alongside the commands above.
+your Phel code, and `phel list` shows them alongside the commands above. The
+table above is the command surface the
+[stability policy](stability.md#command-line-interface) covers; these are not
+part of it.
 
 `phel api-daemon` reads one JSON request per line on stdin and writes one JSON
-response per line. The methods are `analyzeSource`, `indexProject`,
-`resolveSymbol`, `findReferences`, `completeAtPoint` and `version`. `version`
-takes no params and returns the running Phel version, so an editor can check it
-is compatible:
+response per line. Its methods are listed under
+[Output shapes](#api-daemon). `version` takes no params and returns the running
+Phel version, so an editor can check it is compatible:
 
 ```sh
 echo '{"id":1,"method":"version"}' | phel api-daemon
@@ -162,6 +163,143 @@ command. `NO_COLOR` follows [no-color.org](https://no-color.org): any non-empty
 value, `0` included, turns colour off. The OPcache switches are a tuning knob,
 outside the stability promise.
 
+## Exit codes
+
+Every command exits `0` when it ran and found nothing to fail on, `1` when it ran
+and found something, and `2` when it could not run as asked. A `2` names the
+problem on stderr and leaves stdout empty. The rule and what it covers:
+[ADR 0022](adr/0022-the-cli-machine-surface-is-under-semver.md).
+
+| Command | `1` means | `2` means |
+|---|---|---|
+| `analyze` | a diagnostic is an error | a path is missing or unreadable |
+| `lint` | a diagnostic is an error (warnings exit `0`) | a path is missing, an unknown `--format`, a `--config` file that is not there, no readable files, or the linter itself failed |
+| `balance` | a file is unbalanced, or `--fix` could not repair it | a path is missing |
+| `format` | `--dry-run` would change a file, or a file could not be formatted | a path is missing |
+| `test` | a test failed or errored, or a `^:focus` run under `CI` or `--fail-on-focus` | a path is missing, an unknown `--reporter` |
+| `bench` | a benchmark is slower than `--tolerance` against `--ref`, nothing to load in the given paths, or a benchmark threw | a path is missing, a `--ref` file that is not there, a bad `--ab` or `--pairs` value |
+| `mutate` | the score is below `--min-msi` or `--min-covered-msi`, the suite fails without mutants, or a worker could not load | a bad option value, `--changed` outside a git repository |
+| `run` | the program threw | no entry point, a path or namespace that is not there |
+| `ns` | | a namespace that is not there |
+| `profile` | the program threw | a path or namespace that is not there, an unknown `--format` or `--sort` |
+| `build` | a namespace does not compile | a bad `-O` value |
+| `index` | the `-o` file could not be written | a directory is missing |
+| `config` | | an unknown `--format` |
+| `doc` | | an unknown `--format`; no match is not an error |
+| `compile`, `eval`, `export` | the code does not compile or throws | |
+| `doctor` | a check failed | |
+| `init` | a file could not be written | |
+| `watch` | the watcher stopped on an error | |
+| `agent-install` | `--check` found no installed docs, or a version other than the bundled one | an unknown platform |
+| `api-daemon`, `lsp`, `nrepl` | the server could not start or stopped on an error | |
+
+Every command exits `2`, before it starts, on a `PHEL_OPTIMIZATION_LEVEL`,
+`PHEL_WARN_DEPRECATIONS` or `PHEL_TEST_WORKERS` it cannot read
+([Environment variables](#environment-variables)). A program run by `run`,
+`eval`, `test` or `repl` can exit with its own code, and a PHP fatal error exits
+`255`.
+
+These exit `1` where the rule says `2`, tracked in
+[#3525](https://github.com/phel-lang/phel-lang/issues/3525): an unknown option
+or command (Symfony's own code), `explain --format=xml`, `explain` with an
+unknown code, `init --template=nope`, a bad `test --parallel`, `--repeat` or
+`--seed` value, `test --changed` outside a git repository, and `watch` with no
+readable path. `mutate` and `watch` skip a missing path instead of failing,
+and `mutate` with no file left scores 100%. A few numeric options take any value
+without complaint: `test --slowest`, `profile --top`, `nrepl --port`,
+`watch --poll` and `--debounce`, and `bench --revs`, `--iterations`, `--warmup`
+and `--tolerance` without `--ab`. `watch --backend` falls back to polling on an
+unknown name.
+
+## Output shapes
+
+Field names and their meaning are covered by the
+[stability policy](stability.md#command-line-interface): a field is only ever
+added, so a reader ignores fields it does not know. Positions, paths and what
+goes to stdout follow the rules under [Commands](#commands).
+
+### Diagnostics
+
+`lint --format=json` and `analyze` print a JSON array, and the `api-daemon`
+`analyzeSource` method returns one. Each element:
+
+| Field | Meaning |
+|---|---|
+| `code` | the lint rule (`phel/unused-require`), or for `analyze` the `PHELxxx` code |
+| `severity` | `error`, `warning`, `info` or `hint` |
+| `message` | the human text; match on `code`, not on this |
+| `uri` | the file; `api-daemon` returns the `uri` the request sent |
+| `startLine`, `startCol` | where the problem starts |
+| `endLine`, `endCol` | where it ends; `endCol` is one past the last character |
+| `errorCode` | the `PHELxxx` code behind the diagnostic, `null` for a lint-only rule |
+| `suggestions` | the names a "did you mean" offers, possibly empty |
+| `fix` | the catalog's advice, or `null` |
+
+`lint --format=github` prints one workflow command per diagnostic:
+`::error file=<path>,line=<n>,col=<n>,endLine=<n>,endColumn=<n>,title=<code>::<message>`.
+The level is `error` for an error, `notice` for `info` and `hint`, and
+`warning` otherwise. `file` is relative to the working directory.
+
+### Project index
+
+`phel index <dirs>...` prints a summary on stdout:
+`{"namespaces": <count>, "definitions": <count>, "dirs": [<dirs as passed>]}`.
+With `-o <file>` it also writes the full index there, the shape the `api-daemon`
+`indexProject` method returns:
+
+| Field | Meaning |
+|---|---|
+| `namespaces`, `definitions` | counts |
+| `symbols` | a definition per `namespace/name` key |
+| `references` | a list of locations per `namespace/name` key |
+| `namespaceLocations` | the location of each namespace's `ns` form, keyed by namespace |
+
+A definition carries `namespace`, `name`, `uri`, `line`, `col`, `kind` (`def`,
+`defn`, `defmacro`, `defstruct`, `definterface`, `defprotocol`, `defexception`
+or `unknown`), `signature` (a list of strings), `docstring`, `private` and
+`deprecated` (the deprecation message, or `""`). A location carries `uri`,
+`line`, `col`, `endLine` and `endCol`.
+
+### `api-daemon`
+
+A request is `{"id": <any>, "method": "<name>", "params": {...}}` on one line.
+The reply is `{"id": <same>, "result": ...}`, or
+`{"id": <same>, "error": {"code": <n>, "message": "..."}}` with `-32600` for a
+missing method, `-32601` for an unknown one and `-32000` when the method
+failed.
+
+| Method | Params | Result |
+|---|---|---|
+| `analyzeSource` | `source`, `uri` | a list of [diagnostics](#diagnostics) |
+| `indexProject` | `srcDirs` | the [project index](#project-index), kept for the methods below |
+| `resolveSymbol` | `namespace`, `symbol` | a definition, or `null` |
+| `findReferences` | `namespace`, `symbol` | a list of locations |
+| `completeAtPoint` | `source`, `line`, `col` | a list of completions: `label`, `kind`, `detail`, `documentation` |
+| `version` | none | the running Phel version, as in `v0.54.0`; `phel --version` prints it after `Phel `, and the LSP sends it as `serverInfo.version` |
+
+### Other JSON outputs
+
+| Command | Shape |
+|---|---|
+| `config --format=json` | one object with every `PhelConfig` key, described under [Commands](#commands) |
+| `explain <code> --format=json` | `{"code", "title", "summary", "example", "fix"}`; with no code, a list of `{"code", "title"}`; an unknown code is `{"error": "..."}` |
+| `doc --format=json` | a list of `{"namespace", "name", "requireNs", "require", "signatures", "doc", "description", "example", "githubUrl", "docUrl"}`; `name` is `namespace/name` with the namespace's short label, `requireNs` the namespace to require, `require` the `(:require ...)` form, or `null` when nothing needs requiring. No match is `[]` |
+| `mutate --format=json` | `baselineSeconds`; `coverage` (the driver that matched tests to lines, or `""`); `totals` with `mutants`, `killed`, `survived`, `notCovered`, `errors`, `timeouts`, `msi`, `coveredMsi`; `mutants`, a list of `file`, `line`, `column`, `namespace`, `definition`, `mutator`, `description`, `verdict` (`killed`, `survived`, `error`, `timeout` or `not-covered`), `seconds`, `detail`, `diff` |
+
+### Test reporters
+
+`test --reporter=tap` prints TAP version 13, `--reporter=junit-xml` one JUnit
+XML document (a `<testsuite>` per namespace, a `<testcase>` per assertion with
+`file` and `line`), and `--reporter=github` GitHub workflow commands. The other
+reporters (`default`, `testdox`, `dot`) are human text.
+
+### nREPL
+
+`phel nrepl` writes the port it bound to `.nrepl-port` in the working
+directory and removes the file when it stops. Next to the standard nREPL ops it
+answers `reload` (param `all`: `true` or `1` reloads every namespace, else only
+the changed ones) and `run-tests` (param `ns`, optional `var` for one test).
+
 ## Error codes
 
 A compile or runtime failure prints a `[PHELxxx]` code in front of its message.
@@ -176,11 +314,7 @@ phel explain PHEL001 --format=json      # the same entry as JSON
 ```
 
 `phel lint --format=json` and `phel analyze` report every diagnostic with the
-same fields. Next to `code` (the lint rule, or the `PHELxxx` code for
-`analyze`), `errorCode` holds the `PHELxxx` code behind it (`null` for a
-lint-only rule), `suggestions` the names a "did you mean" offers, and `fix` the
-catalog's advice. `phel analyze` takes files or directories and exits 1 when a
-diagnostic is an error, 2 when a path does not exist.
+same fields, listed under [Diagnostics](#diagnostics).
 
 An unknown code exits 1. The text comes from the same catalog the pages under
 `docs/errors/` are generated from, so the terminal and the docs cannot drift.
