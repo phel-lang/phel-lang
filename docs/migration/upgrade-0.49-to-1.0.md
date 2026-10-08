@@ -153,6 +153,8 @@ already did lines, so a column is one higher than before. The same holds for
 `Phel\Shared\Api\Diagnostic` from `ApiFacade::analyzeSource()`. `phel analyze`
 prints `uri` as an absolute path, and `phel lint --format=github` prints `file=`
 relative to the working directory. The LSP still sends 0-based positions.
+`phel balance`, the `column` of the `phel mutate` JSON report and deprecation
+notices, `(at file:line:column)`, give 1-based columns too.
 
 ## Step 7: the REPL history file
 

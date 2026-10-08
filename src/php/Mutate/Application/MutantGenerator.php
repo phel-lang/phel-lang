@@ -114,7 +114,7 @@ final readonly class MutantGenerator
                             $namespace,
                             $definition,
                             $child->getStartLocation()->getLine(),
-                            $child->getStartLocation()->getColumn(),
+                            $child->getStartLocation()->getColumn() + 1,
                             $form->getStartLocation()->getLine(),
                             $mutator->id(),
                             $replacement->description,

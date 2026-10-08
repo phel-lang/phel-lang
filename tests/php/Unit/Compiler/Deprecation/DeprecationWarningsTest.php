@@ -327,7 +327,7 @@ final class DeprecationWarningsTest extends TestCase
 
         self::assertSame(
             'Using "|()" for short functions is deprecated and will be removed in a future release; '
-            . 'use "#()" instead (at /app/user.phel:7:3)',
+            . 'use "#()" instead (at /app/user.phel:7:4)',
             $message,
         );
         // The factory takes no version argument, so a notice cannot promise a
@@ -448,7 +448,7 @@ final class DeprecationWarningsTest extends TestCase
         });
 
         self::assertCount(1, $captured);
-        self::assertStringContainsString('(at /app/macros.phel:9:2)', $captured[0]);
+        self::assertStringContainsString('(at /app/macros.phel:9:3)', $captured[0]);
         self::assertStringContainsString('reached by expanding a macro at /app/user.phel:4', $captured[0]);
     }
 

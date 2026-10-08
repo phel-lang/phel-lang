@@ -20,6 +20,7 @@ final readonly class Mutant
 {
     /**
      * @param int $line     line of the mutated node
+     * @param int $column   1-based column of the mutated node
      * @param int $formLine line the whole definition starts on
      */
     public function __construct(

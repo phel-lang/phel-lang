@@ -62,7 +62,9 @@ use 1-based lines and columns, and `endCol` is one past the last character.
 `lint` and `analyze` print `uri` as an absolute path; `api-daemon` returns the
 `uri` the request sent. `lint --format=github` prints `file=` relative to the
 working directory, the form GitHub annotations expect. `phel lsp` sends the
-0-based positions the protocol defines.
+0-based positions the protocol defines. `balance`, the `column` of the `mutate` JSON
+report and deprecation notices, `(at file:line:column)`, use 1-based columns
+too.
 
 In a machine mode stdout carries only the machine output, so a tool can parse
 all of it: `analyze`, `api-daemon`, `index`, `lint --format=json|github`,
