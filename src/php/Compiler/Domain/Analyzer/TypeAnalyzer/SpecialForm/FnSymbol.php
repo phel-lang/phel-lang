@@ -290,6 +290,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         $paramVector = $this->verifyArguments($list);
         $this->rejectReturnOnlyParamTags($paramVector);
         $canonical = TagCanonicalizer::paramVector($paramVector, $this->analyzer);
+        TypeTagGuard::assertParamVector($canonical);
         if ($canonical === $paramVector) {
             return $list;
         }

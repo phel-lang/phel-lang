@@ -177,7 +177,9 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
             }
 
             $phpNames[$phpName] = $element->getName();
-            $params[] = TagCanonicalizer::symbol($element, $this->analyzer);
+            $param = TagCanonicalizer::symbol($element, $this->analyzer);
+            TypeTagGuard::assertSymbol($param);
+            $params[] = $param;
         }
 
         return $params;

@@ -84,7 +84,7 @@ final class ErrorCodeCatalog
             new ErrorCodeExplanation(
                 code: ErrorCode::UNDEFINED_SYMBOL,
                 title: 'Undefined symbol',
-                summary: 'The analyzer reached a symbol that is bound nowhere: not in the current namespace, not in a required namespace, and not in a local binding. A `catch` type, a `var` target or a `use` class that resolves to nothing reports here too.',
+                summary: 'The analyzer reached a symbol that is bound nowhere: not in the current namespace, not in a required namespace, and not in a local binding. A `catch` type, a `var` target or a `use` class that resolves to nothing reports here too, and so does a lower-case type tag on a parameter or return value that is neither a PHP type nor a known class, such as `^strng`, or `^long` as Clojure spells `int`.',
                 example: '(undefined-fn 1 2)',
                 fix: 'Check the spelling, require the namespace that defines it, or define it before the call. `require` itself is a REPL helper: in a file, write `(:require ...)` inside the `ns` form.',
             ),
