@@ -79,6 +79,7 @@ Tooling:
 - `phel lint` does not report `phel/arity-mismatch` on quoted data. `'(add 1)` and each `'x` or backtick form used to be read as a call when the file defines `add` or its own `quote`. A call inside `~x` is still checked. (#3550)
 - A `deftest` whose body throws outside an `is` is reported as an error for that test, and `phel test` runs the tests after it and prints the summary. The exception used to stop a serial run with a stack trace and no summary, and `--parallel` dropped the whole namespace as `Failed running <ns>` with no error counted. (#3537)
 - A `PHEL402` error for an argument of the wrong type names the `.phel` file and line that made the call: `must be of type int, string given, called in src/main.phel on line 5`. It used to name the generated temp file, `.../phel/tmp/__phel_*.php`. (#3537)
+- A PHP warning, notice or deprecation raised by a file `phel run` or `phel test` loads names the `.phel` file and line: `The return value of method DateTimeImmutable::setTimestamp() should either be used ... in /path/to/src/main.phel on line 4`. It used to name the generated temp file, `.../phel/tmp/__phel_*.php`. `(php/error_get_last)` still returns the warning's message. Code typed into `phel eval` or the REPL, and `phel build` output, keep PHP's own file names. (#3537)
 - `phel eval '#| x |# 1'` reports `[PHEL310]` with the offending line and a caret under the character, like `phel run`. It used to print the raw exception block. (#3537)
 - `phel lint`, `phel analyze` and the LSP handle a file with an `#inst` literal and go on to the next file. The value an `#inst` reads as, a `DateTimeImmutable`, used to abort the whole run with `DateTimeImmutable given`. (#3610)
 - `phel config` and `phel config --format=json` report the values a command runs with: `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations` beat the config file, as they do when the command runs. The JSON has every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`. It used to show the config file's values only and leave those four keys out. (#3525)
@@ -88,6 +89,7 @@ Tooling:
 PHP API:
 
 - **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::analyze()` takes any value the reader returns, `mixed` instead of `TypeInterface|string|float|int|bool|null`, so an `#inst` literal (a `DateTimeImmutable`) can be analysed. Callers are unaffected. (#3610)
+- **BREAKING (PHP API, implementers only)**: `CommandFacadeInterface::reportWarningsAtPhelSource()` installs the error handler that reports a PHP warning from compiled Phel code at its `.phel` file and line. (#3537)
 - **BREAKING (PHP API)**: `Phel\Lang\LoadClasspath::NAMESPACE` is now `LoadClasspath::NS`. PHP 8.6 deprecates a class constant named `namespace`, and declaring one is what warns, so no alias can keep the old name. (#3522)
 - `Seq::range()` takes any Phel number, where it took only `int|float`, and `SequenceGenerator::numericRange()` is public. (#3557)
 

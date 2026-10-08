@@ -107,6 +107,7 @@ These Shared classes are internal despite their namespace:
 - `Phel\Shared\InvocationError`
 - `Phel\Shared\StandardError`
 - `Phel\Shared\EnvVar`
+- `Phel\Shared\Exceptions\SourceMappedErrorHandler`
 
 The same applies to these individual methods on otherwise public classes:
 `OptimizationLevel::pin()`, `NoColor::followOutput()`,

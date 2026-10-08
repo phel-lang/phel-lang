@@ -84,6 +84,7 @@ final class Phel\Command\CommandFacade extends Gacela\Framework\AbstractFacade i
   public function getVendorSourceDirectories(): array
   public function logStackTrace(Throwable $e): void
   public function readPhelConfig(string $absolutePath): array
+  public function reportWarningsAtPhelSource(): void
   public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\AbstractLocatedException $locatedException, Phel\Shared\Parser\ReadModel\CodeSnippet $snippet): void
   public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
 
@@ -1878,6 +1879,7 @@ interface Phel\Shared\Facade\CommandFacadeInterface
   public function getVendorSourceDirectories(): array
   public function logStackTrace(Throwable $e): void
   public function readPhelConfig(string $absolutePath): array
+  public function reportWarningsAtPhelSource(): void
   public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\AbstractLocatedException $locatedException, Phel\Shared\Parser\ReadModel\CodeSnippet $snippet): void
   public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
 

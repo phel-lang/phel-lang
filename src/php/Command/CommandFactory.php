@@ -31,11 +31,13 @@ use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Exceptions\Hint\MissingNsFormHint;
 use Phel\Shared\Exceptions\Hint\NotCallableHint;
 use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
+use Phel\Shared\Exceptions\SourceMappedErrorHandler;
 use Phel\Shared\Munge;
 use Phel\Shared\NoColor;
 use Phel\Shared\Printer\Printer;
 use Phel\Shared\ScalarCoercion;
 
+use function array_key_exists;
 use function basename;
 use function implode;
 
@@ -55,6 +57,39 @@ final class CommandFactory extends AbstractFactory
             $this->createExceptionHintResolver(),
             $this->createRuntimeErrorReportFormatter(),
         );
+    }
+
+    /**
+     * The mapping is built on the first warning, not at startup, so a command
+     * that raises none never pays for it. Each position is looked up once per
+     * process: a warning in a loop would otherwise decode the source map on
+     * every pass.
+     */
+    public function createSourceMappedErrorHandler(): SourceMappedErrorHandler
+    {
+        $detector = null;
+        $extractor = null;
+        /** @var array<string, array{0: string, 1: int}|null> $positions */
+        $positions = [];
+
+        return new SourceMappedErrorHandler(function (string $file, int $line) use (&$detector, &$extractor, &$positions): ?array {
+            $key = $file . ':' . $line;
+            if (array_key_exists($key, $positions)) {
+                return $positions[$key];
+            }
+
+            $detector ??= $this->createInternalPathDetector();
+            if (!$detector->isInternalArtifact($file)) {
+                return $positions[$key] = null;
+            }
+
+            $extractor ??= $this->createFilePositionExtractor();
+            $position = $extractor->getOriginal($file, $line);
+
+            return $positions[$key] = $position->filename() === $file
+                ? null
+                : [$position->filename(), $position->line()];
+        });
     }
 
     public function createRuntimeErrorReportFormatter(): RuntimeErrorReportFormatter
