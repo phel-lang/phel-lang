@@ -20,6 +20,7 @@ use Phel\Shared\InvocationError;
 use Phel\Shared\OptimizationLevel;
 use Phel\Shared\Process\GitUnavailableException;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\StandardError;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -141,7 +142,11 @@ HELP);
             return InvocationError::report($output, $exception->getMessage());
         }
 
-        $output->writeln(sprintf(
+        // A JSON report on stdout leaves stdout to the report alone.
+        $jsonOnStdout = $this->writesJsonToStdout($input);
+        $log = $jsonOnStdout ? StandardError::of($output) : $output;
+
+        $log->writeln(sprintf(
             'Mutating %d file(s), %d mutant(s), testing with %d namespace(s) on %d worker(s)...',
             count($plan->sourceFiles),
             count($mutants),
@@ -151,25 +156,30 @@ HELP);
 
         try {
             $startedAt = microtime(true);
-            $this->getFacade()->warm($plan);
-            $output->writeln(sprintf('Loaded %d file(s) in %.1fs; starting %d worker(s)...', count($plan->loadOrder), microtime(true) - $startedAt, $options->workers));
+            if ($jsonOnStdout) {
+                StandardError::redirectEcho(fn() => $this->getFacade()->warm($plan));
+            } else {
+                $this->getFacade()->warm($plan);
+            }
 
-            $report = $this->getFacade()->run($plan, $options, $mutants, static function (MutantResult $result) use ($output): void {
-                $output->write(self::marker($result));
+            $log->writeln(sprintf('Loaded %d file(s) in %.1fs; starting %d worker(s)...', count($plan->loadOrder), microtime(true) - $startedAt, $options->workers));
+
+            $report = $this->getFacade()->run($plan, $options, $mutants, static function (MutantResult $result) use ($log): void {
+                $log->write(self::marker($result));
             });
         } catch (BaselineFailedException|WorkerFailedException $exception) {
-            $output->writeln('');
-            $output->writeln('<error>' . $exception->getMessage() . '</error>');
+            $log->writeln('');
+            $log->writeln('<error>' . $exception->getMessage() . '</error>');
 
             return self::FAILURE;
         }
 
-        $output->writeln('');
-        $output->writeln('');
+        $log->writeln('');
+        $log->writeln('');
         $this->writeReport($output, $report, $input);
 
         if (!$report->meetsMinimum($options->minMsi, $options->minCoveredMsi)) {
-            $output->writeln(sprintf(
+            $log->writeln(sprintf(
                 '<error>MSI %.1f%% (covered %.1f%%) is below the required %s.</error>',
                 $report->msi(),
                 $report->coveredMsi(),
@@ -266,6 +276,14 @@ HELP);
         }
 
         $output->write($content);
+    }
+
+    private function writesJsonToStdout(InputInterface $input): bool
+    {
+        $path = $input->getOption(self::OPT_OUTPUT);
+
+        return ScalarCoercion::toString($input->getOption(self::OPT_REPORTER), self::REPORTER_TEXT) === self::REPORTER_JSON
+            && (!is_string($path) || $path === '');
     }
 
     private static function marker(MutantResult $result): string

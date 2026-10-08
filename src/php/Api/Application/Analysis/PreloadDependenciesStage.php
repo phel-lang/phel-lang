@@ -6,6 +6,7 @@ namespace Phel\Api\Application\Analysis;
 
 use Phel\Api\Domain\AnalysisStageInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\StandardError;
 use Throwable;
 
 use function dirname;
@@ -19,6 +20,8 @@ use function is_file;
  *
  * Best-effort: any failure leaves the global env partially populated and
  * lets the following stages run, so legitimate diagnostics still surface.
+ * What the loaded namespaces print goes to stderr: stdout carries the
+ * diagnostics of `analyze`, `lint` and the `api-daemon` and LSP protocols.
  *
  * @internal
  */
@@ -30,20 +33,27 @@ final readonly class PreloadDependenciesStage implements AnalysisStageInterface
 
     public function run(string $source, string $uri, array &$context): array
     {
+        StandardError::redirectEcho(fn() => $this->preload($uri));
+
+        return [];
+    }
+
+    private function preload(string $uri): void
+    {
         try {
             $this->runFacade->loadPhelNamespaces();
         } catch (Throwable) {
-            return [];
+            return;
         }
 
         if ($uri === '' || !is_file($uri)) {
-            return [];
+            return;
         }
 
         try {
             $namespace = $this->runFacade->getNamespaceFromFile($uri)->getNamespace();
         } catch (Throwable) {
-            return [];
+            return;
         }
 
         $directories = [
@@ -54,7 +64,7 @@ final readonly class PreloadDependenciesStage implements AnalysisStageInterface
         try {
             $deps = $this->runFacade->getDependenciesForNamespace($directories, [$namespace]);
         } catch (Throwable) {
-            return [];
+            return;
         }
 
         foreach ($deps as $dep) {
@@ -68,7 +78,5 @@ final readonly class PreloadDependenciesStage implements AnalysisStageInterface
                 // Skip a single bad dep so the rest can still load.
             }
         }
-
-        return [];
     }
 }

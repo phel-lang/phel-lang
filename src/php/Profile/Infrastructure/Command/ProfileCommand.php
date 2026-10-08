@@ -19,6 +19,7 @@ use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\InvocationError;
 use Phel\Shared\Munge;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\StandardError;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -115,7 +116,11 @@ HELP)
         $rawArgv = $input->getArgument(self::ARG_ARGV);
         Phel::setupRuntimeArgs($path, is_array($rawArgv) ? $rawArgv : []);
 
-        $report = $this->runWithProfiler($path, $output);
+        $outputFile = $input->getOption(self::OPT_OUTPUT);
+        $jsonOnStdout = $format === ReportFormat::Json && (!is_string($outputFile) || $outputFile === '');
+        $report = $jsonOnStdout
+            ? StandardError::redirectEcho(fn(): ?ProfileReport => $this->runWithProfiler($path, $output))
+            : $this->runWithProfiler($path, $output);
         if (!$report instanceof ProfileReport) {
             return self::FAILURE;
         }
