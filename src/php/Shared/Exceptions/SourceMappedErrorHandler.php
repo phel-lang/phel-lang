@@ -13,9 +13,11 @@ use function fopen;
 use function fwrite;
 use function in_array;
 use function ini_get;
+use function ini_set;
 use function set_error_handler;
 use function sprintf;
 use function strtolower;
+use function trigger_error;
 use function trim;
 
 use const E_DEPRECATED;
@@ -36,13 +38,14 @@ use const PHP_EOL;
  */
 final readonly class SourceMappedErrorHandler
 {
-    private const array LABELS = [
-        E_WARNING => 'Warning',
-        E_USER_WARNING => 'Warning',
-        E_NOTICE => 'Notice',
-        E_USER_NOTICE => 'Notice',
-        E_DEPRECATED => 'Deprecated',
-        E_USER_DEPRECATED => 'Deprecated',
+    /** Each level's label, and the user level that records it as the last error. */
+    private const array LEVELS = [
+        E_WARNING => ['Warning', E_USER_WARNING],
+        E_USER_WARNING => ['Warning', E_USER_WARNING],
+        E_NOTICE => ['Notice', E_USER_NOTICE],
+        E_USER_NOTICE => ['Notice', E_USER_NOTICE],
+        E_DEPRECATED => ['Deprecated', E_USER_DEPRECATED],
+        E_USER_DEPRECATED => ['Deprecated', E_USER_DEPRECATED],
     ];
 
     /**
@@ -57,10 +60,11 @@ final readonly class SourceMappedErrorHandler
 
     public function __invoke(int $level, string $message, string $file = '', int $line = 0): bool
     {
-        $label = self::LABELS[$level] ?? null;
-        if ($label === null || (error_reporting() & $level) === 0) {
+        if (!isset(self::LEVELS[$level]) || !$this->wouldReport($level)) {
             return false;
         }
+
+        [$label, $userLevel] = self::LEVELS[$level];
 
         $source = ($this->sourceOf)($file, $line);
         if ($source === null) {
@@ -81,12 +85,52 @@ final readonly class SourceMappedErrorHandler
             }
         }
 
+        $this->recordAsLastError($message, $userLevel);
+
         return true;
     }
 
     public function install(): void
     {
         set_error_handler($this);
+    }
+
+    /**
+     * Whether PHP itself would show or log this level. When it would not,
+     * PHP handles it, which also skips the source lookup.
+     */
+    private function wouldReport(int $level): bool
+    {
+        if ((error_reporting() & $level) === 0) {
+            return false;
+        }
+
+        return $this->iniEnabled('display_errors') || $this->iniEnabled('log_errors');
+    }
+
+    /**
+     * A handler that returns true keeps PHP from recording the error, and
+     * Phel code reads failures through `error_get_last()`. PHP does not call
+     * a handler from inside itself, so this records the message without
+     * printing it again. The recorded type is the user level and the file
+     * is this one.
+     */
+    private function recordAsLastError(string $message, int $userLevel): void
+    {
+        $display = ini_set('display_errors', '0');
+        $log = ini_set('log_errors', '0');
+
+        try {
+            trigger_error($message, $userLevel);
+        } finally {
+            if ($display !== false) {
+                ini_set('display_errors', $display);
+            }
+
+            if ($log !== false) {
+                ini_set('log_errors', $log);
+            }
+        }
     }
 
     /**
