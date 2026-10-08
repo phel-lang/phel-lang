@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Shared\Process;
 
+use InvalidArgumentException;
 use Phel\Shared\Process\CpuCountDetector;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function getenv;
@@ -75,31 +77,24 @@ final class CpuCountDetectorTest extends TestCase
         self::assertSame(12, new CpuCountDetector()->detectMax());
     }
 
-    public function test_invalid_env_var_falls_back_to_detection(): void
+    #[DataProvider('provideInvalidWorkerCounts')]
+    public function test_an_invalid_env_var_is_rejected_by_name(string $value): void
     {
-        putenv('PHEL_TEST_WORKERS=notanumber');
+        putenv('PHEL_TEST_WORKERS=' . $value);
 
-        $count = new CpuCountDetector()->detect();
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('PHEL_TEST_WORKERS must be a whole number of at least 1, got "' . $value . '".');
 
-        self::assertGreaterThanOrEqual(1, $count);
-        self::assertLessThanOrEqual(CpuCountDetector::DEFAULT_CAP, $count);
+        new CpuCountDetector()->detect();
     }
 
-    public function test_zero_env_var_is_clamped_to_one(): void
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideInvalidWorkerCounts(): iterable
     {
-        putenv('PHEL_TEST_WORKERS=0');
-
-        self::assertSame(1, new CpuCountDetector()->detect());
-        self::assertSame(1, new CpuCountDetector()->detectMax());
-    }
-
-    public function test_negative_env_var_falls_back_to_detection(): void
-    {
-        putenv('PHEL_TEST_WORKERS=-4');
-
-        $count = new CpuCountDetector()->detect();
-
-        self::assertGreaterThanOrEqual(1, $count);
-        self::assertLessThanOrEqual(CpuCountDetector::DEFAULT_CAP, $count);
+        yield 'word' => ['notanumber'];
+        yield 'zero' => ['0'];
+        yield 'negative' => ['-4'];
     }
 }

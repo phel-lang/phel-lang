@@ -148,7 +148,7 @@ final class InvocationErrorExitCodeTest extends TestCase
         self::assertSame(2, $result->exitCode, $result->stderr . $result->stdout);
         self::assertSame('', $result->stdout);
         self::assertSame(
-            'PHEL_OPTIMIZATION_LEVEL must be a non-negative integer such as 0 or 2, got "fast".',
+            'PHEL_OPTIMIZATION_LEVEL must be a whole number of at least 0, got "fast".',
             trim($result->stderr),
         );
     }
