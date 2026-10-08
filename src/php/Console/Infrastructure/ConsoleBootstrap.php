@@ -19,9 +19,11 @@ use Phel\Shared\ScalarCoercion;
 use Phel\Shared\StandardError;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\HelpCommand;
 use Symfony\Component\Console\Exception\CommandNotFoundException;
 use Symfony\Component\Console\Exception\ExceptionInterface;
 use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
@@ -118,14 +120,19 @@ final class ConsoleBootstrap extends Application
     /**
      * Binds the input before the command runs, so an unknown option or a
      * missing argument exits 2 instead of Symfony's 1. Once the command runs,
-     * a console exception is the command's own failure.
+     * a console exception is the command's own failure. `help` is skipped:
+     * it ignores the options it does not know, so `lint --nope --help` still
+     * shows help.
      */
     #[Override]
     protected function doRunCommand(Command $command, InputInterface $input, OutputInterface $output): int
     {
+        if ($command instanceof HelpCommand) {
+            return parent::doRunCommand($command, $input, $output);
+        }
+
         try {
-            $command->mergeApplicationDefinition();
-            $input->bind($command->getDefinition());
+            $input->bind($this->definitionOf($command));
             $input->validate();
         } catch (ExceptionInterface $exception) {
             return $this->reportInvocationError($exception, $output);
@@ -144,6 +151,22 @@ final class ConsoleBootstrap extends Application
         parent::configureIO($input, $output);
 
         NoColor::followOutput($output->isDecorated());
+    }
+
+    /**
+     * What `Command::run()` binds: the application's arguments, then the
+     * command's, and both sets of options, keyed by name so a definition that
+     * already holds the application's entries does not repeat them.
+     */
+    private function definitionOf(Command $command): InputDefinition
+    {
+        $application = $this->getDefinition();
+        $own = $command->getDefinition();
+
+        return new InputDefinition([
+            ...array_values([...$application->getArguments(), ...$own->getArguments()]),
+            ...array_values([...$application->getOptions(), ...$own->getOptions()]),
+        ]);
     }
 
     /**

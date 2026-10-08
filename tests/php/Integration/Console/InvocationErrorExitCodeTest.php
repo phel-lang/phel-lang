@@ -183,6 +183,17 @@ final class InvocationErrorExitCodeTest extends TestCase
         );
     }
 
+    public function test_help_still_shows_with_an_unknown_option(): void
+    {
+        $result = Subprocess::run(
+            [PHP_BINARY, dirname(__DIR__, 4) . '/bin/phel', 'lint', '--nope', '--help'],
+            $this->dir,
+        );
+
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertStringContainsString('lint [options] [--] [<paths>...]', $result->stdout);
+    }
+
     public function test_a_missing_path_is_named_on_stderr(): void
     {
         $result = Subprocess::run(
