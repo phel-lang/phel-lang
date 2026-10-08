@@ -26,7 +26,7 @@ The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 
 | Facade | Injected as | Used for |
 |--------|-------------|----------|
 | Api | `ApiFacadeInterface` | `analyzeSource` (semantic diagnostics), `indexProject` |
-| Compiler | `CompilerFacadeInterface` | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `DuplicateKeyRule`, both need the failures reported, not swallowed) |
+| Compiler | `CompilerFacadeInterface` | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `CommentStyleRule`, both need the failures reported, not swallowed) |
 | Command | `CommandFacadeInterface` | default source directories |
 | Run | `RunFacadeInterface` | `loadPhelNamespaces()` to ensure symbols resolve |
 
@@ -40,7 +40,7 @@ Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`
 
 ## Rule Set (v1)
 
-- Errors: `phel/unresolved-symbol`, `phel/unresolved-namespace`, `phel/unresolved-refer`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`, `phel/duplicate-def`
+- Errors: `phel/unresolved-symbol`, `phel/unresolved-namespace`, `phel/unresolved-refer`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-def`
 - Warnings: `phel/unused-binding`, `phel/unused-require`, `phel/unused-import`, `phel/shadowed-binding`, `phel/shadowed-core-fn`, `phel/redundant-do`, `phel/discouraged-var`, `phel/comment-style`, `phel/unknown-class`
 
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
@@ -173,9 +173,9 @@ Warns on a static call `(Foo/bar ...)` whose class cannot be autoloaded, after r
 - Semantic diagnostics (`unresolved-symbol`, `arity-mismatch`) come from `ApiFacadeInterface::analyzeSource` and are shared via `FileAnalysis::$semanticDiagnostics`, so the analyzer runs once per file
 - Open/closed: `LintFactory::createRules()` and `FormatterRegistry` are the ONLY edit points for new rules/formatters
 - `RulePipeline` isolates a failing rule without silencing it: the run continues, but a `phel/internal-error` diagnostic makes it exit 1 rather than report the file as clean (see above)
-- `DuplicateKeyRule` scans the parse tree, not read forms, because the reader silently deduplicates map literals
+- A repeated key in a map or set literal is the reader's `PHEL203`; no lint rule repeats it. `LintRuleCodes::DUPLICATE_KEY` stays as a deprecated constant because the class is public API
 - Cache (default on, `.phel/lint-cache/index.json`): keyed by MD5(file hash) + `LintCacheFingerprint` (Phel release + all rule codes + severities + exclude patterns); upgrading Phel, adding/removing rules or editing `phel-lint.phel` invalidates it. A file whose run produced a `phel/internal-error` is not cached at all
-- The rule-level `catch (Throwable)` in `CommentStyleRule` and `DuplicateKeyRule` exists for a source that does not lex or parse, not as a licence to swallow rule bugs. Because it catches `Throwable` around the whole `apply()` body, a genuine bug in either rule still bypasses `RulePipeline`'s guard; narrowing both to the documented lexer/parser exceptions is open work
+- The rule-level `catch (Throwable)` in `CommentStyleRule` exists for a source that does not lex or parse, not as a licence to swallow rule bugs. Because it catches `Throwable` around the whole `apply()` body, a genuine bug in it still bypasses `RulePipeline`'s guard; narrowing it to the documented lexer/parser exceptions is open work
 - A file that does not lex or parse is reported with the analyzer's own code (`PHEL310`, `PHEL100`, ...) and fails the run. `readFormsBestEffort` is still best-effort, but its `Generator::getReturn()` now says whether anything was dropped; `SourceReader` passes that through as `SourceRead::$failed`, and `LintRunner` emits the `analyzeSource` diagnostics for such a file. Rules still see the forms that did read (#3292)
 - A superseded form (`PHEL012`: `php/new`, `php/->`, `php/::`, `set-var`) is passed through from `analyzeSource` by `LintRunner` under the analyzer's code, like a syntax error: it stops `phel run`, so no rule can switch it off (#3456)
 - An `ns` form the analyzer rejects is reported the same way, with the analyzer's code (`PHEL007` for `:refer :all`): `LintRunner` keeps the `analyzeSource` diagnostics that fall inside the `ns` form, since no rule owns them. `LintCommand` loads the Phel namespaces inside its `try`, so a failure there is a `Lint failed:` line, not a bare console error (#3457)

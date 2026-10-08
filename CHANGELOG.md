@@ -46,6 +46,7 @@ PHP API:
 
 Tooling:
 
+- `phel lint` reports a repeated key in a map or set literal once, as the reader's `PHEL203`. `{a 1 a 2}` used to report it a second time as `phel/duplicate-key`, a rule that only saw symbol keys and is removed. A `phel/duplicate-key` entry left in `phel-lint.phel` is ignored; the PHP constant `LintRuleCodes::DUPLICATE_KEY` stays, deprecated. (#3607)
 - Built entry points and exported PHP wrappers refuse a different runtime Phel version, including a patch or development commit change. Run `phel build` or `phel export` after changing Phel. A build warns when its version differs from the project's locked Phel version; it used to produce artifacts that could fail on missing internal methods at deployment. (#3519, ADR 0020)
 - `phel run --stack-trace --debug app.phel` runs `app.phel`. It used to read `--debug` as the namespace, because `phel run` only knew `-t`, `--with-time` and `--clear-opcache` before the path. Every option `run` declares now works there, and `--warn-deprecations` after the path reaches the script instead of being stripped. (#3537)
 - `phel mutate` works on a project that prints when it loads, such as the `src/main.phel` `phel init` writes, and does not hang when a worker raises a PHP notice. Both used to land on the worker's stdout, which carries its answers: the first failed with `Failed to decode worker frame: Syntax error`, the second waited forever, which every run on PHP 8.6 did. A worker's stdout now carries answers only, and anything else there fails the run with the stray text. (#3526)

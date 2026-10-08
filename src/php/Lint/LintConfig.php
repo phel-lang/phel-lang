@@ -32,7 +32,6 @@ final class LintConfig extends AbstractConfig
             LintRuleCodes::UNRESOLVED_REFER => Diagnostic::SEVERITY_ERROR,
             LintRuleCodes::ARITY_MISMATCH => Diagnostic::SEVERITY_ERROR,
             LintRuleCodes::INVALID_DESTRUCTURING => Diagnostic::SEVERITY_ERROR,
-            LintRuleCodes::DUPLICATE_KEY => Diagnostic::SEVERITY_ERROR,
             LintRuleCodes::DUPLICATE_DEF => Diagnostic::SEVERITY_ERROR,
             LintRuleCodes::UNUSED_BINDING => Diagnostic::SEVERITY_WARNING,
             LintRuleCodes::UNUSED_REQUIRE => Diagnostic::SEVERITY_WARNING,

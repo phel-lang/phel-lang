@@ -21,7 +21,6 @@ use Phel\Lint\Application\Rule\ArityMismatchRule;
 use Phel\Lint\Application\Rule\CommentStyleRule;
 use Phel\Lint\Application\Rule\DiscouragedVarRule;
 use Phel\Lint\Application\Rule\DuplicateDefRule;
-use Phel\Lint\Application\Rule\DuplicateKeyRule;
 use Phel\Lint\Application\Rule\InvalidDestructuringRule;
 use Phel\Lint\Application\Rule\RedundantDoRule;
 use Phel\Lint\Application\Rule\ShadowedBindingRule;
@@ -90,7 +89,6 @@ final class LintFactory extends AbstractFactory
             new ShadowedBindingRule(),
             new ShadowedCoreFnRule(new RegistryCoreFunctionNames()),
             new RedundantDoRule(),
-            new DuplicateKeyRule($this->getCompilerFacade()),
             new DuplicateDefRule(),
             new InvalidDestructuringRule(),
             new DiscouragedVarRule(),
