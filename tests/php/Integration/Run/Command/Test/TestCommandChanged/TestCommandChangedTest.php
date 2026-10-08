@@ -150,7 +150,7 @@ final class TestCommandChangedTest extends TestCase
     {
         [$exitCode, $output] = $this->runPhelTest(['--changed']);
 
-        self::assertSame(1, $exitCode, $output);
+        self::assertSame(2, $exitCode, $output);
         self::assertStringContainsString('needs a git repository', $output);
     }
 

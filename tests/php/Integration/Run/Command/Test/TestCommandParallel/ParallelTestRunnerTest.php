@@ -153,7 +153,7 @@ final class ParallelTestRunnerTest extends TestCase
             $project,
         );
 
-        self::assertSame(1, $status, 'expected failure exit, combined was: ' . $combined);
+        self::assertSame(2, $status, 'expected invocation error exit, combined was: ' . $combined);
         self::assertStringContainsString('--parallel must be an integer >= 1, "auto", or "max"', $combined);
     }
 
