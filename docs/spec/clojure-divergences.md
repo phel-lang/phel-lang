@@ -114,7 +114,7 @@ These return `nil` or a benign value where Clojure throws.
 `Don't know how to create ISeq from: java.lang.Long`. Phel keeps `nil` through
 1.x. Code that passes a scalar to `first` today reads the `nil` as "nothing
 there", and turning that into a throw would break it, which the
-[language stability promise](../stability.md#two-promises) rules out inside a
+[language stability promise](../stability.md#three-promises) rules out inside a
 major. The leniency stops at the accessors in this table: `(seq 5)`, `(rest 5)` and
 `(next 5)` throw, as in Clojure, so do not read a `nil` from `first` as proof that
 the argument was a collection
@@ -328,7 +328,7 @@ would break working interop code with no way to opt out.
 |---|---|
 | `cond` | an odd trailing form is the default: `(cond false 1 2)` is `2`. Clojure rejects an odd number of forms |
 | string literals | an unknown escape keeps its backslash, as in PHP: `"a\qb"` is four characters. Clojure's reader rejects it |
-| `[a &]` | a parameter vector ending in a bare `&` is accepted, where Clojure's `fn` spec requires a binding after `&`. `(fn [a &] a)` compiles and behaves as a variadic fn that binds no rest: `((fn [a &] [a]) 1 2 3)` is `[1]`, and `((fn [a &] a))` fails with `PHEL002`, "Expected: at least 1". Kept lenient on purpose ([#3524](https://github.com/phel-lang/phel-lang/issues/3524)): the form does nothing wrong at run time, so a compile error buys little against the [stability promise](../stability.md#two-promises) |
+| `[a &]` | a parameter vector ending in a bare `&` is accepted, where Clojure's `fn` spec requires a binding after `&`. `(fn [a &] a)` compiles and behaves as a variadic fn that binds no rest: `((fn [a &] [a]) 1 2 3)` is `[1]`, and `((fn [a &] a))` fails with `PHEL002`, "Expected: at least 1". Kept lenient on purpose ([#3524](https://github.com/phel-lang/phel-lang/issues/3524)): the form does nothing wrong at run time, so a compile error buys little against the [stability promise](../stability.md#three-promises) |
 | `letfn` | a repeated name is accepted and the last definition wins everywhere, earlier bodies included: `(letfn [(f [] 1) (f [] 2)] (f))` is `2`, and in `(letfn [(f [] 1) (g [] (f)) (f [] 2)] [(f) (g)])` both calls give `2`. Phel does not reject the repeat; kept lenient for the same reason as `[a &]` ([#3524](https://github.com/phel-lang/phel-lang/issues/3524)) |
 | `for` | each binding is a `binding :verb expr` triple, with `:in`, `:range`, `:keys` or `:pairs`. The Clojure pair form `(for [x [1 2 3]] x)` fails to expand with `PHEL005`; write `(for [x :in [1 2 3]] x)`. `doseq` accepts the pair form |
 
