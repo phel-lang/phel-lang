@@ -9,6 +9,7 @@ use Generator;
 use InvalidArgumentException;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\TypeFactory;
+use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -37,7 +38,10 @@ final class FileGenerator
     }
 
     /**
-     * Follows symbolic links but tracks visited inodes to prevent infinite cycles.
+     * Follows symbolic links, but lists each real file or directory once and
+     * never descends into a directory it has already entered, so a symlink
+     * back to an ancestor ends the walk instead of looping until the path is
+     * too long.
      *
      * @return Generator<int, string>
      */
@@ -62,38 +66,26 @@ final class FileGenerator
 
         if (is_dir($path)) {
             $visited = [];
+            self::firstVisit($path, $visited);
 
             try {
                 $iterator = new RecursiveIteratorIterator(
-                    new RecursiveDirectoryIterator(
-                        $path,
-                        FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS,
+                    new RecursiveCallbackFilterIterator(
+                        new RecursiveDirectoryIterator(
+                            $path,
+                            FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS,
+                        ),
+                        static function (mixed $current, string $pathname) use (&$visited): bool {
+                            return self::firstVisit($pathname, $visited);
+                        },
                     ),
                     RecursiveIteratorIterator::SELF_FIRST,
                 );
 
                 foreach ($iterator as $fileInfo) {
-                    if (!$fileInfo instanceof SplFileInfo) {
-                        continue;
+                    if ($fileInfo instanceof SplFileInfo) {
+                        yield $fileInfo->getPathname();
                     }
-
-                    $pathname = $fileInfo->getPathname();
-                    $realPath = $fileInfo->getRealPath();
-
-                    if ($realPath !== false) {
-                        $stat = @stat($realPath);
-                        if ($stat !== false) {
-                            $inode = $stat['dev'] . ':' . $stat['ino'];
-
-                            if (isset($visited[$inode])) {
-                                continue;
-                            }
-
-                            $visited[$inode] = true;
-                        }
-                    }
-
-                    yield $pathname;
                 }
             } catch (UnexpectedValueException $e) {
                 throw new RuntimeException('Error reading directory: ' . $path . ' - ' . $e->getMessage(), $e->getCode(), $e);
@@ -153,6 +145,30 @@ final class FileGenerator
         } finally {
             fclose($handle);
         }
+    }
+
+    /**
+     * Whether `$path` resolves to a file or directory not seen yet, marking it
+     * seen. A path `stat` cannot follow, such as a dangling symlink, counts as
+     * new.
+     *
+     * @param array<string, true> $visited
+     */
+    private static function firstVisit(string $path, array &$visited): bool
+    {
+        $stat = @stat($path);
+        if ($stat === false) {
+            return true;
+        }
+
+        $inode = $stat['dev'] . ':' . $stat['ino'];
+        if (isset($visited[$inode])) {
+            return false;
+        }
+
+        $visited[$inode] = true;
+
+        return true;
     }
 
     /**

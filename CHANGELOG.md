@@ -119,6 +119,7 @@ Runtime:
 - `range` accepts a ratio, `BigInt` or `BigDecimal` bound or step, so `(repeat 1/2 :x)`, `(repeatedly 5/2 f)`, `(dotimes [i 5/2] ...)` and `(for [i :range [5/2]] i)` run as they do with a float. They used to fail with a `TypeError` from `Seq::range()`. (#3557)
 - `(load "missing")` reports the file and line of the `(load ...)` form. It used to name a line past the end of the file, the line of the generated PHP. (#3537)
 - `with-meta` and `vary-meta` work on a `fn` literal: `(meta (with-meta (fn [x] x) {:b 2}))` returns `{:b 2}` and the result is still a callable fn. They used to fail with `Call to undefined method Closure::withMeta()`. (#3537)
+- `file-seq` on a tree with a symlink back to a parent directory ends and lists each real file once, on every PHP build. It used to walk the cycle until the path got too long, listing a file under a deep `sub/up/sub/up/...` path, and threw `UnexpectedValueException` on thread-safe (ZTS) PHP builds. (#3537)
 
 ## [0.54.0](https://github.com/phel-lang/phel-lang/compare/v0.53.0...v0.54.0) - 2026-10-04
 
