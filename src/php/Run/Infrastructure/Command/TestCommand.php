@@ -25,6 +25,7 @@ use Phel\Shared\NamespaceInformation;
 use Phel\Shared\Process\GitUnavailableException;
 use Phel\Shared\ResourceUsageFormatter;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\StandardError;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -38,6 +39,7 @@ use function count;
 use function file_put_contents;
 use function getcwd;
 use function getenv;
+use function in_array;
 use function is_array;
 use function is_dir;
 use function is_string;
@@ -291,7 +293,7 @@ HELP)
                     ->createParallelTestOrchestrator()
                     ->run($namespacesToRun, $options, $workerCount, $output);
 
-                $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
+                $this->writeResourceUsage($output, $options);
 
                 if ($compileErrors !== [] || ($outcome->focused && $this->failsOnFocus($input, $output))) {
                     return self::FAILURE;
@@ -343,7 +345,7 @@ HELP)
                 );
             }
 
-            $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
+            $this->writeResourceUsage($output, $options);
 
             if ($compileErrors !== []) {
                 return self::FAILURE;
@@ -385,6 +387,21 @@ HELP)
         }
 
         return self::FAILURE;
+    }
+
+    /**
+     * TAP, and JUnit XML without `-o`, own stdout: a tool reads all of it.
+     *
+     * @param array<string, mixed> $options
+     */
+    private function writeResourceUsage(OutputInterface $output, array $options): void
+    {
+        $reporters = (array) $options[TestCommandOptions::REPORTERS];
+        $ownsStdout = in_array('tap', $reporters, true)
+            || (in_array('junit-xml', $reporters, true) && $options[TestCommandOptions::JUNIT_OUTPUT] === null);
+
+        ($ownsStdout ? StandardError::of($output) : $output)
+            ->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
     }
 
     /**

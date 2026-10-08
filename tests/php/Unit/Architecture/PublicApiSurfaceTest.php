@@ -18,6 +18,7 @@ use Phel\Shared\InvocationError;
 use Phel\Shared\NoColor;
 use Phel\Shared\OptimizationLevel;
 use Phel\Shared\Performance\OpcacheReexec;
+use Phel\Shared\StandardError;
 use Phel\Shared\VersionFinder;
 use PhelTest\Support\PublicApiSurface;
 use PHPUnit\Framework\TestCase;
@@ -107,6 +108,7 @@ final class PublicApiSurfaceTest extends TestCase
             RunFacadeInterface::class,
             OpcacheReexec::class,
             InvocationError::class,
+            StandardError::class,
         ];
 
         foreach ($internal as $className) {

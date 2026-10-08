@@ -8,6 +8,7 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Api\ApiFacade;
 use Phel\Shared\ExistingPaths;
+use Phel\Shared\StandardError;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -81,11 +82,11 @@ HELP)
                 json_encode($index->toArray(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT),
             );
             if ($written === false) {
-                $output->writeln(sprintf('<error>Unable to write index to: %s</error>', $out));
+                StandardError::of($output)->writeln(sprintf('<error>Unable to write index to: %s</error>', $out));
                 return self::FAILURE;
             }
 
-            $output->writeln(sprintf('Index persisted to: %s', $out));
+            StandardError::of($output)->writeln(sprintf('Index persisted to: %s', $out));
         }
 
         return self::SUCCESS;

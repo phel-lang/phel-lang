@@ -15,11 +15,11 @@ use Phel\Nrepl\NreplFactory;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\StandardError;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -123,7 +123,7 @@ HELP)
             $output->writeln(sprintf('nREPL server started on %s:%d', $host, $server->port()));
 
             if (!BindAddress::isLoopback($host)) {
-                $stderr = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
+                $stderr = StandardError::of($output);
                 $stderr->writeln(sprintf(
                     '<comment>Warning: nREPL has no authentication. Anyone who can reach %s:%d can run code as you. Bind 127.0.0.1 and use an SSH tunnel to reach it from another machine.</comment>',
                     $host,

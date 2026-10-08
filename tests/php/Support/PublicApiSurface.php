@@ -24,6 +24,7 @@ use Phel\Shared\Lint\LintRuleExplainerInterface;
 use Phel\Shared\NoColor;
 use Phel\Shared\OptimizationLevel;
 use Phel\Shared\SourceMap\SupersededSourceMaps;
+use Phel\Shared\StandardError;
 use Phel\Shared\VersionFinder;
 use Phel\Watch\WatchFacade;
 use RecursiveDirectoryIterator;
@@ -215,6 +216,7 @@ final readonly class PublicApiSurface
             SupersededSourceMaps::class,
             LintRuleExplainerInterface::class,
             InvocationError::class,
+            StandardError::class,
         ], true);
     }
 
