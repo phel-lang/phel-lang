@@ -11,7 +11,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lint\Domain\FileAnalysis;
-use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Lint\Domain\PromotingRuleInterface;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\LintRuleCodes;
@@ -39,18 +39,23 @@ use function sprintf;
  *
  * @internal
  */
-final readonly class ArityMismatchRule implements LintRuleInterface
+final readonly class ArityMismatchRule implements PromotingRuleInterface
 {
     public function code(): string
     {
         return LintRuleCodes::ARITY_MISMATCH;
     }
 
+    public function promotedErrorCode(): ErrorCode
+    {
+        return ErrorCode::ARITY_ERROR;
+    }
+
     public function apply(FileAnalysis $analysis): array
     {
         $result = SemanticDiagnosticPromoter::promote(
             $analysis,
-            ErrorCode::ARITY_ERROR->value,
+            $this->promotedErrorCode()->value,
             $this->code(),
         );
 

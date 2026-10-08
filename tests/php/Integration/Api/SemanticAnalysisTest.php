@@ -54,6 +54,24 @@ final class SemanticAnalysisTest extends TestCase
         self::assertContains('PHEL001', $codes);
     }
 
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_call_to_a_macro_the_analysis_never_evaluated_is_not_an_error(): void
+    {
+        $this->bootstrap();
+        $facade = new ApiFacade();
+
+        $diagnostics = $facade->analyzeSource(
+            "(ns user)\n(defmacro twice [x] `(+ ~x ~x))\n(defn f [] (twice 1))\n(defn g [x] (case x 1 :a 1 :b :d))\n",
+            'user.phel',
+        );
+
+        self::assertSame(
+            [['PHEL005', 4]],
+            array_map(static fn(Diagnostic $d): array => [$d->code, $d->startLine], $diagnostics),
+        );
+    }
+
     #[DataProvider('providerSupersededForms')]
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]

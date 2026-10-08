@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lint\Application\Rule;
 
 use Phel\Lint\Domain\FileAnalysis;
-use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Lint\Domain\PromotingRuleInterface;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\LintRuleCodes;
 
@@ -17,18 +17,23 @@ use Phel\Shared\LintRuleCodes;
  *
  * @internal
  */
-final readonly class UnresolvedReferRule implements LintRuleInterface
+final readonly class UnresolvedReferRule implements PromotingRuleInterface
 {
     public function code(): string
     {
         return LintRuleCodes::UNRESOLVED_REFER;
     }
 
+    public function promotedErrorCode(): ErrorCode
+    {
+        return ErrorCode::UNRESOLVED_REFER;
+    }
+
     public function apply(FileAnalysis $analysis): array
     {
         return SemanticDiagnosticPromoter::promote(
             $analysis,
-            ErrorCode::UNRESOLVED_REFER->value,
+            $this->promotedErrorCode()->value,
             $this->code(),
         );
     }

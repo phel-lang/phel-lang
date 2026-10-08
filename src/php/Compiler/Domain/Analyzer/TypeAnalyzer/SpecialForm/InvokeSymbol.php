@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\Exceptions\MacroNotCallableException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\CallInliner;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\UpdateLiteralFnLowering;
@@ -342,7 +343,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         $fn = Phel::getDefinition($ns, $nodeName);
 
         if (!is_callable($fn)) {
-            throw AnalyzerException::whenExpandingMacro($list, $macroNode, new RuntimeException(sprintf('Macro "%s::%s" is not callable.', $ns, $nodeName)));
+            throw AnalyzerException::whenExpandingMacro($list, $macroNode, MacroNotCallableException::forMacro($ns, $nodeName));
         }
 
         try {

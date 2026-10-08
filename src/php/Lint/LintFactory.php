@@ -19,6 +19,7 @@ use Phel\Lint\Application\Formatter\JsonFormatter;
 use Phel\Lint\Application\LintRunner;
 use Phel\Lint\Application\Rule\ArityMismatchRule;
 use Phel\Lint\Application\Rule\CommentStyleRule;
+use Phel\Lint\Application\Rule\CompileErrorRule;
 use Phel\Lint\Application\Rule\DiscouragedVarRule;
 use Phel\Lint\Application\Rule\DuplicateDefRule;
 use Phel\Lint\Application\Rule\InvalidDestructuringRule;
@@ -78,7 +79,7 @@ final class LintFactory extends AbstractFactory
      */
     public function createRules(): array
     {
-        return [
+        $rules = [
             new UnresolvedSymbolRule(),
             new UnresolvedNamespaceRule(new ProjectKnownNamespaces($this->getRunFacade()), $this->getCompilerFacade()),
             new UnresolvedReferRule(),
@@ -95,6 +96,8 @@ final class LintFactory extends AbstractFactory
             new CommentStyleRule($this->getCompilerFacade()),
             new UnknownClassRule(new ClassNotFoundHint()),
         ];
+
+        return [...$rules, CompileErrorRule::besides($rules)];
     }
 
     public function defaultSettings(): RuleSettings

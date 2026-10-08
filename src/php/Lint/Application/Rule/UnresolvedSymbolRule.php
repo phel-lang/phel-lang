@@ -10,7 +10,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Lint\Domain\FileAnalysis;
-use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Lint\Domain\PromotingRuleInterface;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\LintRuleCodes;
@@ -32,18 +32,23 @@ use function preg_match;
  *
  * @internal
  */
-final readonly class UnresolvedSymbolRule implements LintRuleInterface
+final readonly class UnresolvedSymbolRule implements PromotingRuleInterface
 {
     public function code(): string
     {
         return LintRuleCodes::UNRESOLVED_SYMBOL;
     }
 
+    public function promotedErrorCode(): ErrorCode
+    {
+        return ErrorCode::UNDEFINED_SYMBOL;
+    }
+
     public function apply(FileAnalysis $analysis): array
     {
         $promoted = SemanticDiagnosticPromoter::promote(
             $analysis,
-            ErrorCode::UNDEFINED_SYMBOL->value,
+            $this->promotedErrorCode()->value,
             $this->code(),
         );
 

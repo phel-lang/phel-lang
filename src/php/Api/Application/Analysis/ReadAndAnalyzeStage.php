@@ -6,6 +6,7 @@ namespace Phel\Api\Application\Analysis;
 
 use Phel\Api\Domain\AnalysisStageInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\Exceptions\MacroNotCallableException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
@@ -77,6 +78,13 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
             } catch (ReaderException $e) {
                 $diagnostics[] = Diagnostic::fromLocatedException($e, ErrorCode::READER_ERROR, $uri);
             } catch (AnalyzerException $e) {
+                // This pass never evaluates a `defmacro`, so a call to a macro
+                // the file defines, or that an analysed sibling defined, cannot
+                // be expanded. That says nothing about the source.
+                if ($e->getPrevious() instanceof MacroNotCallableException) {
+                    continue;
+                }
+
                 $diagnostics[] = Diagnostic::fromLocatedException($e, ErrorCode::INVALID_SPECIAL_FORM, $uri);
             }
         }
