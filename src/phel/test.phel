@@ -122,9 +122,35 @@
    :see-also ["report" "set-reporters!" "add-reporter!"]}
   nil)
 
-(defn- fan-out! [event]
+;; With `:output-to-stderr`, what the tests print goes to stderr through an
+;; output buffer, so a reporter that owns stdout (TAP, JUnit XML) keeps it to
+;; its own lines. Holds that buffer's level, or nil when the run prints as is.
+(def- stderr-capture-level (atom nil))
+
+(defn- start-stderr-capture! []
+  (php/ob_start (fn [buffer & _] (php/fwrite php/STDERR buffer) "") 1)
+  (reset! stderr-capture-level (php/ob_get_level)))
+
+(defn- stop-stderr-capture! []
+  (when (= (php/ob_get_level) (deref stderr-capture-level))
+    (php/ob_end_flush))
+  (reset! stderr-capture-level nil))
+
+(defn- call-reporters [event]
   (dofor [reporter :in (deref *reporters*)]
-    (reporter event))
+    (reporter event)))
+
+(defn- fan-out! [event]
+  ;; Reporters print below the stderr buffer. One the test opened above it,
+  ;; such as `with-out-str`, still captures them as before.
+  (if (= (php/ob_get_level) (deref stderr-capture-level))
+    (do
+      (php/ob_end_flush)
+      (try
+        (call-reporters event)
+        (finally
+          (start-stderr-capture!))))
+    (call-reporters event))
   (when-let [hook *event-hook*]
     (hook event)))
 
@@ -1759,8 +1785,9 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   `:exclude`, `:ns-patterns`, `:fail-fast`, `:stack-trace`, `:reporters`,
   `:junit-output`, `:list-only`, `:only-tests`, `:last-failed-file`,
   `:slowest`, `:repeat` (run the selected tests N times), `:seed`
-  (integer seed for the order RNG), and `:random-order` (shuffle tests
-  per namespace)."
+  (integer seed for the order RNG), `:random-order` (shuffle tests
+  per namespace), and `:output-to-stderr` (what the tests print goes to
+  stderr, so only the reporters write to stdout)."
   {:example "(run-tests {} 'my-app\\test)"}
   [options & namespaces]
   (let [options (assoc options :seed-resolved (resolve-seed options))
@@ -1769,8 +1796,19 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
     (configure-run! options)
     (reset-run-state!)
     (try
-      (if (:list-only options)
+      (cond
+        (:list-only options)
         (list-tests! options namespaces)
+
+        (:output-to-stderr options)
+        (do
+          (start-stderr-capture!)
+          (try
+            (execute-run! options namespaces)
+            (finally
+              (stop-stderr-capture!))))
+
+        :else
         (execute-run! options namespaces))
       (finally
         (swap! run-depth dec)

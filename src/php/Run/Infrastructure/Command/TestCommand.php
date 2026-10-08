@@ -284,7 +284,7 @@ HELP)
                     $failFast,
                     $feedback,
                 );
-                $this->reportCompileErrors($output, $compileErrors);
+                $this->reportCompileErrors($this->outsideReport($output, $options), $compileErrors);
                 // The cache index only reaches disk at shutdown; the workers
                 // need it now, or they recompile the shared prefix themselves.
                 $this->getFacade()->flushCompiledCodeCache();
@@ -313,7 +313,7 @@ HELP)
                 $feedback,
             );
 
-            $this->reportCompileErrors($output, $compileErrors);
+            $this->reportCompileErrors($this->outsideReport($output, $options), $compileErrors);
 
             if ($filteredNamespaces === []) {
                 return ($compileErrors === []) ? self::SUCCESS : self::FAILURE;
@@ -399,8 +399,18 @@ HELP)
      */
     private function writeResourceUsage(OutputInterface $output, array $options): void
     {
-        (TestCommandOptions::fromArray($options)->ownsStdout() ? StandardError::of($output) : $output)
+        $this->outsideReport($output, $options)
             ->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
+    }
+
+    /**
+     * Where the lines that are not the report go: stderr when the reporter owns stdout.
+     *
+     * @param array<string, mixed> $options
+     */
+    private function outsideReport(OutputInterface $output, array $options): OutputInterface
+    {
+        return TestCommandOptions::fromArray($options)->ownsStdout() ? StandardError::of($output) : $output;
     }
 
     /**
@@ -682,9 +692,12 @@ HELP)
      */
     private function generatePhelTestCodeFromOptions(array $options, array $namespacesInformation): string
     {
+        $testOptions = TestCommandOptions::fromArray($options);
+        $phelOptions = $testOptions->asPhelHashMap();
+
         return sprintf(
             '(do (phel.test/run-tests %s %s) [(phel.test/successful?) (get (get (phel.test/get-stats) :counts) :total) (phel.test/focused-run?)])',
-            TestCommandOptions::fromArray($options)->asPhelHashMap(),
+            $testOptions->ownsStdout() ? sprintf('(assoc %s :output-to-stderr true)', $phelOptions) : $phelOptions,
             QuotedNamespaceList::of($namespacesInformation),
         );
     }
