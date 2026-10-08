@@ -55,6 +55,60 @@ final class DuplicateDefinitionReportTest extends AbstractCompilerRuntimeTestCas
         self::assertSame($expected, $this->report($phelCode));
     }
 
+    public function test_an_alias_bound_to_two_namespaces_points_at_the_second_alias(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL004] Alias 's' already names phel.string in repro.d, so it cannot also name phel.json.
+            in duplicate.phel:3
+
+            1| (ns repro.d
+            2|   (:require [phel.string :as s]
+            3|             [phel.json :as s]))
+                                          ^
+
+            REPORT;
+
+        $phelCode = "(ns repro.d\n  (:require [phel.string :as s]\n            [phel.json :as s]))";
+
+        self::assertSame($expected, $this->report($phelCode));
+    }
+
+    public function test_a_name_referred_from_two_namespaces_points_at_the_second_refer(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL004] 'join' is already referred from phel.string in repro.e, so it cannot also be referred from phel.core.
+            in duplicate.phel:3
+
+            1| (ns repro.e
+            2|   (:require [phel.string :refer [join]]
+            3|             [phel.core :refer [join]]))
+                                              ^^^^
+
+            REPORT;
+
+        $phelCode = "(ns repro.e\n  (:require [phel.string :refer [join]]\n            [phel.core :refer [join]]))";
+
+        self::assertSame($expected, $this->report($phelCode));
+    }
+
+    public function test_two_implicit_aliases_for_different_namespaces_point_at_the_second_entry(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL004] Alias 'string' already names phel.string in repro.f, so it cannot also name app.string.
+            in duplicate.phel:3
+
+            1| (ns repro.f
+            2|   (:require [phel.string]
+            3|             [app.string]))
+                            ^^^^^^^^^^
+
+            REPORT;
+
+        $phelCode = "(ns repro.f\n  (:require [phel.string]\n            [app.string]))";
+
+        self::assertSame($expected, $this->report($phelCode));
+    }
+
     private function report(string $phelCode): string
     {
         try {
