@@ -298,6 +298,16 @@ expand into it internally.
 The call shapes differ, which is why this was not a rename: `set-var` takes a
 symbol and a value, `alter-var-root` a var and a function.
 
+### `file-seq` lists each real file once
+
+`file-seq` takes a path string and follows symlinks, as Clojure's does, but
+lists each real file or directory once and never walks back into a directory
+it has already entered. So a symlink to a parent directory ends the walk, on
+every PHP build, where Clojure follows it until the path gets too long. The
+listing leaves out the starting directory itself, which Clojure includes.
+Pinned by `tests/php/Unit/Lang/Generators/FileGeneratorTest.php`
+([#3537](https://github.com/phel-lang/phel-lang/issues/3537)).
+
 ## 8. Calls
 
 Clojure checks every call's argument count when the call runs. Phel checks a
