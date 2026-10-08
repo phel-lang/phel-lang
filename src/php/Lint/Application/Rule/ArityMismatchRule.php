@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Rule;
 
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
@@ -26,6 +28,9 @@ use function sprintf;
  * 2. Scans same-file call-sites against locally-defined `defn`/`defn-`
  *    signatures and flags obvious arity mismatches the analyzer cannot
  *    surface (ordering-dependent, Analyzer sees the call before the def).
+ *    A call headed by a keyword, vector, map, set or `fn` literal is checked
+ *    against what that literal accepts: Phel drops the extra arguments
+ *    silently, so `({:a 1} :b 2)` is `nil`, not `2`.
  *
  * Cross-namespace arity (via `ProjectIndex`) is deferred to v2 — the
  * v1 index stores formatted signatures, not parsed parameter lists.
@@ -50,9 +55,6 @@ final readonly class ArityMismatchRule implements LintRuleInterface
         );
 
         $localFns = $this->collectLocalFunctions($analysis->forms);
-        if ($localFns === []) {
-            return $result;
-        }
 
         foreach ($analysis->forms as $form) {
             $this->inspectCalls($form, $localFns, $analysis->uri, $result);
@@ -178,29 +180,29 @@ final readonly class ArityMismatchRule implements LintRuleInterface
                 return;
             }
 
+            if ($head instanceof Symbol && in_array($head->getFullName(), [Symbol::NAME_NS, 'comment'], true)) {
+                return;
+            }
+
+            if ($head instanceof Symbol
+                && in_array($head->getName(), ['case', 'match'], true)
+                && !isset($localFns[$head->getName()])
+            ) {
+                $this->inspectPatternForm($form, $localFns, $uri, $result);
+
+                return;
+            }
+
             if ($head instanceof Symbol && $head->getNamespace() === null) {
                 $name = $head->getName();
                 if (isset($localFns[$name])) {
-                    $given = count($form) - 1;
-                    $min = $localFns[$name]['min'];
-                    $max = $localFns[$name]['max'];
-
-                    if ($given < $min || $given > $max) {
-                        $expected = $max === PHP_INT_MAX ? ($min . '+') : (string) $min;
-                        $message = sprintf(
-                            "Wrong number of arguments for '%s'. Expected %s, given %d.",
-                            $name,
-                            $expected,
-                            $given,
-                        );
-                        $result[] = DiagnosticBuilder::fromForm(
-                            $this->code(),
-                            $message,
-                            $uri,
-                            $form,
-                        );
-                    }
+                    $this->checkArity($form, $name, $localFns[$name], $uri, $result);
                 }
+            }
+
+            $literal = $this->literalHeadArity($head);
+            if ($literal !== null) {
+                $this->checkArity($form, $literal[0], $literal[1], $uri, $result);
             }
 
             foreach ($form as $child) {
@@ -222,6 +224,121 @@ final readonly class ArityMismatchRule implements LintRuleInterface
             foreach ($form as $k => $v) {
                 $this->inspectCalls($k, $localFns, $uri, $result);
                 $this->inspectCalls($v, $localFns, $uri, $result);
+            }
+        }
+    }
+
+    /**
+     * @param PersistentListInterface<mixed> $form
+     * @param ArityRange                     $arity
+     * @param list<Diagnostic>               $result
+     */
+    private function checkArity(PersistentListInterface $form, string $name, array $arity, string $uri, array &$result): void
+    {
+        $given = count($form) - 1;
+        $min = $arity['min'];
+        $max = $arity['max'];
+
+        if ($given >= $min && $given <= $max) {
+            return;
+        }
+
+        $expected = match (true) {
+            $max === PHP_INT_MAX => $min . '+',
+            $max === $min => (string) $min,
+            $max === $min + 1 => $min . ' or ' . $max,
+            default => $min . ' to ' . $max,
+        };
+
+        $result[] = DiagnosticBuilder::fromForm(
+            $this->code(),
+            sprintf("Wrong number of arguments for '%s'. Expected %s, given %d.", $name, $expected, $given),
+            $uri,
+            $form,
+        );
+    }
+
+    /**
+     * Phel's `__invoke` on a vector, map or set takes the key only; a
+     * not-found argument is dropped, unlike Clojure's map and set.
+     *
+     * @return ?array{string, ArityRange}
+     */
+    private function literalHeadArity(mixed $head): ?array
+    {
+        if ($head instanceof Keyword) {
+            return [':' . $head->getFullName(), ['min' => 1, 'max' => 2]];
+        }
+
+        if ($head instanceof PersistentVectorInterface && !$this->isParamVector($head)) {
+            return ['vector', ['min' => 1, 'max' => 1]];
+        }
+
+        if ($head instanceof PersistentMapInterface) {
+            return ['map', ['min' => 1, 'max' => 1]];
+        }
+
+        if ($head instanceof PersistentHashSetInterface) {
+            return ['set', ['min' => 1, 'max' => 1]];
+        }
+
+        $fnHead = $head instanceof PersistentListInterface && count($head) > 0 ? $head->get(0) : null;
+        if ($head instanceof PersistentListInterface
+            && $fnHead instanceof Symbol
+            && $fnHead->getFullName() === Symbol::NAME_FN
+        ) {
+            $arities = $this->collectArities($head);
+
+            return $arities === null ? null : [Symbol::NAME_FN, $arities];
+        }
+
+        return null;
+    }
+
+    /**
+     * A `([params] body)` arity clause has a vector head, and any macro can
+     * pass one through to `fn`, so a vector of symbols and destructuring
+     * forms is read as params, never as a vector literal call. The cost is
+     * a missed `([a b] 0 1)`.
+     *
+     * @param PersistentVectorInterface<mixed> $vector
+     */
+    private function isParamVector(PersistentVectorInterface $vector): bool
+    {
+        foreach ($vector as $element) {
+            if (!$this->isParamShaped($element)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function isParamShaped(mixed $form): bool
+    {
+        if ($form instanceof Symbol || $form instanceof PersistentMapInterface) {
+            return true;
+        }
+
+        return $form instanceof PersistentVectorInterface && $this->isParamVector($form);
+    }
+
+    /**
+     * `case` test constants and `match` patterns are never evaluated, so a
+     * grouped test such as `(:a :b :c)` or a pattern such as `(:or 1 2 3)`
+     * is not a call: only the expression and the results are.
+     *
+     * @param PersistentListInterface<mixed> $form
+     * @param array<string, ArityRange>      $localFns
+     * @param list<Diagnostic>               $result
+     */
+    private function inspectPatternForm(PersistentListInterface $form, array $localFns, string $uri, array &$result): void
+    {
+        $count = count($form);
+        for ($i = 1; $i < $count; ++$i) {
+            $isTest = $i % 2 === 0 && $i < $count - 1;
+            if (!$isTest) {
+                $this->inspectCalls($form->get($i), $localFns, $uri, $result);
             }
         }
     }
