@@ -7,6 +7,7 @@ namespace Phel\Profile\Infrastructure\Command;
 use BackedEnum;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use InvalidArgumentException;
 use Phel\Lang\Registry;
 use Phel\Phel;
 use Phel\Profile\Domain\ProfileReport;
@@ -18,6 +19,7 @@ use Phel\Profile\ProfileFactory;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\InvocationError;
 use Phel\Shared\Munge;
+use Phel\Shared\NumericOption;
 use Phel\Shared\ScalarCoercion;
 use Phel\Shared\StandardError;
 use Symfony\Component\Console\Command\Command;
@@ -112,6 +114,12 @@ HELP)
             return $this->reportUnknownOption($output, self::OPT_FORMAT, $formatOption, ReportFormat::cases());
         }
 
+        try {
+            $top = (int) NumericOption::wholeNumber($input, self::OPT_TOP, 1);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            return InvocationError::report($output, $invalidArgumentException->getMessage());
+        }
+
         /** @var list<string>|string|null $rawArgv */
         $rawArgv = $input->getArgument(self::ARG_ARGV);
         Phel::setupRuntimeArgs($path, is_array($rawArgv) ? $rawArgv : []);
@@ -125,7 +133,7 @@ HELP)
             return self::FAILURE;
         }
 
-        $this->renderReport($report, $input, $output, $sort, $format);
+        $this->renderReport($report, $input, $output, $sort, $format, $top);
 
         return self::SUCCESS;
     }
@@ -170,8 +178,8 @@ HELP)
         OutputInterface $output,
         SortOrder $sort,
         ReportFormat $format,
+        int $top,
     ): void {
-        $top = $this->resolveTop($input);
         $includeCompilePhases = !$input->getOption(self::OPT_NO_COMPILE_PHASES);
 
         if ($format->emitsText()) {
@@ -226,13 +234,6 @@ HELP)
         }
 
         return $detected;
-    }
-
-    private function resolveTop(InputInterface $input): int
-    {
-        $top = ScalarCoercion::toInt($input->getOption(self::OPT_TOP));
-
-        return $top > 0 ? $top : ProfileConfig::DEFAULT_TOP;
     }
 
     /**

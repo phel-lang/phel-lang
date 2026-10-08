@@ -7,6 +7,7 @@ namespace Phel\Api\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Api\ApiFacade;
+use Phel\Shared\StandardError;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -46,7 +47,7 @@ HELP);
 
             return self::SUCCESS;
         } catch (Throwable $throwable) {
-            $output->writeln(sprintf('<error>%s</error>', $throwable->getMessage()));
+            StandardError::of($output)->writeln(sprintf('<error>%s</error>', $throwable->getMessage()));
             return self::FAILURE;
         }
     }

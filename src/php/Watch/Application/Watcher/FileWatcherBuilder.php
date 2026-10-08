@@ -19,6 +19,12 @@ use function substr;
  */
 final readonly class FileWatcherBuilder
 {
+    /**
+     * What `create()` accepts besides auto-detection. A named backend that is
+     * not installed falls back to auto-detection.
+     */
+    public const array BACKENDS = [InotifyWatcher::NAME, FswatchWatcher::NAME, PollingWatcher::NAME];
+
     public function __construct(
         private FileSystemScannerInterface $scanner,
         private ClockInterface $clock,

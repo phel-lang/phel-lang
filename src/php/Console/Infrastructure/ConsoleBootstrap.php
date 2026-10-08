@@ -16,10 +16,15 @@ use Phel\Shared\NoColor;
 use Phel\Shared\OptimizationLevel;
 use Phel\Shared\Process\CpuCountDetector;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\StandardError;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\CommandNotFoundException;
+use Symfony\Component\Console\Exception\ExceptionInterface;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 use function array_slice;
 use function array_values;
@@ -103,7 +108,30 @@ final class ConsoleBootstrap extends Application
             return InvocationError::report($output, $invalidArgumentException->getMessage());
         }
 
-        return parent::doRun($input, $output);
+        try {
+            return parent::doRun($input, $output);
+        } catch (CommandNotFoundException $commandNotFoundException) {
+            return $this->reportInvocationError($commandNotFoundException, $output);
+        }
+    }
+
+    /**
+     * Binds the input before the command runs, so an unknown option or a
+     * missing argument exits 2 instead of Symfony's 1. Once the command runs,
+     * a console exception is the command's own failure.
+     */
+    #[Override]
+    protected function doRunCommand(Command $command, InputInterface $input, OutputInterface $output): int
+    {
+        try {
+            $command->mergeApplicationDefinition();
+            $input->bind($command->getDefinition());
+            $input->validate();
+        } catch (ExceptionInterface $exception) {
+            return $this->reportInvocationError($exception, $output);
+        }
+
+        return parent::doRunCommand($command, $input, $output);
     }
 
     /**
@@ -116,6 +144,16 @@ final class ConsoleBootstrap extends Application
         parent::configureIO($input, $output);
 
         NoColor::followOutput($output->isDecorated());
+    }
+
+    /**
+     * Symfony's own rendering, usage line and "Did you mean" included, on stderr.
+     */
+    private function reportInvocationError(Throwable $exception, OutputInterface $output): int
+    {
+        $this->renderThrowable($exception, StandardError::of($output));
+
+        return Command::INVALID;
     }
 
     /**

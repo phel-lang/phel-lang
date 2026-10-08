@@ -16,6 +16,7 @@ use Phel\Mutate\Domain\MutationReport;
 use Phel\Mutate\MutateConfig;
 use Phel\Mutate\MutateFacade;
 use Phel\Mutate\MutateFactory;
+use Phel\Shared\ExistingPaths;
 use Phel\Shared\InvocationError;
 use Phel\Shared\OptimizationLevel;
 use Phel\Shared\Process\GitUnavailableException;
@@ -137,6 +138,10 @@ HELP);
             $options = $this->parseOptions($input);
         } catch (InvalidArgumentException $invalidArgumentException) {
             return InvocationError::report($output, $invalidArgumentException->getMessage());
+        }
+
+        if (!ExistingPaths::reportMissing([...$options->paths, ...$options->testPaths], $output)) {
+            return self::INVALID;
         }
 
         try {

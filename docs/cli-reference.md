@@ -176,40 +176,30 @@ problem on stderr and leaves stdout empty. The rule and what it covers:
 | `lint` | a diagnostic is an error (warnings exit `0`) | a path is missing, an unknown `--format`, a `--config` file that is not there, no readable files, or the linter itself failed |
 | `balance` | a file is unbalanced, or `--fix` could not repair it | a path is missing |
 | `format` | `--dry-run` would change a file, or a file could not be formatted | a path is missing |
-| `test` | a test failed or errored, or a `^:focus` run under `CI` or `--fail-on-focus` | a path is missing, an unknown `--reporter` |
-| `bench` | a benchmark is slower than `--tolerance` against `--ref`, nothing to load in the given paths, or a benchmark threw | a path is missing, a `--ref` file that is not there, a bad `--ab` or `--pairs` value |
-| `mutate` | the score is below `--min-msi` or `--min-covered-msi`, the suite fails without mutants, or a worker could not load | a bad option value, `--changed` outside a git repository |
+| `test` | a test failed or errored, or a `^:focus` run under `CI` or `--fail-on-focus` | a path is missing, an unknown `--reporter`, a bad `--parallel`, `--repeat`, `--seed` or `--slowest` value, `--changed` outside a git repository |
+| `bench` | a benchmark is slower than `--tolerance` against `--ref`, nothing to load in the given paths, or a benchmark threw | a path is missing, a `--ref` file that is not there, a bad `--ab`, `--pairs`, `--revs`, `--iterations`, `--warmup` or `--tolerance` value |
+| `mutate` | the score is below `--min-msi` or `--min-covered-msi`, the suite fails without mutants, or a worker could not load | a path or `--tests` path is missing, a bad option value, `--changed` outside a git repository |
 | `run` | the program threw | no entry point, a path or namespace that is not there |
 | `ns` | | a namespace that is not there |
-| `profile` | the program threw | a path or namespace that is not there, an unknown `--format` or `--sort` |
+| `profile` | the program threw | a path or namespace that is not there, an unknown `--format` or `--sort`, a bad `--top` value |
 | `build` | a namespace does not compile | a bad `-O` value |
 | `index` | the `-o` file could not be written | a directory is missing |
 | `config` | | an unknown `--format` |
 | `doc` | | an unknown `--format`; no match is not an error |
+| `explain` | | an unknown code or `--format` |
 | `compile`, `eval`, `export` | the code does not compile or throws | |
 | `doctor` | a check failed | |
-| `init` | a file could not be written | |
-| `watch` | the watcher stopped on an error | |
+| `init` | a file could not be written | an unknown `--template` |
+| `watch` | the watcher stopped on an error | a path is missing, an unknown `--backend`, a bad `--poll` or `--debounce` value |
 | `agent-install` | `--check` found no installed docs, or a version other than the bundled one | an unknown platform |
-| `api-daemon`, `lsp`, `nrepl` | the server could not start or stopped on an error | |
+| `api-daemon`, `lsp`, `nrepl` | the server could not start or stopped on an error | `nrepl`: a bad `--port` value |
 
-Every command exits `2`, before it starts, on a `PHEL_OPTIMIZATION_LEVEL`,
+Every command exits `2`, before it starts, on an unknown command or option, a
+missing or extra argument, and a `PHEL_OPTIMIZATION_LEVEL`,
 `PHEL_WARN_DEPRECATIONS` or `PHEL_TEST_WORKERS` it cannot read
 ([Environment variables](#environment-variables)). A program run by `run`,
 `eval`, `test` or `repl` can exit with its own code, and a PHP fatal error exits
 `255`.
-
-These exit `1` where the rule says `2`, tracked in
-[#3525](https://github.com/phel-lang/phel-lang/issues/3525): an unknown option
-or command (Symfony's own code), `explain --format=xml`, `explain` with an
-unknown code, `init --template=nope`, a bad `test --parallel`, `--repeat` or
-`--seed` value, `test --changed` outside a git repository, and `watch` with no
-readable path. `mutate` and `watch` skip a missing path instead of failing,
-and `mutate` with no file left scores 100%. A few numeric options take any value
-without complaint: `test --slowest`, `profile --top`, `nrepl --port`,
-`watch --poll` and `--debounce`, and `bench --revs`, `--iterations`, `--warmup`
-and `--tolerance` without `--ab`. `watch --backend` falls back to polling on an
-unknown name.
 
 ## Output shapes
 
@@ -316,7 +306,7 @@ phel explain PHEL001 --format=json      # the same entry as JSON
 `phel lint --format=json` and `phel analyze` report every diagnostic with the
 same fields, listed under [Diagnostics](#diagnostics).
 
-An unknown code exits 1. The text comes from the same catalog the pages under
+An unknown code exits 2. The text comes from the same catalog the pages under
 `docs/errors/` are generated from, so the terminal and the docs cannot drift.
 
 ## Errors from a built app

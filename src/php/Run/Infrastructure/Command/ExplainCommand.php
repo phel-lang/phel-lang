@@ -6,6 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Phel\Shared\Exceptions\ErrorCodeCatalog;
 use Phel\Shared\Exceptions\ErrorCodeExplanation;
+use Phel\Shared\InvocationError;
 use Phel\Shared\Lint\LintRuleExplainerInterface;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
@@ -95,9 +96,7 @@ HELP)
     {
         $format = $input->getOption(self::OPT_FORMAT);
         if ($format !== self::FORMAT_TEXT && $format !== self::FORMAT_JSON) {
-            $output->writeln(sprintf('<error>Unknown format "%s". Use text or json.</error>', ScalarCoercion::toString($format)));
-
-            return self::FAILURE;
+            return InvocationError::report($output, sprintf('Unknown format: %s. Known: text, json.', ScalarCoercion::toString($format)));
         }
 
         $json = $format === self::FORMAT_JSON;
@@ -112,7 +111,7 @@ HELP)
 
         $entry = $this->find($code);
         if ($entry === null) {
-            return $this->writeUnknownCode($output, $code, $json);
+            return InvocationError::report($output, sprintf('Unknown error code "%s". Run phel explain without an argument to list every code.', $code));
         }
 
         $json ? $this->writeJson($output, $entry) : $this->writeExplanation($output, $entry);
@@ -211,20 +210,6 @@ HELP)
 
         $output->writeln('');
         $output->writeln('Run <comment>phel explain PHEL001</comment> to read one entry.');
-    }
-
-    private function writeUnknownCode(OutputInterface $output, string $code, bool $json): int
-    {
-        if ($json) {
-            $this->writeJson($output, ['error' => sprintf('Unknown error code "%s".', $code)]);
-
-            return self::FAILURE;
-        }
-
-        $output->writeln(sprintf('<error>Unknown error code "%s".</error>', $code));
-        $output->writeln('Run <comment>phel explain</comment> without an argument to list every code.');
-
-        return self::FAILURE;
     }
 
     /**

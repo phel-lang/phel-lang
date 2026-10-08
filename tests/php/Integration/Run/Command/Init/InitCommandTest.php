@@ -524,7 +524,7 @@ final class InitCommandTest extends TestCase
         self::assertFileExists($this->testDir . '/composer.json');
     }
 
-    public function test_unknown_template_fails_and_lists_options(): void
+    public function test_unknown_template_exits_2_and_lists_options(): void
     {
         $command = new InitCommand();
         $output = new BufferedOutput();
@@ -535,7 +535,7 @@ final class InitCommandTest extends TestCase
             '--template' => 'does-not-exist',
         ]), $output);
 
-        self::assertSame(Command::FAILURE, $result);
+        self::assertSame(Command::INVALID, $result);
         $text = $output->fetch();
         self::assertStringContainsString('Unknown template', $text);
         self::assertStringContainsString('http-json-api', $text);

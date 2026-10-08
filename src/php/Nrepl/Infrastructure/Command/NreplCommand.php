@@ -6,6 +6,7 @@ namespace Phel\Nrepl\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use InvalidArgumentException;
 use Phel;
 use Phel\Nrepl\Domain\BindAddress;
 use Phel\Nrepl\Infrastructure\NreplSocketServer;
@@ -13,6 +14,8 @@ use Phel\Nrepl\NreplConfig;
 use Phel\Nrepl\NreplFacade;
 use Phel\Nrepl\NreplFactory;
 use Phel\Shared\CompilerConstants;
+use Phel\Shared\InvocationError;
+use Phel\Shared\NumericOption;
 use Phel\Shared\ReplConstants;
 use Phel\Shared\ScalarCoercion;
 use Phel\Shared\StandardError;
@@ -84,7 +87,12 @@ HELP)
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $port = ScalarCoercion::toInt($input->getOption('port'));
+        try {
+            $port = (int) NumericOption::wholeNumber($input, 'port', 0);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            return InvocationError::report($output, $invalidArgumentException->getMessage());
+        }
+
         $host = ScalarCoercion::toString($input->getOption('host'));
 
         // Normalise runtime args so loaded code sees a clean argv.

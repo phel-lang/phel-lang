@@ -8,6 +8,7 @@ use Phel\Config\ProjectLayout;
 use Phel\Run\Domain\Init\NamespaceNormalizer;
 use Phel\Run\Domain\Init\ProjectTemplateGenerator;
 use Phel\Run\Domain\Init\ProjectTemplateScaffolder;
+use Phel\Shared\InvocationError;
 use Phel\Shared\ScalarCoercion;
 use Phel\Shared\VersionFinder;
 use Symfony\Component\Console\Command\Command;
@@ -16,7 +17,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function array_keys;
 use function dirname;
+use function implode;
 use function is_dir;
 use function mkdir;
 use function sprintf;
@@ -141,6 +144,14 @@ HELP)
             $this->printTemplates($output);
 
             return Command::SUCCESS;
+        }
+
+        if ($template !== false && !$this->templateScaffolder->hasTemplate(ScalarCoercion::toString($template))) {
+            return InvocationError::report($output, sprintf(
+                'Unknown template: %s. Known: %s.',
+                ScalarCoercion::toString($template),
+                implode(', ', array_keys($this->templateScaffolder->availableTemplates())),
+            ));
         }
 
         $cwd = getcwd();
@@ -386,14 +397,6 @@ HELP)
         bool $force,
         bool $dryRun,
     ): int {
-        if (!$this->templateScaffolder->hasTemplate($template)) {
-            $output->writeln(sprintf('<error>Unknown template "%s".</error>', $template));
-            $output->writeln('');
-            $this->printTemplates($output);
-
-            return Command::FAILURE;
-        }
-
         $files = $this->templateScaffolder->files($template, $projectName);
         foreach ($files as $relativePath => $content) {
             $fullPath = $cwd . '/' . $relativePath;
