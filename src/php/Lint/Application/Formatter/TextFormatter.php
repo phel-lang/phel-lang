@@ -18,9 +18,9 @@ use function sprintf;
  *
  * @internal
  */
-final class HumanFormatter implements DiagnosticFormatterInterface
+final class TextFormatter implements DiagnosticFormatterInterface
 {
-    public const string NAME = 'human';
+    public const string NAME = 'text';
 
     public function name(): string
     {

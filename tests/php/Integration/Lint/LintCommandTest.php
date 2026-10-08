@@ -79,6 +79,23 @@ final class LintCommandTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_the_former_human_format_name_still_selects_the_text_format(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new LintCommand());
+        $exit = $tester->execute([
+            'paths' => [__DIR__ . '/Fixtures/duplicate_symbol_key.phel'],
+            '--format' => 'human',
+            '--no-cache' => true,
+        ]);
+
+        self::assertSame(1, $exit);
+        self::assertStringContainsString('duplicate_symbol_key.phel:4:8 [error] PHEL203', $tester->getDisplay());
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_github_format_prints_a_one_based_column_and_a_working_directory_relative_file(): void
     {
         $this->bootstrap();

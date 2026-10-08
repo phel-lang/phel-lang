@@ -9,13 +9,20 @@ namespace Phel\Profile\Domain;
  */
 enum ReportFormat: string
 {
-    case Table = 'table';
+    case Text = 'text';
     case Json = 'json';
     case Both = 'both';
 
-    public function emitsTable(): bool
+    private const string FORMER_TEXT_NAME = 'table';
+
+    public static function fromOption(string $name): ?self
     {
-        return $this === self::Table || $this === self::Both;
+        return self::tryFrom($name === self::FORMER_TEXT_NAME ? self::Text->value : $name);
+    }
+
+    public function emitsText(): bool
+    {
+        return $this === self::Text || $this === self::Both;
     }
 
     public function emitsJson(): bool

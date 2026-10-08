@@ -13,7 +13,7 @@ use function sprintf;
 
 /**
  * Small, open-for-extension lookup: add a new formatter by instantiating
- * it and calling `register()`. Callers ask by name (`human`, `json`,
+ * it and calling `register()`. Callers ask by name (`text`, `json`,
  * `github`, ...).
  *
  * @internal

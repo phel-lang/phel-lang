@@ -6,8 +6,8 @@ namespace PhelTest\Unit\Lint\Application\Formatter;
 
 use InvalidArgumentException;
 use Phel\Lint\Application\Formatter\FormatterRegistry;
-use Phel\Lint\Application\Formatter\HumanFormatter;
 use Phel\Lint\Application\Formatter\JsonFormatter;
+use Phel\Lint\Application\Formatter\TextFormatter;
 use PHPUnit\Framework\TestCase;
 
 final class FormatterRegistryTest extends TestCase
@@ -15,12 +15,12 @@ final class FormatterRegistryTest extends TestCase
     public function test_it_looks_up_registered_formatters_by_name(): void
     {
         $registry = new FormatterRegistry();
-        $registry->register(new HumanFormatter());
+        $registry->register(new TextFormatter());
         $registry->register(new JsonFormatter());
 
-        self::assertTrue($registry->has('human'));
+        self::assertTrue($registry->has('text'));
         self::assertTrue($registry->has('json'));
-        self::assertInstanceOf(HumanFormatter::class, $registry->get('human'));
+        self::assertInstanceOf(TextFormatter::class, $registry->get('text'));
     }
 
     public function test_it_throws_on_unknown_formatter(): void
@@ -38,19 +38,19 @@ final class FormatterRegistryTest extends TestCase
     public function test_the_unknown_formatter_message_names_the_input_and_the_alternatives(): void
     {
         $registry = new FormatterRegistry();
-        $registry->register(new HumanFormatter());
+        $registry->register(new TextFormatter());
         $registry->register(new JsonFormatter());
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unknown lint formatter: nope. Known: human, json.');
+        $this->expectExceptionMessage('Unknown lint formatter: nope. Known: text, json.');
         $registry->get('nope');
     }
 
     public function test_it_reports_registered_names(): void
     {
         $registry = new FormatterRegistry();
-        $registry->register(new HumanFormatter());
+        $registry->register(new TextFormatter());
 
-        self::assertContains('human', $registry->names());
+        self::assertContains('text', $registry->names());
     }
 }

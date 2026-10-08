@@ -20,6 +20,7 @@ final readonly class Mutant
 {
     /**
      * @param int $line     line of the mutated node
+     * @param int $column   1-based column of the mutated node
      * @param int $formLine line the whole definition starts on
      */
     public function __construct(
@@ -34,15 +35,6 @@ final readonly class Mutant
         public string $originalForm,
         public string $mutatedForm,
     ) {}
-
-    /**
-     * Stable identity for de-duplication and JSON: file, position, mutator,
-     * description.
-     */
-    public function id(): string
-    {
-        return $this->file . ':' . $this->line . ':' . $this->column . ' [' . $this->mutator . '] ' . $this->description;
-    }
 
     /**
      * First and last line of the whole definition in the file. Coverage is

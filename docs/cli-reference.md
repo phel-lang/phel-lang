@@ -71,15 +71,25 @@ use 1-based lines and columns, and `endCol` is one past the last character.
 `lint` and `analyze` print `uri` as an absolute path; `api-daemon` returns the
 `uri` the request sent. `lint --format=github` prints `file=` relative to the
 working directory, the form GitHub annotations expect. `phel lsp` sends the
-0-based positions the protocol defines.
+0-based positions the protocol defines. `balance`, the `column` of the `mutate` JSON
+report and deprecation notices, `(at file:line:column)`, use 1-based columns
+too.
 
 In a machine mode stdout carries only the machine output, so a tool can parse
 all of it: `analyze`, `api-daemon`, `index`, `lint --format=json|github`,
 `config --format=json`, `explain --format=json`, `doc --format=json`,
-`profile --format=json`, `mutate --reporter=json`, and `test --reporter=tap` or
+`profile --format=json`, `mutate --format=json`, and `test --reporter=tap` or
 `--reporter=junit-xml` without `-o`. Progress, timings, notices and what the
 loaded code prints go to stderr. `index` prints its JSON summary on stdout with
 or without `-o`.
+
+`--format` (`-f`) picks the output of `lint`, `doc`, `profile`, `config`,
+`explain` and `mutate`, and `text` is the default for each. The former names
+`lint --format=human` and `doc` or `profile --format=table` still select
+`text`. `mutate --reporter` is the deprecated spelling of `mutate --format`: it
+still works, prints a notice on stderr, and exits 2 when passed with a
+different `--format`. `test --reporter` is a separate flag that selects one or
+more test reporters.
 
 ## Editor setup
 
