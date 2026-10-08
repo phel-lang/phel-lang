@@ -9,6 +9,7 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNodeInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
@@ -343,7 +344,13 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         $fn = Phel::getDefinition($ns, $nodeName);
 
         if (!is_callable($fn)) {
-            throw AnalyzerException::whenExpandingMacro($list, $macroNode, MacroNotCallableException::forMacro($ns, $nodeName));
+            // A macro whose fn was analysed but never evaluated, which only a
+            // source analysis leaves behind, differs from one bound to a value.
+            $cause = $this->analyzer->getDefFnNode($macroNode->getNamespace(), $macroNode->getName()) instanceof FnNodeInterface
+                ? MacroNotCallableException::forMacro($ns, $nodeName)
+                : new RuntimeException(sprintf('Macro "%s::%s" is not callable.', $ns, $nodeName));
+
+            throw AnalyzerException::whenExpandingMacro($list, $macroNode, $cause);
         }
 
         try {

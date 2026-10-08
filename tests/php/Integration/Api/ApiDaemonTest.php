@@ -83,6 +83,42 @@ final class ApiDaemonTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_a_macro_removed_from_the_source_no_longer_resolves_on_the_next_request(): void
+    {
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+
+        $in = fopen('php://temp', 'r+');
+        $out = fopen('php://temp', 'r+');
+        self::assertNotFalse($in);
+        self::assertNotFalse($out);
+
+        foreach (["(ns stale)\n\n(defmacro m [x] x)\n\n(defn f [] (m 2))\n", "(ns stale)\n\n(defn f [] (m 2))\n"] as $id => $source) {
+            fwrite($in, json_encode([
+                'id' => $id,
+                'method' => 'analyzeSource',
+                'params' => ['source' => $source, 'uri' => 'stale.phel'],
+            ]) . "\n");
+        }
+
+        rewind($in);
+        new ApiDaemon(new ApiFacade(), $in, $out)->run(2);
+        rewind($out);
+        $contents = stream_get_contents($out);
+        self::assertIsString($contents);
+
+        $codes = array_map(
+            static fn(string $line): array => array_column(json_decode($line, true)['result'], 'code'),
+            array_values(array_filter(explode("\n", $contents), static fn(string $l): bool => $l !== '')),
+        );
+
+        self::assertSame([[], ['PHEL001']], $codes);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_it_returns_an_error_response_for_unknown_method(): void
     {
         Phel::bootstrap(__DIR__);

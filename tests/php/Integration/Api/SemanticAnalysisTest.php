@@ -72,6 +72,38 @@ final class SemanticAnalysisTest extends TestCase
         );
     }
 
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_macro_that_runs_a_fn_the_analysis_never_evaluated_is_not_an_error(): void
+    {
+        $this->bootstrap();
+        $facade = new ApiFacade();
+
+        $path = realpath(__DIR__ . '/Fixtures/macro_runs_caller_code.phel');
+        self::assertIsString($path);
+        $source = file_get_contents($path);
+        self::assertIsString($source);
+
+        $diagnostics = $facade->analyzeSource($source, $path);
+
+        self::assertSame([], $diagnostics);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_macro_whose_value_is_not_a_fn_is_still_an_error(): void
+    {
+        $this->bootstrap();
+        $facade = new ApiFacade();
+
+        $diagnostics = $facade->analyzeSource("(ns user)\n(def ^{:macro true} fm 1)\n(defn f [] (fm 2))\n", 'user.phel');
+
+        self::assertSame(
+            [['PHEL005', 3]],
+            array_map(static fn(Diagnostic $d): array => [$d->code, $d->startLine], $diagnostics),
+        );
+    }
+
     #[DataProvider('providerSupersededForms')]
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]

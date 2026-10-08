@@ -9,9 +9,11 @@ use RuntimeException;
 use function sprintf;
 
 /**
- * The cause of a macro expansion error when the macro has no callable
- * definition. A source analysis never evaluates a `defmacro`, so there it
- * means the macro could not be expanded, not that the call is wrong.
+ * The cause of a macro expansion error when the macro's fn was analysed but
+ * never evaluated, which only a source analysis leaves behind: the call could
+ * not be expanded, which says nothing about whether it is right.
+ *
+ * @internal
  */
 final class MacroNotCallableException extends RuntimeException
 {

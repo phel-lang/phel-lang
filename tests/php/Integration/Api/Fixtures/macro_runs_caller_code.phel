@@ -1,0 +1,11 @@
+(ns fixtures.macro-runs-caller-code
+  (:require phel.router :as r))
+
+(defn wrap [tag] (fn [h] h))
+
+(defn pong [req] req)
+
+(def app
+  (r/compiled-router
+   ["/api" {:middleware [(wrap :api)]}
+    ["/ping" {:get {:handler pong}}]]))

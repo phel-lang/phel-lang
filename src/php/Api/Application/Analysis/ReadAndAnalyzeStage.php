@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application\Analysis;
 
+use Error;
 use Phel\Api\Domain\AnalysisStageInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\Exceptions\MacroNotCallableException;
@@ -15,6 +16,7 @@ use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
+use Throwable;
 
 use function file_get_contents;
 use function in_array;
@@ -78,10 +80,7 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
             } catch (ReaderException $e) {
                 $diagnostics[] = Diagnostic::fromLocatedException($e, ErrorCode::READER_ERROR, $uri);
             } catch (AnalyzerException $e) {
-                // This pass never evaluates a `defmacro`, so a call to a macro
-                // the file defines, or that an analysed sibling defined, cannot
-                // be expanded. That says nothing about the source.
-                if ($e->getPrevious() instanceof MacroNotCallableException) {
+                if ($this->isAnalysisArtefact($e)) {
                     continue;
                 }
 
@@ -90,6 +89,23 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
         }
 
         return $diagnostics;
+    }
+
+    /**
+     * This pass never evaluates a `def`, so a macro it defined cannot be
+     * expanded, and a macro that runs the caller's code while expanding hits
+     * a fn that is still `null`: PHP raises an `Error`, not the exception a
+     * macro throws on purpose, such as `case` on a repeated constant.
+     */
+    private function isAnalysisArtefact(AnalyzerException $e): bool
+    {
+        for ($cause = $e->getPrevious(); $cause instanceof Throwable; $cause = $cause->getPrevious()) {
+            if ($cause instanceof MacroNotCallableException || $cause instanceof Error) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

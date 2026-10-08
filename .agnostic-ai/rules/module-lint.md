@@ -103,7 +103,7 @@ Reports every error-severity analyzer diagnostic no dedicated rule promotes, so 
 
 - A rule that promotes an analyzer code implements `Domain\PromotingRuleInterface`; `CompileErrorRule::besides()` reads the promoted codes off the rule list in `LintFactory::createRules()`, so a new promoting rule cannot double-report.
 - `LintRunner` drops a `phel/compile-error` when an error from a pass-through (syntax error, `PHEL012`, rejected `ns` form) or another rule starts inside its span. The analyzer stops at the first error of a top-level form, so that is the same mistake: `(let [a] a)` is reported once, by `phel/invalid-destructuring`.
-- The analysis never evaluates a `defmacro`, so it cannot expand a call to a macro the file or an analysed sibling defines. `ReadAndAnalyzeStage` drops that error (cause `MacroNotCallableException`) instead of reporting a `PHEL005` the compiler would not raise.
+- The analysis never evaluates a `def`, so it cannot expand a call to a macro the file defines, and a macro that runs the caller's code while expanding meets a fn that is still `null`. `ReadAndAnalyzeStage` drops those errors instead of reporting a `PHEL005` the compiler would not raise; see `.agnostic-ai/rules/module-api.md`.
 
 ### `phel/duplicate-def`
 
