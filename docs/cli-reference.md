@@ -282,6 +282,8 @@ failed.
 XML document (a `<testsuite>` per namespace, a `<testcase>` per assertion with
 `file` and `line`), and `--reporter=github` GitHub workflow commands. The other
 reporters (`default`, `testdox`, `dot`) are human text.
+`--parallel` gives the same JUnit XML document a serial run gives; `tap` and
+a custom reporter run serially.
 
 ### nREPL
 

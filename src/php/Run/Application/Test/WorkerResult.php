@@ -31,6 +31,7 @@ final readonly class WorkerResult
         public Counts $counts,
         public WorkerOutcome $outcome = WorkerOutcome::Verdict,
         public bool $focused = false,
+        public string $junitXml = '',
     ) {}
 
     /**
@@ -53,6 +54,7 @@ final readonly class WorkerResult
             Counts::fromArray($rawCounts),
             WorkerOutcome::fromFrameValue($frame[FrameKey::OUTCOME] ?? null),
             (bool) ($frame[FrameKey::FOCUSED] ?? false),
+            ScalarCoercion::toString($frame[FrameKey::JUNIT_XML] ?? null),
         );
     }
 

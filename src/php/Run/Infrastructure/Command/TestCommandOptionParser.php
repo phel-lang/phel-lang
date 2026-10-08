@@ -12,6 +12,7 @@ use Phel\Shared\NumericOption;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\Process\CpuCountDetector;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\StandardError;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -133,7 +134,7 @@ final readonly class TestCommandOptionParser
         $disabledReason = $this->parallelDisabledReason($input);
         if ($disabledReason !== null) {
             if ($output->isVerbose()) {
-                $output->writeln(sprintf('<comment>Ignoring --parallel: %s.</comment>', $disabledReason));
+                StandardError::of($output)->writeln(sprintf('<comment>Ignoring --parallel: %s.</comment>', $disabledReason));
             }
 
             return null;
