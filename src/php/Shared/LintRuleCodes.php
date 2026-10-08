@@ -42,6 +42,10 @@ final class LintRuleCodes
 
     public const string REDUNDANT_DO = 'phel/redundant-do';
 
+    /**
+     * @deprecated No rule reports it any more: the reader rejects a repeated
+     *             key as PHEL203. Kept so existing references keep compiling.
+     */
     public const string DUPLICATE_KEY = 'phel/duplicate-key';
 
     public const string DUPLICATE_DEF = 'phel/duplicate-def';
@@ -79,7 +83,6 @@ final class LintRuleCodes
             self::SHADOWED_BINDING,
             self::SHADOWED_CORE_FN,
             self::REDUNDANT_DO,
-            self::DUPLICATE_KEY,
             self::DUPLICATE_DEF,
             self::INVALID_DESTRUCTURING,
             self::DISCOURAGED_VAR,
