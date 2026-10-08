@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Build\Application;
 use Phel;
 use Phel\Build\Application\CachedNamespaceExtractor;
 use Phel\Build\Application\NamespaceExtractor;
+use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Infrastructure\Cache\NullNamespaceCache;
@@ -26,6 +27,9 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
 
     private string $cacheFile;
 
+    /** @var list<PhpScanIndexCache> */
+    private array $caches = [];
+
     protected function setUp(): void
     {
         // realpath: on macOS the temp dir is a symlink, and a path that does
@@ -38,6 +42,12 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
 
     protected function tearDown(): void
     {
+        // Each cache flushes on shutdown, after tearDown, and would recreate
+        // `.cache/` in the removed directory: flush them first.
+        foreach ($this->caches as $cache) {
+            $cache->save();
+        }
+
         $this->removeDir($this->dir);
     }
 
@@ -47,7 +57,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
 
         $callCount = 0;
         // A fresh extractor + cache per "process", sharing only the on-disk file.
-        $coldCache = new PhpScanIndexCache($this->cacheFile);
+        $coldCache = $this->scanIndexCache();
         $coldResult = $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$this->dir]);
         $coldCache->save();
 
@@ -56,7 +66,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
 
         // Second process: same tree, fresh in-memory caches, persisted index present.
         $callCount = 0;
-        $warmResult = $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)
+        $warmResult = $this->makeExtractor($this->scanIndexCache(), $callCount)
             ->getNamespacesFromDirectories([$this->dir]);
 
         self::assertSame(0, $callCount, 'Warm run must not invoke the inner extractor (no walk).');
@@ -68,7 +78,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $this->writePhel('main.phel', '(ns app\\main)');
 
         $callCount = 0;
-        $coldCache = new PhpScanIndexCache($this->cacheFile);
+        $coldCache = $this->scanIndexCache();
         $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$this->dir]);
         $coldCache->save();
 
@@ -81,7 +91,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         clearstatcache();
 
         $callCount = 0;
-        $result = $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)
+        $result = $this->makeExtractor($this->scanIndexCache(), $callCount)
             ->getNamespacesFromDirectories([$this->dir]);
 
         self::assertSame(2, $callCount, 'Added file (same-second) must force a re-walk via file-count mismatch.');
@@ -94,7 +104,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $this->writePhel('extra.phel', '(ns app\\extra)');
 
         $callCount = 0;
-        $coldCache = new PhpScanIndexCache($this->cacheFile);
+        $coldCache = $this->scanIndexCache();
         $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$this->dir]);
         $coldCache->save();
 
@@ -104,7 +114,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         clearstatcache();
 
         $callCount = 0;
-        $result = $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)
+        $result = $this->makeExtractor($this->scanIndexCache(), $callCount)
             ->getNamespacesFromDirectories([$this->dir]);
 
         self::assertSame(1, $callCount, 'Removed file (same-second) must force a re-walk via file-count mismatch.');
@@ -116,7 +126,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $this->writePhel('main.phel', '(ns app\\main)');
 
         $callCount = 0;
-        $coldCache = new PhpScanIndexCache($this->cacheFile);
+        $coldCache = $this->scanIndexCache();
         $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$this->dir]);
         $coldCache->save();
 
@@ -130,7 +140,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         clearstatcache();
 
         $callCount = 0;
-        $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)
+        $this->makeExtractor($this->scanIndexCache(), $callCount)
             ->getNamespacesFromDirectories([$this->dir]);
 
         self::assertSame(1, $callCount, 'In-place edit must force a re-walk via per-file mtime mismatch.');
@@ -150,7 +160,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         touch($file, $sameSecond);
 
         $callCount = 0;
-        $coldCache = new PhpScanIndexCache($this->cacheFile);
+        $coldCache = $this->scanIndexCache();
         $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$this->dir]);
         $coldCache->save();
 
@@ -161,7 +171,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         clearstatcache();
 
         $callCount = 0;
-        $result = $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)
+        $result = $this->makeExtractor($this->scanIndexCache(), $callCount)
             ->getNamespacesFromDirectories([$this->dir]);
 
         self::assertSame(1, $callCount, 'A racily clean scan must be walked again, not served.');
@@ -176,7 +186,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $this->writePhel('other/lib.phel', '(ns app\\lib)');
 
         $callCount = 0;
-        $cache = new PhpScanIndexCache($this->cacheFile);
+        $cache = $this->scanIndexCache();
         $extractor = $this->makeExtractor($cache, $callCount);
 
         $a = $extractor->getNamespacesFromDirectories([$this->dir]);
@@ -197,7 +207,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
 
         // Warm run for the narrower dir-set must serve exactly that set.
         $callCount = 0;
-        $warmB = $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)
+        $warmB = $this->makeExtractor($this->scanIndexCache(), $callCount)
             ->getNamespacesFromDirectories([$other]);
 
         self::assertSame(0, $callCount, 'Warm narrower dir-set must be served from its own persisted entry.');
@@ -217,7 +227,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $this->writePhel('src/main.phel', '(ns app\\main)');
 
         $callCount = 0;
-        $coldCache = new PhpScanIndexCache($this->cacheFile);
+        $coldCache = $this->scanIndexCache();
         $cold = $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$src, $tests]);
         $coldCache->save();
         self::assertSame(['app\\main'], array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $cold));
@@ -227,7 +237,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $this->writePhel('tests/main_test.phel', '(ns app\\main-test)');
 
         $callCount = 0;
-        $warm = $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)
+        $warm = $this->makeExtractor($this->scanIndexCache(), $callCount)
             ->getNamespacesFromDirectories([$src, $tests]);
 
         self::assertGreaterThan(0, $callCount, 'A directory that appeared after the scan must force a re-walk.');
@@ -245,12 +255,12 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $this->writePhel('src/main.phel', '(ns app\\main)');
 
         $callCount = 0;
-        $coldCache = new PhpScanIndexCache($this->cacheFile);
+        $coldCache = $this->scanIndexCache();
         $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$src, $missing]);
         $coldCache->save();
 
         $callCount = 0;
-        $warm = $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)
+        $warm = $this->makeExtractor($this->scanIndexCache(), $callCount)
             ->getNamespacesFromDirectories([$src, $missing]);
 
         self::assertSame(0, $callCount, 'A directory that is still absent changes nothing; the index must be served.');
@@ -258,21 +268,17 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
     }
 
     /**
-     * Build an extractor whose inner extractor derives `NamespaceInformation`
-     * from the actual file content and counts how often it is invoked, so a
-     * skipped walk is observable via a zero call count.
+     * A lenient scan skips the bad file and stores the rest. A strict scan
+     * (`phel build`) never reads the index, so it still sees the file it has
+     * to fail on.
      */
-    /**
-     * A lenient scan skips the bad file; a stored index would then let a later
-     * build serve the same scan and never see the file it must fail on.
-     */
-    public function test_a_scan_that_skipped_a_bad_ns_form_is_not_persisted(): void
+    public function test_a_scan_that_skipped_a_bad_ns_form_is_reused_and_a_strict_scan_still_fails(): void
     {
         Phel::bootstrap(__DIR__);
         $this->writePhel('main.phel', '(ns app.main)');
         $this->writePhel('bad.phel', '(ns app.bad (:require [phel.string :refer :all]))');
 
-        $cache = new PhpScanIndexCache($this->cacheFile);
+        $cache = $this->scanIndexCache();
         $extractor = new CachedNamespaceExtractor(
             new NamespaceExtractor(new CompilerFacade(), new TopologicalNamespaceSorter(), new SystemFileIo()),
             new NullNamespaceCache(),
@@ -284,44 +290,97 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $infos = $extractor->getNamespacesFromDirectories([$this->dir]);
         $cache->save();
 
-        self::assertSame(['app.main'], array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $infos));
+        self::assertSame(['app.main'], $this->namespacesOf($infos));
 
         $callCount = 0;
-        $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)->getNamespacesFromDirectories([$this->dir]);
-        self::assertSame(2, $callCount, 'The next process must walk again, not serve the skipping scan.');
+        $warm = $this->makeExtractor($this->scanIndexCache(), $callCount)
+            ->getNamespacesFromDirectories([$this->dir]);
+        self::assertSame(0, $callCount, 'The next process must serve the stored scan.');
+        self::assertSame(['app.main'], $this->namespacesOf($warm));
 
         $this->expectException(CompilerException::class);
         $extractor->getNamespacesFromDirectories([$this->dir], failOnInvalidNsForm: true);
     }
 
-    /**
-     * The fingerprint records only the files a scan read, so a stored scan
-     * that skipped a file with no ns form would keep hiding it after the file
-     * gains one in place (#3484).
-     */
-    public function test_a_scan_that_skipped_a_file_with_no_ns_form_is_not_persisted(): void
+    public function test_a_scan_that_skipped_a_file_with_no_ns_form_is_reused(): void
     {
-        Phel::bootstrap(__DIR__);
         $this->writePhel('main.phel', '(ns app.main)');
-        $this->writePhel('stray.phel', "(defn x [] 1)\n");
-
-        $cache = new PhpScanIndexCache($this->cacheFile);
-        $extractor = new CachedNamespaceExtractor(
-            new NamespaceExtractor(new CompilerFacade(), new TopologicalNamespaceSorter(), new SystemFileIo()),
-            new NullNamespaceCache(),
-            new TopologicalNamespaceSorter(),
-            null,
-            $cache,
-        );
-
-        $infos = $extractor->getNamespacesFromDirectories([$this->dir]);
-        $cache->save();
-
-        self::assertSame(['app.main'], array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $infos));
+        $this->writePhel('stray.phel', "(def x 1)\n");
 
         $callCount = 0;
-        $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)->getNamespacesFromDirectories([$this->dir]);
-        self::assertSame(2, $callCount, 'The next process must walk again, not serve the skipping scan.');
+        $coldCache = $this->scanIndexCache();
+        $cold = $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$this->dir]);
+        $coldCache->save();
+
+        self::assertSame(2, $callCount);
+        self::assertSame(['app.main'], $this->namespacesOf($cold));
+        self::assertFileExists($this->cacheFile);
+
+        $callCount = 0;
+        $warm = $this->makeExtractor($this->scanIndexCache(), $callCount)
+            ->getNamespacesFromDirectories([$this->dir]);
+
+        self::assertSame(0, $callCount, 'An unchanged skipped file must not stop the index being served.');
+        self::assertSame(['app.main'], $this->namespacesOf($warm));
+    }
+
+    /**
+     * The skipped file is stamped like a read one, so gaining an `ns` form in
+     * place (same directory mtime, same file count) still forces a new walk
+     * (#3484).
+     */
+    public function test_a_skipped_file_that_gains_an_ns_form_is_found_on_the_next_scan(): void
+    {
+        $this->writePhel('main.phel', '(ns app.main)');
+        $this->writePhel('stray.phel', "(def x 1)\n");
+
+        $callCount = 0;
+        $coldCache = $this->scanIndexCache();
+        $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$this->dir]);
+        $coldCache->save();
+
+        $dirMtime = (int) filemtime($this->dir);
+        file_put_contents($this->dir . '/stray.phel', "(ns app.stray)\n(def x 1)\n");
+        touch($this->dir . '/stray.phel', time() - 5);
+        touch($this->dir, $dirMtime);
+        clearstatcache();
+
+        $callCount = 0;
+        $warm = $this->makeExtractor($this->scanIndexCache(), $callCount)
+            ->getNamespacesFromDirectories([$this->dir]);
+
+        self::assertSame(2, $callCount, 'A changed skipped file must force a re-walk.');
+        self::assertContains('app.stray', $this->namespacesOf($warm));
+    }
+
+    public function test_a_file_that_keeps_failing_is_read_again_only_when_it_changes(): void
+    {
+        $this->writePhel('main.phel', '(ns app.main)');
+        $this->writePhel('stray.phel', "(def x 1)\n");
+
+        $callCount = 0;
+        $coldCache = $this->scanIndexCache();
+        $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$this->dir]);
+        $coldCache->save();
+
+        $dirMtime = (int) filemtime($this->dir);
+        file_put_contents($this->dir . '/stray.phel', "(def x 2)\n");
+        touch($this->dir . '/stray.phel', time() - 5);
+        touch($this->dir, $dirMtime);
+        clearstatcache();
+
+        $callCount = 0;
+        $changedCache = $this->scanIndexCache();
+        $this->makeExtractor($changedCache, $callCount)->getNamespacesFromDirectories([$this->dir]);
+        $changedCache->save();
+        self::assertSame(2, $callCount, 'The edit must be read once.');
+
+        $callCount = 0;
+        $warm = $this->makeExtractor($this->scanIndexCache(), $callCount)
+            ->getNamespacesFromDirectories([$this->dir]);
+
+        self::assertSame(0, $callCount, 'The still-broken but unchanged file must not be read again.');
+        self::assertSame(['app.main'], $this->namespacesOf($warm));
     }
 
     public function test_a_strict_scan_reads_a_file_broken_in_the_same_second_as_the_cached_scan(): void
@@ -335,7 +394,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
             new NullNamespaceCache(),
             new TopologicalNamespaceSorter(),
             null,
-            new PhpScanIndexCache($this->cacheFile),
+            $this->scanIndexCache(),
         );
         $extractor->getNamespacesFromDirectories([$this->dir]);
 
@@ -351,12 +410,36 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
      * Backdated, so the scan that follows does not see a file written in the
      * second it started, which it would rightly refuse to trust (#3537).
      */
+    private function scanIndexCache(): PhpScanIndexCache
+    {
+        $cache = new PhpScanIndexCache($this->cacheFile);
+        $this->caches[] = $cache;
+
+        return $cache;
+    }
+
     private function writePhel(string $name, string $content): void
     {
         file_put_contents($this->dir . '/' . $name, $content);
         touch($this->dir . '/' . $name, time() - 10);
     }
 
+    /**
+     * @param list<NamespaceInformation> $infos
+     *
+     * @return list<string>
+     */
+    private function namespacesOf(array $infos): array
+    {
+        return array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $infos);
+    }
+
+    /**
+     * Build an extractor whose inner extractor derives `NamespaceInformation`
+     * from the actual file content and counts how often it is invoked, so a
+     * skipped walk is observable via a zero call count. A file with no `ns`
+     * form throws, as the real extractor does.
+     */
     private function makeExtractor(PhpScanIndexCache $scanIndexCache, int &$callCount): CachedNamespaceExtractor
     {
         $inner = $this->createStub(NamespaceExtractorInterface::class);
@@ -364,13 +447,16 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
             static function (string $path) use (&$callCount): NamespaceInformation {
                 ++$callCount;
                 $content = (string) file_get_contents($path);
-                preg_match('/\(ns\s+([^\s\)]+)/', $content, $m);
+                if (preg_match('/\(ns\s+([^\s\)]+)/', $content, $m) !== 1) {
+                    throw ExtractorException::cannotExtractNamespaceFromPath($path);
+                }
+
                 $deps = [];
                 if (preg_match('/:require\s+([^\s\)]+)/', $content, $dm)) {
                     $deps[] = $dm[1];
                 }
 
-                return new NamespaceInformation($path, $m[1] ?? 'unknown', $deps, true);
+                return new NamespaceInformation($path, $m[1], $deps, true);
             },
         );
 
