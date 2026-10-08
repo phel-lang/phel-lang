@@ -44,7 +44,7 @@ interface CompilerFacadeInterface
     /**
      * @throws AnalyzerException
      */
-    public function analyze(TypeInterface|string|float|int|bool|null $x, NodeEnvironmentInterface $env): AbstractNode;
+    public function analyze(mixed $x, NodeEnvironmentInterface $env): AbstractNode;
 
     /**
      * Evaluates all expression in the given phel code. Returns the result

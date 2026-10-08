@@ -21,7 +21,6 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Munge;
@@ -31,6 +30,7 @@ use function array_pop;
 use function array_slice;
 use function assert;
 use function count;
+use function is_object;
 use function is_scalar;
 use function is_string;
 use function max;
@@ -100,7 +100,6 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
             $init = $rewriter->injectImplicitParams($init);
         }
 
-        /** @var bool|float|int|string|TypeInterface|null $init */
         $init = $rewriter->injectReturnTypeFromMeta($init, $metaMap);
 
         $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol, $metaMap);
@@ -215,11 +214,11 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
     {
         [$meta, $init] = $this->getInitialMetaAndInit($list);
 
-        if (!($init instanceof TypeInterface)
+        if (!is_object($init)
             && !is_scalar($init)
             && $init !== null
         ) {
-            throw AnalyzerException::withLocation('$init must be TypeInterface|string|float|int|bool|null', $list);
+            throw AnalyzerException::withLocation('$init must be an object, a scalar or null', $list);
         }
 
         $meta = $this->normalizeMeta($meta, $list);
@@ -337,7 +336,7 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
      * @param PersistentMapInterface<mixed, mixed> $meta
      */
     private function analyzeInit(
-        float|bool|int|string|TypeInterface|null $init,
+        mixed $init,
         NodeEnvironmentInterface $env,
         string $namespace,
         Symbol $nameSymbol,

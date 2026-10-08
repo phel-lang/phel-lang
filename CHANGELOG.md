@@ -74,6 +74,7 @@ Tooling:
 - A `deftest` whose body throws outside an `is` is reported as an error for that test, and `phel test` runs the tests after it and prints the summary. The exception used to stop a serial run with a stack trace and no summary, and `--parallel` dropped the whole namespace as `Failed running <ns>` with no error counted. (#3537)
 - A `PHEL402` error for an argument of the wrong type names the `.phel` file and line that made the call: `must be of type int, string given, called in src/main.phel on line 5`. It used to name the generated temp file, `.../phel/tmp/__phel_*.php`. (#3537)
 - `phel eval '#| x |# 1'` reports `[PHEL310]` with the offending line and a caret under the character, like `phel run`. It used to print the raw exception block. (#3537)
+- `phel lint`, `phel analyze` and the LSP handle a file with an `#inst` literal and go on to the next file. The value an `#inst` reads as, a `DateTimeImmutable`, used to abort the whole run with `DateTimeImmutable given`. (#3610)
 
 PHP API:
 
