@@ -42,6 +42,7 @@ final class DefExceptionSymbol implements SpecialFormAnalyzerInterface
         }
 
         ReservedDeclarationName::assertType($name);
+        $this->analyzer->addPhpClass($this->analyzer->getNamespace(), $name);
 
         $parentSymbol = Symbol::create('\\Exception');
         if (count($list) === 3) {

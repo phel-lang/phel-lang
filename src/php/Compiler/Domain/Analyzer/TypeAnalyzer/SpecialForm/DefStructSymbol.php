@@ -57,6 +57,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         }
 
         ReservedDeclarationName::assertType($structSymbol);
+        $this->analyzer->addPhpClass($this->analyzer->getNamespace(), $structSymbol);
 
         $structParams = $list->get(2);
         if (!($structParams instanceof PersistentVectorInterface)) {

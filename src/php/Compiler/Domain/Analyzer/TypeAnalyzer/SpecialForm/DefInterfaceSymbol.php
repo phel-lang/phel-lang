@@ -50,6 +50,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         }
 
         ReservedDeclarationName::assertType($interfaceSymbol);
+        $this->analyzer->addPhpClass($this->analyzer->getNamespace(), $interfaceSymbol);
 
         $this->analyzer->addInterface($this->analyzer->getNamespace(), $interfaceSymbol);
 

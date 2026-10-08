@@ -38,4 +38,21 @@ final class DuplicateDefinitionException extends AbstractLocatedException
 
         return $e;
     }
+
+    public static function forPhpClass(string $namespace, Symbol $name, Symbol $claimedBy): self
+    {
+        $e = new self(
+            sprintf("'%s' and '%s' compile to the same PHP class in namespace '%s'", $claimedBy->getName(), $name->getName(), $namespace),
+            $name->getStartLocation(),
+            $name->getEndLocation(),
+        );
+        $e->setErrorCode(ErrorCode::DUPLICATE_DEFINITION);
+
+        $firstLocation = $claimedBy->getStartLocation();
+        if ($firstLocation instanceof SourceLocation) {
+            $e->setRelatedLocationNote(sprintf('first defined at %s:%d', $firstLocation->getFile(), $firstLocation->getLine()));
+        }
+
+        return $e;
+    }
 }

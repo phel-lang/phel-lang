@@ -766,4 +766,57 @@ final class GlobalEnvironmentTest extends TestCase
 
         $this->assertSame($second, $env->getDefFnNode('user', Symbol::create('f')));
     }
+
+    public function test_the_same_php_class_name_can_be_claimed_again(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->addPhpClass('app', Symbol::create('point'));
+        $env->addPhpClass('app', Symbol::create('point'));
+
+        $this->expectNotToPerformAssertions();
+    }
+
+    public function test_names_differing_only_in_case_live_in_different_namespaces(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->addPhpClass('app.a', Symbol::create('point'));
+        $env->addPhpClass('app.b', Symbol::create('Point'));
+
+        $this->expectNotToPerformAssertions();
+    }
+
+    public function test_a_name_differing_only_in_case_cannot_claim_the_same_php_class(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->addPhpClass('app', Symbol::create('point'));
+
+        try {
+            $env->addPhpClass('app', Symbol::create('Point'));
+            self::fail('Expected a duplicate PHP class to be rejected');
+        } catch (DuplicateDefinitionException $duplicateDefinitionException) {
+            self::assertSame("'point' and 'Point' compile to the same PHP class in namespace 'app'", $duplicateDefinitionException->getMessage());
+            self::assertSame(ErrorCode::DUPLICATE_DEFINITION, $duplicateDefinitionException->getErrorCode());
+        }
+    }
+
+    public function test_names_that_munge_to_the_same_php_class_are_rejected(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->addPhpClass('app', Symbol::create('my-point'));
+
+        $this->expectException(DuplicateDefinitionException::class);
+        $this->expectExceptionMessage("'my-point' and 'my_point' compile to the same PHP class in namespace 'app'");
+
+        $env->addPhpClass('app', Symbol::create('my_point'));
+    }
+
+    public function test_an_ns_form_clears_the_claimed_php_classes_of_its_namespace(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->addPhpClass('app', Symbol::create('point'));
+        $env->clearPhpClasses('app');
+        $env->addPhpClass('app', Symbol::create('Point'));
+
+        $this->expectNotToPerformAssertions();
+    }
 }

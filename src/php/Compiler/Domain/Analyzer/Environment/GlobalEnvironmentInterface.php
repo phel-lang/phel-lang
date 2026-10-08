@@ -108,6 +108,15 @@ interface GlobalEnvironmentInterface
      */
     public function getInterfaceMethods(string $namespace, Symbol $name): ?array;
 
+    /**
+     * Claim the PHP class a struct, exception, enum or interface named `$name`
+     * emits in `$namespace`. Throws when another name already claimed it, since
+     * PHP class names ignore case.
+     */
+    public function addPhpClass(string $namespace, Symbol $name): void;
+
+    public function clearPhpClasses(string $namespace): void;
+
     public function addLevelToAllowPrivateAccess(): void;
 
     public function removeLevelToAllowPrivateAccess(): void;
