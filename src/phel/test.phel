@@ -109,9 +109,9 @@
              ;; calls walked the same nested path twice per assertion, which
              ;; profiling put at a third of the cost of running a test.
              (let [counts (get s :counts)
-                   s      (assoc s :counts (-> counts
-                                               (inc-count :total)
-                                               (inc-count state)))]
+                   s (assoc s :counts (-> counts
+                                          (inc-count :total)
+                                          (inc-count state)))]
                (if ok?
                  s
                  (update s :failed conj data)))))))
@@ -600,10 +600,10 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
     (apply concat
            (for [i :range [0 (max exp-n act-n)]]
              (cond
-               (>= i act-n)                        [[:removed (conj path i) (nth exp-vec i)]]
-               (>= i exp-n)                        [[:added (conj path i) (nth act-vec i)]]
+               (>= i act-n) [[:removed (conj path i) (nth exp-vec i)]]
+               (>= i exp-n) [[:added (conj path i) (nth act-vec i)]]
                (= (nth exp-vec i) (nth act-vec i)) []
-               :else                               (diff-rows (conj path i) (nth exp-vec i) (nth act-vec i)))))))
+               :else (diff-rows (conj path i) (nth exp-vec i) (nth act-vec i)))))))
 
 (defn- set-diff-rows [path expected actual]
   (concat
