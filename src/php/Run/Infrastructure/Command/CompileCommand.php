@@ -10,11 +10,11 @@ use Phel\Run\Domain\StdinReaderInterface;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFactory;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\StandardError;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function in_array;
@@ -79,7 +79,7 @@ HELP)
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $stderr = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
+        $stderr = StandardError::of($output);
 
         $target = ScalarCoercion::toString($input->getOption('target'));
         if (!in_array($target, self::SUPPORTED_TARGETS, true)) {

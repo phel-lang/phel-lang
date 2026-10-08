@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Shared;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function sprintf;
@@ -23,7 +22,7 @@ final class InvocationError
      */
     public static function report(OutputInterface $output, string $message): int
     {
-        $stderr = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
+        $stderr = StandardError::of($output);
         $stderr->writeln(sprintf('<error>%s</error>', $message));
 
         return Command::INVALID;
