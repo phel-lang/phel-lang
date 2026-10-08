@@ -45,8 +45,9 @@ final class UnresolvedTypeTagReportTest extends AbstractCompilerRuntimeTestCase
         yield 'clojure double return' => ['(defn f ^double [n] n)', "classname: double. Did you mean 'float'?"];
         yield 'clojure boolean param' => ['(fn [^boolean b] b)', "classname: boolean. Did you mean 'bool'?"];
         yield 'nullable' => ['(defn f [^?long n] n)', "classname: long. Did you mean 'int'?"];
-        yield 'union member' => ['(defn f [^{:tag (int strng)} n] n)', "classname: strng. Did you mean 'string'?"];
         yield 'defstruct field' => ['(defstruct p [^long x])', "classname: long. Did you mean 'int'?"];
+        yield 'defstruct union member' => ['(defstruct p [^{:tag (int strng)} x])', "classname: strng. Did you mean 'string'?"];
+        yield 'definterface intersection member' => ['(definterface i (m [this ^{:tag [\\Countable strng]} x]))', "classname: strng. Did you mean 'string'?"];
         yield 'definterface param' => ['(definterface i (m [this ^double x]))', "classname: double. Did you mean 'float'?"];
     }
 
@@ -57,14 +58,36 @@ final class UnresolvedTypeTagReportTest extends AbstractCompilerRuntimeTestCase
         self::assertStringContainsString('[PHEL001] Unable to resolve ' . $message, $this->report("(ns tag.b)\n" . $form));
     }
 
-    public function test_builtin_alias_import_and_class_tags_still_compile(): void
+    public function test_builtin_alias_import_class_and_composite_fn_tags_still_compile(): void
     {
         $this->compilerFacade->compile(
             <<<'PHEL'
                 (ns tag.c
                   (:use DateTimeImmutable :as moment))
                 (defn f ^?int [^int a ^?string b ^map m ^callable c ^stdClass o ^moment d ^"int|null" e ^Not.Loaded x ^Unknown y] a)
-                (defn g [^{:tag (int string)} a] a)
+                (defn g [^{:tag (int strng)} a] a)
+                PHEL,
+            new CompileOptions()->setSource(self::SOURCE),
+        );
+
+        $this->expectNotToPerformAssertions();
+    }
+
+    public function test_types_the_namespace_declares_still_compile(): void
+    {
+        $this->compilerFacade->compile(
+            <<<'PHEL'
+                (ns tag.d)
+                (defstruct point [x y])
+                (defn px [^point p] (get p :x))
+                (defstruct node [v ^?node next])
+                (definterface shape (combine [this ^shape other]))
+                (definterface walker (walk [this]))
+                (defstruct tree [v] walker (walk ^tree [this] this))
+                (defenum color :red :blue)
+                (defn paint [^color c] c)
+                (defexception oops)
+                (defn boom [^oops e] e)
                 PHEL,
             new CompileOptions()->setSource(self::SOURCE),
         );

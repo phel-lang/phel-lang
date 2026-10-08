@@ -163,6 +163,16 @@ final class Analyzer implements AnalyzerInterface
         return $this->globalEnvironment->getInterfaceMethods($ns, $name);
     }
 
+    public function getInterfaces(string $ns): array
+    {
+        return $this->globalEnvironment->getInterfaces($ns);
+    }
+
+    public function hasDefinition(string $ns, Symbol $name): bool
+    {
+        return $this->globalEnvironment->hasDefinition($ns, $name);
+    }
+
     public function getAvailableSymbols(): array
     {
         return $this->globalEnvironment->getAllDefinitions();

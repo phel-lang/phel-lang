@@ -197,7 +197,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
 
             $argumentNames[$argument->getName()] = true;
             $argumentSymbol = TagCanonicalizer::symbol($argument, $this->analyzer);
-            TypeTagGuard::assertSymbol($argumentSymbol);
+            TypeTagGuard::assertSymbol($argumentSymbol, $this->analyzer);
             $argumentSymbols[] = $argumentSymbol;
         }
 
@@ -206,7 +206,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         }
 
         $methodName = TagCanonicalizer::symbol($name, $this->analyzer);
-        TypeTagGuard::assertSymbol($methodName);
+        TypeTagGuard::assertSymbol($methodName, $this->analyzer);
 
         return new DefInterfaceMethod(
             $methodName,
