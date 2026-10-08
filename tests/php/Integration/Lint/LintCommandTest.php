@@ -356,6 +356,33 @@ final class LintCommandTest extends TestCase
     }
 
     /**
+     * An `#inst` literal reads as a `DateTimeImmutable`. The analysis stage
+     * used to reject that type and abort the whole run (#3610).
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_lints_a_file_with_an_inst_literal_and_the_files_after_it(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new LintCommand());
+        $tester->execute([
+            'paths' => [__DIR__ . '/Fixtures/InstLiteral'],
+            '--format' => 'json',
+            '--no-cache' => true,
+        ]);
+
+        $display = $tester->getDisplay();
+        self::assertStringNotContainsString('Lint failed', $display);
+
+        $payload = json_decode(trim($display), true);
+        self::assertIsArray($payload);
+        $messages = array_column($payload, 'message');
+        self::assertContains("Cannot resolve symbol 'undefined-in-inst'", $messages);
+        self::assertContains("Cannot resolve symbol 'undefined-after-inst'", $messages);
+    }
+
+    /**
      * A project file that another linted file `:require`s is evaluated for
      * real while the requiring file is analyzed. Analyzing the required file
      * afterwards used to abort the whole run with

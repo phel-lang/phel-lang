@@ -1,0 +1,2 @@
+(ns app.after-inst)
+(undefined-after-inst 1)

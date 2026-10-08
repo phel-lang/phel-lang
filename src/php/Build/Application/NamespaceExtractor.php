@@ -20,7 +20,6 @@ use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\MissingNsFormException;
 use Phel\Shared\Facade\CompilerFacadeInterface;
@@ -125,7 +124,6 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             }
 
             $readerResult = $this->compilerFacade->read($parseTree);
-            /** @var bool|float|int|string|TypeInterface|null $ast */
             $ast = $readerResult->getAst();
             try {
                 $node = $this->compilerFacade->analyze($ast, $this->compilerFacade->emptyNodeEnvironment());

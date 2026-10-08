@@ -39,7 +39,7 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      * @throws AnalyzerException
      */
     public function analyze(
-        TypeInterface|string|float|int|bool|null $x,
+        mixed $x,
         NodeEnvironmentInterface $env,
     ): AbstractNode {
         return $this->getFactory()
