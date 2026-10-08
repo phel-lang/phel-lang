@@ -79,6 +79,7 @@ Tooling:
 
 PHP API:
 
+- **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::analyze()` takes any value the reader returns, `mixed` instead of `TypeInterface|string|float|int|bool|null`, so an `#inst` literal (a `DateTimeImmutable`) can be analysed. Callers are unaffected. (#3610)
 - **BREAKING (PHP API)**: `Phel\Lang\LoadClasspath::NAMESPACE` is now `LoadClasspath::NS`. PHP 8.6 deprecates a class constant named `namespace`, and declaring one is what warns, so no alias can keep the old name. (#3522)
 - `Seq::range()` takes any Phel number, where it took only `int|float`, and `SequenceGenerator::numericRange()` is public. (#3557)
 
