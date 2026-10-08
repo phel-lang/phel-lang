@@ -1,6 +1,8 @@
 (in-ns phel.core)
 
 (use Phel)
+(use Closure)
+(use Phel.Lang.ForeignFn)
 (use Phel.Lang.MetaInterface)
 
 ;; Metadata attached to quoted symbols and to values that implement
@@ -61,11 +63,19 @@
         target)
       target)))
 
+(def meta-holder
+  {:private true
+   :doc "Returns `obj` as a value that can carry metadata. A single-arity `fn` literal compiles to a PHP closure, which cannot hold metadata, so it is wrapped in a fn that can."}
+  (fn [obj]
+    (if (php/instanceof obj Closure)
+      (new ForeignFn obj)
+      obj)))
+
 (def with-meta
   {:doc "Returns `obj` with the given metadata `meta` attached."
    :see-also ["meta" "vary-meta"]}
   (fn [obj meta]
-    (.withMeta obj meta)))
+    (.withMeta (meta-holder obj) meta)))
 
 (def vary-meta
   {:doc "Returns an object with (apply f (meta obj) args) as its new metadata."
@@ -74,4 +84,4 @@
     (let [m (if (php/instanceof obj MetaInterface)
               (.getMeta obj)
               nil)]
-      (.withMeta obj (apply f m args)))))
+      (.withMeta (meta-holder obj) (apply f m args)))))
