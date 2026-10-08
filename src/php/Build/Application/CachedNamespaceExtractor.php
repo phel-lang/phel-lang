@@ -121,10 +121,11 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
                 $allInfos[] = $this->getNamespaceFromFile($file);
             } catch (AnalyzerException|ExtractorException|MissingNsFormException|CompilerException) {
                 // Skip a file that cannot be lexed, whose first form is not ns
-                // and does not analyse, or whose ns form does not analyse, so one stray file in a
-                // scanned directory does not abort the whole scan (e.g. `phel
-                // eval` in a cwd holding unrelated Clojure checkouts, #3484).
-                // The index still stamps it, so fixing it in place forces a new walk.
+                // and does not analyse, or whose ns form does not analyse, so
+                // one stray file in a scanned directory does not abort the
+                // whole scan (e.g. `phel eval` in a cwd holding unrelated
+                // Clojure checkouts, #3484). The index still stamps it, so
+                // fixing it in place forces a new walk.
                 $skippedFiles[] = $file;
             }
         }

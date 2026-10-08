@@ -49,8 +49,9 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
 
     public function put(string $dirSetKey, array $perDir, array $infos, int $recordedAt = 0, array $skippedFiles = []): void
     {
+        $readFiles = array_map(static fn(NamespaceInformation $info): string => $info->getFile(), $infos);
         $files = [];
-        foreach ([...array_map(static fn(NamespaceInformation $info): string => $info->getFile(), $infos), ...$skippedFiles] as $file) {
+        foreach ([...$readFiles, ...$skippedFiles] as $file) {
             $mtime = @filemtime($file);
             if ($mtime === false) {
                 // A file we cannot stat must not be persisted as a validation
