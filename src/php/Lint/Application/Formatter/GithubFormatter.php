@@ -81,7 +81,7 @@ final readonly class GithubFormatter implements DiagnosticFormatterInterface
 
         // Lint reports real paths, and macOS spells `/tmp` as `/private/tmp`.
         foreach ([$cwd, realpath($cwd)] as $directory) {
-            if ($directory === false || rtrim($directory, '/') === '') {
+            if ($directory === false) {
                 continue;
             }
 
