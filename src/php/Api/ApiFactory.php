@@ -169,6 +169,7 @@ final class ApiFactory extends AbstractFactory
     {
         return new PhelFnLoader(
             new PhelFunctionRuntimeLoader($this->getRunFacade(), $this->getCompilerFacade()),
+            new Munge(),
         );
     }
 

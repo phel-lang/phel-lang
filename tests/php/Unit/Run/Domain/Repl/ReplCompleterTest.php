@@ -74,6 +74,14 @@ final class ReplCompleterTest extends TestCase
         self::assertSame('php-variable', $globals->type);
     }
 
+    public function test_qualified_completion_names_a_namespace_with_a_dash_by_its_source_name(): void
+    {
+        $fn = self::createStub(FnInterface::class);
+        Phel::addDefinition('phel.http_client', 'get', $fn);
+
+        self::assertSame(['phel.http-client/get'], $this->completer->complete('phel.http-client/g'));
+    }
+
     public function test_alias_based_completion(): void
     {
         $fn = self::createStub(FnInterface::class);
