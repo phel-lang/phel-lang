@@ -9,10 +9,10 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel;
 use Phel\Api\ApiFacade;
 use Phel\Api\ApiFactory;
+use Phel\Api\Domain\RegistryNamespace;
 use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\InvocationError;
-use Phel\Shared\Munge;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Completion\CompletionInput;
@@ -367,7 +367,7 @@ HELP)
     private function normalizeGroupedFunctions(array $phelFunctions, string $search): array
     {
         $normalized = [];
-        $loadedNamespaces = array_flip(array_map(new Munge()->decodeNs(...), Phel::getNamespaces()));
+        $loadedNamespaces = array_flip(array_map(RegistryNamespace::sourceName(...), Phel::getNamespaces()));
 
         foreach ($phelFunctions as $phelFunction) {
             $fnName = $phelFunction->namespace . '/' . $phelFunction->name;

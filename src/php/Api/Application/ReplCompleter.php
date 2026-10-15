@@ -6,13 +6,13 @@ namespace Phel\Api\Application;
 
 use Phel;
 use Phel\Api\Domain\PhelFnLoaderInterface;
+use Phel\Api\Domain\RegistryNamespace;
 use Phel\Api\Domain\ReplCompleterInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Shared\Api\CompletionResultTransfer;
-use Phel\Shared\Munge;
 
 use function array_keys;
 use function str_replace;
@@ -36,8 +36,6 @@ final class ReplCompleter implements ReplCompleterInterface
 
     private readonly PhpSymbolCatalog $phpSymbols;
 
-    private readonly Munge $munge;
-
     /**
      * @param list<string> $allNamespaces
      * @param list<string> $nativeSymbolNames special-form / native symbol names
@@ -52,7 +50,6 @@ final class ReplCompleter implements ReplCompleterInterface
         private readonly array $nativeSymbolNames = [],
     ) {
         $this->phpSymbols = $phpSymbols ?? new PhpSymbolCatalog();
-        $this->munge = new Munge();
     }
 
     /**
@@ -157,7 +154,7 @@ final class ReplCompleter implements ReplCompleterInterface
             foreach (Phel::getDefinitionInNamespace($namespace) as $name => $definition) {
                 $qualifiedName = $namespace === 'phel.core'
                     ? $name
-                    : Munge::displayNs($this->munge->decodeNs($namespace)) . '/' . $name;
+                    : RegistryNamespace::sourceName($namespace) . '/' . $name;
 
                 if (str_starts_with($this->dotted($qualifiedName), $dottedInput)) {
                     $type = $this->resolveDefinitionType($namespace, $name, $definition);

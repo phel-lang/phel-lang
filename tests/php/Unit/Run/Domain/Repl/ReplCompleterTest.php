@@ -82,6 +82,14 @@ final class ReplCompleterTest extends TestCase
         self::assertSame(['phel.http-client/get'], $this->completer->complete('phel.http-client/g'));
     }
 
+    public function test_qualified_completion_keeps_the_underscore_of_a_user_namespace(): void
+    {
+        $fn = self::createStub(FnInterface::class);
+        Phel::addDefinition('my_app', 'ping', $fn);
+
+        self::assertSame(['my_app/ping'], $this->completer->complete('my_app/p'));
+    }
+
     public function test_alias_based_completion(): void
     {
         $fn = self::createStub(FnInterface::class);
