@@ -72,3 +72,4 @@ All collaborators degrade to empty/null on unknown types or reflection failure.
 - `ReplCompleter` lazy-loads Phel functions, caches the PHP builtin catalog.
 - `PhpSymbolCatalog` is the single home for the `php/` symbol sets. Functions and classes are discovered at runtime and memoised; `SUPERGLOBALS` is a constant map of name → description, shared by `ReplCompleter` (REPL/nREPL) and `PhpInteropReflector` (LSP completion + hover) so the two surfaces cannot drift.
 - `PhelFnNormalizer` normalizes Phel function metadata with group keys + GitHub ref.
+- A namespace shown to a user goes through `Domain/RegistryNamespace::sourceName()`. The registry stores `phel.http-client` as `phel.http_client` and keeps no source spelling, so only `phel.*` is decoded; a user's `my_app` and `my-app` are different namespaces to `require` (#3645).

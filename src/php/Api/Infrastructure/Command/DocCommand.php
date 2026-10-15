@@ -9,6 +9,7 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel;
 use Phel\Api\ApiFacade;
 use Phel\Api\ApiFactory;
+use Phel\Api\Domain\RegistryNamespace;
 use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\InvocationError;
@@ -366,7 +367,7 @@ HELP)
     private function normalizeGroupedFunctions(array $phelFunctions, string $search): array
     {
         $normalized = [];
-        $loadedNamespaces = array_flip(Phel::getNamespaces());
+        $loadedNamespaces = array_flip(array_map(RegistryNamespace::sourceName(...), Phel::getNamespaces()));
 
         foreach ($phelFunctions as $phelFunction) {
             $fnName = $phelFunction->namespace . '/' . $phelFunction->name;

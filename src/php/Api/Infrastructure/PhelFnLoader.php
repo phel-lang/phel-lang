@@ -6,6 +6,7 @@ namespace Phel\Api\Infrastructure;
 
 use Phel;
 use Phel\Api\Domain\PhelFnLoaderInterface;
+use Phel\Api\Domain\RegistryNamespace;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 
 use function in_array;
@@ -52,7 +53,7 @@ final readonly class PhelFnLoader implements PhelFnLoaderInterface
                 continue;
             }
 
-            $normalizedNs = str_replace('phel.', '', $ns);
+            $normalizedNs = str_replace('phel.', '', RegistryNamespace::sourceName($ns));
             $moduleName = $normalizedNs === 'core' ? '' : $normalizedNs . '/';
 
             foreach (array_keys($this->getDefinitionsInNamespace($ns)) as $fnName) {

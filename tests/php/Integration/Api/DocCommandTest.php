@@ -177,6 +177,19 @@ final class DocCommandTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_a_namespace_with_a_dash_keeps_its_source_name(): void
+    {
+        $this->bootstrap();
+
+        $get = $this->jsonEntry('http-client/get');
+
+        self::assertSame('http-client', $get['namespace']);
+        self::assertSame('phel.http-client', $get['requireNs']);
+        self::assertSame('(:require phel.http-client :refer [get])', $get['require']);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_a_core_fn_needs_no_require(): void
     {
         $this->bootstrap();
