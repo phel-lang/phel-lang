@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lint\Application\Rule;
 
 use Phel\Lint\Application\Rule\ArityMismatchRule;
+use Phel\Lint\Domain\FileAnalysis;
+use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\LintRuleCodes;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -30,6 +33,49 @@ PHEL;
 
         self::assertNotEmpty($diagnostics);
         self::assertSame(LintRuleCodes::ARITY_MISMATCH, $diagnostics[0]->code);
+    }
+
+    /**
+     * The analyzer reports the call too; the rule's own check must not add a
+     * second diagnostic for it (#3655).
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_reports_a_wrong_arity_call_once(): void
+    {
+        $rule = new ArityMismatchRule();
+        $source = <<<PHEL
+(ns user)
+
+(defn add [a b] (+ a b))
+
+(add 1)
+PHEL;
+        $analysis = $this->buildAnalysis($source);
+        [$own] = $rule->apply($analysis);
+        $analyzer = new Diagnostic(
+            code: ErrorCode::ARITY_ERROR->value,
+            severity: Diagnostic::SEVERITY_ERROR,
+            message: 'Wrong number of arguments to function "user/add". Got: 1. Expected: 2',
+            uri: $own->uri,
+            startLine: $own->startLine,
+            startCol: $own->startCol,
+            endLine: $own->endLine,
+            endCol: $own->endCol,
+        );
+
+        $diagnostics = $rule->apply(new FileAnalysis(
+            uri: $analysis->uri,
+            namespace: $analysis->namespace,
+            source: $analysis->source,
+            forms: $analysis->forms,
+            projectIndex: $analysis->projectIndex,
+            semanticDiagnostics: [$analyzer],
+        ));
+
+        self::assertCount(1, $diagnostics);
+        self::assertSame(LintRuleCodes::ARITY_MISMATCH, $diagnostics[0]->code);
+        self::assertSame($analyzer->message, $diagnostics[0]->message);
     }
 
     #[PreserveGlobalState(false)]
