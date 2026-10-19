@@ -40,7 +40,7 @@ use function trim;
  */
 final class TypeTagGuard
 {
-    private const array PHP_TYPES = [
+    public const array PHP_TYPES = [
         'int', 'float', 'string', 'bool', 'array', 'object', 'iterable', 'callable',
         'mixed', 'void', 'never', 'null', 'false', 'true', 'self', 'static', 'parent',
     ];

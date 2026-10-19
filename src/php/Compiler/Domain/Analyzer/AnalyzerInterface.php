@@ -78,6 +78,11 @@ interface AnalyzerInterface
     public function clearPhpClasses(string $ns): void;
 
     /**
+     * @return list<Symbol>
+     */
+    public function getPhpClasses(string $ns): array;
+
+    /**
      * Record the method names declared by a `definterface`, so an inline
      * implementation can be validated without the generated PHP interface
      * having been evaluated (compile-only flows never evaluate).

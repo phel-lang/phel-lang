@@ -167,6 +167,11 @@ final class Analyzer implements AnalyzerInterface
         $this->globalEnvironment->clearPhpClasses($ns);
     }
 
+    public function getPhpClasses(string $ns): array
+    {
+        return $this->globalEnvironment->getPhpClasses($ns);
+    }
+
     /**
      * @param list<string> $methodNames
      */

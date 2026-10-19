@@ -21,6 +21,7 @@ use Phel\Shared\ReplConstants;
 use function array_key_exists;
 use function array_key_last;
 use function array_pop;
+use function array_values;
 use function strtolower;
 
 /**
@@ -461,6 +462,11 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     public function clearPhpClasses(string $namespace): void
     {
         unset($this->phpClasses[$namespace]);
+    }
+
+    public function getPhpClasses(string $namespace): array
+    {
+        return array_values($this->phpClasses[$namespace] ?? []);
     }
 
     public function snapshot(): array
