@@ -128,6 +128,13 @@ interface GlobalEnvironmentInterface
     public function clearPhpClasses(string $namespace): void;
 
     /**
+     * The names whose PHP class `$namespace` declared, as written.
+     *
+     * @return list<Symbol>
+     */
+    public function getPhpClasses(string $namespace): array;
+
+    /**
      * @return array<string, Symbol>
      */
     public function getInterfaces(string $namespace): array;

@@ -6,20 +6,29 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\PhpClassLike;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Shared\Munge;
 use Phel\Shared\TagResolver;
 
 use function count;
+use function in_array;
 use function is_string;
+use function ltrim;
+use function preg_split;
+use function str_contains;
+use function trim;
 
 /**
  * Rewrites a declared `:tag` so a bare name the current namespace imported
  * with `:use` becomes the rooted class it names (`^Moment` under
- * `(:use DateTimeImmutable :as Moment)` becomes `\DateTimeImmutable`).
+ * `(:use DateTimeImmutable :as Moment)` becomes `\DateTimeImmutable`), and so
+ * does a type the namespace declares (`^point` in `app` becomes `\app\point`):
+ * an evaluated form has no `namespace` line to resolve a bare name against.
  *
  * It runs where a tag is declared (fn params and return tag, `let`/`loop`
  * bindings, `def` meta, `foreach`, `defstruct` fields, `definterface`
@@ -112,7 +121,7 @@ final class TagCanonicalizer
             return $tag;
         }
 
-        $expanded = TagResolver::expandImports($name, self::imports($analyzer));
+        $expanded = TagResolver::expandImports($name, self::imports($analyzer, $name));
         if ($expanded === $name) {
             return $tag;
         }
@@ -169,13 +178,41 @@ final class TagCanonicalizer
             : $result->withMeta($tag->getMeta())->copyLocationFrom($tag);
     }
 
+    private static function mayNameOwnClass(string $type): bool
+    {
+        return $type !== ''
+            && !str_contains($type, '\\')
+            && !str_contains($type, '.')
+            && !in_array($type, TypeTagGuard::PHP_TYPES, true)
+            && !isset(TagResolver::TYPE_ALIASES[$type]);
+    }
+
     /**
+     * A namespace loaded from the compiled-code cache declares its classes
+     * without the analyser seeing them, so a name of `$tag` whose class is
+     * already loaded counts as declared too.
+     *
      * @return array<string, string>
      */
-    private static function imports(AnalyzerInterface $analyzer): array
+    private static function imports(AnalyzerInterface $analyzer, string $tag): array
     {
+        $namespace = $analyzer->getNamespace();
+        $munge = new Munge();
+        $ownClass = static fn(string $type): string => $munge->encodePhpNs($namespace) . '\\' . $munge->encode($type);
+
         $imports = [];
-        foreach ($analyzer->getUseAliases($analyzer->getNamespace()) as $alias => $fullName) {
+        foreach ($analyzer->getPhpClasses($namespace) as $type) {
+            $imports[$type->getName()] = $ownClass($type->getName());
+        }
+
+        foreach (preg_split('/[|&]/', $tag) ?: [] as $part) {
+            $type = ltrim(trim($part, " ()\t"), '?');
+            if (self::mayNameOwnClass($type) && !isset($imports[$type]) && PhpClassLike::exists($ownClass($type))) {
+                $imports[$type] = $ownClass($type);
+            }
+        }
+
+        foreach ($analyzer->getUseAliases($namespace) as $alias => $fullName) {
             $imports[$alias] = $fullName->getName();
         }
 
