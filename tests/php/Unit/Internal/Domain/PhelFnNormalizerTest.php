@@ -25,6 +25,27 @@ final class PhelFnNormalizerTest extends TestCase
         self::assertSame([], $actual);
     }
 
+    public function test_a_core_macro_without_a_doc_link_takes_its_special_form_link(): void
+    {
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
+        $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
+            'definterface' => Phel::map(),
+            'defn' => Phel::map(),
+        ]);
+        $phelFnLoader->method('getNormalizedNativeSymbols')->willReturn([
+            'definterface*' => ['docUrl' => '/documentation/language/interfaces/'],
+        ]);
+
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
+        $docUrls = [];
+        foreach ($normalizer->getPhelFunctions() as $fn) {
+            $docUrls[$fn->name] = $fn->docUrl;
+        }
+
+        self::assertSame('/documentation/language/interfaces/', $docUrls['definterface']);
+        self::assertSame('', $docUrls['defn']);
+    }
+
     public function test_group_key_one_function(): void
     {
         $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);

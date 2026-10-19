@@ -61,6 +61,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         // it describes. `$flattenedFns` cannot serve: `array_merge` renumbers
         // it, so the lookup by name there silently found nothing.
         $byFullName = [];
+        $nativeSymbols = $this->phelFnLoader->getNormalizedNativeSymbols();
         foreach ($normalizedData as $fnName => $meta) {
             $isPrivate = $meta[Keyword::create('private')] ?? false;
             if ($isPrivate) {
@@ -103,7 +104,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 description: $description,
                 groupKey: $groupKey,
                 githubUrl: $this->toGithubUrl($file, $line),
-                docUrl: ScalarCoercion::toString($meta[Keyword::create('docUrl')] ?? null),
+                docUrl: $this->docUrl($meta, $namespace, $this->extractNameWithoutNamespace($fnName), $nativeSymbols),
                 file: $file,
                 line: $line,
                 meta: $this->metaToArray($meta),
@@ -142,6 +143,23 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         }
 
         return $result;
+    }
+
+    /**
+     * A core macro such as `definterface` expands to a special form
+     * (`definterface*`) whose catalog entry holds the guide link.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     * @param array<string, array<string, mixed>>  $nativeSymbols
+     */
+    private function docUrl(PersistentMapInterface $meta, string $namespace, string $name, array $nativeSymbols): string
+    {
+        $docUrl = ScalarCoercion::toString($meta[Keyword::create('docUrl')] ?? null);
+        if ($docUrl !== '' || $namespace !== self::DEFAULT_NAMESPACE) {
+            return $docUrl;
+        }
+
+        return ScalarCoercion::toString($nativeSymbols[$name . '*']['docUrl'] ?? null);
     }
 
     private function extractNamespace(string $fnName): string
