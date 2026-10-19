@@ -58,6 +58,7 @@ PHP API:
 
 Tooling:
 
+- `phel lint` reports a call with the wrong number of arguments once. A call to a function of the same file used to be reported twice under `phel/arity-mismatch`, with two wordings. (#3655)
 - `phel doc` and the API reference link `definterface`, `defstruct` and `defexception` to the same guide section as their `definterface*`, `defstruct*` and `defexception*` special forms. The macros, which are what users call, had no link. (#3656)
 - `phel analyze` and the LSP no longer report a `PHEL005` that `phel run` does not raise: `Macro "..." is not callable` on a call to a macro the file defines, or `Call to a member function __invoke() on null` from a macro such as `phel.router/compiled-router` that runs the file's own fns while expanding. The analysis does not run the file's definitions. A macro removed from a buffer the LSP already analysed is reported as unresolved instead of still expanding. (#3621)
 - `phel lint` reports a repeated key in a map or set literal once, as the reader's `PHEL203`. `{a 1 a 2}` used to report it a second time as `phel/duplicate-key`, a rule that only saw symbol keys and is removed. A `phel/duplicate-key` entry left in `phel-lint.phel` is ignored; the PHP constant `LintRuleCodes::DUPLICATE_KEY` stays, deprecated. (#3607)
@@ -118,6 +119,7 @@ Compiler:
 - `(new PDO "sqlite::memory:")`, `(.-ATTR_ERRMODE PDO)` and `(php/callable PDO getAvailableDrivers)` compile without a warning. They used to print `warning: PDO reads as the global constant PDO here`, which only applies to a bare `PDO` in value position. (#3537)
 - `1/0` fails with `[PHEL120] Invalid ratio 1/0: the denominator is zero` and a caret on the literal. It used to escape as an exception with no error code and no location. (#3608)
 - A `defstruct`, `defenum` or `reify` method whose parameter count does not match its interface fails with `PHEL009`: `Method getMessage takes 0 parameters after this in interface \app\MyInterface, but this implementation takes 1`; it used to stop PHP with `Declaration of ... must be compatible`. A struct missing interface methods names them: `Missing method for interface \app\MyInterface in defstruct: getData`. A `definterface` method with no parameters, `(getMessage [])`, fails with `Method getMessage must take at least the this parameter`; it used to report `Cannot resolve symbol '.getMessage'`. (#3646 #3647 #3648)
+- A type tag naming a struct, interface, exception or enum of the same namespace works under `phel run`, `phel test` and the REPL: `(defn f [^point p] ...)` next to `(defstruct point [x])`. Every call used to fail with `must be of type point, app\point given`; only a `phel build` output worked. (#3654)
 
 Runtime:
 

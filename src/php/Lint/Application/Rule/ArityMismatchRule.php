@@ -53,7 +53,7 @@ final readonly class ArityMismatchRule implements PromotingRuleInterface
 
     public function apply(FileAnalysis $analysis): array
     {
-        $result = SemanticDiagnosticPromoter::promote(
+        $promoted = SemanticDiagnosticPromoter::promote(
             $analysis,
             $this->promotedErrorCode()->value,
             $this->code(),
@@ -61,11 +61,24 @@ final readonly class ArityMismatchRule implements PromotingRuleInterface
 
         $localFns = $this->collectLocalFunctions($analysis->forms);
 
+        $own = [];
         foreach ($analysis->forms as $form) {
-            $this->inspectCalls($form, $localFns, $analysis->uri, $result);
+            $this->inspectCalls($form, $localFns, $analysis->uri, $own);
         }
 
-        return $result;
+        // The analyzer checks same-file calls too; keep its report and drop ours for that call.
+        $reported = [];
+        foreach ($promoted as $diagnostic) {
+            $reported[$diagnostic->startLine . ':' . $diagnostic->startCol] = true;
+        }
+
+        foreach ($own as $diagnostic) {
+            if (!isset($reported[$diagnostic->startLine . ':' . $diagnostic->startCol])) {
+                $promoted[] = $diagnostic;
+            }
+        }
+
+        return $promoted;
     }
 
     /**

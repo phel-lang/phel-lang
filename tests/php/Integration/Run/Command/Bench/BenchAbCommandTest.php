@@ -38,7 +38,8 @@ final class BenchAbCommandTest extends TestCase
         {
             public static function run(): void
             {
-                usleep(3000);
+                // One sample per side: the sleep must outweigh a runner stall (15 ms seen on macOS).
+                usleep(100000);
             }
         }
         PHP;

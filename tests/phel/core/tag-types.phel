@@ -47,3 +47,15 @@
   (let [err (try (dotted-tag 42) (catch TypeError e e))]
     (is (php/instanceof err TypeError)
         "the PHP type declaration is enforced, so it was emitted as a type")))
+
+;; A tag naming a type this namespace declares is rooted to that class: an
+;; evaluated form has no `namespace` line, so a bare name meant a global class.
+(defstruct point [x])
+(defstruct Pair [a b])
+
+(defn point-x [^point p] (:x p))
+(defn pair-a ^Pair [^Pair p] p)
+
+(deftest tag-naming-a-type-of-this-namespace
+  (is (= 1 (point-x (point 1))) "lower-case struct tag")
+  (is (= 2 (:a (pair-a (Pair 2 3)))) "capitalised struct tag, param and return"))
