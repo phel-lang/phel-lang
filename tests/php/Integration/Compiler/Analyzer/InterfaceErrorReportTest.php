@@ -36,7 +36,7 @@ final class InterfaceErrorReportTest extends AbstractCompilerRuntimeTestCase
     public function test_a_struct_missing_an_interface_method_names_the_code(): void
     {
         $expected = <<<'REPORT'
-            [PHEL009] Missing method for interface \user\Shape in defstruct
+            [PHEL009] Missing method for interface \user\Shape in defstruct: draw
             in interface.phel:2
 
             2| (defstruct point [x] Shape)
@@ -47,6 +47,68 @@ final class InterfaceErrorReportTest extends AbstractCompilerRuntimeTestCase
         $phelCode = "(definterface Shape (draw [this]))\n(defstruct point [x] Shape)";
 
         self::assertSame($expected, $this->report($phelCode));
+    }
+
+    public function test_a_struct_missing_some_interface_methods_names_them(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL009] Missing method for interface \interface\partial\Shape in defstruct: area, perimeter
+            in interface.phel:3
+
+            3| (defstruct point [x] Shape (draw [this] 1))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+            REPORT;
+
+        $phelCode = "(ns interface.partial)\n(definterface Shape (draw [this]) (area [this]) (perimeter [this]))\n(defstruct point [x] Shape (draw [this] 1))";
+
+        self::assertSame($expected, $this->report($phelCode));
+    }
+
+    public function test_an_implementation_with_extra_parameters_names_the_code(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL009] Method draw takes 0 parameters after this in interface \interface\extra\Shape, but this implementation takes 1
+            in interface.phel:3
+
+            3| (defstruct point [x] Shape (draw [this extra] 1))
+                                          ^^^^^^^^^^^^^^^^^^^^^
+
+            REPORT;
+
+        $phelCode = "(ns interface.extra)\n(definterface Shape (draw [this]))\n(defstruct point [x] Shape (draw [this extra] 1))";
+
+        self::assertSame($expected, $this->report($phelCode));
+    }
+
+    public function test_an_implementation_with_missing_parameters_names_the_code(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL009] Method draw takes 1 parameter after this in interface \interface\fewer\Shape, but this implementation takes 0
+            in interface.phel:3
+
+            3| (defstruct point [x] Shape (draw [this] 1))
+                                          ^^^^^^^^^^^^^^^
+
+            REPORT;
+
+        $phelCode = "(ns interface.fewer)\n(definterface Shape (draw [this color]))\n(defstruct point [x] Shape (draw [this] 1))";
+
+        self::assertSame($expected, $this->report($phelCode));
+    }
+
+    public function test_an_interface_method_without_parameters_names_the_code(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL009] Method draw must take at least the this parameter
+            in interface.phel:2
+
+            2| (definterface Shape (draw []))
+                                   ^^^^^^^^^
+
+            REPORT;
+
+        self::assertSame($expected, $this->report("(ns interface.empty)\n(definterface Shape (draw []))"));
     }
 
     /**
