@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler\Analyzer;
 
+use Phel\Build\BuildFacade;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
 use PhelTest\Integration\Compiler\AbstractCompilerRuntimeTestCase;
@@ -152,6 +153,32 @@ final class DuplicateDefinitionReportTest extends AbstractCompilerRuntimeTestCas
         $this->compilerFacade->compile("(ns repro.i)\n(defstruct Point [x])", new CompileOptions()->setSource(self::SOURCE));
 
         $this->expectNotToPerformAssertions();
+    }
+
+    /**
+     * `phel build` used to skip this check, so a file `phel run` rejects built.
+     */
+    public function test_a_redefinition_during_a_build_names_the_code(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL004] Symbol 'f' is already bound in namespace 'repro.build'
+            in duplicate.phel:3
+
+            3| (defn f [x y] x)
+                     ^
+
+              first defined at duplicate.phel:2
+
+            REPORT;
+
+        BuildFacade::enableBuildMode();
+        try {
+            $report = $this->report("(ns repro.build)\n(defn f [x] x)\n(defn f [x y] x)");
+        } finally {
+            BuildFacade::disableBuildMode();
+        }
+
+        self::assertSame($expected, $report);
     }
 
     private function report(string $phelCode): string

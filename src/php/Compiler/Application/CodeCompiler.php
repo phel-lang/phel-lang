@@ -66,9 +66,11 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         // Every deprecation this compile finds travels with the result, so
         // the compiled-code cache can replay it on a warm run (#3222).
         DeprecationWarnings::startRecording();
+        $this->analyzer->enterCompileUnit();
         try {
             $result = $this->doCompileString($phelCode, $compileOptions);
         } finally {
+            $this->analyzer->leaveCompileUnit();
             $deprecations = DeprecationWarnings::stopRecording();
         }
 

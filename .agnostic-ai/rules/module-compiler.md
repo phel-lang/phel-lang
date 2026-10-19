@@ -232,6 +232,8 @@ Process-wide singleton in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry
 
 `definitionLocations` remembers where each name was first defined, so `DuplicateDefinitionException` carries the redefinition's own location, `ErrorCode::DUPLICATE_DEFINITION` and a `first defined at …` note instead of welding the file and line into its message (#3267). It reaches the printer with the failing form's snippet because `CodeCompiler`/`EvalCompiler` wrap every `AbstractLocatedException` from analysis, not only `AnalyzerException` (which is `final`, so no analyzer error can inherit it).
 
+In build mode a redefinition counts only within one `compileString` (`GlobalEnvironment::enterCompileUnit()`): a build recompiles namespaces the process already loaded (a second build, a dependency cascade, the integration fixtures), so the plain check would reject them. A name the registry already held when the compile defined it is not claimed, so `declare` reading back an earlier load's value stays redefinable (#3649).
+
 `phpClasses` holds, per namespace, the name that claimed each lowercased munged PHP class a `defstruct*`, `defexception*`, `defenum*` or `definterface*` emits; a second name for the same class raises `DuplicateDefinitionException::forPhpClass` (#3524). Interactive mode keeps the check, since the same name may claim the class again. Analysis mode (lint, `phel analyze`, LSP) skips it like the duplicate-`def` guard, because a re-read buffer is not a redefinition. Every `ns` form clears its namespace, so a reload starts from that file alone, and `snapshot()`/`restore()` carry it so an nREPL eval that fails rolls its claim back.
 
 ## Namespace Encoding

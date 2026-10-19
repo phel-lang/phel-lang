@@ -124,6 +124,16 @@ final class Analyzer implements AnalyzerInterface
         $this->globalEnvironment->addDefinition($ns, $symbol, $allowRedefinition);
     }
 
+    public function enterCompileUnit(): void
+    {
+        $this->globalEnvironment->enterCompileUnit();
+    }
+
+    public function leaveCompileUnit(): void
+    {
+        $this->globalEnvironment->leaveCompileUnit();
+    }
+
     /**
      * @param PersistentMapInterface<mixed, mixed> $meta
      */

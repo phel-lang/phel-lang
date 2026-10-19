@@ -37,6 +37,16 @@ interface GlobalEnvironmentInterface
     public function isAnalysisMode(): bool;
 
     /**
+     * Open the compile of one source. A build recompiles namespaces this
+     * process already loaded, so in build mode only a name defined twice
+     * within one compile is a redefinition. Always pair with
+     * {@see self::leaveCompileUnit()} in a `finally`.
+     */
+    public function enterCompileUnit(): void;
+
+    public function leaveCompileUnit(): void;
+
+    /**
      * @param PersistentMapInterface<mixed, mixed> $meta
      */
     public function setCompileTimeMeta(string $namespace, Symbol $name, PersistentMapInterface $meta): void;
