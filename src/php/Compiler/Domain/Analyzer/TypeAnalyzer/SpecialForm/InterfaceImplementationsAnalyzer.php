@@ -14,12 +14,16 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\MungeInterface;
+use ReflectionMethod;
 
+use function array_diff;
 use function array_key_exists;
+use function array_keys;
 use function array_map;
 use function array_merge;
 use function class_exists;
 use function count;
+use function implode;
 use function interface_exists;
 use function sprintf;
 use function strtolower;
@@ -87,21 +91,14 @@ final readonly class InterfaceImplementationsAnalyzer
             $methods = [];
             $countExpectedMethods = count($expectedMethodIndex);
             for ($i = 0; $i < $countExpectedMethods; ++$i) {
-                $forms = $forms->cdr();
-                if (!$forms instanceof PersistentListInterface) {
-                    throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in ' . $context, $list, errorCode: ErrorCode::INTERFACE_ERROR);
+                $next = $forms->cdr();
+                $method = $next?->first();
+                if (!$next instanceof PersistentListInterface || !$method instanceof PersistentListInterface) {
+                    $this->throwMissingMethods($absoluteInterfaceName, $expectedMethodIndex, $methods, $list, $context);
                 }
 
-                $method = $forms->first();
-                if (!$method instanceof PersistentListInterface) {
-                    throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in ' . $context, $list, errorCode: ErrorCode::INTERFACE_ERROR);
-                }
-
-                $methods[] = $this->analyzeInterfaceMethod($method, $env, $expectedMethodIndex);
-            }
-
-            if (count($methods) !== $countExpectedMethods) {
-                throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in ' . $context, $list, errorCode: ErrorCode::INTERFACE_ERROR);
+                $forms = $next;
+                $methods[] = $this->analyzeInterfaceMethod($method, $env, $absoluteInterfaceName, $expectedMethodIndex);
             }
 
             $interfaces[] = new DefStructInterface(
@@ -150,8 +147,30 @@ final readonly class InterfaceImplementationsAnalyzer
     }
 
     /**
-     * The munged method names the interface expects, each mapped to the
-     * return type its implementation must declare (null when there is none).
+     * @param array<string, ?ReflectionMethod> $expectedMethodIndex
+     * @param list<DefStructMethod>            $methods
+     * @param PersistentListInterface<mixed>   $list
+     */
+    private function throwMissingMethods(
+        string $absoluteInterfaceName,
+        array $expectedMethodIndex,
+        array $methods,
+        PersistentListInterface $list,
+        string $context,
+    ): never {
+        $implemented = array_map(fn(DefStructMethod $method): string => $this->munge->encode($method->getName()->getName()), $methods);
+        $missing = array_diff(array_keys($expectedMethodIndex), $implemented);
+
+        throw AnalyzerException::withLocation(
+            sprintf('Missing method for interface %s in %s: %s', $absoluteInterfaceName, $context, implode(', ', $missing)),
+            $list,
+            errorCode: ErrorCode::INTERFACE_ERROR,
+        );
+    }
+
+    /**
+     * The munged method names the interface expects, each mapped to its
+     * reflection (null when the interface is not loaded yet).
      *
      * Reflection is the source of truth, but it only works once the PHP
      * interface exists — which for a `definterface` in the very same file
@@ -161,7 +180,7 @@ final readonly class InterfaceImplementationsAnalyzer
      *
      * @param PersistentListInterface<mixed> $list
      *
-     * @return array<string, ?string>
+     * @return array<string, ?ReflectionMethod>
      */
     private function expectedMethodIndex(
         PhpClassNameNode $classNode,
@@ -201,19 +220,20 @@ final readonly class InterfaceImplementationsAnalyzer
 
         $index = [];
         foreach ($reflectionClass->getMethods() as $method) {
-            $index[$method->getName()] = InterfaceMethodReturnType::of($method);
+            $index[$method->getName()] = $method;
         }
 
         return $index;
     }
 
     /**
-     * @param PersistentListInterface<mixed> $list
-     * @param array<string, ?string>         $expectedMethodIndex
+     * @param PersistentListInterface<mixed>   $list
+     * @param array<string, ?ReflectionMethod> $expectedMethodIndex
      */
     private function analyzeInterfaceMethod(
         PersistentListInterface $list,
         NodeEnvironmentInterface $env,
+        string $absoluteInterfaceName,
         array $expectedMethodIndex,
     ): DefStructMethod {
         $methodName = $list->get(0);
@@ -227,6 +247,52 @@ final readonly class InterfaceImplementationsAnalyzer
             throw AnalyzerException::withLocation("The interface doesn't support this method: " . $methodName->getName(), $list, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
-        return $this->methodBodyAnalyzer->analyze($list, $env, $expectedMethodIndex[$mungedMethodName]);
+        $expected = $expectedMethodIndex[$mungedMethodName];
+        $method = $this->methodBodyAnalyzer->analyze(
+            $list,
+            $env,
+            $expected instanceof ReflectionMethod ? InterfaceMethodReturnType::of($expected) : null,
+        );
+
+        if ($expected instanceof ReflectionMethod) {
+            $this->assertCompatibleParameters($method, $expected, $absoluteInterfaceName, $list);
+        }
+
+        return $method;
+    }
+
+    /**
+     * PHP rejects an implementation that requires more parameters than the
+     * interface method, or accepts fewer, and only when the class loads.
+     *
+     * @param PersistentListInterface<mixed> $list
+     */
+    private function assertCompatibleParameters(
+        DefStructMethod $method,
+        ReflectionMethod $expected,
+        string $absoluteInterfaceName,
+        PersistentListInterface $list,
+    ): void {
+        $fnNode = $method->getFnNode();
+        $required = $fnNode->getMinArity();
+        if ($required <= $expected->getNumberOfRequiredParameters()
+            && ($fnNode->isVariadic() || $required >= $expected->getNumberOfParameters())
+        ) {
+            return;
+        }
+
+        $expectedCount = $expected->getNumberOfParameters();
+        throw AnalyzerException::withLocation(
+            sprintf(
+                'Method %s takes %d %s after this in interface %s, but this implementation takes %d',
+                $method->getName()->getName(),
+                $expectedCount,
+                $expectedCount === 1 ? 'parameter' : 'parameters',
+                $absoluteInterfaceName,
+                $required,
+            ),
+            $list,
+            errorCode: ErrorCode::INTERFACE_ERROR,
+        );
     }
 }

@@ -181,6 +181,14 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('Method arguments must be vectors', $method, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
+        if (count($arguments) === 0) {
+            throw AnalyzerException::withLocation(
+                sprintf('Method %s must take at least the this parameter', $name->getName()),
+                $method,
+                errorCode: ErrorCode::INTERFACE_ERROR,
+            );
+        }
+
         $argumentSymbols = [];
         $argumentNames = [];
         foreach ($arguments as $argument) {
