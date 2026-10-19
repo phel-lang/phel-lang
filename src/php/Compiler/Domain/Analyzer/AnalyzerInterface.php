@@ -54,6 +54,10 @@ interface AnalyzerInterface
 
     public function addDefinition(string $ns, Symbol $symbol, bool $allowRedefinition = false): void;
 
+    public function enterCompileUnit(): void;
+
+    public function leaveCompileUnit(): void;
+
     /**
      * @param PersistentMapInterface<mixed, mixed> $meta
      */

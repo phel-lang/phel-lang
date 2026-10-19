@@ -19,6 +19,8 @@ use Phel\Shared\Munge;
 use Phel\Shared\ReplConstants;
 
 use function array_key_exists;
+use function array_key_last;
+use function array_pop;
 use function strtolower;
 
 /**
@@ -114,6 +116,16 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private int $analysisPass = 0;
 
     /**
+     * Names each open compile defined that had no runtime value yet, innermost
+     * last: a `ns` form compiles the files it requires while its own compile
+     * is still open. A name an earlier load already set is left out, so a
+     * `declare` reading back that value stays redefinable.
+     *
+     * @var array<int, array<string, array<string, true>>>
+     */
+    private array $compileUnits = [];
+
+    /**
      * Names an analysis pass defined that had no definition before it, with
      * the pass. The pass never evaluates them, so the next pass over the same
      * namespace drops the macros among them that nothing evaluated since: a
@@ -188,6 +200,11 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         $this->definitions[$namespace][$name->getName()] = true;
+
+        $innermost = array_key_last($this->compileUnits);
+        if ($innermost !== null && !Phel::hasDefinition($namespace, $name->getName())) {
+            $this->compileUnits[$innermost][$namespace][$name->getName()] = true;
+        }
 
         $startLocation = $name->getStartLocation();
         if ($startLocation instanceof SourceLocation) {
@@ -368,6 +385,16 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     public function isPrivateAccessAllowed(): bool
     {
         return $this->allowPrivateAccessCounter > 0;
+    }
+
+    public function enterCompileUnit(): void
+    {
+        $this->compileUnits[] = [];
+    }
+
+    public function leaveCompileUnit(): void
+    {
+        array_pop($this->compileUnits);
     }
 
     public function enterAnalysisMode(): void
@@ -571,7 +598,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         // `phel eval` and the nREPL server raised on a re-definition the same
         // prompt accepts (#2896). `*interactive-mode*` is what all three set.
         if ($this->isAnalysisMode()
-            || Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE)
             || Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::INTERACTIVE_MODE)
             || $namespace === CompilerConstants::PHEL_CORE_NAMESPACE
         ) {
@@ -582,6 +608,13 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
         if (!isset($this->definitions[$namespace][$symbolName])) {
             return false;
+        }
+
+        if (Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE)) {
+            $innermost = array_key_last($this->compileUnits);
+            if ($innermost === null || !isset($this->compileUnits[$innermost][$namespace][$symbolName])) {
+                return false;
+            }
         }
 
         return Phel::hasDefinition($namespace, $symbolName);
