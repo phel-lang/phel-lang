@@ -58,6 +58,7 @@ PHP API:
 
 Tooling:
 
+- `phel doc` and the API reference link `definterface`, `defstruct` and `defexception` to the same guide section as their `definterface*`, `defstruct*` and `defexception*` special forms. The macros, which are what users call, had no link. (#3656)
 - `phel analyze` and the LSP no longer report a `PHEL005` that `phel run` does not raise: `Macro "..." is not callable` on a call to a macro the file defines, or `Call to a member function __invoke() on null` from a macro such as `phel.router/compiled-router` that runs the file's own fns while expanding. The analysis does not run the file's definitions. A macro removed from a buffer the LSP already analysed is reported as unresolved instead of still expanding. (#3621)
 - `phel lint` reports a repeated key in a map or set literal once, as the reader's `PHEL203`. `{a 1 a 2}` used to report it a second time as `phel/duplicate-key`, a rule that only saw symbol keys and is removed. A `phel/duplicate-key` entry left in `phel-lint.phel` is ignored; the PHP constant `LintRuleCodes::DUPLICATE_KEY` stays, deprecated. (#3607)
 - Built entry points and exported PHP wrappers refuse a different runtime Phel version, including a patch or development commit change. Run `phel build` or `phel export` after changing Phel. A build warns when its version differs from the project's locked Phel version; it used to produce artifacts that could fail on missing internal methods at deployment. (#3519, ADR 0020)
