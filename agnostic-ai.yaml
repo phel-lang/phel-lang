@@ -42,5 +42,6 @@ sync:
 lint:
   # Startup instructions are ~800 words (Claude) and ~1100 (Codex); warn before they grow past this.
   instructions-words: 1300
-  # Matches project_doc_max_bytes in .agnostic-ai/overlays/codex.config.toml.
-  codex-chain-bytes: 65536
+  # Codex truncates past project_doc_max_bytes (65536, .agnostic-ai/overlays/codex.config.toml).
+  # Warn well before that: the largest chain (Compiler/Domain/Emitter) is ~36 KB.
+  codex-chain-bytes: 40960

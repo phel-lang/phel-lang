@@ -30,6 +30,7 @@ Every directory under `src/php/` is a module. Most follow the [Gacela](https://g
 | `Api/` | Programmatic access to documented symbols (used by `doc`, `lsp`). |
 | `Interop/` | Generates PHP wrappers so PHP can call Phel from an IDE. |
 | `Lint/` | `phel lint` over parse trees. |
+| `Mutate/` | `phel mutate`: mutation testing, one worker subprocess per mutant. |
 | `Formatter/` | Pretty-prints `.phel`. |
 | `Balance/` | `phel balance` over the token stream; the one module that writes a file it could not parse. |
 | `Lsp/` | LSP over stdio. |

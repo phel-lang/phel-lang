@@ -39,5 +39,5 @@ compilation target, and static analysis stopping at `src/` were each argued once
 ## Adjacent
 
 - Each module's `.agnostic-ai/rules/module-<name>.md`: public API + constraints. Read before editing.
-- `.agnostic-ai/rules/compiler.md`, `.agnostic-ai/rules/integration-tests.md`: phase ordering, fixture conventions.
+- `.agnostic-ai/rules/module-compiler.md` (plus `module-compiler-*.md` per directory), `.agnostic-ai/rules/integration-tests.md`: phase ordering, fixture conventions.
 - User docs on the website: [getting started](https://phel-lang.org/documentation/getting-started/), [php-interop](https://phel-lang.org/documentation/language/php-interop/), [data structures](https://phel-lang.org/documentation/language/data-structures/).
