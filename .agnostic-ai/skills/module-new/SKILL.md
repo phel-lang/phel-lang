@@ -48,7 +48,7 @@ Run first: `ls src/php/`.
    - Factory: `#[ServiceMap(method: 'getConfig', className: <ModuleName>Config::class)]`
    - Provider: the same `getConfig` mapping; use `AbstractConfig::class` only when the module intentionally has no custom Config
 
-6. **Module rule**: create `.agnostic-ai/rules/module-<kebab-name>.md` in the format of `.agnostic-ai/rules/modules.md`, and add the module to the map in `.agnostic-ai/rules/module-map.md`. Document only what the code does not say. Run `agnostic-ai sync`.
+6. **Module rule**: create `.agnostic-ai/rules/module-<kebab-name>.md` in the format given in `.agnostic-ai/rules/module-map.md`, and add the module to the table in `docs/internals/architecture.md`. Document only what the code does not say. Run `agnostic-ai sync`.
 
 7. **Registration**: Gacela discovers the module through PSR-4. A module with CLI commands also needs a `<ModuleName>Commands` class in `src/php/Console/Infrastructure/Command/`, listed in `ConsoleProvider::commandProviders()`.
 

@@ -22,7 +22,7 @@ Run focused tests while working, then `COMPOSER_PROCESS_TIMEOUT=0 composer test`
 
 1. Add or merge the `CHANGELOG.md` entry per `.agnostic-ai/rules/workflow.md`.
 2. Commit with a conventional message (`.agnostic-ai/rules/workflow.md`) and a body line `Related to #<issue-number>`.
-3. Final refactor commit, mandatory and last before the PR: reread every touched file for duplication, dead code, naming drift, speculative guards and violations of `.agnostic-ai/rules/php.md`, `modules.md` or `compiler.md`. Fix, rerun `composer test`, and commit as `ref(<scope>): polish <area> after #<issue-number>`. If there is nothing to fix, say so in the PR body.
+3. Final refactor commit, mandatory and last before the PR: reread every touched file for duplication, dead code, naming drift, speculative guards and violations of `.agnostic-ai/rules/php.md`, `.agnostic-ai/rules/module-map.md` or the touched module's `module-*.md` rule. Fix, rerun `composer test`, and commit as `ref(<scope>): polish <area> after #<issue-number>`. If there is nothing to fix, say so in the PR body.
 4. Open the PR with `/pr #<issue-number>`: it owns the template, title and label.
 
 ## Merge

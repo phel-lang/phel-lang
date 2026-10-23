@@ -6,24 +6,22 @@ scope: src/php/Mutate
 
 # Mutate Module
 
-Mutation testing for Phel code (`phel mutate`): every `defn` / `defn-` under the
-given paths is changed one small, plausible mistake at a time, the test suite
-runs against each mutant, and the ones the suite does not catch are listed.
-Infection covers `src/php/`; this covers `src/phel/` and any user's Phel
-project, with no PHP dependency added.
+Mutation testing for Phel `defn` / `defn-` forms (`phel mutate`). Infection
+covers `src/php/`; this covers `src/phel/` and user projects, with no PHP
+dependency.
 
 ## Internal tooling API (Facade)
 
 | Method | Returns |
 |--------|---------|
-| `plan(MutateOptions)` | `MutationPlan`: source files to mutate, worker load order, test namespaces |
-| `generate(MutationPlan, MutateOptions)` | `list<Mutant>` from the selected mutators |
-| `warm(MutationPlan)` | compiles the load order once in the parent and flushes the cache index, so workers never race a cold cache |
+| `plan(MutateOptions)` | `MutationPlan`: source files, worker load order, test namespaces |
+| `generate(MutationPlan, MutateOptions)` | `list<Mutant>` |
+| `warm(MutationPlan)` | compiles the load order in the parent and flushes the cache index, so workers never race a cold cache |
 | `run(MutationPlan, MutateOptions, list<Mutant>, ?Closure $onResult)` | `MutationReport`; throws `BaselineFailedException` (red suite) or `WorkerFailedException` (worker could not load) |
-| `detectWorkerCount()` | what `--parallel=auto` means here (`Shared\Process\CpuCountDetector`, capped at 8) |
-| `createWorkerSession()` | `MutantWorkerSession`, the worker side of the protocol for `phel _mutate-worker` |
+| `detectWorkerCount()` | `--parallel=auto` (`Shared\Process\CpuCountDetector`, capped at 8) |
+| `createWorkerSession()` | `MutantWorkerSession`, worker side of `phel _mutate-worker` |
 
-The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
+Internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies
 
@@ -34,29 +32,28 @@ The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 
 | Command | `CommandFacadeInterface` | project source and test directories |
 
 No module imports `Mutate`; `Console` only wraps its commands. No
-`Phel\Shared\Facade` contract, like `Balance`, `Lint`, `Lsp`, `Nrepl`,
-`Profile` and `Watch`.
+`Phel\Shared\Facade` contract.
 
 ## Structure
 
-- `Domain/Mutator/`: `MutatorInterface` (`id()`, `mutate(parent, index, child): list<Replacement>`), `MutatorRegistry` (all built-ins, `--only` selection, unknown id throws), `Nodes` (replacement atoms + child-list edits), `SymbolSwapTrait`, `Description`, and the eleven mutators: `arith`, `compare`, `equality`, `logic`, `cond-branch`, `literal-bool`, `literal-num`, `literal-str`, `seq-op`, `return-nil`, `body-drop`.
-- `Domain/`: `Mutant` (file, ns, definition, line, form line, mutator, description, original + mutated form, `diff()`, `lineRange()`), `MutantVerdict` (`killed | survived | error | timeout | not-covered`), `MutantResult`, `MutationReport` (totals, MSI + covered MSI, coverage driver, `toText()`, `toJson()`), `MutateOptions`, `MutationPlan`, `TestsByLine` (the attribution as it travels over the wire), exceptions.
-- `Application/MutantGenerator`: walks the CST; sites are every non-trivia child of every list inside a definition body; each mutant is one `replaceChildren()` in place, `getCode()` of the whole top-level form, then the original children back.
-- `Application/MutationPlanner`: options + project config to `MutationPlan`; `--changed` keeps only the source files `Shared\Process\GitChangedFiles` reports (file-level: a changed line invalidates what its whole definition does, and the definition is what a mutant redefines).
-- `Application/ProjectWarmer` (parent): `evalFile` of the whole load order + `flushCompiledCodeCache()` before any worker spawns.
-- `Application/PcovScopeWidener`: the `-d pcov.directory=/` the worker argv carries when pcov is loaded; `[]` otherwise.
-- `Application/MutationRunner` (parent): a pool of `MutantWorker`s (`phel _mutate-worker` subprocesses, `WorkerFrame` over stdin/stdout, `send()` / `tryReceive()` with a deadline). All workers load and baseline at once, then mutants are handed out as workers come free; the first worker's baseline is authoritative.
-- `Application/MutantWorkerSession` (worker): `load()` evaluates the files and switches on `*interactive-mode*`; `baseline()` runs the suite under `beginPerTestCoverage()` when a driver is available and keeps `file => line => tests`; `mutant()` = pick the tests whose coverage reaches the definition's line range (`not-covered` when none, run everything when no attribution), `setNs` + eval mutated form, `run-tests` with `:only-tests`, eval original form.
+- `Domain/Mutator/`: `MutatorInterface` (`id()`, `mutate(parent, index, child): list<Replacement>`), `MutatorRegistry` (built-ins, `--only` selection, unknown id throws), `Nodes`, `SymbolSwapTrait`, `Description`, and eleven mutators: `arith`, `compare`, `equality`, `logic`, `cond-branch`, `literal-bool`, `literal-num`, `literal-str`, `seq-op`, `return-nil`, `body-drop`.
+- `Domain/`: `Mutant` (`diff()`, `lineRange()`), `MutantVerdict` (`killed | survived | error | timeout | not-covered`), `MutantResult`, `MutationReport` (MSI + covered MSI, coverage driver, `toText()`, `toJson()`), `MutateOptions`, `MutationPlan`, `TestsByLine` (attribution over the wire), exceptions.
+- `Application/MutantGenerator`: a site is any non-trivia child of any list in a definition body; each mutant is one in-place `replaceChildren()`, `getCode()` of the top-level form, then restore.
+- `Application/MutationPlanner`: `--changed` keeps files `Shared\Process\GitChangedFiles` reports. File-level on purpose: a changed line affects its whole definition, and a mutant redefines the whole definition.
+- `Application/ProjectWarmer` (parent): `evalFile` of the load order + `flushCompiledCodeCache()` before workers spawn.
+- `Application/PcovScopeWidener`: `-d pcov.directory=/` for worker argv when pcov is loaded, else `[]`.
+- `Application/MutationRunner` (parent): pool of `MutantWorker` subprocesses (`WorkerFrame` over stdin/stdout, `send()` / `tryReceive()` with a deadline). All workers load and baseline at once, then take mutants as they free up; the first worker's baseline is authoritative.
+- `Application/MutantWorkerSession` (worker): `load()` evaluates files, enables `*interactive-mode*`; `baseline()` runs the suite under `beginPerTestCoverage()` when a driver exists, keeping `file => line => tests`; `mutant()` picks tests reaching the definition's line range (`not-covered` if none, all if no attribution), `setNs` + eval mutated form, `run-tests` with `:only-tests`, eval original.
 - `Infrastructure/Command/`: `MutateCommand` (`mutate`), `MutateWorkerCommand` (`_mutate-worker`, hidden).
 
 ## Key Constraints
 
-- **Mutate the parse tree, never the source text.** `FileNode::getCode()` round-trips byte for byte, so the only textual difference between original and mutant is the mutation. Mutators are pure: build a new child list, never call `replaceChildren()` yourself; the generator does, and restores.
-- **Not mutated on purpose:** definition head and name, docstring and attribute map, parameter vectors, anything under `'` or `` ` `` (data, not code), `def`, `defmacro`, `:inline` bodies (they are inlined at call sites, a redefinition would not reach them).
-- **Mutants run in worker subprocesses (`--parallel=N|auto`, default 1).** In-process would be faster but a mutant that loops forever or blows the stack has to cost one worker, not the run: the parent scores a silent worker as `timeout` (never below 1s, default 3x the baseline) and a dead one as `killed`, then spawns a fresh worker (load + baseline on its own) and goes on. `MutantWorker::isDead()` tells a crash from a slow answer.
-- **Coverage-guided when a driver is there.** Every worker takes the baseline under per-test coverage attribution (`RunFacadeInterface::beginPerTestCoverage()`, xdebug in coverage mode or pcov), so each mutant runs only the tests whose coverage reaches its definition, and a definition no test reaches is `not-covered` without running anything. Without a driver every mutant runs the whole suite and the report says so. Attribution is per worker process because the collector hooks that process's `phel.test`; the baselines run in parallel so start-up costs one baseline of wall time, not N. Workers spawn with the `-d` from `Application/PcovScopeWidener`, without which pcov instruments nothing outside `<cwd>/src` and every mutant reads as `not-covered` (#3270).
-- **MSI vs covered MSI.** MSI = detected / (detected + survived + not-covered): what nothing tests counts against the suite. Covered MSI = detected / (detected + survived): the quality of the tests that exist. `--min-msi` and `--min-covered-msi` gate each; `.github/workflows/mutation-phel.yml` runs `src/phel/core` weekly against both floors. A run where every mutant is `not-covered` scores covered MSI 0, not the 100 that 0/0 would give, so no floor is cleared by a run that tested nothing; the text report warns when a driver reached no mutant at all.
-- **Redefinition, not `with-redefs`.** The worker evaluates the whole mutated `defn` in its namespace under `*interactive-mode*` (the same switch `phel.repl` and the nREPL use), then evaluates the original again. That handles every `defn` shape (docstring, meta, multi-arity, pre/post) without rebuilding a `fn`. Compile of a mutant goes through `RunFacade::eval()`, in memory: nothing reaches the compiled-code cache.
-- **Optimization level 0 only.** From level 1 up the analyzer inlines callees into already-compiled callers, so redefining a var does not reach them and every such mutant would survive for the wrong reason (#3125, #3126). `MutateCommand` pins level 0 with `Shared\OptimizationLevel::pin()` whatever the project config says, before anything compiles; the pin is an environment variable, so workers inherit it and a dependency a compiled file loads on its own compiles at 0 too. The compiled-code cache keys on the level, so a mutation run never reuses code compiled at the configured level (#3396).
-- **The baseline must be green.** A red suite scores nothing; `BaselineFailedException` ends the run with exit 1.
+- **Mutate the parse tree, never source text.** `FileNode::getCode()` round-trips byte for byte, so the mutation is the only textual difference. Mutators are pure: return a new child list, never call `replaceChildren()`; the generator does.
+- **Never mutated:** definition head and name, docstring, attribute map, parameter vectors, anything under `'` or `` ` `` (data), `def`, `defmacro`, `:inline` bodies (inlined at call sites, a redefinition would not reach them).
+- **Mutants run in worker subprocesses (`--parallel=N|auto`, default 1)**, so an infinite loop or stack overflow costs one worker, not the run. A silent worker scores `timeout` (min 1s, default 3x baseline), a dead one `killed`; a fresh worker (own load + baseline) replaces it. `MutantWorker::isDead()` tells crash from slowness.
+- **Coverage-guided when a driver exists** (xdebug coverage mode or pcov). Each mutant runs only tests reaching its definition; an unreached one is `not-covered` without running. No driver: every mutant runs the whole suite, and the report says so. Attribution is per worker process (the collector hooks that process's `phel.test`); baselines run in parallel. Without the `PcovScopeWidener` `-d`, pcov instruments nothing outside `<cwd>/src` and every mutant reads `not-covered` (#3270).
+- **MSI** = detected / (detected + survived + not-covered); **covered MSI** = detected / (detected + survived). Gated by `--min-msi` and `--min-covered-msi`; `.github/workflows/mutation-phel.yml` runs `src/phel/core` weekly against both. All-`not-covered` scores covered MSI 0, not 100 from 0/0, so a run that tested nothing clears no floor; the text report warns when a driver reached no mutant.
+- **Redefinition, not `with-redefs`.** The worker evaluates the whole mutated `defn` in its namespace under `*interactive-mode*` (as `phel.repl` and nREPL do), then the original. Handles every `defn` shape. Mutants compile in memory via `RunFacade::eval()`, never reaching the compiled-code cache.
+- **Optimization level 0 only.** From level 1 the analyzer inlines callees into compiled callers, so a redefinition misses them and mutants survive for the wrong reason (#3125, #3126). `MutateCommand` pins 0 via `Shared\OptimizationLevel::pin()` before anything compiles, overriding project config. The pin is an env var, so workers and dependencies inherit it. The cache keys on the level, so a run never reuses code compiled at the configured level (#3396).
+- **The baseline must be green**, else `BaselineFailedException`, exit 1.
 - **Errors** (mutants that do not compile) are reported but count in neither score.

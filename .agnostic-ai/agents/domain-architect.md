@@ -20,7 +20,7 @@ Keep module boundaries clean in the Phel compiler and runtime.
 
 ## Read these first, never from memory
 
-- `.agnostic-ai/rules/module-map.md`: the module map, Gacela wiring, where each `FacadeInterface` lives, and the four accepted cycles.
+- `.agnostic-ai/rules/module-map.md`: Gacela wiring, where each `FacadeInterface` lives, and the four accepted cycles.
 - The module's own `.agnostic-ai/rules/module-<name>.md`.
 - `module-rules.json`: the machine-readable boundaries that PHPStan, Psalm and `tests/php/Unit/Architecture/ModuleRulesTest` enforce.
 - `docs/adr/`: the reason behind a choice that looks wrong.

@@ -22,7 +22,7 @@ Audits every module rule, `.agnostic-ai/rules/module-<name>.md` (scoped to `src/
 
 For each module directory in `src/php/`:
 
-1. **Rule exists**: if not, create `.agnostic-ai/rules/module-<name>.md` in the format of `.agnostic-ai/rules/modules.md`
+1. **Rule exists**: if not, create `.agnostic-ai/rules/module-<name>.md` in the format given in `.agnostic-ai/rules/module-map.md`
 2. **Purpose line**: still accurate?
 3. **Gacela pattern**: Facade, Factory, Config, Provider class names match actual files
 4. **Public API**: every public method on the Facade is listed; removed methods are gone

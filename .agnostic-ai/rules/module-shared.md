@@ -49,18 +49,6 @@ The Api and Run contracts are internal tooling; other facade contracts keep the 
 | `ReplConstants::INTERACTIVE_MODE` | `'*interactive-mode*'`: set by `phel repl`, `phel eval` and the nREPL server; disables the duplicate-definition guard |
 | `CompileOptions` defaults | `DEFAULT_SOURCE`, `DEFAULT_STARTING_LINE`, `DEFAULT_ENABLE_SOURCE_MAPS`, `DEFAULT_EMIT_ONLY` |
 
-## Exceptions (`Exceptions/`)
-
-- `CompilerException`: wraps `AbstractLocatedException` with `CodeSnippet`. `FileException` (file/dir ops); `CompiledCodeIsMalformedException` (PHP `eval()` parse errors).
-- `AbstractLocatedException`: base for located errors; carries `SourceLocation` + `ErrorCode`, an optional pre-formatted `relatedLocationNote` that `TextExceptionPrinter` renders under the snippet (`first defined at foo.phel:2`), and `getSuggestions()`: the "did you mean" names (set by `AnalyzerException::cannotResolveSymbol`) so tools need not parse the message.
-- `ErrorCode`: enum, five ranges (PHEL0xx analyzer, 1xx parser, 2xx reader, 3xx lexer, 4xx runtime). A case with no production caller fails `ErrorCodeInventoryTest`.
-- `SourceMappedErrorHandler` (`@internal`): installed by `bin/phel` through `CommandFacade::reportWarningsAtPhelSource()`. Prints a PHP warning, notice or deprecation from compiled code at the `.phel` file and line its mapper returns; hands unmapped ones back to PHP. Lives here so the compiler's `ErrorNotice` can tell it from a userland handler.
-- `RuntimeErrorCodeResolver`: maps an uncaught PHP throwable to its PHEL4xx code, unwrapping one `getPrevious()` level. Only engine classes are recognised; a user's `ex-info` stays uncoded.
-- `ErrorCodeCatalog` + `ErrorCodeExplanation`: prose per code; single source for `phel explain` and `composer error-docs:update` (`docs/errors/`). `find()` accepts `PHEL008`, `phel008`, `8`.
-- `MissingNsFormException`: thrown by Build's namespace extractor when a file's first form is not `(ns ...)` and analysis hit an unresolved symbol. The analyzer error stays in the previous slot, so the report headline is unchanged; only the hint differs.
-- `Exceptions/Hint/`: pure error→hint mappers (`ExceptionHintInterface` + `MissingNsFormHint`, `UndefinedSymbolHint`, `ArgumentCountHint`, `NotCallableHint`, `ClassNotFoundHint`) and `ExceptionHintResolver` (first applicable hint, unwrapping one `getPrevious()` level). Shared so embedding hosts get the same hints.
-- `ExceptionPrinterInterface`: implemented by `Command\Application\TextExceptionPrinter`; lives here so `CommandFacadeInterface` does not back-reference `Command\Domain`. Methods: `getExceptionString()`, `getStackTraceString()`, `getUserFacingTraceString($e, $showInternalFrames)` (return strings; the caller picks the output) and side-effecting `printStackTrace()`. Do not re-add `printError()` (bypassed the Symfony `OutputInterface`) or `printException()` (duplicated `CommandExceptionWriter`). `printStackTrace()` looks unused in PHP but `src/phel/test.phel` calls it via interop.
-
 ## Value Objects
 
 All `final readonly` and logic-free unless noted. Most live here so a facade contract need not name a foreign module's class (a cycle).
@@ -78,10 +66,6 @@ All `final readonly` and logic-free unless noted. Most live here so a facade con
 - `Parser/ReadModel/CodeSnippet`: `SourceLocation` (start/end) + source string.
 - `Parser/Node/*`: parse-tree VOs (`FileNode`, `ListNode`, `SymbolNode`, `MetaNode`, trivia nodes, …) plus the lexer `Token`. AST contract for Formatter, Lint, Api; produced by Compiler.
 - Base classes: `AbstractAtomNode` (`Boolean`, `Keyword`, `Nil`, `Number`, `String`, `Symbol`) and `AbstractTriviaNode` (`Whitespace`, `Newline`, `Comma`, `Comment`). The trivia constructor is `final`, so a trivia subclass carries no state; `createWithToken()` returns `static`.
-
-## Printer (`Printer/`)
-
-Stateless; see `.agnostic-ai/rules/module-shared-printer.md`.
 
 ## Utility Classes (pure, stateless; instantiate directly)
 
@@ -111,28 +95,15 @@ Stateless; see `.agnostic-ai/rules/module-shared-printer.md`.
 | `Binding/IterationHead` | static `isIterationForm()` / `entries(formName, head)`: bound names of a `for`/`dofor`/`foreach` head, each with the head forms where a reference counts as a use. Not `let`-style pairs: a pairwise read wrongly yields the collection expression as a name. Shared so Lint's `unused-binding`/`shadowed-binding` and Api's `PointCompleter` cannot drift |
 | `TagResolver` | `:tag` meta → PHP type string: static `fromMeta()` (null-safe), `normalizeScalar()` (Symbol→name, else non-empty string or null; expands `TYPE_ALIASES` to rooted classes, roots dotted names). `expandImports($tag, $imports)` rewrites `:use` aliases to rooted classes; only the compiler's `TagCanonicalizer` calls it, so tags on the AST and in definition meta are already canonical and readers need no imports. Single source for analyzer type inference, `MethodEmitter`, `PhpAttributeEmitterTrait` |
 | `DeprecationResolver` | static `reasonFromMeta()`: the `:deprecated` reason, `'deprecated'` for bare `^:deprecated`, `''` for neither. Shared by Api's `SymbolExtractor` (`Definition::$deprecated`) and Lint's `discouraged-var`. The compiler's `DeprecatedDefinitionWarner` deliberately keeps its own reading: it warns on any truthy value |
-| `Performance/OpcacheAdvisor` | pure `advise(...)` (caller passes ini flags) → `OpcacheAdvice`; warns when OPcache won't persist the cache across CLI runs |
-| `Performance/OpcacheWorkerFlags` | pure `forFileCache(loaded, dir)` → `-d opcache.enable_cli=1 -d opcache.file_cache=<dir> -d opcache.jit=disable` or `[]`; used by test workers (`RunFactory`) and the CLI re-exec |
-| `Performance/OpcacheReexec` | pure `decide(...)` → `OpcacheReexecDecision` (`shouldReexec`, `flags`): whether `bin/phel` should `pcntl_exec` itself with a file cache; the exec stays in `bin/phel`. `withUserIniFlags()` puts user flags **before** Phel's, so PHP's last-wins `-d` keeps `opcache.enable_cli` / `file_cache` / `file_cache_only` authoritative |
-| `Performance/OpcacheFileCache` | reads a file cache dir: `entries()`, `detectSystemId(compiledFile)` (probes the `.bin` of an already compiled file), `foreignEntries(id)`, `sizeInBytes()`. Layout `<file_cache>/<32-char system id><absolute source path>.bin`, so a PHAR source yields a `<id>phar:` entry |
-| `Performance/OpcacheFileCachePruner` | `pruneForeignSystemIds()`, `pruneOrphanedBins()`, `clearContents()` (empties without removing: PHP aborts when `opcache.file_cache` is missing). Symlinked dirs are unlinked, never descended |
-| `Performance/ProcessCommandLine` | `current()` → OS-reported argv (`/proc/self/cmdline`, else `ps -ww -o args=`), or `[]`. Needed because PHP strips interpreter flags from `$_SERVER['argv']` |
-| `Performance/UserIniFlags` | pure `extract(processArgs, scriptArgv)` → the user's `-d`/`-n`/`-c` flags, or `[]` when the two argv views are ambiguous. Lets the re-exec keep ini overrides |
-| `Process/CpuCountDetector` | worker count: `PHEL_TEST_WORKERS` (`fromEnv()`, via `EnvVar`), else `nproc` / `sysctl` / `/proc/cpuinfo`, else 4; `detect()` caps at 8, `detectMax()` does not. Used by `phel test --parallel` and `phel mutate --parallel` |
-| `Process/GitChangedFiles` | `changedFiles(?ref, projectDir)`: absolute changed paths (uncommitted + untracked; else since the default branch's merge base; or `git diff <ref>`); throws `GitUnavailableException` outside a repo. Used by `--changed` in `test` and `mutate` |
-| `Process/WorkerFrame` | pure length-prefixed JSON codec (`<8 hex digits>\n<payload>`) over worker stdin/stdout: `encode()`, `readBlocking()`, `decodeBody()`, `headerSize()`. Spoken by `_test-worker` (Run) and `_mutate-worker` (Mutate) |
-| `Process/PhelBinaryLocator` | static `locate()` → the running `phel` entry point (`SCRIPT_FILENAME`, else `argv[0]`, else repo `bin/phel`), so workers run the parent's code and config. Shared because `RunFactory` and `MutateFactory` may not reach into each other |
 
-## SourceMap (`SourceMap/`)
+## Subdirectory rules
 
-| Class | Purpose / producer → consumer |
-|-------|-------------------------------|
-| `VLQ` | pure Base64-VLQ codec (`decode`, `encodeIntegers`, `encodeInteger`); used by Compiler's `SourceMapGenerator` and `SourceMapConsumer` |
-| `SourceMapConsumer` | decodes `mappings` into `getOriginalLine()` / `getMappedLines()`. Here because Compiler (`EvaluatedCodeException`) and Command (`FilePositionExtractor`) both decode; the writer (`SourceMapGenerator`, `SourceMapState`) stays in Compiler |
-| `SourceMapSiblings` | naming for `<file>.php.map` + `<file>.phel`. Written by Build (`FileCompiler`, `SecondaryFileHarvester`), read by Command (`SourceMapExtractor`) |
-| `BuiltFilePreamble` | `<?php declare(strict_types=1);` + building-version comment; `prepend()` (`FileCompiler`), `codeStartLine()` (`SourceMapExtractor`) |
-| `InlineSourceMapComments` | `// ` / `// ;;` prefixes for inline maps in eval'd code. Written by `Shared\EmitterResult`, parsed by `SourceMapExtractor` + `EvaluatedCodeException` |
-| `SupersededSourceMaps` | per-process headers of compiled files this process `require`d before they were overwritten. Written by Build (`CompiledCodeCache::put`), read first by Command (`SourceMapExtractor`), so an earlier code frame maps through its own map |
+Each loads with its directory:
+
+- `.agnostic-ai/rules/module-shared-exceptions.md`: `Exceptions/` (located errors, `ErrorCode`, hints).
+- `.agnostic-ai/rules/module-shared-sourcemap.md`: `SourceMap/`.
+- `.agnostic-ai/rules/module-shared-process.md`: `Performance/` (OPcache helpers) and `Process/` (workers, git, CPU count).
+- `.agnostic-ai/rules/module-shared-printer.md`: `Printer/`.
 
 ## Key Constraints
 

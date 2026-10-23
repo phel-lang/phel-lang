@@ -33,7 +33,7 @@ Read and analyze the specified file(s) from the argument.
 
 ## Architecture Compliance
 
-Check the file against `.agnostic-ai/rules/module-map.md` and its module's `.agnostic-ai/rules/module-<name>.md`: cross-module calls go through facade contracts, `Shared` holds only pure cross-cutting code, and no new dependency cycle appears. For compiler code, phases stay in order per `.agnostic-ai/rules/compiler.md`.
+Check the file against `.agnostic-ai/rules/module-map.md` and its module's `.agnostic-ai/rules/module-<name>.md`: cross-module calls go through facade contracts, `Shared` holds only pure cross-cutting code, and no new dependency cycle appears. For compiler code, phases stay in order per `.agnostic-ai/rules/module-compiler.md`.
 
 ## For Phel Source Files (`src/phel/`)
 
