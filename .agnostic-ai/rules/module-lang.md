@@ -6,110 +6,87 @@ scope: src/php/Lang
 
 # Lang Module
 
-Core runtime type system: persistent data structures, language primitives, and collection protocols.
-
-No Gacela pattern: foundational leaf module; all types used directly by other modules. Depends only on `Phel\Shared`:
-- `AbstractType::__toString()` uses `Printer::readable()`.
-- `AbstractPersistentStruct` uses `Munge` for key encoding (lockstep with compiler).
+Runtime types, persistent collections, language primitives. A leaf module with no Gacela pattern; other modules use its types directly. Depends only on `Phel\Shared` (`AbstractType::__toString()` uses `Printer::readable()`; `AbstractPersistentStruct` uses `Munge` for key encoding, in lockstep with the compiler).
 
 ## Scalar / Value Types
 
 | Type | Notes |
 |------|-------|
-| `Symbol` | Names with optional namespace; special constants for language forms (`def`, `fn`, `if`, ...) |
-| `Keyword` | Interned pool keyed by (ns, name) so identical keywords share an instance; `create(string)` splits the name on the first `/` like `Symbol::create`, `createForNamespace` is verbatim; callable via `FnInterface` to access map values |
-| `Atom` | Mutable box with watches, validators, `deref`, and explicit `alterMeta`/`resetMeta` operations (Clojure-aligned; formerly `Variable`). `withMeta` still returns a copy. Compares by identity (`===`), never by dereferenced value |
-| `BigInt` | Arbitrary-precision signed integer (base-10^9 + sign). Owns sign/metadata/signed semantics; delegates sign-agnostic digit-array kernels to `BigIntMagnitude` (stateless pure fns on `list<int>`) |
-| `Ratio` | Exact rational `n/d`, always normalized (denom > 0, gcd=1). `create($num, $den)` auto-collapses to `int`/`BigInt` if integral |
-| `BigDecimal` | Arbitrary-precision signed decimal (mantissa * 10^-scale). Equality by value via `compareTo` (1.20M = 1.2M); `divideExact` extends scale to 100 digits. `__toString` omits `M` suffix; REPL appends `M` for round-trip. Literals: `1.5M`, `1.5e3M` |
-| `UUID` | Canonical 36-char; `fromString` (validates, lowercases), `randomV4`, `version`, `variant`, value-based equality. Literal: `#uuid "..."` |
-| `PhpClass` | Typed wrapper for PHP class/interface FQN; backs `phel.core/class`, `class?`, `class-name` |
+| `Symbol` | Optional namespace; constants for language forms (`def`, `fn`, `if`, ...) |
+| `Keyword` | Interned by (ns, name). `create(string)` splits on the first `/` like `Symbol::create`; `createForNamespace` is verbatim. Callable (`FnInterface`) to read map values |
+| `Atom` | Watches, validators, `deref`, `alterMeta`/`resetMeta` (formerly `Variable`); `withMeta` copies. Compares by identity (`===`), never by dereferenced value |
+| `BigInt` | Base 10^9 + sign. Owns sign/metadata semantics; sign-agnostic digit kernels live in `BigIntMagnitude` (stateless, on `list<int>`) |
+| `Ratio` | Always normalized (denom > 0, gcd 1). `create($num, $den)` collapses to `int`/`BigInt` when integral |
+| `BigDecimal` | Mantissa * 10^-scale. Equal by `compareTo` (1.20M = 1.2M); `divideExact` extends scale to 100 digits. `__toString` omits `M`; the REPL appends it. Literals `1.5M`, `1.5e3M` |
+| `UUID` | `fromString` (validates, lowercases), `randomV4`, `version`, `variant`, value equality. Literal `#uuid "..."` |
+| `PhpClass` | PHP class/interface FQN; backs `phel.core/class`, `class?`, `class-name` |
+
+`BigInt`, `Ratio`, `BigDecimal`, `UUID`, `PhpClass` are `final readonly` `TypeInterface` implementations with no I/O or static state.
 
 ## Vars
 
-| Type | Notes |
-|------|-------|
-| `PhelVar` | First-class handle to global `def`: `deref`, `meta`, `alterRoot`, watches, `alterMeta`/`resetMeta`, cached `isDynamic`; callable via `__invoke` to current root. `withMeta` returns a handle-local copy while `meta()` and the mutation methods keep addressing canonical per-var state. Produced by `Registry::addDefinition`/`getVar` and `(var sym)` |
-| `PhelVarStateRegistry` | Singleton side table for per-var watches, metadata, dynamic-flag cache keyed by `(ns, name)`. Lets `PhelVar` stay `readonly` while `alter-meta!`/`add-watch` mutate canonical state. Clear `isDynamic` cache via `invalidateDynamicCache(ns, name)` on metadata change (`alter-meta!`/`reset-meta!`/re-`def`), done here, NOT in `PhelVar` |
+- `PhelVar`: handle to a global `def` (`deref`, `meta`, `alterRoot`, watches, `alterMeta`/`resetMeta`, cached `isDynamic`; `__invoke` calls the root). `withMeta` returns a handle-local copy; `meta()` and mutators address canonical per-var state. Made by `Registry::addDefinition`/`getVar` and `(var sym)`.
+- `PhelVarStateRegistry`: singleton side table (watches, metadata, dynamic-flag cache) keyed by `(ns, name)`, so `PhelVar` stays `readonly`. On metadata change (`alter-meta!`/`reset-meta!`/re-`def`) call `invalidateDynamicCache(ns, name)` here, NOT in `PhelVar`.
 
 ## Lazy / Mutable / Control
 
-| Type | Notes |
-|------|-------|
-| `Delay` | Single-value lazy computation; `deref()` runs thunk once and caches (distinct from `LazySeq`) |
-| `Collections/LazySeq/LazySeq` | Caches the raw thunk result (`$realized` is `mixed`, as wide as the spliced `lazy-seq` body); the private `realizeSeq()` is the single narrowing point and throws `Collections\Exceptions\NotASeqException` for a non-seq body such as `(lazy-seq 5)`. A `nil` body still means the empty seq |
-| `Volatile` | Lightweight mutable container for transducer state (no watches/validators) |
-| `Reduced` | Signals early termination from reduce/transduce |
-| `Future` | Amphp adapter exposing Phel deref/realized? protocol |
-| `Eduction` | Transducer composition helper. Re-runs the chain on every consumption, so it has no size of its own. The split follows how many elements the question needs: `empty?` and `first` answer it by pulling one element (`Seq::isEmpty`, `Seq::first`), `count` refuses it with an actionable message rather than draining it |
+- `Delay`: runs its thunk once on `deref()` and caches.
+- `Collections/LazySeq/LazySeq`: caches the raw thunk result (`$realized` is `mixed`). Private `realizeSeq()` is the single narrowing point; it throws `Collections\Exceptions\NotASeqException` for a non-seq body like `(lazy-seq 5)`. A `nil` body is the empty seq.
+- `Volatile` (transducer state, no watches/validators), `Reduced` (early termination), `Future` (Amphp adapter for deref/realized?).
+- `Eduction`: re-runs its chain on every consumption, so it has no size. `empty?`/`first` pull one element (`Seq::isEmpty`, `Seq::first`); `count` refuses with an actionable message rather than draining it.
 
-## Numeric Utilities
+## Numeric and Other Utilities
 
-- `NumericOperations`: static dispatch for arithmetic/comparisons/predicates across PHP numbers, `BigInt`, `Ratio`, `BigDecimal`. Owns only the contagion ladders.
-- `NumericCoercion`: type lifting (delegated from `NumericOperations`).
-- `IntegerOverflow`: native-int overflow detection; promotes int ops to `BigInt` on overflow.
-
-Other utilities: `DynamicScope` (dynamic bindings), `Truthy`, `TypeStringifier`, `Hasher`/`Equalizer` (collection hashing/equality).
-
-Shared behaviour traits: `MetaTrait` (`getMeta`/copying `withMeta`), `HashCombinerTrait`, `CopyLocationFromTrait` (the `SourceLocationInterface::copyLocationFrom()` default; declares `setStartLocation`/`setEndLocation` abstract, so each type keeps its own copy-vs-mutate strategy).
+- `NumericOperations`: static arithmetic/comparison/predicate dispatch across PHP numbers, `BigInt`, `Ratio`, `BigDecimal`; owns only the contagion ladders. Lifting is in `NumericCoercion`; `IntegerOverflow` promotes int ops to `BigInt`.
+- `DynamicScope`: bound-name counts are private; `hasBoundName(ns, name)` is the cheap gate before the fiber-local `hasBinding` lookup.
+- Also: `Truthy`, `TypeStringifier`, `Hasher`/`Equalizer`.
+- Traits: `MetaTrait`, `HashCombinerTrait`, `CopyLocationFromTrait` (default `copyLocationFrom()`; `setStartLocation`/`setEndLocation` stay abstract so each type keeps its copy-vs-mutate strategy).
 
 ## Runtime Infrastructure
 
 | Class | Notes |
 |-------|-------|
-| `Registry` | Singleton managing definitions by namespace (values + metadata). `readRoot(ns, name)` is the static one-hop read compiled code performs for a var that is not `^:dynamic`/`^:redef`: `\Phel::getDefinition()` reaches the same array behind a dynamic-scope gate only a `^:dynamic` var can trip (#3179). Do NOT rename `readRoot`; `GlobalVarEmitter` bakes its FQN into generated PHP and cached artifacts keep calling it |
-| `TypeFactory` | Singleton creating persistent collections; provides `Hasher`/`Equalizer` singletons |
-| `Seq` | Static utility for sequence ops. Mostly thin delegates to `Generators/`, plus the two single-pull probes `isEmpty()` / `first()` that answer `empty?` / `first` for a source with no size or indexed access of its own |
-| `TagRegistry` | Reader literal tag-handler dispatch (`TagHandlers/`: `#inst`, `#uuid`, regex) |
-| `PhelType` | `nameOf(mixed): string`, the PHP mirror of `phel.core/type` (`nil`, `boolean`, `vector`, `hash-map`, ...). Anything on the PHP side that words a type for a user reads it from here, never from `get_debug_type()`, which names the implementation and changes a map's name at eight entries. Branch order matches `predicates.phel` exactly; `tests/phel/core/phel-type-parity.phel` pins the two together (#3290) |
-| `GetIn` | `path(ds, keys, notFound)`, what a literal-path `get-in` compiles to (#3320). Answers exactly what `phel.core/get-in` answers: maps and vectors read inline, other `coll?`/array/string levels go through `phel.core/get` from the registry, a transient or scalar level yields `notFound`. Do NOT rename: `GetInCallEmitter` bakes its FQN into generated PHP |
-| `AssocIn` | `path(ds, keys, v)` and `update(ds, keys, f, ...args)`, what a literal-path `assoc-in` / `update-in` compiles to (#3328). Same `get` down, `assoc` up order as the runtime `[k & ks]` recursion, with a missing or nil level replaced by `{}`. Maps and `int`-indexed vectors are read and written inline; every other level goes through `phel.core/get` / `phel.core/assoc` from the registry, so it answers or throws exactly as the runtime does. Do NOT rename: `AssocInCallEmitter` bakes its FQN into generated PHP |
-| `Destructure` | `nthNext(v, n)`, the `& r` tail a sequential pattern `[a b & r]` compiles to for a vector with two or more positions before the `&` (#3356). Exactly `n` calls of `next` on a vector (its `cdr()`), so the tail keeps its `SubVector`, metadata and `nil`-when-exhausted. Do NOT rename: `VectorBindingDeconstructor` bakes its FQN into generated PHP |
-| `LoadClasspath` | Static accessor for the `(load ...)` classpath, stored in `Registry` under `phel.core/*load-classpath*`. Lives here (not Compiler) because its state is a `Registry` slot; FQN baked into generated PHP by `LoadEmitter`. Do NOT rename |
-| `\Phel` (`src/Phel.php`, NOT a Lang class) | Thin root facade proxying static calls to the `Registry` singleton via `__callStatic`. Api/Interop use it for ns/definition lookups (`getNamespaces`, `getDefinition`, `getDefinitionMetaData`). Lang's own code must NOT call it (leaf → root cycle); use `Registry`/`TypeFactory` directly |
+| `Registry` | Definitions by namespace (values + metadata). `readRoot(ns, name)` is the one-hop read compiled code uses for a var that is not `^:dynamic`/`^:redef`; `\Phel::getDefinition()` reads the same array behind a dynamic-scope gate only a `^:dynamic` var trips (#3179). Profiler state is private, behind `getProfilerHook()`/`setProfilerHook()` |
+| `TypeFactory` | Creates persistent collections; provides `Hasher`/`Equalizer` singletons |
+| `Seq` | Sequence ops, mostly delegating to `Generators/`, plus the single-pull probes `isEmpty()`/`first()` for a source with no size or indexed access |
+| `TagRegistry` | Reader tag dispatch (`TagHandlers/`: `#inst`, `#uuid`, regex) |
+| `PhelType` | `nameOf(mixed)`, PHP mirror of `phel.core/type`. PHP code naming a type for a user reads it here, never `get_debug_type()` (names the implementation; a map's name changes at eight entries). Branch order matches `predicates.phel`; `tests/phel/core/phel-type-parity.phel` pins them (#3290) |
+| `GetIn` | `path(ds, keys, notFound)`, compiled literal-path `get-in` (#3320), answering exactly as `phel.core/get-in`: maps and vectors inline, other `coll?`/array/string levels via registry `phel.core/get`, a transient or scalar level gives `notFound` |
+| `AssocIn` | `path(ds, keys, v)`, `update(ds, keys, f, ...args)`: compiled literal-path `assoc-in`/`update-in` (#3328). Runtime's `get` down, `assoc` up order; a missing or nil level becomes `{}`. Maps and `int`-indexed vectors inline, other levels via registry `phel.core/get`/`assoc`, so it answers or throws as the runtime does |
+| `Destructure` | `nthNext(v, n)`, the `& r` tail of `[a b & r]` with two or more positions before `&` (#3356). Exactly `n` `cdr()` calls, so the tail keeps its `SubVector`, metadata and `nil`-when-exhausted |
+| `LoadClasspath` | `(load ...)` classpath, kept in `Registry` under `phel.core/*load-classpath*` (hence here, not Compiler) |
+| `\Phel` (`src/Phel.php`, NOT Lang) | Root facade proxying statics to `Registry`; Api/Interop use it (`getNamespaces`, `getDefinition`, `getDefinitionMetaData`). Lang must NOT call it (leaf to root cycle); use `Registry`/`TypeFactory` |
 
-DynamicScope process-wide bound-name counts are private; `hasBoundName(ns, name)` is the cheap gate before the fiber-local `hasBinding` lookup. The obsolete `anyActive` latch is removed. Registry profiler state is private and exposed through typed `getProfilerHook()` / `setProfilerHook()` accessors.
+Do NOT rename these; generated PHP and cached artifacts call their FQNs: `Registry::readRoot` (`GlobalVarEmitter`), `GetIn` (`GetInCallEmitter`), `AssocIn` (`AssocInCallEmitter`), `Destructure` (`VectorBindingDeconstructor`), `LoadClasspath` (`LoadEmitter`).
 
 ## Interfaces
 
 - `TypeInterface` extends `MetaInterface`, `SourceLocationInterface`, `EqualsInterface`, `HashableInterface`.
-- `NamedInterface` (`getName`/`getNamespace`/`getFullName`); `FnInterface` (callable marker); `IdenticalInterface` (`===` equality).
-- Collection capabilities compose as needed: `PushInterface`, `PopInterface`, `ConsInterface`, `CdrInterface`, `FirstInterface`, `ContainsInterface`, `RestInterface`, `ConcatInterface`, `SliceInterface`, `SeqInterface`, `AsTransientInterface`.
+- `NamedInterface`, `FnInterface` (callable marker), `IdenticalInterface` (`===` equality).
+- Collection capabilities compose: `PushInterface`, `PopInterface`, `ConsInterface`, `CdrInterface`, `FirstInterface`, `ContainsInterface`, `RestInterface`, `ConcatInterface`, `SliceInterface`, `SeqInterface`, `AsTransientInterface`.
 
 ## Collections (`Collections/`)
 
-| Subdir | Contents |
-|--------|----------|
-| `Map/` | `PersistentArrayMap`, `PersistentHashMap`, `MapEntry` |
-| `SortedMap/` | Sorted map variant |
-| `Vector/` | `PersistentVector` |
-| `LinkedList/` | `PersistentList` |
-| `Queue/` | `PersistentQueue`: two-stack banker's queue, O(1) amortized; printed `<-(...)-<` |
-| `HashSet/`, `SortedSet/` | Set variants |
-| `LazySeq/` | Lazy chunking |
-| `Struct/` | `AbstractPersistentStruct` |
-| `Generators/` | Sequence generators |
+Subdirs: `Map/` (`PersistentArrayMap`, `PersistentHashMap`, `MapEntry`), `SortedMap/`, `Vector/`, `LinkedList/`, `Queue/` (`PersistentQueue`, two-stack banker's queue, O(1) amortized, printed `<-(...)-<`), `HashSet/`, `SortedSet/`, `LazySeq/`, `Struct/` (`AbstractPersistentStruct`), `Generators/`.
 
-- `ValueIdentity::isSame()` is the unchanged-value test behind every keyed write (map `put`, vector `update`, struct `put`) that hands back the receiver. It is identity with a signed zero counted as a change, never `=`: an equal but distinguishable value (`-0.0`, a `BigInt`, a vector with other metadata) must still be written (#3321). A PHP array is never the same: `===` walks arrays, so it throws on recursive ones and misses references. An inline `===` in front of the call, as `PersistentVector` keeps for speed, must be guarded by `is_array` first.
-- `MapEntry`: equal by value to a 2-element vector (both directions); `first()` = key, `cdr()` = 1-vector with value.
-- Transients: `TransientVector`, `TransientMapWrapper`, `TransientHashMap`/`TransientArrayMap`/`TransientSortedMap`, `TransientHashSet`/`TransientSortedSet`. `TransientStateTrait` (`persistent()` invalidates; mutators call `ensureTransientActive()`) is applied exactly once per reachable transient, at the object Phel code actually holds:
-  - `TransientVector` uses it directly; `PersistentVector::asTransient()` returns it unwrapped.
-  - `TransientMapWrapper` uses it, and every `PersistentMap*::asTransient()` returns a wrapper. `TransientHashMap` and `TransientArrayMap` therefore deliberately do **not** use it: they are inner implementations that are never handed to user code, and `TransientArrayMap::put()` must be able to hand its contents to a fresh `TransientHashMap` on overflow. `TransientSortedMap` also uses it, redundantly but harmlessly (two independent flags).
-  - `TransientHashSet`/`TransientSortedSet` hold a `TransientMapWrapper` and inherit the guard through it.
+- `ValueIdentity::isSame()` is the unchanged-value test behind keyed writes that return the receiver (map `put`, vector `update`, struct `put`). Identity with signed zero counted as a change, never `=`: an equal but distinguishable value (`-0.0`, a `BigInt`, a vector with other metadata) must still be written (#3321). A PHP array is never "same": `===` walks arrays, throws on recursive ones and misses references. An inline `===` before the call (`PersistentVector` keeps one for speed) must check `is_array` first.
+- `MapEntry` equals a 2-element vector both ways; `first()` = key, `cdr()` = 1-vector of the value.
+- `TransientStateTrait` (`persistent()` invalidates; mutators call `ensureTransientActive()`) sits on the object Phel code holds:
+  - `TransientVector` uses it; `PersistentVector::asTransient()` returns it unwrapped.
+  - `TransientMapWrapper` uses it; every `PersistentMap*::asTransient()` returns one. `TransientHashMap`/`TransientArrayMap` deliberately do **not**: user code never reaches them, and `TransientArrayMap::put()` must hand its contents to a fresh `TransientHashMap` on overflow. `TransientSortedMap` also uses it, redundantly but harmlessly.
+  - `TransientHashSet`/`TransientSortedSet` inherit the guard from their `TransientMapWrapper`.
 
-  Net effect: reuse after `persistent!` throws for every collection reachable from Phel. `tests/phel/core/transient-safety.phel` pins that for all six flavours. Do not "fix" the missing trait on the inner map classes: it would be dead code guarding an object nothing can reach.
-- A transient carries the metadata of the collection `asTransient()` opened it from and hands it back on `persistent()`, so the round trip is meta-preserving like Clojure's (`TransientMetaRoundTripTest` pins every flavour). `TransientArrayMap` copies it into the `TransientHashMap` it promotes to on overflow. Transients built from scratch (`TransientVector::empty`, `PersistentHashMap::fromArray`) still have no meta. Everything implemented through a transient inherits this: map `merge`, vector/set `concat`, and the compiler's `assoc`/`conj` chain specialisation.
-- Every transient stays callable like its persistent counterpart (`__invoke` on the concrete class, not on the transient interface): vector by index, map by key, both set flavours by membership.
-- `TransientHashSet` and `TransientSortedSet` share `HashSet\AbstractTransientSet` (both are a facade over a transient map keyed by the member itself; ordering lives in the backing map). Subclasses supply only `__toString()` and `persistent()`, mirroring how `SortedMap\PersistentSortedMap` extends `Map\AbstractPersistentMap`.
-- `merge()` has two strategies, chosen by which trait a class uses, never by an `instanceof` in the base: `AbstractPersistentMap::merge()` folds with `put()` (works everywhere, and short-circuits to `$this` on an empty `$other`) and is what `PersistentSortedMap` and `AbstractPersistentStruct` get; `PersistentHashMap`/`PersistentArrayMap` opt into `Map\TransientMergeStrategyTrait`, which bulk-builds through a transient (fewer allocations, but always materialises a fresh instance). Both keep the receiver's meta. `PersistentMapMergeTest` pins them.
-- `PersistentHashSet` and `PersistentSortedSet` likewise share `HashSet\AbstractPersistentSet`, which owns the map-delegating half (`__invoke`, `getMeta`, `contains`, `count`, `equals`, `hash`, `getIterator`, `toPhpArray`, `concat`). Subclasses own only what has to name their own type: `withMeta`, `add`, `remove`, `asTransient` (plus `getEffectiveComparator` on the sorted flavour).
+  Reuse after `persistent!` throws for all six flavours (`tests/phel/core/transient-safety.phel`). Do not add the trait to the inner map classes.
+- A transient keeps its source collection's metadata and returns it on `persistent()` (`TransientMetaRoundTripTest`); `TransientArrayMap` copies it into the `TransientHashMap` it promotes to. Transients built from scratch (`TransientVector::empty`, `PersistentHashMap::fromArray`) have none. Map `merge`, vector/set `concat` and the compiler's `assoc`/`conj` chain specialisation rely on this.
+- Every transient is callable like its persistent counterpart (`__invoke` on the concrete class, not the interface).
+- Sets share bases: `HashSet\AbstractTransientSet` (a facade over a transient map keyed by member; subclasses add only `__toString()`, `persistent()`) and `HashSet\AbstractPersistentSet` (map-delegating half; subclasses own `withMeta`, `add`, `remove`, `asTransient`, plus `getEffectiveComparator` when sorted).
+- `merge()` strategy is chosen by trait, never by `instanceof` in the base. `AbstractPersistentMap::merge()` folds with `put()` (returns `$this` on empty `$other`) for `PersistentSortedMap` and `AbstractPersistentStruct`; `PersistentHashMap`/`PersistentArrayMap` use `Map\TransientMergeStrategyTrait` (bulk build, always a fresh instance). Both keep the receiver's meta (`PersistentMapMergeTest`).
 
 ## Key Constraints
 
-- All collections are persistent (immutable) with transient variants for bulk building.
-- `Registry`, `TypeFactory`, `PhelVarStateRegistry` are singletons; access via `getInstance()`.
-- `Registry` keys are dot-separated: `phel.core`, `my-app.lib` (after `-` → `_` munge). Compiler feeds through `Munge::encodeRegistryKey`.
-- `Symbol::getFullName` returns dot form; symbols with a PHP class FQN namespace (leading `\`) keep the backslash for static-method shorthand.
-- Source locations preserved via `SourceLocationInterface` for error reporting.
-- `MetaInterface::withMeta()` always returns a copy and leaves its receiver unchanged. Every implementation carries `#[NoDiscard]`.
-- Numeric/value types (`BigInt`, `Ratio`, `BigDecimal`, `UUID`, `PhpClass`) are `final readonly` `TypeInterface` implementations with no I/O or static state.
+- All collections are persistent (immutable), with transients for bulk building.
+- `Registry`, `TypeFactory`, `PhelVarStateRegistry` are singletons; use `getInstance()`.
+- `Registry` keys are dot-separated: `phel.core`, `my-app.lib` (after `-` to `_` munge). The compiler feeds them through `Munge::encodeRegistryKey`.
+- `Symbol::getFullName` returns dot form; a namespace that is a PHP class FQN (leading `\`) keeps the backslash for static-method shorthand.
+- Source locations travel via `SourceLocationInterface` for error reporting.
+- `MetaInterface::withMeta()` always returns a copy; every implementation carries `#[NoDiscard]`.

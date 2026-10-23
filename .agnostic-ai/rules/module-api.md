@@ -6,70 +6,64 @@ scope: src/php/Api
 
 # Api Module
 
-REPL autocompletion, function introspection/docs, and user-code semantic analysis (diagnostics, project index, jump-to-def, find-references, completion at point, PHP-interop tooling).
-
 ## Internal tooling API (Facade)
 
 | Method | Purpose |
 |--------|---------|
-| `replComplete(string)` / `replCompleteWithTypes(string)` | REPL autocompletion, plain or with type info (nREPL) |
-| `getPhelFunctions(list<string> = [])` | All public Phel functions, optionally filtered by namespace |
+| `replComplete(string)` / `replCompleteWithTypes(string)` | REPL completion, plain or typed (nREPL) |
+| `getPhelFunctions(list<string> = [])` | Public Phel functions, optionally by ns |
 | `analyzeSource(string source, string uri): list<Diagnostic>` | Parse + analyze, return diagnostics |
-| `findSymbolMetadata(string, string currentNs = 'user'): ?PhelFunction` | Symbol lookup in registry + static catalog |
-| `completionDoc(string candidate, string currentNs = 'user'): ?string` | Doc markdown for a completion candidate |
-| `extractDefinitions(string source, string uri)` | Definitions from one source |
-| `indexProject(list<string> srcDirs): ProjectIndex` | Build project symbol index |
+| `findSymbolMetadata(string, string currentNs = 'user'): ?PhelFunction` | Registry + static catalog lookup |
+| `completionDoc(string candidate, string currentNs = 'user'): ?string` | Candidate doc markdown |
+| `extractDefinitions(string source, string uri)` | One source's definitions |
+| `indexProject(list<string> srcDirs): ProjectIndex` | Project symbol index |
 | `resolveSymbol(ProjectIndex, ns, symbol): ?Definition` | Jump-to-def |
-| `resolveLocalBinding(source, uri, line, col, word): ?Location` | Resolve a lexical local usage to its binding site; `null` when no modelled binder introduces it |
+| `resolveLocalBinding(source, uri, line, col, word): ?Location` | Local to its binding site; `null` if no modelled binder |
 | `findReferences(ProjectIndex, ns, symbol)` | Find-references |
-| `completeAtPoint(source, line, col, ProjectIndex)` | Completion at cursor; returns PHP-interop completions in a `php/`-interop position, else Phel completions |
-| `phpInteropHoverAt(source, line, col): ?string` | Reflected hover markdown for PHP interop |
-| `phpInteropSignatureAt(source, line, col): ?array` | LSP signature help for PHP interop |
-| `phelSignatureAt(source, line, col, currentNs = 'user'): ?array` | LSP signature help for a plain Phel function call (`PhelSignatureResolver`) |
-| `createApiDaemon(): ApiDaemon` | Long-running JSON-RPC daemon |
+| `completeAtPoint(source, line, col, ProjectIndex)` | Interop completions in a `php/` position, else Phel |
+| `phpInteropHoverAt(source, line, col): ?string` | Interop hover markdown |
+| `phpInteropSignatureAt(source, line, col): ?array` | Interop signature help |
+| `phelSignatureAt(source, line, col, currentNs = 'user'): ?array` | Phel call signature help (`PhelSignatureResolver`) |
+| `createApiDaemon(): ApiDaemon` | JSON-RPC daemon |
 
-Every method above except `createApiDaemon` is declared on `Phel\Shared\Facade\ApiFacadeInterface`, so `Lint`, `Lsp`, `Nrepl`, `Run` and `Watch` all inject the contract. `createApiDaemon` stays off it: `ApiDaemon` is this module's own stdio adapter, consumed only by `ApiDaemonCommand`, so exporting it would put an `Infrastructure` class in a leaf contract for no consumer.
+All but `createApiDaemon` are on `Phel\Shared\Facade\ApiFacadeInterface`, injected by `Lint`, `Lsp`, `Nrepl`, `Run`, `Watch`. `createApiDaemon` stays off: `ApiDaemon` is an `Infrastructure` stdio adapter used only by `ApiDaemonCommand`.
 
-Every transfer the contract names lives in `Phel\Shared\Api`: `ProjectIndex`, `Definition`, `Location`, `Completion`, `Diagnostic`, `PhelFunction`, `CompletionResultTransfer`. `Transfer/` keeps only the PHP-interop reflection types (`PhpInteropCall`, `PhpInteropClass`, `PhpInteropContext`, `PhpInteropSignature`), which never cross the facade.
+Contract transfers are in `Phel\Shared\Api`: `ProjectIndex`, `Definition`, `Location`, `Completion`, `Diagnostic`, `PhelFunction`, `CompletionResultTransfer`. `Transfer/` holds only interop reflection types (`PhpInteropCall`, `PhpInteropClass`, `PhpInteropContext`, `PhpInteropSignature`), which never cross the facade.
 
-The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
+The facade is internal, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies
 
-- Run (namespace resolution, directory listing): provided as `RunFacadeInterface::class`.
-- Compiler (lex, parse, read, analyze phases): provided as `CompilerFacadeInterface::class`.
-- `ApiConfig::allNamespaces()` lists the 27 documented Phel namespaces; `ApiConfig::githubRef()` returns `VersionFinder::LATEST_VERSION`.
+- Run (namespace resolution, directory listing): `RunFacadeInterface::class`.
+- Compiler (lex, parse, read, analyze): `CompilerFacadeInterface::class`.
+- `ApiConfig::allNamespaces()`: the 27 documented namespaces; `ApiConfig::githubRef()` returns `VersionFinder::LATEST_VERSION`.
 
-`Api <-> Run` is the codebase's only mutual Gacela provider pair, and the cycle is a wiring detail rather than a structural one: both sides consume each other through `Phel\Shared\Facade\*Interface`, and the concrete facades appear only in `ApiProvider` / `RunProvider`, because Gacela's locator has to name a class. `ModuleDependencyCycleTest` pins exactly those two files.
-
-`ApiProvider` / `RunProvider` and the peer providers in `Lint`, `Lsp`, `Nrepl` and `Watch` still name the concrete `ApiFacade` inside provider method bodies, because Gacela's locator resolves by class. That is wiring, not coupling: every provider key, factory getter, and collaborator behind it types `ApiFacadeInterface`.
+`Api <-> Run` is the only mutual Gacela provider pair, a wiring cycle only: both sides use `Phel\Shared\Facade\*Interface`. Providers (here, `Run`, `Lint`, `Lsp`, `Nrepl`, `Watch`) name the concrete `ApiFacade` in method bodies because Gacela's locator resolves by class; every provider key, factory getter and collaborator types `ApiFacadeInterface`. `ModuleDependencyCycleTest` pins `ApiProvider`/`RunProvider` as the only two files.
 
 ## PHP Interop Tooling (`Application/Php*`)
 
-All collaborators degrade to empty/null on unknown types or reflection failure.
+Everything degrades to empty/null on unknown types or reflection failure.
 
 | Class | Role |
 |-------|------|
-| `PhpInteropReflector` | Reflection + composer classmap. `methodSignatureInfo`/`functionSignatureInfo` → `PhpInteropSignature` (per-param labels + phpdoc); `instanceMemberInfo`/`staticMemberInfo` → property/constant/enum-case hover, plus static properties addressed with the sigil (`$prop`, ADR 0013); `classInfo` → `PhpInteropClass` (kind/parent/interfaces/constructor); `methodReturnType` walks return type for chains; `isInstantiable` guards `php/new` help (interfaces/abstract/enums); `classNames` includes interfaces; `staticMembers` labels enum cases and offers static properties sigil-first; `globalVariables` is the one lookup with nothing to reflect over, reading `PhpSymbolCatalog::SUPERGLOBALS` instead |
-| `PhpInteropContextResolver` | Lexical receiver-type resolution from `:tag`, an inline or bound construction (`(new Foo`, `(Foo.`, `(php/new \Foo` from macro output) or static factory (`(Foo/make`, `(php/:: Foo make`, typed by the reflected or tentative return type), `(:use ...)`/`(use ...)` aliases incl. `:as`, multi-line via `CursorText::before`; walks multi-hop `php/->` chains, indirect `let` rebinds. A binding types a receiver only from before the cursor and while its form is still open there, nearest first. A capitalised bare name with no alias or binding is a global class, and `Foo.Bar` reads as `Foo\Bar`. Covers both spellings: the `php/*` forms and the Clojure-style `C/member` (static) and `(.m recv` / `(.-f recv` (instance). The dot shorthands are the one position whose receiver *follows* the cursor, so they read it with `CursorText::firstTokenAfter`, which returns a form's head when one opens there. `php/$NAME` (superglobals) is matched *before* `php/<fn>`, because `$` is not a word character and the function branch would never see it |
-| `PhpFormTokenizer` | Shared top-level token splitter (used by scanner + resolver) |
-| `PhpInteropCallScanner` | Balanced-paren scan for the call enclosing the cursor + its `activeParameter`; fixes chained `(php/-> x (a) (b ⟂` |
-| `PhpInteropCompleter`, `PhpInteropDocResolver` | Interop completion + doc resolution |
+| `PhpInteropReflector` | Reflection + composer classmap. `methodSignatureInfo`/`functionSignatureInfo` → `PhpInteropSignature`; `instanceMemberInfo`/`staticMemberInfo` → property/constant/enum-case hover, static properties with the sigil (`$prop`, ADR 0013); `classInfo` → `PhpInteropClass`; `methodReturnType` walks chains; `isInstantiable` guards `php/new` help (interfaces/abstract/enums); `classNames` includes interfaces; `staticMembers` labels enum cases, static properties sigil-first; `globalVariables` reads `PhpSymbolCatalog::SUPERGLOBALS` |
+| `PhpInteropContextResolver` | Lexical receiver type from `:tag`, a construction (`(new Foo`, `(Foo.`, `(php/new \Foo` from macro output) or static factory (`(Foo/make`, `(php/:: Foo make`, typed by reflected or tentative return type), `(:use ...)`/`(use ...)` aliases incl. `:as`, multi-line via `CursorText::before`, multi-hop `php/->` chains, indirect `let` rebinds. A binding counts only before the cursor and while its form is still open there, nearest first. A capitalised bare name with no alias or binding is a global class; `Foo.Bar` reads as `Foo\Bar`. Covers `php/*` and `C/member` (static), `(.m recv` / `(.-f recv` (instance). Dot shorthands' receiver *follows* the cursor: `CursorText::firstTokenAfter` (a form's head when one opens there). Match `php/$NAME` (superglobals) *before* `php/<fn>`: `$` is not a word character, so the function branch never sees it |
+| `PhpFormTokenizer` | Top-level token splitter shared by scanner + resolver |
+| `PhpInteropCallScanner` | Enclosing call + `activeParameter`; handles chained `(php/-> x (a) (b ⟂` |
+| `PhpInteropCompleter`, `PhpInteropDocResolver` | Completion, docs |
 
 ## Key Constraints
 
-- Every analyzer diagnostic is built by `Shared\Api\Diagnostic::fromLocatedException()`, which fills `errorCode`, `suggestions` and the catalog `fix`, so `phel analyze` and `phel lint` report one error the same way (#3464), with 1-based columns. `phel analyze` reports each file by its absolute path. `phel analyze` takes files or directories, exits 1 on an error diagnostic and 2 on a missing path.
-- `SourceAnalyzer` runs a pipeline of `list<AnalysisStageInterface>` (`Application/Analysis/`: Preload → LexAndParse → ReadAndAnalyze); add/remove stages in `ApiFactory::createSourceAnalyzer()`.
-- `ReadAndAnalyzeStage` wraps its pass in `GlobalEnvironment::enterAnalysisMode()`/`leaveAnalysisMode()`. `PreloadDependenciesStage` really evaluates the bundled `phel.*` modules and the file's dependencies, so the namespace under analysis is usually already bound; without that guard every top-level `def` raises `DuplicateDefinitionException` and kills the run. Any new stage that re-analyzes loaded sources needs the same guard.
-- The pass never evaluates a `def`, so `ReadAndAnalyzeStage` skips a form whose macro expansion failed for that reason alone, instead of reporting a `PHEL005` that `phel run` would not raise (#3621). `InvokeSymbol` marks those causes with `UnevaluatedDefinitionException`: a macro whose fn was analysed but never run (not `(def ^:macro m 1)`, which is reported), or a PHP `Error` from a macro whose arguments name a definition missing from the runtime registry, such as `phel.router/compiled-router` running the file's own `wrap`. Any other failure, `(defstruct 1 [x])` or `case` on a repeated constant, is reported.
-- `GlobalEnvironment` remembers which pass defined each analysis-only name. When a pass enters a namespace (`setNs` in analysis mode), it drops that namespace's macros from earlier passes that nothing evaluated since, so the LSP and api-daemon stop expanding a deleted `defmacro`, while another namespace keeps the macros the file still defines. Other `def`s stay: a file pulled in by `load` and linted on its own resolves the `defn`s of the file that loads it.
+- `Shared\Api\Diagnostic::fromLocatedException()` builds every analyzer diagnostic (`errorCode`, `suggestions`, catalog `fix`), so `phel analyze` and `phel lint` agree (#3464); 1-based columns. `phel analyze` takes files or directories, reports each file by absolute path, exits 1 on an error diagnostic and 2 on a missing path.
+- `SourceAnalyzer` stages (`Application/Analysis/`, `AnalysisStageInterface`): Preload → LexAndParse → ReadAndAnalyze, wired in `ApiFactory::createSourceAnalyzer()`.
+- `ReadAndAnalyzeStage` wraps its pass in `GlobalEnvironment::enterAnalysisMode()`/`leaveAnalysisMode()`. `PreloadDependenciesStage` really evaluates `phel.*` and the file's dependencies, so the namespace is usually bound; without the guard every top-level `def` raises `DuplicateDefinitionException` and kills the run. A new stage re-analyzing loaded sources needs it too.
+- The pass never evaluates a `def`, so `ReadAndAnalyzeStage` skips a form whose macro expansion failed only for that reason, rather than report a `PHEL005` `phel run` would not raise (#3621). `InvokeSymbol` marks them with `UnevaluatedDefinitionException`: a macro whose fn was analysed but never run (not `(def ^:macro m 1)`, which is reported), or a PHP `Error` from a macro whose arguments name a definition absent from the runtime registry (`phel.router/compiled-router` running the file's own `wrap`). Any other failure (`(defstruct 1 [x])`) is reported.
+- `GlobalEnvironment` records which pass defined each analysis-only name. Entering a namespace (`setNs` in analysis mode) drops that namespace's macros from earlier unevaluated passes, so the LSP and api-daemon stop expanding a deleted `defmacro`; other namespaces keep theirs. Other `def`s stay, so a `load`ed file linted alone resolves its loader's `defn`s.
 - Analysis routes through `CompilerFacade` phases only; never bypass.
-- Signatures come from the docstring first and the `arglists` metadata second. `defn` renders its arities into a fenced ```phel block at the top of the docstring, which `DocstringSignatureParser` reads; a bare `def` over an `fn` has no such block, so `PhelFnNormalizer` falls back to `ArglistSignatureParser` over the `arglists` string the analyzer writes for both (#3012). Without that fallback every `def`-over-`fn` (`defn`, `defmacro`, `declare`, `first`, `meta`, `next`, `queue`, ...) published no signature at all.
-- A `NativeSymbolCatalog` entry's `signatures` **override** the runtime ones, so an entry for a symbol that has a real definition freezes its signature at whatever was hardcoded. `list`, `vector` and `hash-map` were stale that way. Omit `signatures` from an entry whose symbol has a runtime definition and let the metadata answer.
-- `Infrastructure/NativeSymbolCatalog`: static doc table for special forms / built-ins with no `.phel` source. Special forms (`load`, `in-ns`, `use`) need an entry here to appear in `phel doc`. `PhelFnLoader` merges it with runtime metadata.
-- `DocCommand` filters by `similar_text` percentage (>= 45), so `phel doc <x>` is a similarity search, not an exact lookup. No match is not an error: the `text` format prints a "No function matches" line, `json` answers `[]`, and both exit `SUCCESS`. `DocCommandTest` pins the exit code.
-- `ProjectIndexer` re-indexes from scratch; caching hook is at the `SymbolExtractor` call-site.
-- `ReplCompleter` lazy-loads Phel functions, caches the PHP builtin catalog.
-- `PhpSymbolCatalog` is the single home for the `php/` symbol sets. Functions and classes are discovered at runtime and memoised; `SUPERGLOBALS` is a constant map of name → description, shared by `ReplCompleter` (REPL/nREPL) and `PhpInteropReflector` (LSP completion + hover) so the two surfaces cannot drift.
-- `PhelFnNormalizer` normalizes Phel function metadata with group keys + GitHub ref.
-- A namespace shown to a user goes through `Domain/RegistryNamespace::sourceName()`. The registry stores `phel.http-client` as `phel.http_client` and keeps no source spelling, so only `phel.*` is decoded; a user's `my_app` and `my-app` are different namespaces to `require` (#3645).
+- Signatures come from the docstring first, `arglists` metadata second. `DocstringSignatureParser` reads the fenced ```phel arity block `defn` puts atop the docstring; a bare `def` over an `fn` has none, so `PhelFnNormalizer` falls back to `ArglistSignatureParser` over the analyzer-written `arglists` (#3012). Without it, `def`-over-`fn` symbols (`defn`, `defmacro`, `first`, `meta`, ...) lose their signature.
+- `Infrastructure/NativeSymbolCatalog`: static docs for special forms / built-ins with no `.phel` source; `PhelFnLoader` merges it with runtime metadata. Special forms (`load`, `in-ns`, `use`) need an entry to show in `phel doc`. Its `signatures` **override** runtime ones and go stale: omit `signatures` when the symbol has a runtime definition.
+- `phel doc <x>` is a similarity search (`DocCommand`, `similar_text` >= 45%). No match is not an error: `text` prints "No function matches", `json` gives `[]`, both exit `SUCCESS` (`DocCommandTest`).
+- `ProjectIndexer` re-indexes from scratch; the caching hook is the `SymbolExtractor` call site.
+- `PhpSymbolCatalog` is the single home for `php/` symbol sets: functions/classes discovered at runtime and memoised; `SUPERGLOBALS` (name → description) is shared by `ReplCompleter` (REPL/nREPL) and `PhpInteropReflector` (LSP) so they cannot drift. `ReplCompleter` lazy-loads Phel functions.
+- `PhelFnNormalizer` adds group keys + GitHub ref to function metadata.
+- A namespace shown to a user goes through `Domain/RegistryNamespace::sourceName()`. The registry stores `phel.http-client` as `phel.http_client` with no source spelling, so only `phel.*` is decoded; `my_app` and `my-app` are different namespaces to `require` (#3645).
