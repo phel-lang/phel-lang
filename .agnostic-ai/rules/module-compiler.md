@@ -19,7 +19,8 @@ Core compilation pipeline: Phel source → tokens → AST → analyzed nodes →
 | Pipeline | `lexString → TokenStream`, `parseNext → ?NodeInterface`, `parseAll → FileNode`, `read → ReaderResult`, `analyze(mixed, NodeEnvironmentInterface) → AbstractNode` |
 | Tooling | `readFormsBestEffort(code, source) → Generator` of top-level forms for tooling over a buffer mid-edit (`Application/BestEffortFormReader`). Never throws: parse failure ends the stream, read failure skips the form. `getReturn()` is `true` when something was dropped (#3292) |
 | Macros | `macroexpand1`, `macroexpand` |
-| Analyzer environment | `emptyNodeEnvironment`, `enableDeprecationWarnings`, `deprecationWarningsEnabled` (config key, env var or flag; reported by `phel config`), `withoutDeprecations` (read a source without reporting its notices) |
+| Analyzer environment | `emptyNodeEnvironment`, `enableDeprecationWarnings`, `deprecationWarningsEnabled` (config key, env var or flag; reported by `phel config`), `withoutDeprecations` (read a source without reporting its notices), `replayDeprecations` (raise a cache hit's recorded notices) |
+| Superseded forms | `rejectSupersededForms(mixed $form)`: for callers that read forms outside `CodeCompiler`/`EvalCompiler` (see the diagnostics rule) |
 | Suggestions | `findSimilarNames(typed, candidates)`: "did you mean" ranking (`SymbolSuggestionProvider`), used by Build and Lint's `phel/unresolved-namespace` |
 | Environment | `initializeGlobalEnvironment`, `resetGlobalEnvironment`, `isGlobalEnvironmentInitialized`, `getGlobalEnvironment`, `initializeNewGlobalEnvironment`, `setGlobalEnvironment` |
 | Namespace state | `getNamespaceEnvironmentData`, `restoreNamespaceEnvironmentData` |
