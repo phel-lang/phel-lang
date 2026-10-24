@@ -21,7 +21,7 @@ Converts Phel/PHP values into string representations. Stateless strategy pattern
 
 - `TypePrinter/`: 27 strategy classes, each implements `TypePrinterInterface<T>`. Dispatch in `Printer::createObjectTypePrinter()` (`instanceof` match) and `createScalarTypePrinter()` (`gettype()` match).
 - `PrinterInterface`: contract for `Printer`.
-- `WithColorTrait`: `__construct(private bool $withColor)` + `color()` helper; mixed into color-aware printers.
+- `TypePrinter/WithColorTrait`: `__construct(private bool $withColor = false)`; mixed into color-aware printers. `TypePrinter/ColorizeTrait`: `colorize($str, $code)` wraps in an ANSI escape when `$withColor`; each printer keeps its own `COLOR` code.
 
 ## Dependencies
 

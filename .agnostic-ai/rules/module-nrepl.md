@@ -39,6 +39,7 @@ The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 
 
 ## Structure
 
+- `Domain/BindAddress`: host validation for the listening socket
 - `Domain/Bencode/`: bencode codec (encoder/decoder/stream-decoder/exception)
 - `Domain/Op/`: `OpDispatcher`, `OpHandlerInterface`, `OpRequest`, `OpResponse`, `OpStatus`
 - `Domain/Session/`: `Session`, `SessionRegistry`

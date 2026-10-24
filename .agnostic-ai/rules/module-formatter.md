@@ -13,7 +13,7 @@ Code formatter for `phel format`: lex/parse Phel source to a parse tree, apply o
 | Method | Notes |
 |--------|-------|
 | `format(array $paths, OutputInterface $output, bool $dryRun = false, array $exclude = []): FormatResult` | Discovers `.phel` files under `$paths` and formats each one; a file matching an `$exclude` glob (`Domain/ExcludePatterns`: `fnmatch` against the path as found and relative to cwd, `*` spans directories) is skipped and lands in neither result list, named under `-v`. |
-| `formatString(string $source, string $uri = FormatterInterface::DEFAULT_SOURCE): string` | Formats in memory; no filesystem access. |
+| `formatString(string $source, string $uri = CompilerConstants::DEFAULT_SOURCE): string` | Formats in memory; no filesystem access. |
 
 ### `FormatResult` contract
 

@@ -13,7 +13,7 @@ Internal CLI plumbing, not public PHP semver surface (ADR 0021).
 | Group | Methods |
 |-------|---------|
 | Execution | `runNamespace(string)`, `runFile(string)`, `evalFile(NamespaceInformation)`, `eval(string, CompileOptions): mixed`, `structuredEval(string, CompileOptions): EvalResult` (never throws), `loadPhelNamespaces(?string)` (core + startup file), `flushCompiledCodeCache()` (before spawning workers) |
-| Namespaces | `getNamespaceFromFile`, `getDependenciesForNamespace` (topologically sorted), `getDependenciesFromPaths` |
+| Namespaces | `getNamespaceFromFile`, `getDependenciesForNamespace` (topologically sorted), `getDependenciesFromPaths`, `namespaceExists(string): bool` |
 | Query | `getAllPhelDirectories`, `getLoadedNamespaces`, `getAllNamespaces` (via `ProjectNamespaceLister`; feeds `phel run`/`phel test` completion), `getVersion`, `autoDetectEntryPoint` (`main.phel`, else `core.phel`) |
 | Debugging | `enableDebugLineTap(?string $phelFileFilter, string $logPath)`, `disableDebugLineTap`, `breakpoint(PersistentMapInterface): void` (blocking `(break)` sub-REPL) |
 | Parallel test | `createParallelTestOrchestrator()`, `createCpuCountDetector()` (`Shared\Process\CpuCountDetector`) |
