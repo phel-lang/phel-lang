@@ -2,16 +2,10 @@
 name: fixture-reviewer
 description: Checks .test fixtures for drift after a compiler change.
 model: balanced
-# Claude-only fields: Codex has no tool allowlist, memory or turn cap, and its subagents keep the session sandbox.
-x-claude:
-  tools: [Read, Glob, Grep, Bash]
-  maxTurns: 15
+can: [read, Glob, Grep, shell]
+maxTurns: 15
 x-codex:
   name: fixture_reviewer
-  nickname_candidates:
-    - Fixture
-    - Snapshot
-    - Drift
 ---
 
 # Fixture Reviewer
@@ -31,14 +25,14 @@ Specialized reviewer for `.test` fixtures in `tests/php/Integration/Fixtures/`. 
    - If it touches `Domain/Analyzer/TypeAnalyzer/SpecialForm/*` → the fixture category matching that form (e.g. `Try`, `Let`, `Fn`, `Def`).
    - If it touches `Domain/Emitter/` → broadly every fixture; focus on node types the diff changed.
 
-2. **Run the integration suite** filtered to the most impacted categories:
+2. **Use the parent's test results**, or run a focused check only within its assigned validation budget:
    ```bash
    ./vendor/bin/phpunit --testsuite=integration --filter=<Category>
    ```
 
 3. **For every failing fixture**, classify:
-   - **Expected drift**: compiler behavior intentionally changed. Regenerate the `--PHP--` section.
-   - **Regression**: compiler output changed unintentionally. Revert or fix the compiler.
+   - **Expected drift**: compiler behavior intentionally changed. Recommend regenerating the `--PHP--` section.
+   - **Regression**: compiler output changed unintentionally. Identify the responsible change and recommend a fix.
    - **Metadata-only**: only line/column offsets shifted. Still needs updating but flag separately.
 
 4. **Report** one section per fixture with: path, classification, minimal diff, recommended action. Never silently rewrite fixtures.
@@ -46,4 +40,6 @@ Specialized reviewer for `.test` fixtures in `tests/php/Integration/Fixtures/`. 
 ## Constraints
 
 - Do not run `composer fix` or format fixture files.
+- Stay read-only. Return findings to the parent; it owns compiler and fixture edits.
+- Leave the complete integration suite and final gate to the parent.
 - Report shifted source locations (line/column) explicitly: they are part of the contract.

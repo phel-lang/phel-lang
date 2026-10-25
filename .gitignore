@@ -46,6 +46,9 @@ phel.phar
 # Codex copies of directory-scoped rules (`scope:` in .agnostic-ai/rules/).
 /src/**/AGENTS.md
 /tests/**/AGENTS.md
+/.agnostic-ai/AGENTS.md
+/.github/AGENTS.md
+/docs/AGENTS.md
 /.nrepl-port
 
 # >>> agnostic-ai (managed) >>>

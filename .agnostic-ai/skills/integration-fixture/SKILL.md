@@ -2,11 +2,14 @@
 description: Add a .test integration fixture for one behavior.
 argument-hint: "[category] [name]"
 disable-model-invocation: true
-x-claude:
-  allowed-tools: "Read, Write, Edit, Glob, Bash(ls *), Bash(./vendor/bin/phpunit *)"
-x-codex:
-  interface:
-    display_name: Integration Fixture
+allowed-tools:
+  - "read"
+  - "write"
+  - "edit"
+  - "Glob"
+  - "shell(ls *)"
+  - "shell(./vendor/bin/phpunit *)"
+  - "shell(composer *)"
 ---
 
 # Integration Fixture
@@ -15,21 +18,16 @@ Scaffolds a new `.test` fixture in the two-section `--PHEL--` / `--PHP--` format
 
 ## Context
 
-::target claude
-!`ls tests/php/Integration/Fixtures/`
-::end
-::target codex
 Run first: `ls tests/php/Integration/Fixtures/`.
-::end
 
 ## Instructions
 
 1. **Parse the argument** as `<category> <name>`.
    - Category must match an existing dir under `tests/php/Integration/Fixtures/` (e.g. `Def`, `Fn`, `Let`, `Try`, `Call`, `If`, `Apply`, `Foreach`, `Keyword`, `Do`, `Inline`).
-   - If no match, list available categories and ask before creating a new one.
+   - If no match, inspect sibling fixtures and choose the category that owns the behavior. Create a category only when no existing one fits.
    - `name` is the file stem (kebab or descriptive): `fn-variadic`, `try-one-catch`.
 
-2. **Ask the user for the Phel input** (one form or a small block).
+2. **Use the task's Phel input** (one form or a small block), or derive the smallest reproducer from the described behavior. Ask only when the intended behavior is missing.
 
 3. **Write the fixture** as `tests/php/Integration/Fixtures/<Category>/<name>.test` with the Phel input and an empty `--PHP--` section:
    ```
@@ -40,12 +38,12 @@ Run first: `ls tests/php/Integration/Fixtures/`.
 
 4. **Capture the output** as `.agnostic-ai/rules/integration-tests.md` describes, and check it is the output you intended.
 
-5. **Run the integration suite filtered to the new file** to confirm it passes:
+5. **Diagnose a mismatch** with a category-filtered run only when needed to capture output or investigate a failure:
    ```bash
    ./vendor/bin/phpunit --testsuite=integration --filter=<Category>
    ```
 
-6. If the fixture fails, do NOT edit the expected PHP to match. Instead, report the diff: a failing fixture usually means a compiler regression or the input is not idiomatic.
+6. If the fixture fails, trace the mismatch against the intended behavior. Regenerate expected PHP only for an intentional behavior or source-location change; otherwise fix the compiler within the assigned scope or report the defect. After reviewing the completed change, run the final gate per `.agnostic-ai/rules/build-test-and-development-commands.md`, including for fixture-only changes. That gate includes the integration suite; do not run it separately again.
 
 ## Constraints
 

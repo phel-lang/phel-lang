@@ -1,40 +1,35 @@
 ---
 description: Push the branch and open a PR from the template.
 argument-hint: "[issue-number]"
-x-claude:
-  allowed-tools: "Read, Edit, Bash(git *), Bash(gh *)"
-# Model-invocable on purpose: the gh-issue workflow opens its PR through /pr.
-x-codex:
-  interface:
-    display_name: Pull Request
+allowed-tools:
+  - "read"
+  - "write"
+  - "edit"
+  - "shell(git *)"
+  - "shell(gh *)"
+  - "shell(composer *)"
+  - "shell(agnostic-ai *)"
+# Model-invocable on purpose: the issue workflow opens its PR through this skill.
 ---
 
 # Create Pull Request
 
 ## Context
 
-::target claude
-!`git branch --show-current`
-!`git log main..HEAD --oneline`
-!`git diff main..HEAD --stat`
-::end
-::target codex
 Run first: `git branch --show-current`, `git log main..HEAD --oneline`, `git diff main..HEAD --stat`.
-::end
 
 ## Instructions
 
-1. **Check CHANGELOG.md**: if it wasn't updated for these changes, update it per `.agnostic-ai/rules/changelog.md` and commit:
-   ```bash
-   git add CHANGELOG.md && git commit -m "chore: update changelog"
-   ```
+1. **Prepare**: review the complete diff against the PR's base and the working tree. Preserve unrelated work. Add a `CHANGELOG.md` entry only for user-facing changes, per `.agnostic-ai/rules/changelog.md`.
 
-2. **Push branch**:
+2. **Review, gate and commit**: have `phel-reviewer` review the diff and resolve actionable findings before the final gate. Follow `.agnostic-ai/skills/commit/SKILL.md` for pending changes: stage the complete intended change, pass the applicable gate, then commit. Let a successful pre-commit hook supply the gate only when staged PHP or Phel files trigger it. If there is nothing to commit, run the applicable gate in `.agnostic-ai/rules/build-test-and-development-commands.md` or reuse a successful run for the same change set. Rerun affected checks after fixes. Do not commit or push with failing checks or unresolved defects.
+
+3. **Push branch**:
    ```bash
    git push -u origin HEAD
    ```
 
-3. **Generate PR title**:
+4. **Generate PR title**:
    - If the argument contains an issue number, fetch the issue title:
      ```bash
      gh issue view <number> --json title -q '.title'
@@ -42,19 +37,14 @@ Run first: `git branch --show-current`, `git log main..HEAD --oneline`, `git dif
    - PR title format: `<type>(<scope>): <short description>` (conventional commit style, under 70 chars)
    - Derive the type from the branch prefix (`feat/`, `fix/`, `ref/`, `perf/`, `docs/`, `test/`, `chore/`)
 
-4. **Read `.github/PULL_REQUEST_TEMPLATE.md`** and use its **exact section headers** (including emojis) for the PR body. Do not hardcode headers: read the template file first.
+5. **Read `.github/PULL_REQUEST_TEMPLATE.md`** and use its **exact section headers** (including emojis) for the PR body. Do not hardcode headers: read the template file first.
 
-5. **Create PR** using the headers from the template:
+6. **Create PR** using the headers from the template. Write the body to a temporary file with real newlines, then pass its path:
    ```bash
-   gh pr create --title "<title>" --assignee @me --label "<label>" --body "$(cat <<'EOF'
-   <paste exact headers from .github/PULL_REQUEST_TEMPLATE.md>
-
-   Closes #<issue-number>
-   EOF
-   )"
+   gh pr create --title "<title>" --assignee @me --label "<label>" --body-file <body-file>
    ```
 
-   **Labels:** pick the single most relevant. These exist; `gh pr create` aborts on an unknown label:
+   **Labels:** query `gh label list` and pick the single most relevant available label. Suggested mapping:
    - `bug`: `fix/`
    - `enhancement`: `feat/`
    - `documentation`: `docs/`
@@ -65,7 +55,7 @@ Run first: `git branch --show-current`, `git log main..HEAD --oneline`, `git dif
 
    **Body guidelines:**
    - Focus on *what* and *why*, not implementation details
-   - Use `Closes #<number>` so merging auto-closes the issue
-   - Keep the entire body under 15 lines
+   - Use `Closes #<number>` only when the PR resolves that issue
+   - Include validation results and any remaining limits; keep it concise
 
-6. **Report the PR URL** to the user.
+7. **Report the PR URL** and validation results to the user.

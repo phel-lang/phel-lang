@@ -122,7 +122,7 @@ For user-facing changes (`feat:`, `fix:`), update `CHANGELOG.md` under `## Unrel
 
 ## AI Tooling
 
-[.agnostic-ai/](../.agnostic-ai/) is the single source for the agent config used on this repository. [agnostic-ai](https://github.com/Chemaclass/agnostic-ai) generates Claude Code (`.claude/`, `CLAUDE.md`) and Codex (`.codex/`, `.agents/`, `AGENTS.md`) from it. The generated files are gitignored, so run `sync` after cloning and after every spec change. `agnostic-ai.yaml` requires 0.87.0 or newer; CI runs v0.87.0, and `agnostic-ai upgrade --version v0.87.0` installs it.
+[.agnostic-ai/](../.agnostic-ai/) is the single source for the agent config used on this repository. [agnostic-ai](https://github.com/Chemaclass/agnostic-ai) generates Claude Code (`.claude/`, `CLAUDE.md`) and Codex (`.codex/`, `.agents/`, `AGENTS.md`) from it. The generated files are gitignored, so run `sync` after cloning and after every spec change. `agnostic-ai.yaml` pins 0.87.0 to match CI; `agnostic-ai upgrade --version v0.87.0` installs it.
 
 Each PHP module is documented by a rule scoped to its directory, `.agnostic-ai/rules/module-<name>.md`. Sync emits it as `src/php/<Module>/AGENTS.md` for Codex and as a path-scoped rule under `.claude/rules/src/php/` for Claude Code. Edit the rule, not the output.
 
@@ -131,7 +131,7 @@ brew install Chemaclass/tap/agnostic-ai   # or: go install github.com/chemaclass
 agnostic-ai sync
 ```
 
-Edit the specs under `.agnostic-ai/`, never the generated files. Add a target (Gemini, Cursor, ...) under `targets:` in `agnostic-ai.yaml`. CI validates the specs on every PR that touches them.
+Edit the specs under `.agnostic-ai/`, never the generated files. Add a target (Gemini, Cursor, ...) under `targets:` in `agnostic-ai.yaml`. Run `agnostic-ai validate`, `agnostic-ai lint --strict`, `agnostic-ai sync`, and `agnostic-ai sync --check` after spec changes. CI runs the same checks. For scope changes, inspect a representative file with `agnostic-ai explain --file <path> --target codex` and `--target claude`; for instruction size, use `agnostic-ai explain --context --target <target>`.
 
 ## Where to Start
 

@@ -1,5 +1,5 @@
 model_reasoning_effort = "medium"
-# The Compiler module chain (root + src/php + src/php/Compiler AGENTS.md) is about 57 KB; the 32 KiB default truncates it.
+# The deepest Compiler instruction chain exceeds the 32 KiB default; lint budgets it in agnostic-ai.yaml.
 project_doc_max_bytes = 65536
 
 developer_instructions = """

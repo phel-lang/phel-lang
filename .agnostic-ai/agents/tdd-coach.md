@@ -2,16 +2,10 @@
 name: tdd-coach
 description: Implements a change test first, red-green-refactor.
 model: balanced
-# Claude-only fields: Codex has no tool allowlist, memory or turn cap, and its subagents keep the session sandbox.
-x-claude:
-  tools: [Read, Write, Edit, Glob, Grep, Bash]
-  maxTurns: 25
+can: [read, write, edit, Glob, Grep, shell]
+maxTurns: 25
 x-codex:
   name: tdd_coach
-  nickname_candidates:
-    - Coach
-    - RedGreen
-    - Cycle
 ---
 
 # TDD Coach

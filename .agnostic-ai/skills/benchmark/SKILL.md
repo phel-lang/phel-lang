@@ -2,24 +2,18 @@
 description: Run, baseline or compare benchmarks.
 argument-hint: "[run|baseline|compare|filter]"
 disable-model-invocation: true
-x-claude:
-  allowed-tools: "Read, Bash(composer *), Bash(./vendor/bin/phpbench *), Bash(./bin/phel *)"
-x-codex:
-  interface:
-    display_name: Benchmark
+allowed-tools:
+  - "read"
+  - "shell(composer *)"
+  - "shell(./vendor/bin/phpbench *)"
+  - "shell(./bin/phel *)"
 ---
 
 # Benchmark Runner
 
 ## Context
 
-::target claude
-!`git branch --show-current`
-!`git log --oneline -1`
-::end
-::target codex
 Run first: `git branch --show-current`, `git log --oneline -1`.
-::end
 
 ## Instructions
 
@@ -38,7 +32,7 @@ Run first: `git branch --show-current`, `git log --oneline -1`.
    ```bash
    composer phpbench-ref
    ```
-   Highlight any regressions (>5% slower) and improvements (>5% faster).
+   Treat a difference above 5% as a candidate regression or improvement. Rerun it and report noise before drawing a conclusion.
 
 4. If the argument looks like a class or method filter:
    ```bash
@@ -48,6 +42,7 @@ Run first: `git branch --show-current`, `git log --oneline -1`.
 5. For Phel code (`defbench`), use `./bin/phel bench`. To compare the working tree against a git ref, use `./bin/phel bench --ab=<ref> --pairs=N`. See `docs/benchmarking.md`.
 
 6. Report results focusing on:
+   - Baseline commit, comparison commit or working-tree state, and method per `docs/benchmarking.md`
    - Mean execution time and memory usage
    - Regressions vs improvements (when comparing)
    - Which benchmark classes were affected

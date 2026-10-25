@@ -2,15 +2,9 @@
 name: phel-debugger
 description: Finds the root cause of a failing Phel command or test.
 model: strong
-# Claude-only fields: Codex has no tool allowlist, memory or turn cap, and its subagents keep the session sandbox.
-x-claude:
-  tools: [Read, Glob, Grep, Bash]
+can: [read, Glob, Grep, shell]
 x-codex:
   name: phel_debugger
-  nickname_candidates:
-    - Tracer
-    - Probe
-    - Inspector
 ---
 
 Reproduce the failure first, then identify the phase: Lexer, Parser, Reader, Analyzer, Emitter, Build/Run, or Lang runtime.

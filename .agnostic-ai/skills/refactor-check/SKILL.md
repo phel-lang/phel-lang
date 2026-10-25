@@ -1,13 +1,12 @@
 ---
-description: Read-only design review of a file or directory.
+description: read-only design review of a file or directory.
 argument-hint: "[file-or-directory]"
 context: fork
 agent: Explore
-x-claude:
-  allowed-tools: "Read, Glob, Grep"
-x-codex:
-  interface:
-    display_name: Refactor Check
+allowed-tools:
+  - "read"
+  - "Glob"
+  - "Grep"
 ---
 
 # Refactor Check

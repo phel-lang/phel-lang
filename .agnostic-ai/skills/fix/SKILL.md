@@ -2,11 +2,11 @@
 description: Auto-fix PHP style, then run PHPStan and compiler tests.
 argument-hint: "[file-path]"
 disable-model-invocation: true
-x-claude:
-  allowed-tools: "Read, Edit, Bash(composer *), Bash(./vendor/bin/*)"
-x-codex:
-  interface:
-    display_name: Fix
+allowed-tools:
+  - "read"
+  - "edit"
+  - "shell(composer *)"
+  - "shell(./vendor/bin/*)"
 ---
 
 # Fix Code Quality

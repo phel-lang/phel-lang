@@ -2,18 +2,17 @@
 description: Run the narrowest test scope for a change.
 argument-hint: "[scope-or-filter]"
 disable-model-invocation: true
-x-claude:
-  allowed-tools: "Bash(composer *), Bash(./vendor/bin/phpunit *), Bash(./bin/phel *)"
-x-codex:
-  interface:
-    display_name: Test
+allowed-tools:
+  - "shell(composer *)"
+  - "shell(./vendor/bin/phpunit *)"
+  - "shell(./bin/phel *)"
 ---
 
 # Quick Test Runner
 
 ## Scope mapping
 
-Run the **minimum** scope for the changed files. Prefer narrow over broad.
+Use the narrowest scope for diagnosis or an explicit focused request. For the final gate, follow `.agnostic-ai/rules/build-test-and-development-commands.md`; a focused pass does not replace it.
 
 | Changed                  | Command                                       | Notes                              |
 |--------------------------|-----------------------------------------------|------------------------------------|
@@ -22,7 +21,7 @@ Run the **minimum** scope for the changed files. Prefer narrow over broad.
 | Single PHP module        | `./vendor/bin/phpunit tests/php/Unit/<Module>` | Fastest for focused work           |
 | Integration fixtures     | `composer test-integration`                   | Paratest, integration suite only   |
 | Single Phel file         | `./bin/phel test tests/phel/<file>`           | Target a specific test             |
-| Any `.php` style change  | `composer test-quality`                       | Static analysis only               |
+| Any `.php` style change  | `composer test-quality`                       | Formatting, analysis and config    |
 | Mixed PHP + Phel         | `composer test`                               | Run everything                     |
 
 Every command is described in `.agnostic-ai/rules/build-test-and-development-commands.md`.

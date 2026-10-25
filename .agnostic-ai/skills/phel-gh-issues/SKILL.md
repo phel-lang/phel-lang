@@ -1,9 +1,6 @@
 ---
 description: phel-lang rules read by /gh-issues.
 disable-model-invocation: true
-x-codex:
-  interface:
-    display_name: phel-lang issue queue rules
 ---
 
 # GitHub Issues: phel-lang specifics

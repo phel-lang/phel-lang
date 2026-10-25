@@ -2,23 +2,13 @@
 description: Cut a release with tools/release.sh.
 argument-hint: "[version or --dry-run]"
 disable-model-invocation: true
-x-codex:
-  interface:
-    display_name: Release
 ---
 
 # Release
 
 ## Context
 
-::target claude
-!`git branch --show-current`
-!`git status --porcelain`
-!`grep "LATEST_VERSION = " src/php/Shared/VersionFinder.php`
-::end
-::target codex
 Run first: `git branch --show-current`, `git status --porcelain`, `grep "LATEST_VERSION = " src/php/Shared/VersionFinder.php`.
-::end
 
 ## Instructions
 

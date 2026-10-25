@@ -1,15 +1,10 @@
 ---
 name: docs-placement
 description: Which Markdown file owns which kind of content.
-# Codex cannot nest root filename filters such as *.md, so it loads this rule from the root AGENTS.md on purpose.
-x-codex:
-  alwaysApply: true
+scope: docs
 globs:
-  - '*.md'
-  - docs/**
-  - .github/*.md
-  - .agnostic-ai/rules/module-*.md
-  - resources/agents/**
+  - .github/**
+  - .agnostic-ai/**
 ---
 
 # Where Docs Go

@@ -2,16 +2,11 @@
 name: domain-architect
 description: Read-only advice on module placement, new dependencies and cycles.
 model: strong
-# Claude-only fields: Codex has no tool allowlist, memory or turn cap, and its subagents keep the session sandbox.
+can: [read, Glob, Grep]
 x-claude:
-  tools: [Read, Glob, Grep]
   memory: project
 x-codex:
   name: domain_architect
-  nickname_candidates:
-    - Architect
-    - Boundary
-    - Graph
 ---
 
 # Domain Architect

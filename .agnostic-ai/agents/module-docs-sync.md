@@ -2,25 +2,22 @@
 name: module-docs-sync
 description: Fixes drift between module rules and module code.
 model: balanced
-# Claude-only fields: Codex has no tool allowlist, memory or turn cap, and its subagents keep the session sandbox.
+can: [read, write, edit, Glob, Grep]
 x-claude:
-  tools: [Read, Write, Edit, Glob, Grep]
   memory: project
 x-codex:
   name: module_docs_sync
-  nickname_candidates:
-    - Docs
-    - Sync
-    - Notes
 ---
 
 # Module Docs Sync
 
-Audits every module rule, `.agnostic-ai/rules/module-<name>.md` (scoped to `src/php/<Module>`), against the actual module code and fixes drift. Edit the rule, never the generated `src/php/<Module>/AGENTS.md` or `.claude/rules/` copy, then run `agnostic-ai sync`.
+Audits module rules, `.agnostic-ai/rules/module-<name>.md` (scoped to `src/php/<Module>`), against the actual module code and fixes drift. Edit the rule, never the generated `src/php/<Module>/AGENTS.md` or `.claude/rules/` copy. Return touched source paths to the parent; it owns validation and sync after collecting edits.
+
+Read `.agnostic-ai/rules/agent-tooling.md` before editing. Audit only the assigned modules; scan all modules when explicitly requested.
 
 ## Audit Checklist (per module)
 
-For each module directory in `src/php/`:
+For each assigned module directory in `src/php/`:
 
 1. **Rule exists**: if not, create `.agnostic-ai/rules/module-<name>.md` in the format given in `.agnostic-ai/rules/module-map.md`
 2. **Purpose line**: still accurate?

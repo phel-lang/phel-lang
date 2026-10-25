@@ -40,8 +40,14 @@ jobs:
       - name: Validate specs
         run: agnostic-ai validate
 
+      - name: Lint specs and instruction budgets
+        run: agnostic-ai lint --strict
+
       - name: Sync (emit to gitignored target dirs)
         run: agnostic-ai sync
+
+      - name: Check generated config drift
+        run: agnostic-ai sync --check
 
       - name: Verify no drift in source specs
         run: |

@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Chemaclass/agnostic-ai/v0.87.0/docs/schemas/config.schema.json
 version: 1
 
-requires: ">=0.87.0"
+requires: "0.87.0"
 
 sources:
   agents: .agnostic-ai/agents
@@ -23,6 +23,18 @@ models:
 
 coverage:
   accept:
+    - target: codex
+      kind: agents
+      field: maxTurns
+      reason: Codex has no per-agent turn cap; the parent assigns the task and validation budget.
+    - target: codex
+      kind: agents
+      field: can
+      reason: Codex cannot enforce per-agent tool allowlists; shared instructions define the task limits within the session sandbox.
+    - target: codex
+      kind: skills
+      field: allowed-tools
+      reason: Codex cannot enforce skill tool grants; it uses session permissions and the shared procedure.
     - target: codex
       kind: skills
       field: argument-hint
