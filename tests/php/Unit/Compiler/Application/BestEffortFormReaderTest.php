@@ -69,6 +69,17 @@ final class BestEffortFormReaderTest extends TestCase
         self::assertCount(1, $forms);
     }
 
+    public function test_it_recovers_the_placeholder_collector_after_a_nested_hash_function_error(): void
+    {
+        $generator = $this->compilerFacade->readFormsBestEffort('#(f #(g %) %) #(inc %)', 'nested.phel');
+        $forms = iterator_to_array($generator, false);
+
+        self::assertTrue($generator->getReturn());
+        self::assertCount(1, $forms);
+        self::assertCount(1, $forms[0]->get(1));
+        self::assertSame($forms[0]->get(1)->get(0)->getName(), $forms[0]->get(2)->get(1)->getName());
+    }
+
     public function test_it_is_lazy_so_a_broken_tail_costs_nothing_when_unread(): void
     {
         $generator = $this->compilerFacade->readFormsBestEffort('(def a 1) (def b', 'lazy.phel');
