@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Application;
 
+use InvalidArgumentException;
 use Phel\Build\Application\CacheClearer;
 use PhelTest\Support\RemoveDirTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
@@ -35,6 +37,65 @@ final class CacheClearerTest extends TestCase
     protected function tearDown(): void
     {
         $this->removeDir($this->root);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function filesystemRoots(): iterable
+    {
+        yield 'drive backslash' => ['D:\\'];
+        yield 'drive slash' => ['D:/'];
+        yield 'UNC share' => ['\\\\server\\share'];
+        yield 'UNC share slash' => ['//server/share/'];
+        yield 'extended drive' => ['\\\\?\\D:\\'];
+        yield 'extended UNC share' => ['\\\\?\\UNC\\server\\share\\'];
+    }
+
+    #[DataProvider('filesystemRoots')]
+    public function test_refuses_filesystem_roots_on_other_drives(string $path): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new CacheClearer($path, $this->root . '/cache', $this->root . '/opcache')->clearAll();
+    }
+
+    public function test_refuses_a_project_directory_before_clearing_other_caches(): void
+    {
+        file_put_contents($this->root . '/phel-config.php', '<?php return [];');
+
+        try {
+            new CacheClearer($this->root . '/tmp', $this->root, $this->root . '/opcache')->clearAll();
+            self::fail('Expected the project directory to be refused');
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            self::assertStringContainsString('Refusing to clear', $invalidArgumentException->getMessage());
+            self::assertFileExists($this->root . '/phel-config.php');
+            self::assertFileExists($this->root . '/tmp/__phel_1.php');
+        }
+    }
+
+    public function test_refuses_the_current_directory_and_its_ancestor(): void
+    {
+        $cwd = getcwd();
+        chdir($this->root . '/tmp');
+        try {
+            foreach (['.', '..', '../cache/..'] as $unsafe) {
+                try {
+                    new CacheClearer($unsafe, $this->root . '/cache', $this->root . '/opcache')->clearAll();
+                    self::fail('Expected unsafe directory to be refused: ' . $unsafe);
+                } catch (InvalidArgumentException) {
+                    self::assertFileExists($this->root . '/tmp/__phel_1.php');
+                    self::assertFileExists($this->root . '/cache/index.php');
+                }
+            }
+        } finally {
+            chdir($cwd);
+        }
+    }
+
+    public function test_refuses_an_explicit_project_root_outside_the_working_directory(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new CacheClearer($this->root, $this->root . '/cache', $this->root . '/opcache', $this->root . '/tmp')->clearAll();
     }
 
     public function test_clears_every_configured_directory(): void

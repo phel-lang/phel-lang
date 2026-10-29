@@ -165,6 +165,7 @@ final class BuildFactory extends AbstractFactory
             $this->getConfig()->getTempDir(),
             $this->getConfig()->getCacheDir(),
             $this->getConfig()->getOpcacheDir(),
+            $this->getConfig()->getAppRootDir(),
         );
     }
 

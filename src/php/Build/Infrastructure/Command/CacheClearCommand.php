@@ -7,7 +7,9 @@ namespace Phel\Build\Infrastructure\Command;
 use Gacela\Console\Infrastructure\Command\CacheClearCommand as GacelaCacheClearCommand;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use InvalidArgumentException;
 use Phel\Build\BuildFacade;
+use Phel\Shared\InvocationError;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
@@ -41,7 +43,11 @@ HELP);
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $clearedPaths = $this->getFacade()->clearCache();
+        try {
+            $clearedPaths = $this->getFacade()->clearCache();
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            return InvocationError::report($output, $invalidArgumentException->getMessage());
+        }
 
         foreach ($clearedPaths as $path) {
             $output->writeln('Cleared: ' . $path);

@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Build\Command;
 
 use Phel\Shared\Performance\OpcacheFileCache;
 use PhelTest\Support\RemoveDirTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
@@ -71,6 +72,32 @@ final class CacheClearOpcacheTest extends TestCase
     protected function tearDown(): void
     {
         $this->removeDir($this->projectDir);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function unsafeCacheSettings(): iterable
+    {
+        yield 'temp directory is project root' => ['withTempDir'];
+        yield 'cache directory is project root' => ['withCacheDir'];
+    }
+
+    #[DataProvider('unsafeCacheSettings')]
+    public function test_cache_clear_refuses_the_project_root(string $setting): void
+    {
+        file_put_contents(
+            $this->projectDir . '/phel-config.php',
+            '<?php return new Phel\\Config\\PhelConfig()->' . $setting . '(".");',
+        );
+
+        [$exitCode, $output] = $this->runPhel(['cache:clear']);
+
+        self::assertSame(2, $exitCode, $output);
+        self::assertStringContainsString('Refusing to clear', $output);
+        self::assertFileExists($this->projectDir . '/main.phel');
+        self::assertFileExists($this->projectDir . '/phel-config.php');
+        self::assertFileExists($this->projectDir . '/vendor/autoload.php');
     }
 
     public function test_cache_clear_empties_the_opcache_directory_and_keeps_it(): void

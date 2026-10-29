@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Phel\Build\Application;
 
 use Gacela\Framework\Cache\FileCache;
+use InvalidArgumentException;
 use Phel\Shared\Performance\OpcacheFileCache;
 use Phel\Shared\Performance\OpcacheFileCachePruner;
+use Phel\Shared\ProjectRootResolver;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -22,6 +24,7 @@ final readonly class CacheClearer
         private string $tempDir,
         private string $cacheDir,
         private string $opcacheDir,
+        private ?string $projectRoot = null,
     ) {}
 
     /**
@@ -29,6 +32,10 @@ final readonly class CacheClearer
      */
     public function clearAll(): array
     {
+        foreach ([$this->tempDir, $this->cacheDir, $this->opcacheDir] as $dir) {
+            $this->assertSafeDirectory($dir);
+        }
+
         $clearedPaths = [];
 
         if ($this->deleteDirectory($this->tempDir)) {
@@ -49,6 +56,75 @@ final readonly class CacheClearer
         }
 
         return $clearedPaths;
+    }
+
+    private function assertSafeDirectory(string $dir): void
+    {
+        $this->assertNotFilesystemRoot($dir);
+        if (is_link($dir) || !is_dir($dir)) {
+            return;
+        }
+
+        $path = realpath($dir);
+        if ($path === false) {
+            throw new InvalidArgumentException('Cannot resolve cache directory: ' . $dir);
+        }
+
+        $this->assertNotFilesystemRoot($path);
+
+        $cwd = getcwd();
+        $protectedPaths = [
+            DIRECTORY_SEPARATOR,
+            getenv('HOME') ?: getenv('USERPROFILE'),
+            $cwd,
+            $this->projectRoot ?? ($cwd === false ? false : ProjectRootResolver::resolveFromCwd($cwd)),
+        ];
+        foreach ($protectedPaths as $protected) {
+            $protectedPath = $protected === false ? false : realpath($protected);
+            if ($protectedPath === false) {
+                continue;
+            }
+
+            if (str_starts_with($this->comparisonPath($protectedPath), $this->comparisonPath($path))) {
+                throw new InvalidArgumentException('Refusing to clear protected directory: ' . $dir);
+            }
+        }
+
+        if (is_file($path . '/phel-config.php') || file_exists($path . '/.git')) {
+            throw new InvalidArgumentException('Refusing to clear project directory: ' . $dir);
+        }
+    }
+
+    private function assertNotFilesystemRoot(string $dir): void
+    {
+        $path = str_replace('\\', '/', $dir);
+        if (str_starts_with(strtolower($path), '//?/unc/')) {
+            $path = '//' . substr($path, 8);
+        } elseif (str_starts_with($path, '//?/')) {
+            $path = substr($path, 4);
+        }
+
+        $root = rtrim($path, '/');
+        if (($path !== '' && $root === '')
+            || preg_match('/^[a-z]:$/i', $root) === 1
+            || preg_match('~^//[^/]+/[^/]+$~', $root) === 1
+        ) {
+            throw new InvalidArgumentException('Refusing to clear filesystem root: ' . $dir);
+        }
+    }
+
+    private function comparisonPath(string $path): string
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            $path = strtolower(str_replace('\\', '/', $path));
+            if (str_starts_with($path, '//?/unc/')) {
+                $path = '//' . substr($path, 8);
+            } elseif (str_starts_with($path, '//?/')) {
+                $path = substr($path, 4);
+            }
+        }
+
+        return rtrim($path, '/') . '/';
     }
 
     private function deleteDirectory(string $dir): bool
