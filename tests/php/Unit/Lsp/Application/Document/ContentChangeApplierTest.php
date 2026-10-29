@@ -11,6 +11,20 @@ use PHPUnit\Framework\TestCase;
 
 final class ContentChangeApplierTest extends TestCase
 {
+    public function test_a_batch_uses_utf16_ranges_against_each_previous_change(): void
+    {
+        $document = new Document('file:///x.phel', 'phel', 1, 'old');
+        $this->applier()->apply($document, [
+            ['text' => "é😀 a\r\nnext\r\n"],
+            ['text' => '€x', 'range' => ['start' => ['line' => 0, 'character' => 4], 'end' => ['line' => 0, 'character' => 5]]],
+            ['text' => 'z', 'range' => ['start' => ['line' => 0, 'character' => 5], 'end' => ['line' => 0, 'character' => 6]]],
+            ['text' => '@', 'range' => ['start' => ['line' => 0, 'character' => 4], 'end' => ['line' => 1, 'character' => 2]]],
+        ], 2);
+
+        self::assertSame("é😀 @xt\r\n", $document->text);
+        self::assertSame(2, $document->version);
+    }
+
     public function test_returns_false_when_changes_is_not_an_array(): void
     {
         $document = new Document('file:///x.phel', 'phel', 1, 'initial');
