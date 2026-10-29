@@ -9,7 +9,6 @@ use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\OpenForm;
 use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Shared\Parser\Node\ListNode;
-use Phel\Shared\Parser\Node\ReaderCondSplicingNode;
 
 /**
  * @internal
@@ -39,11 +38,7 @@ final readonly class ListParser
             }
 
             $node = $this->parser->readExpression($tokenStream);
-            if ($node instanceof ReaderCondSplicingNode) {
-                array_push($acc, ...$node->getChildren());
-            } else {
-                $acc[] = $node;
-            }
+            $acc[] = $node;
         }
 
         // The loop only ends here once the stream is exhausted, so there is no

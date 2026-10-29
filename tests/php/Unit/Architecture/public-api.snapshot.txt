@@ -2093,11 +2093,23 @@ final class Phel\Shared\Parser\Node\QuoteNode implements Phel\Shared\Parser\Node
   public function replaceChildren(array $children): Phel\Shared\Parser\Node\InnerNodeInterface
 
 final readonly class Phel\Shared\Parser\Node\ReaderCondSplicingNode implements Phel\Shared\Parser\Node\NodeInterface
-  public function __construct(array $children, Phel\Lang\SourceLocation $startLocation, Phel\Lang\SourceLocation $endLocation)
+  public function __construct(array $children, Phel\Lang\SourceLocation $startLocation, Phel\Lang\SourceLocation $endLocation, ?string $code = null, ?Phel\Shared\Parser\Node\ReaderConditionalNode $source = null)
   public function getChildren(): array
   public function getCode(): string
   public function getEndLocation(): Phel\Lang\SourceLocation
+  public function getSelected(): ?Phel\Shared\Parser\Node\NodeInterface
   public function getStartLocation(): Phel\Lang\SourceLocation
+
+final class Phel\Shared\Parser\Node\ReaderConditionalNode implements Phel\Shared\Parser\Node\InnerNodeInterface
+  public function __construct(string $code, Phel\Shared\Parser\Node\NodeInterface $selected, Phel\Lang\SourceLocation $startLocation, Phel\Lang\SourceLocation $endLocation, string $prefix, string $suffix)
+  public function getChildren(): array
+  public function getCode(): string
+  public function getCodePostfix(): string
+  public function getCodePrefix(): string
+  public function getEndLocation(): Phel\Lang\SourceLocation
+  public function getSelected(): Phel\Shared\Parser\Node\NodeInterface
+  public function getStartLocation(): Phel\Lang\SourceLocation
+  public function replaceChildren(array $children): Phel\Shared\Parser\Node\InnerNodeInterface
 
 final class Phel\Shared\Parser\Node\StringNode extends Phel\Shared\Parser\Node\AbstractAtomNode
 

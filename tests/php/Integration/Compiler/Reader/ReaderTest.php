@@ -1509,6 +1509,32 @@ final class ReaderTest extends TestCase
         $this->read('#xyz "x"');
     }
 
+    public function test_preserved_reader_conditionals_still_select_runtime_values(): void
+    {
+        self::assertSame(1, $this->read('#?(:default 0 :phel 1 :clj 2)'));
+        self::assertSame(2, $this->read('#?(:clj 1 :default 2)'));
+        self::assertSame(3, $this->read('#?(:phel #?(:phel 3 :default 4))'));
+        self::assertSame([1, 2, 3], $this->read('[#?@(:phel [1 2] :default [9]) 3]')->toArray());
+        self::assertSame([3], $this->read('[#?(:clj 1) #?@(:clj [2]) 3]')->toArray());
+        self::assertSame([1, 2], $this->read('[#?@(:phel [#?(:phel 1) #?@(:phel [2])])]')->toArray());
+        self::assertSame(1, $this->read('#?(:phel 1 :clj #unknown 2)'));
+        self::assertSame([1, 2], $this->read('[#?@(:phel #?(:phel [1 2]))]')->toArray());
+    }
+
+    public function test_reader_conditionals_in_php_tag_prefix_contexts(): void
+    {
+        self::assertSame('(php-indexed-array 1 2)', Printer::readable()->print($this->read('#php #?(:phel [1 2])')));
+        self::assertSame('(php-indexed-array 1 2)', Printer::readable()->print($this->read('#php [#?@(:phel [1 2])]')));
+        self::assertSame('(php-associative-array "a" 1)', Printer::readable()->print($this->read('#php {#?@(:phel [:a 1])}')));
+    }
+
+    public function test_reader_conditionals_in_other_prefix_contexts(): void
+    {
+        self::assertSame('(quote [1 2])', Printer::readable()->print($this->read("'#?(:phel [1 2])")));
+        self::assertSame('(quote [1 2])', Printer::readable()->print($this->read("'[ #?@(:phel [1 2])]")));
+        self::assertTrue($this->read('^#?(:phel :flag) #?(:phel [])')->getMeta()->find(Keyword::create('flag')));
+    }
+
     private function read(string $string, bool $withLocation = true): float|bool|int|string|TypeInterface|null
     {
         $ast = $this->readAny($string, $withLocation);
