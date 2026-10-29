@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReadModel;
 
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LocalBindingName;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -171,19 +172,14 @@ final class FnSymbolTuple
         $this->params = $params;
     }
 
-    /**
-     * Two names can munge to one PHP variable (`foo-bar`, `foo_bar`), and a
-     * superglobal name cannot be a PHP parameter. Such a param takes a fresh
-     * PHP name and is rebound by the body's `let`, which keeps locals apart.
-     */
     private function rebindParamsPhpCannotName(): void
     {
         $munge = new Munge();
         $taken = [];
         foreach ($this->params as $i => $param) {
             $phpName = $munge->encode($param->getName());
-            if (isset($taken[$phpName]) || in_array($phpName, self::SUPERGLOBALS, true)) {
-                $fresh = Symbol::gen()->copyLocationFrom($param);
+            if (isset($taken[$phpName]) || in_array($phpName, self::SUPERGLOBALS, true) || LocalBindingName::isReserved($param)) {
+                $fresh = Symbol::gen()->copyLocationFrom($param)->withMeta($param->getMeta());
                 $this->params[$i] = $fresh;
                 $this->lets[] = $param;
                 $this->lets[] = $fresh;
