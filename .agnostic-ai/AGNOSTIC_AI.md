@@ -2,11 +2,11 @@
 
 Phel is a Lisp that compiles to PHP and follows Clojure-aligned semantics where practical.
 
-Repository policy is defined by the rules generated below. Keep shared policy in `.agnostic-ai/`, Codex mechanics in
-`.codex/`, Claude Code mechanics in `.claude/`, and downstream user assets in `resources/agents/`.
+Edit shared policy in `.agnostic-ai/` and run `agnostic-ai sync`, never edit generated instructions. Keep Codex mechanics
+in `.codex/`, Claude Code mechanics in `.claude/`, and downstream user assets in `resources/agents/`.
 
 Paths in these instructions are relative to the repository root unless stated otherwise. Before editing, read the
-directory-scoped instructions for the file. Before changing an accepted architectural choice, read its record in `docs/adr/`.
+directory-scoped instructions for the file. Architectural decisions are indexed in `docs/adr/README.md`.
 Before writing documentation, read `.agnostic-ai/rules/docs-placement.md` for its destination and link rules.
 Before changing agent configuration (including `agnostic-ai.yaml`), read `.agnostic-ai/rules/agent-tooling.md`.
 

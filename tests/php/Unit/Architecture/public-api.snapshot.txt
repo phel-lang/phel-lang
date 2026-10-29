@@ -2116,7 +2116,7 @@ final class Phel\Shared\Parser\Node\StringNode extends Phel\Shared\Parser\Node\A
 final class Phel\Shared\Parser\Node\SymbolNode extends Phel\Shared\Parser\Node\AbstractAtomNode
 
 final readonly class Phel\Shared\Parser\Node\TaggedLiteralNode implements Phel\Shared\Parser\Node\NodeInterface
-  public function __construct(string $tag, Phel\Shared\Parser\Node\NodeInterface $form, Phel\Lang\SourceLocation $startLocation, Phel\Lang\SourceLocation $endLocation)
+  public function __construct(string $tag, Phel\Shared\Parser\Node\NodeInterface $form, Phel\Lang\SourceLocation $startLocation, Phel\Lang\SourceLocation $endLocation, string $trivia = ' ')
   public function getCode(): string
   public function getEndLocation(): Phel\Lang\SourceLocation
   public function getForm(): Phel\Shared\Parser\Node\NodeInterface
