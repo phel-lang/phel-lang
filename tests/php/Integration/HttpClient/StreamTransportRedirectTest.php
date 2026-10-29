@@ -36,6 +36,26 @@ final class StreamTransportRedirectTest extends TestCase
         self::$other->stop();
     }
 
+    public function test_valid_headers_keep_their_values(): void
+    {
+        $result = StreamTransport::send('GET', self::$origin->url('/echo'), [
+            'x-test' => 'plain value',
+            'x-empty' => '',
+            'x-number' => 42,
+            'x-zero' => 0,
+            '123' => 'numbered name',
+            "x!#$%&'*+-.^_`|~" => 'token',
+        ], null, []);
+
+        $headers = json_decode($result['body'], true)['headers'];
+        self::assertSame('plain value', $headers['x-test']);
+        self::assertSame('', $headers['x-empty']);
+        self::assertSame('42', $headers['x-number']);
+        self::assertSame('0', $headers['x-zero']);
+        self::assertSame('numbered name', $headers['123']);
+        self::assertSame('token', $headers["x!#$%&'*+-.^_`|~"]);
+    }
+
     public function test_a_redirect_to_another_origin_drops_custom_and_credential_headers(): void
     {
         $echo = $this->send('GET', $this->redirectTo(self::$other->url('/echo')));

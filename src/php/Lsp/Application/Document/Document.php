@@ -10,7 +10,9 @@ use function count;
 use function explode;
 use function max;
 use function min;
+use function ord;
 use function preg_match;
+use function str_ends_with;
 use function str_replace;
 use function strlen;
 
@@ -48,10 +50,7 @@ final class Document
     }
 
     /**
-     * Apply an LSP-style incremental change (range + text). Accepts
-     * line/character counts in UTF-16 code units per spec v3.17 — for our
-     * purposes we treat them as UTF-8 byte offsets, which is sufficient for
-     * the ASCII-dominant Phel source that real clients send.
+     * Apply an incremental change whose character positions count UTF-16 code units.
      *
      * @param Range $range
      */
@@ -77,26 +76,48 @@ final class Document
      */
     public function positionToOffset(array $position): int
     {
-        $normalized = str_replace("\r\n", "\n", $this->text);
-        $lines = explode("\n", $normalized);
+        $lines = explode("\n", $this->text);
         $line = max(0, $position['line']);
         $character = max(0, $position['character']);
 
         $offset = 0;
         for ($i = 0; $i < $line; ++$i) {
             if (!isset($lines[$i])) {
-                return strlen($normalized);
+                return strlen($this->text);
             }
 
             $offset += strlen($lines[$i]) + 1;
         }
 
         if (!isset($lines[$line])) {
-            return strlen($normalized);
+            return strlen($this->text);
         }
 
-        $lineLen = strlen($lines[$line]);
-        return $offset + min($character, $lineLen);
+        $lineText = $lines[$line];
+        if (str_ends_with($lineText, "\r")) {
+            $lineText = substr($lineText, 0, -1);
+        }
+
+        $cursor = 0;
+        $lineLength = strlen($lineText);
+        while ($character > 0 && $cursor < $lineLength) {
+            $lead = ord($lineText[$cursor]);
+            $bytes = match (true) {
+                $lead < 0x80 => 1,
+                $lead < 0xE0 => 2,
+                $lead < 0xF0 => 3,
+                default => 4,
+            };
+            $units = $bytes === 4 ? 2 : 1;
+            if ($units > $character) {
+                break;
+            }
+
+            $character -= $units;
+            $cursor += $bytes;
+        }
+
+        return $offset + $cursor;
     }
 
     /**

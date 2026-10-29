@@ -17,12 +17,12 @@ use Phel\Lang\Ratio;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\UUID;
+use Phel\Shared\FloatFormatter;
 use Phel\Shared\Printer\PrinterInterface;
 use RuntimeException;
 
 use function addslashes;
 use function count;
-use function ini_set;
 use function is_array;
 use function is_bool;
 use function is_float;
@@ -30,7 +30,6 @@ use function is_infinite;
 use function is_int;
 use function is_nan;
 use function is_string;
-use function var_export;
 
 /**
  * @internal
@@ -143,16 +142,7 @@ final readonly class LiteralEmitter
             return $x > 0 ? 'INF' : '-INF';
         }
 
-        $precision = ini_set('serialize_precision', '-1');
-        if ($precision === false) {
-            throw new RuntimeException('Cannot configure float literal precision');
-        }
-
-        try {
-            return var_export($x, true);
-        } finally {
-            ini_set('serialize_precision', $precision);
-        }
+        return FloatFormatter::format($x);
     }
 
     private function emitInt(int $x): void

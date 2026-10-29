@@ -76,6 +76,7 @@ All `final readonly` and logic-free unless noted. Most live here so a facade con
 | `Munge` | `encode()`, `encodePhpNs()`, `encodeRegistryKey()`, `decodeNs()`; static `canonicalNs()`, `displayNs()` |
 | `ColorStyle` | ANSI colors; static `withStyles()`, `noStyles()`; `green/yellow/blue/red/color()` |
 | `ByteSize` | static `format(int)`; one size format for `phel build --report` and `phel doctor` |
+| `FloatFormatter` | `@internal`. static `format(float): string`: finite float round-trip text, restoring the caller's `serialize_precision`; shared by compiler emission and runtime printing |
 | `CurrentUser` | static `id()`: memoized effective uid (`posix_geteuid()`, else a temp probe file's owner; null on Windows) for the per-user temp dir check |
 | `ScalarCoercion` | config `mixed`→scalar with default: static `toString()`, `toInt()`, `toFloat()`, `toStringList()` |
 | `OptimizationLevel` | `resolve()` the configured level (Build and Run config) unless `PHEL_OPTIMIZATION_LEVEL` is set (documented user override, read through `EnvVar::integer()`); `pin()` sets it for subprocesses; `phel mutate` pins 0 |

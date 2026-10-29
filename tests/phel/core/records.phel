@@ -114,3 +114,21 @@
   (let [t (MarkerType)]
     (is (true? (MarkerType? t)) "empty-field deftype is constructible")
     (is (= t (->MarkerType)) "->MarkerType equal to MarkerType")))
+
+(defstruct EqualityPoint [x y])
+
+(deftest test-struct-and-record-equality-excludes-plain-maps
+  (doseq [value [(Point 1 2) (EqualityPoint 1 2)]]
+    (let [plain {:x 1, :y 2}]
+      (is (not (= plain value)))
+      (is (not (= value plain)))
+      (is (not (= (hash-set plain) (hash-set value))))
+      (is (not (= (hash-set value) (hash-set plain))))
+      (is (nil? (get (hash-map plain :plain) value)))
+      (is (nil? (get (hash-map value :struct) plain)))
+      (is (= 2 (count (hash-set plain value))))
+      (doseq [entries [[plain :plain value :struct] [value :struct plain :plain]]]
+        (let [values (apply hash-map entries)]
+          (is (= 2 (count values)))
+          (is (= :plain (get values plain)))
+          (is (= :struct (get values value))))))))

@@ -677,6 +677,7 @@ final class FileEvaluatorTest extends TestCase
 
         $tracker = $this->createMock(DependencyTrackerInterface::class);
         $tracker->expects($this->never())->method('registerDependencies');
+        $tracker->expects($this->never())->method('invalidateDependentsOf');
 
         $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
         $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
@@ -736,6 +737,7 @@ final class FileEvaluatorTest extends TestCase
         $cache = new CompiledCodeCache($cacheDir);
 
         $tracker = $this->createMock(DependencyTrackerInterface::class);
+        $tracker->expects($this->never())->method('invalidateDependentsOf');
         $tracker->expects($this->once())
             ->method('registerDependencies')
             ->with($sourceFile, $namespace, ['phel.core']);
