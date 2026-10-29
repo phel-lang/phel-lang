@@ -32,10 +32,11 @@ use Phel\Shared\ReaderResult;
  * `Domain`. Same reason `SerializedNamespaceEnvironment` lives here.
  *
  * @phpstan-type SerializedSymbol array{ns: ?string, name: string}
+ * @phpstan-type SerializedUseAlias array{ns: ?string, name: string, default_alias?: bool}
  * @phpstan-type SerializedNamespaceEnvironment array{
  *     refers: array<string, SerializedSymbol>,
  *     require_aliases: array<string, SerializedSymbol>,
- *     use_aliases: array<string, SerializedSymbol>,
+ *     use_aliases: array<string, SerializedUseAlias>,
  * }
  * @phpstan-type DeprecationRecord array{message: string, announced: bool}
  */

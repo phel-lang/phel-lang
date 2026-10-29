@@ -1460,6 +1460,32 @@ final class NsSymbolTest extends TestCase
         self::assertSame('phel.json', $this->globalEnv->getRequireAliases('app.core')['s']->getName());
     }
 
+    public function test_reevaluated_ns_may_import_another_class_under_the_same_alias(): void
+    {
+        foreach (['DateTime', 'DateTimeImmutable'] as $class) {
+            new NsSymbol($this->analyzer)->analyze(Phel::list([
+                Symbol::create(Symbol::NAME_NS),
+                Symbol::create('app.core'),
+                Phel::list([Keyword::create('use'), Symbol::create($class), Keyword::create('as'), Symbol::create('d')]),
+            ]), NodeEnvironment::empty());
+        }
+
+        self::assertSame('\\DateTimeImmutable', $this->globalEnv->getUseAliases('app.core')['d']->getName());
+    }
+
+    public function test_use_clauses_cannot_import_different_classes_under_the_same_alias(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("Alias 'd' already names \\DateTime in app.core, so it cannot also name \\DateTimeImmutable.");
+
+        new NsSymbol($this->analyzer)->analyze(Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app.core'),
+            Phel::list([Keyword::create('use'), Symbol::create('DateTime'), Keyword::create('as'), Symbol::create('d')]),
+            Phel::list([Keyword::create('use'), Symbol::create('DateTimeImmutable'), Keyword::create('as'), Symbol::create('d')]),
+        ]), NodeEnvironment::empty());
+    }
+
     public function test_name_referred_from_two_namespaces_fails_at_the_second_refer(): void
     {
         Phel::addDefinition('app.a', 'f', 'aValue', Phel::map());

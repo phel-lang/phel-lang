@@ -86,6 +86,7 @@ TXT;
 
         $requireNs = [];
         $requireFiles = [];
+        $useAliasesInForm = [];
         for ($forms = $list->rest()->cdr(); $forms !== null; $forms = $forms->cdr()) {
             $import = $forms->first();
 
@@ -97,7 +98,7 @@ TXT;
 
             /** @var PersistentListInterface<mixed> $import */
             if ($this->isKeywordWithName($value, 'use')) {
-                $this->analyzeUse($ns, $import);
+                new UseAliasRegistrar($this->analyzer)->register($ns, $import, aliasesInForm: $useAliasesInForm);
             } elseif ($this->isKeywordWithName($value, 'require')) {
                 $requireNs = [...$requireNs, ...$this->analyzeRequire($ns, $import)];
             } elseif ($this->isKeywordWithName($value, 'require-file')) {
@@ -118,14 +119,6 @@ TXT;
     private function isKeywordWithName(mixed $x, string $name): bool
     {
         return $x instanceof Keyword && $x->getName() === $name;
-    }
-
-    /**
-     * @param PersistentListInterface<mixed> $import
-     */
-    private function analyzeUse(string $ns, PersistentListInterface $import): void
-    {
-        new UseAliasRegistrar($this->analyzer)->register($ns, $import);
     }
 
     /**

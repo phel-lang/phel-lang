@@ -27,6 +27,10 @@ Bare host symbols read by **position**, never by probing the class table (ADR 00
 
 `Domain/Analyzer/UnresolvedSymbolAdvisor` builds the unresolved-symbol error. A qualified symbol is searched only in its own namespace (alias resolved, plus `BundledSymbolIndex`); an unknown alias names the bundled namespace to require; a bare name from a bundled namespace names the `:require ... :refer`. `BundledSymbolIndex` regex-reads public defs from stdlib sources and never loads a namespace, keeping the error path cheap (#3458).
 
+## PHP import aliases
+
+`UseAliasRegistrar` rejects conflicting explicit targets with `PHEL004`; `NsSymbol` shares collision tracking across one `ns` form so a later namespace evaluation can replace old imports. `UseAliasOrigin` distinguishes replaceable default aliases from explicit imports, which always clear that marker. `NamespaceEnvironmentSerializer` preserves only the dedicated `default_alias` flag for imported targets, not arbitrary symbol metadata.
+
 ## Simplification pass
 
 Runs after `ConstantFolder` (in `Domain/Analyzer/TypeAnalyzer/Simplification/`):
