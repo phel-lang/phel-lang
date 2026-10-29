@@ -14,10 +14,14 @@ use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\MetaNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\QuoteNode;
+use Phel\Shared\Parser\Node\ReaderConditionalNode;
+use Phel\Shared\Parser\Node\ReaderCondSplicingNode;
 use Phel\Shared\Parser\Node\StringNode;
 use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
+use function array_slice;
+use function count;
 use function file_get_contents;
 use function in_array;
 
@@ -33,7 +37,8 @@ use function in_array;
  * attribute map, parameter vectors, anything under a quote or quasiquote
  * (data, not code), and `def` / `defmacro` forms.
  *
- * @phpstan-type Site array{parent: ListNode, index: int, child: NodeInterface}
+ * @phpstan-type SourceSite array{parent: InnerNodeInterface, index: int, child: NodeInterface, dropParent: InnerNodeInterface, dropIndex: int}
+ * @phpstan-type Site array{parent: InnerNodeInterface, index: int, child: NodeInterface, context: InnerNodeInterface, contextIndex: int, sources: list<SourceSite>}
  *
  * @internal
  */
@@ -86,7 +91,13 @@ final readonly class MutantGenerator
         $namespace = $this->namespaceOf($tree);
 
         $mutants = [];
+        $views = new SemanticViews();
         foreach ($tree->getChildren() as $form) {
+            $sourceForm = $form;
+            while ($form instanceof ReaderConditionalNode) {
+                $form = $form->getSelected();
+            }
+
             if (!$form instanceof ListNode) {
                 continue;
             }
@@ -96,14 +107,20 @@ final readonly class MutantGenerator
             }
 
             $definition = $this->definitionName($form);
-            $originalForm = $form->getCode();
-            foreach ($this->sitesOf($form) as ['parent' => $parent, 'index' => $index, 'child' => $child]) {
+            $originalForm = $sourceForm->getCode();
+            foreach ($this->sitesOf($form) as $site) {
+                $site['context'] = $this->semanticView($site['context'], $views);
+                $child = $site['context']->getChildren()[$site['contextIndex']];
                 foreach ($this->mutators as $mutator) {
-                    foreach ($mutator->mutate($parent, $index, $child) as $replacement) {
-                        $originalChildren = $parent->getChildren();
-                        $parent->replaceChildren($replacement->children);
-                        $mutatedForm = $form->getCode();
-                        $parent->replaceChildren($originalChildren);
+                    foreach ($mutator->mutate($site['context'], $site['contextIndex'], $child) as $replacement) {
+                        $restore = $this->applyReplacement($site, $replacement->children);
+                        try {
+                            $mutatedForm = $sourceForm->getCode();
+                        } finally {
+                            foreach ($restore as [$parent, $children]) {
+                                $parent->replaceChildren($children);
+                            }
+                        }
 
                         if ($mutatedForm === $originalForm) {
                             continue;
@@ -137,6 +154,10 @@ final readonly class MutantGenerator
     private function namespaceOf(FileNode $tree): string
     {
         foreach ($tree->getChildren() as $form) {
+            while ($form instanceof ReaderConditionalNode) {
+                $form = $form->getSelected();
+            }
+
             if (!$form instanceof ListNode) {
                 continue;
             }
@@ -192,7 +213,7 @@ final readonly class MutantGenerator
      */
     private function sitesOf(ListNode $definition): array
     {
-        $children = $definition->getChildren();
+        $children = array_column($this->semanticSites($definition), 'child');
         $bodyStart = $this->bodyStartIndex($children);
         $params = $children[$bodyStart] ?? null;
 
@@ -212,7 +233,7 @@ final readonly class MutantGenerator
             }
 
             if ($child instanceof ListNode && $child->getTokenType() === Token::T_OPEN_PARENTHESIS) {
-                $arityChildren = $child->getChildren();
+                $arityChildren = array_column($this->semanticSites($child), 'child');
                 $firstSignificant = Nodes::firstSignificantIndex($arityChildren, 0);
                 foreach ($this->bodySites($child, $firstSignificant + 1) as $site) {
                     $sites[] = $site;
@@ -258,8 +279,9 @@ final readonly class MutantGenerator
     private function bodySites(ListNode $parent, int $from): array
     {
         $sites = [];
-        foreach ($parent->getChildren() as $index => $child) {
-            if ($index < $from) {
+        foreach ($this->semanticSites($parent) as $position => $site) {
+            $child = $site['child'];
+            if ($position < $from) {
                 continue;
             }
 
@@ -267,7 +289,7 @@ final readonly class MutantGenerator
                 continue;
             }
 
-            $sites[] = ['parent' => $parent, 'index' => $index, 'child' => $child];
+            $sites[] = $site;
             foreach ($this->descendantSites($child) as $site) {
                 $sites[] = $site;
             }
@@ -281,6 +303,16 @@ final readonly class MutantGenerator
      */
     private function descendantSites(NodeInterface $node): array
     {
+        if ($node instanceof ReaderConditionalNode) {
+            $selected = $node->getSelected();
+            return [...$this->semanticSites($node), ...$this->descendantSites($selected)];
+        }
+
+        if ($node instanceof ReaderCondSplicingNode) {
+            $selected = $node->getSelected();
+            return $selected instanceof NodeInterface ? $this->descendantSites($selected) : [];
+        }
+
         if ($node instanceof QuoteNode
             && in_array($node->getTokenType(), [Token::T_QUOTE, Token::T_QUASIQUOTE], true)
         ) {
@@ -316,12 +348,146 @@ final readonly class MutantGenerator
     private function significantChildren(InnerNodeInterface $node): array
     {
         $significant = [];
-        foreach ($node->getChildren() as $child) {
-            if (!$child instanceof TriviaNodeInterface) {
-                $significant[] = $child;
+        foreach ($this->semanticSites($node) as $site) {
+            if (!$site['child'] instanceof TriviaNodeInterface) {
+                $significant[] = $site['child'];
             }
         }
 
         return $significant;
+    }
+
+    /**
+     * @return list<Site>
+     */
+    private function semanticSites(InnerNodeInterface $parent): array
+    {
+        $sources = [];
+        foreach ($parent->getChildren() as $index => $child) {
+            if ($child instanceof ReaderConditionalNode) {
+                foreach ($this->semanticSites($child) as $site) {
+                    $sources[] = ['parent' => $site['parent'], 'index' => $site['index'], 'child' => $site['child'], 'dropParent' => $parent, 'dropIndex' => $index];
+                }
+            } elseif ($child instanceof ReaderCondSplicingNode) {
+                $selected = $child->getSelected();
+                while ($selected instanceof ReaderConditionalNode) {
+                    $selected = $selected->getSelected();
+                }
+
+                if ($selected instanceof InnerNodeInterface) {
+                    foreach ($this->semanticSites($selected) as $site) {
+                        $sources[] = ['parent' => $site['parent'], 'index' => $site['index'], 'child' => $site['child'], 'dropParent' => $site['sources'][$site['contextIndex']]['dropParent'], 'dropIndex' => $site['sources'][$site['contextIndex']]['dropIndex']];
+                    }
+                }
+            } else {
+                $sources[] = ['parent' => $parent, 'index' => $index, 'child' => $child, 'dropParent' => $parent, 'dropIndex' => $index];
+            }
+        }
+
+        $context = $parent instanceof ListNode
+            ? new ListNode($parent->getTokenType(), $parent->getStartLocation(), $parent->getEndLocation(), array_column($sources, 'child'))
+            : $parent;
+        $sites = [];
+        foreach ($sources as $position => $source) {
+            $sites[] = ['parent' => $source['parent'], 'index' => $source['index'], 'child' => $source['child'], 'context' => $context, 'contextIndex' => $position, 'sources' => $sources];
+        }
+
+        return $sites;
+    }
+
+    private function semanticView(InnerNodeInterface $node, SemanticViews $views): InnerNodeInterface
+    {
+        $cached = $views->get($node);
+        if ($cached instanceof InnerNodeInterface) {
+            return $cached;
+        }
+
+        if (!$node instanceof ListNode) {
+            return $node;
+        }
+
+        $children = [];
+        foreach ($this->semanticSites($node) as $site) {
+            $child = $site['child'];
+            $children[] = $child instanceof ListNode ? $this->semanticView($child, $views) : $child;
+        }
+
+        $view = new ListNode($node->getTokenType(), $node->getStartLocation(), $node->getEndLocation(), $children);
+        $views->put($node, $view);
+        return $view;
+    }
+
+    /**
+     * @param Site                $site
+     * @param list<NodeInterface> $replacement
+     *
+     * @return list<array{InnerNodeInterface, list<NodeInterface>}>
+     */
+    private function applyReplacement(array $site, array $replacement): array
+    {
+        $original = $site['context']->getChildren();
+        $first = 0;
+        while (isset($original[$first], $replacement[$first]) && $original[$first] === $replacement[$first]) {
+            ++$first;
+        }
+
+        $lastOriginal = count($original) - 1;
+        $lastReplacement = count($replacement) - 1;
+        while ($lastOriginal >= $first && $lastReplacement >= $first && $original[$lastOriginal] === $replacement[$lastReplacement]) {
+            --$lastOriginal;
+            --$lastReplacement;
+        }
+
+        $insert = array_slice($replacement, $first, $lastReplacement - $first + 1);
+        $replacementNode = count($insert) === 1 ? $insert[0] : null;
+        $edits = [];
+        for ($index = $first; $index <= $lastOriginal; ++$index) {
+            $source = $site['sources'][$index];
+            if ($insert === [] && $source['child'] instanceof TriviaNodeInterface
+                && $source['dropParent'] !== $site['sources'][$site['contextIndex']]['dropParent']
+            ) {
+                continue;
+            }
+
+            if ($replacementNode instanceof ListNode && $first === $lastOriginal
+                && $source['child'] instanceof ListNode && $original[$index] instanceof ListNode
+                && $source['child']->getTokenType() === $replacementNode->getTokenType()
+                && $source['child']->getStartLocation() === $replacementNode->getStartLocation()
+            ) {
+                $nestedSources = $this->semanticSites($source['child']);
+                $nestedSite = $nestedSources[0] ?? null;
+                if ($nestedSite !== null) {
+                    $nestedSite['context'] = $original[$index];
+                    $nestedSite['contextIndex'] = 0;
+                    foreach ($nestedSources as $position => $candidate) {
+                        if (($original[$index]->getChildren()[$position] ?? null) !== ($replacementNode->getChildren()[$position] ?? null)) {
+                            $nestedSite['contextIndex'] = $position;
+                            break;
+                        }
+                    }
+
+                    return $this->applyReplacement($nestedSite, $replacementNode->getChildren());
+                }
+            }
+
+            $parent = $insert === [] ? $source['dropParent'] : $source['parent'];
+            $targetIndex = $insert === [] ? $source['dropIndex'] : $source['index'];
+            $id = spl_object_id($parent);
+            $edits[$id] ??= ['parent' => $parent, 'children' => $parent->getChildren(), 'edits' => []];
+            $edits[$id]['edits'][$targetIndex] = $index === $first ? $insert : [];
+        }
+
+        $restore = [];
+        foreach ($edits as $edit) {
+            $restore[] = [$edit['parent'], $edit['children']];
+            $children = [];
+            foreach ($edit['children'] as $index => $child) {
+                array_push($children, ...($edit['edits'][$index] ?? [$child]));
+            }
+
+            $edit['parent']->replaceChildren($children);
+        }
+
+        return $restore;
     }
 }

@@ -18,6 +18,19 @@ final class BencodeDecoderTest extends TestCase
         $this->decoder = new BencodeDecoder();
     }
 
+    public function test_it_rejects_a_string_length_that_overflows_an_integer(): void
+    {
+        $this->expectException(BencodeException::class);
+        $this->decoder->decode('999999999999999999999999:');
+    }
+
+    public function test_it_rejects_excessive_nesting(): void
+    {
+        $this->expectException(BencodeException::class);
+        $this->expectExceptionMessage('nesting');
+        $this->decoder->decode(str_repeat('l', 65) . str_repeat('e', 65));
+    }
+
     public function test_it_decodes_zero(): void
     {
         self::assertSame(0, $this->decoder->decode('i0e'));

@@ -48,11 +48,20 @@ PHP API:
 
 ### Added
 
-- Public PHP API: `\Phel::assertBuiltWith(string $version)` rejects generated PHP built with another Phel version and reports how to rebuild it. `Phel\Shared\VersionResolver::current()` and `currentReference()` expose the running version and commit for the process. (#3519)
-- Public PHP API: `PhelConfig::defaultTempDir()` and `Phel\Shared\CurrentUser`, which finds the effective uid also on a PHP built without the posix extension. (#3532)
-- Security reports can go through GitHub's private vulnerability reporting as well as email, and `SECURITY.md` states that the latest 1.x minor gets security fixes. The README shows how to check a downloaded `phel.phar` against the sha256 digest of the release asset. (#3533)
+Compiler:
+
 - `declare` takes several names, `(declare a b)`, as in Clojure. Anything but a symbol fails: `(declare f [x])` used to declare `f` and drop the vector. (#3524)
+
+Tooling:
+
+- Security reports can go through GitHub's private vulnerability reporting as well as email, and `SECURITY.md` states that the latest 1.x minor gets security fixes. The README shows how to check a downloaded `phel.phar` against the sha256 digest of the release asset. (#3533)
 - `phel api-daemon` answers a `version` request with the running Phel version, so an editor can check it is compatible. `phel lsp` reports the same version as `serverInfo.version` instead of `0.1.0`. (#3525)
+
+PHP API:
+
+- `\Phel::assertBuiltWith(string $version)` rejects generated PHP built with another Phel version and reports how to rebuild it. `Phel\Shared\VersionResolver::current()` and `currentReference()` expose the running version and commit for the process. (#3519)
+- `PhelConfig::defaultTempDir()` and `Phel\Shared\CurrentUser`, which finds the effective uid also on a PHP built without the posix extension. (#3532)
+- `Phel\Shared\Parser\Node\ReaderConditionalNode` is public. It exposes the selected branch while retaining the source of every reader-conditional branch. (#3669)
 
 ### Fixed
 
@@ -88,9 +97,11 @@ Tooling:
 - `phel eval '#| x |# 1'` reports `[PHEL310]` with the offending line and a caret under the character, like `phel run`. It used to print the raw exception block. (#3537)
 - `phel lint`, `phel analyze` and the LSP handle a file with an `#inst` literal and go on to the next file. The value an `#inst` reads as, a `DateTimeImmutable`, used to abort the whole run with `DateTimeImmutable given`. (#3610)
 - `phel config` and `phel config --format=json` report the values a command runs with: `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations` beat the config file, as they do when the command runs. The JSON has every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`. It used to show the config file's values only and leave those four keys out. (#3525)
+- `phel nrepl` rejects malformed messages, bounds pending input and nesting, and keeps serving after invalid input. A malformed message used to stall its connection, and unbounded input could exhaust server memory. (#3681)
 - A project with a `.phel` file that has no `ns` form, such as a data or scratch file, no longer re-reads every source on each `phel test` or `phel run`. That one file used to turn off the namespace index for the whole project, which made `phel test` on this repository about twice as slow. The file is read again once it changes, so adding an `ns` form to it is still picked up. (#3629)
 - `phel test --reporter=junit-xml --parallel=N` prints the same JUnit XML document a serial run prints: on stdout with the progress and summary on stderr, or to the `-o` file. It used to print only the parallel summary, and with `-o` the workers overwrote each other's file. `--reporter=tap` still runs serially, and its `Ignoring --parallel` notice under `-v` goes to stderr. (#3627)
 - `phel test --reporter=tap`, and `--reporter=junit-xml` without `-o`, send what a test body prints, and the message for a test file that does not compile, to stderr, so stdout holds only the TAP lines or the XML document. Both used to land on stdout next to the reporter's lines, and the report no longer parsed. `output?` and `with-out-str` inside a test still capture it. (#3642)
+- `phel format` preserves every branch of a reader conditional, including splicing conditionals and forms without a matching feature. It used to replace the conditional with its selected branch and delete the other source. (#3669)
 
 PHP API:
 

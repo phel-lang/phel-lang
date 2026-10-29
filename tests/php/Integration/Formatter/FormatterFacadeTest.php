@@ -38,6 +38,22 @@ final class FormatterFacadeTest extends TestCase
         self::assertEquals($expectedLines, explode("\n", rtrim($formatted, "\n")));
     }
 
+    public function test_preserves_reader_conditionals(): void
+    {
+        $source = "(ns a)\n(def x #?(:phel 1 :clj 2))\n(def y [#?@(:phel [1 2]) 3])\n(def z [#?(:clj 9)])\n(def t #?(:phel #unknown 1 :clj #unknown 2))\n";
+        $formatter = $this->formatterFactory->createFormatter();
+        self::assertSame($source, $formatter->format($source));
+        self::assertSame($source, $formatter->format($formatter->format($source)));
+    }
+
+    public function test_preserves_nested_reader_conditional_features(): void
+    {
+        $source = "(ns a)\n(def x #?(#?(:phel :phel) 1 :default 2))\n(def y [#?@(:default [3] #?(:phel #?(:phel :phel)) [1 2])])\n";
+        $formatter = $this->formatterFactory->createFormatter();
+        self::assertSame($source, $formatter->format($source));
+        self::assertSame($source, $formatter->format($formatter->format($source)));
+    }
+
     public static function providerIndent(): Generator
     {
         yield 'Indent list with two variables' => [

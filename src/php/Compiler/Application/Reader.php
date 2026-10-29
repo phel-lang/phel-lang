@@ -18,6 +18,8 @@ use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\MetaNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\QuoteNode;
+use Phel\Shared\Parser\Node\ReaderConditionalNode;
+use Phel\Shared\Parser\Node\ReaderCondSplicingNode;
 use Phel\Shared\Parser\Node\SymbolNode;
 use Phel\Shared\Parser\Node\TaggedLiteralNode;
 use Phel\Shared\Parser\Node\Token;
@@ -71,6 +73,10 @@ final class Reader implements ReaderInterface
         NodeInterface $node,
         NodeInterface $root,
     ): mixed {
+        if ($node instanceof ReaderConditionalNode) {
+            return $this->readExpression($node->getSelected(), $root);
+        }
+
         if ($node instanceof SymbolNode) {
             return $this->readSymbolNode($node);
         }
@@ -91,11 +97,18 @@ final class Reader implements ReaderInterface
             return $this->readMetaNode($node, $root);
         }
 
-        // Tagged literals (e.g. `#uuid`, `#inst`, `#regex`, user tags) are
-        // dispatched through the TagRegistry. Unknown tags throw there; unselected
-        // `#?` branches are already discarded by the parser so their tags never
-        // reach this point.
         if ($node instanceof TaggedLiteralNode) {
+            $form = $node->getForm();
+            while ($form instanceof ReaderConditionalNode) {
+                $form = $form->getSelected();
+            }
+
+            if ($form instanceof ListNode) {
+                $form = $this->resolveListChildren($form);
+            }
+
+            $node = new TaggedLiteralNode($node->getTag(), $form, $node->getStartLocation(), $node->getEndLocation());
+
             return $this->readerFactory
                 ->createTaggedLiteralReader($this)
                 ->read($node, $root);
@@ -123,6 +136,8 @@ final class Reader implements ReaderInterface
 
     private function readListNode(ListNode $node, NodeInterface $root): TypeInterface
     {
+        $node = $this->resolveListChildren($node);
+
         if ($node->getTokenType() === Token::T_OPEN_PARENTHESIS) {
             return $this->readerFactory
                 ->createListReader($this)
@@ -164,6 +179,37 @@ final class Reader implements ReaderInterface
         }
 
         throw new RuntimeException('Not a valid ListNode: ' . $node::class);
+    }
+
+    private function resolveListChildren(ListNode $node): ListNode
+    {
+        $children = $this->expandChildren($node->getChildren());
+        if ($children === $node->getChildren()) {
+            return $node;
+        }
+
+        return new ListNode($node->getTokenType(), $node->getStartLocation(), $node->getEndLocation(), $children);
+    }
+
+    /**
+     * @param list<NodeInterface> $children
+     *
+     * @return list<NodeInterface>
+     */
+    private function expandChildren(array $children): array
+    {
+        $result = [];
+        foreach ($children as $child) {
+            if ($child instanceof ReaderConditionalNode) {
+                array_push($result, ...$this->expandChildren([$child->getSelected()]));
+            } elseif ($child instanceof ReaderCondSplicingNode) {
+                array_push($result, ...$this->expandChildren($child->getChildren()));
+            } else {
+                $result[] = $child;
+            }
+        }
+
+        return $result;
     }
 
     /**

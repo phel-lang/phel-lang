@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Nrepl\Domain\Bencode;
 
 use function ctype_digit;
+use function ltrim;
 use function sprintf;
 use function strlen;
 use function substr;
@@ -58,7 +59,7 @@ final class BencodeDecoder
      *
      * @return array<string, mixed>|int|list<mixed>|string
      */
-    private function decodeAt(string $input, int &$position): int|string|array
+    private function decodeAt(string $input, int &$position, int $depth = 0): int|string|array
     {
         if ($position >= strlen($input)) {
             throw BencodeException::unexpectedEndOfInput($position);
@@ -70,12 +71,16 @@ final class BencodeDecoder
             return $this->decodeInteger($input, $position);
         }
 
+        if (($marker === 'l' || $marker === 'd') && $depth >= 64) {
+            throw BencodeException::nestingLimitExceeded();
+        }
+
         if ($marker === 'l') {
-            return $this->decodeList($input, $position);
+            return $this->decodeList($input, $position, $depth + 1);
         }
 
         if ($marker === 'd') {
-            return $this->decodeDict($input, $position);
+            return $this->decodeDict($input, $position, $depth + 1);
         }
 
         if (ctype_digit($marker)) {
@@ -126,9 +131,13 @@ final class BencodeDecoder
         }
 
         $length = (int) $lengthRaw;
+        if ((string) $length !== (ltrim($lengthRaw, '0') ?: '0')) {
+            throw BencodeException::invalidStringLength($lengthRaw, $position);
+        }
+
         $start = $colon + 1;
-        if ($start + $length > strlen($input)) {
-            throw BencodeException::unexpectedEndOfInput($start + $length);
+        if ($length > strlen($input) - $start) {
+            throw BencodeException::unexpectedEndOfInput(strlen($input));
         }
 
         $value = substr($input, $start, $length);
@@ -140,7 +149,7 @@ final class BencodeDecoder
     /**
      * @return list<mixed>
      */
-    private function decodeList(string $input, int &$position): array
+    private function decodeList(string $input, int &$position, int $depth): array
     {
         // skip 'l'
         ++$position;
@@ -156,14 +165,14 @@ final class BencodeDecoder
                 return $list;
             }
 
-            $list[] = $this->decodeAt($input, $position);
+            $list[] = $this->decodeAt($input, $position, $depth);
         }
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function decodeDict(string $input, int &$position): array
+    private function decodeDict(string $input, int &$position, int $depth): array
     {
         // skip 'd'
         ++$position;
@@ -184,7 +193,7 @@ final class BencodeDecoder
             }
 
             $key = $this->decodeString($input, $position);
-            $dict[$key] = $this->decodeAt($input, $position);
+            $dict[$key] = $this->decodeAt($input, $position, $depth);
         }
     }
 
