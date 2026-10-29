@@ -19,6 +19,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\LiteralArithmeticFolder;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -29,6 +30,7 @@ use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\TagResolver;
 
+use function array_all;
 use function array_map;
 use function count;
 use function in_array;
@@ -438,6 +440,12 @@ final class BindingTypeInferrer
     {
         if ($fn->getNamespace() === CompilerConstants::PHEL_CORE_NAMESPACE) {
             $name = $fn->getName()->getName();
+
+            if ((in_array($name, self::NUMERIC_BINARY_OPS, true) || in_array($name, self::CORE_INC_DEC_OPS, true))
+                && array_all($node->getArguments(), static fn(AbstractNode $arg): bool => $arg instanceof LiteralNode)
+                && new LiteralArithmeticFolder()->fold($name, $node->getArguments()) === null) {
+                return null;
+            }
 
             if (in_array($name, self::NUMERIC_BINARY_OPS, true)) {
                 return $this->numericResultType($node, $locals);
