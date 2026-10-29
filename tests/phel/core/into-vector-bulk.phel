@@ -40,3 +40,15 @@
   (is (= {:a 1, :b 2} (into {:a 1} [[:b 2]])) "a map target still builds through its own branch")
   (is (= 3 (count (into (set [1]) [2 3]))) "a set target")
   (is (= [:a 1 2] (persistent (into (transient [:a]) [1 2]))) "a transient vector target"))
+
+(deftest test-into-a-popped-vector-at-trie-boundaries
+  (doseq [size [33 65 1025 1057 1089 32769]]
+    (let [original (vec (range size))
+          popped   (pop original)
+          expected (vec (range (dec size)))
+          appended (reduce conj popped (range 40))]
+      (is (= (apply + expected) (apply + popped)))
+      (is (= expected (vec popped)))
+      (is (= (into expected (range 40)) (into popped (range 40))))
+      (is (= 0 (get appended (dec size))))
+      (is (= (vec (range size)) original)))))

@@ -193,6 +193,37 @@ final class PersistentVectorTest extends TestCase
         $this->assertCount($length, $v2);
     }
 
+    #[DataProvider('pop_boundary_sizes')]
+    public function test_pop_preserves_materialization_and_indexing_after_append(int $size): void
+    {
+        $values = range(0, $size - 1);
+        $original = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), $values);
+        $popped = $original->pop();
+        array_pop($values);
+
+        $this->assertSame($values, $popped->toArray());
+        $appended = $popped;
+        for ($i = 0; $i < 40; ++$i) {
+            $appended = $appended->append($i);
+            $values[] = $i;
+        }
+
+        foreach ($values as $index => $value) {
+            $this->assertSame($value, $appended->get($index));
+        }
+
+        $this->assertSame($values, $appended->toArray());
+        $this->assertSame(range(0, $size - 2), $popped->toArray());
+        $this->assertSame(range(0, $size - 1), $original->toArray());
+    }
+
+    public static function pop_boundary_sizes(): iterable
+    {
+        foreach ([33, 65, 1025, 1057, 1089, 32769] as $size) {
+            yield (string) $size => [$size];
+        }
+    }
+
     public function test_to_array_tail(): void
     {
         $arr = [1, 2, 3];
