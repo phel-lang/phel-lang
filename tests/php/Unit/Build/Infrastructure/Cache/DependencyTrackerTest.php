@@ -55,6 +55,28 @@ final class DependencyTrackerTest extends TestCase
         self::assertNull($compiledCache->get($fileB, md5('(ns app\\b)')));
     }
 
+    public function test_persisted_graph_invalidates_transitive_dependents(): void
+    {
+        $tracker = new DependencyTracker($this->cacheDir);
+        $compiledCache = new CompiledCodeCache($this->cacheDir, 'test');
+        foreach (['c' => [], 'b' => ['app.c'], 'a' => ['app.b'], 'other' => []] as $name => $dependencies) {
+            $file = $this->cacheDir . '/' . $name . '.phel';
+            file_put_contents($file, '(ns app.' . $name . ')');
+            $compiledCache->put($file, 'app.' . $name, $name, '$x = 1;');
+            $tracker->registerDependencies($file, 'app.' . $name, $dependencies);
+        }
+
+        $reopened = new DependencyTracker($this->cacheDir);
+        $invalidated = $reopened->invalidateDependentsOf('app.c', $compiledCache);
+        self::assertSame([
+            $this->cacheDir . '/a.phel',
+            $this->cacheDir . '/b.phel',
+            $this->cacheDir . '/c.phel',
+        ], $this->sorted($invalidated));
+        self::assertFalse($compiledCache->has($this->cacheDir . '/a.phel'));
+        self::assertTrue($compiledCache->has($this->cacheDir . '/other.phel'));
+    }
+
     public function test_invalidation_does_not_affect_unrelated_files(): void
     {
         $tracker = new DependencyTracker($this->cacheDir);

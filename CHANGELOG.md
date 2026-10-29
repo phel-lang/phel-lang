@@ -135,6 +135,8 @@ Compiler:
 - A `defstruct`, `defenum` or `reify` method whose parameter count does not match its interface fails with `PHEL009`: `Method getMessage takes 0 parameters after this in interface \app\MyInterface, but this implementation takes 1`; it used to stop PHP with `Declaration of ... must be compatible`. A struct missing interface methods names them: `Missing method for interface \app\MyInterface in defstruct: getData`. A `definterface` method with no parameters, `(getMessage [])`, fails with `Method getMessage must take at least the this parameter`; it used to report `Cannot resolve symbol '.getMessage'`. (#3646 #3647 #3648)
 - A type tag naming a struct, interface, exception or enum of the same namespace works under `phel run`, `phel test` and the REPL: `(defn f [^point p] ...)` next to `(defstruct point [x])`. Every call used to fail with `must be of type point, app\point given`; only a `phel build` output worked. (#3654)
 
+- Changing a macro invalidates cached expansions in every namespace that depends on it, including through other namespaces. A change two namespaces away used to keep the old expansion until the cache was cleared. (#3698)
+
 Runtime:
 
 - `pop` and `pop!` preserve vector contents at trie boundaries, including after appending and converting to a persistent vector. Persistent vectors used to crash during traversal or later appends; transient vectors retained removed elements or lost live ones while reporting success. (#3672 #3673)
