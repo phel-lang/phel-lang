@@ -41,6 +41,43 @@ final class NreplServerTest extends TestCase
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
+    public function test_slow_reader_receives_a_complete_large_eval_while_another_client_is_served(): void
+    {
+        Phel::bootstrap(__DIR__);
+        $facade = new NreplFacade();
+        $facade->loadPhelNamespaces();
+
+        $server = $facade->createSocketServer(0, '127.0.0.1');
+        $server->start();
+
+        $slow = $this->connect($server);
+        $other = $this->connect($server);
+        try {
+            $encoder = new BencodeEncoder();
+            $this->writeMessage($slow, $encoder->encode([
+                'op' => 'eval',
+                'id' => 'large',
+                'code' => '(php/str_repeat "x" 1048576)',
+            ]));
+            $this->pump($server);
+            usleep(2000000);
+            $this->writeMessage($other, $encoder->encode(['op' => 'clone', 'id' => 'other']));
+            $response = $this->readUntil($other, new BencodeStreamDecoder(), $server, 1);
+            self::assertArrayHasKey('new-session', $response[0]);
+            $responses = $this->readUntilDone($slow, new BencodeStreamDecoder(), $server, 10000);
+            $value = $this->firstWithKey($responses, 'value');
+            self::assertNotNull($value);
+            self::assertSame('"' . str_repeat('x', 1048576) . '"', $value['value']);
+            self::assertNotNull($this->firstWithStatus($responses, 'done'));
+        } finally {
+            fclose($slow);
+            fclose($other);
+            $server->stop();
+        }
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_endless_garbage_closes_only_the_offending_connection(): void
     {
         Phel::bootstrap(__DIR__);

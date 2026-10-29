@@ -15,6 +15,7 @@ use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Ratio;
 use Phel\Lang\SourceLocation;
@@ -1571,6 +1572,15 @@ final class ReaderTest extends TestCase
         self::assertSame('(quote [1 2])', Printer::readable()->print($this->read("'#?(:phel [1 2])")));
         self::assertSame('(quote [1 2])', Printer::readable()->print($this->read("'[ #?@(:phel [1 2])]")));
         self::assertTrue($this->read('^#?(:phel :flag) #?(:phel [])')->getMeta()->find(Keyword::create('flag')));
+    }
+
+    public function test_multibyte_character_literals_read_as_single_values(): void
+    {
+        self::assertSame('é', $this->read('\\é'));
+        $characters = $this->read('[\\é \\€ \\😀]');
+
+        self::assertInstanceOf(PersistentVectorInterface::class, $characters);
+        self::assertSame(['é', '€', '😀'], $characters->toArray());
     }
 
     private function read(string $string, bool $withLocation = true): float|bool|int|string|TypeInterface|null
