@@ -91,18 +91,12 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
 
 (defn- float-to-str
   "Renders a float so integer-valued floats keep the trailing `.0`, while `NaN` and ±Infinity stringify readably."
-  [x]
+  [^float x]
   (if (php/is_nan x)
     "NaN"
     (if (php/is_infinite x)
       (if (php/> x 0) "Infinity" "-Infinity")
-      (let [s (php/. "" x)]
-        ;; `strpbrk` answers "does it already read as a float" in one scan; a
-        ;; regex would compile a pattern to look for three characters. Keep
-        ;; the native call: phel.string has no character-set search equivalent.
-        (if (php/strpbrk s ".eE")
-          s
-          (php/. s ".0"))))))
+      (Phel.Shared.FloatFormatter/format x))))
 
 (defn- val-to-str
   "Converts a value to its string representation. Booleans become \"true\" or \"false\". Nil becomes an empty string. Integer-valued floats keep their `.0` suffix (so `(str 0.0)` is `\"0.0\"`, not `\"0\"`). All other values use PHP string cast."

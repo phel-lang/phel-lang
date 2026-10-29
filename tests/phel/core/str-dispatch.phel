@@ -59,3 +59,17 @@
   ;; lowered to native concatenation.
   (let [a "x" b 2 c nil]
     (is (= "x2" (str a b c)) "locals of mixed kinds")))
+
+(deftest test-str-and-pr-str-preserve-finite-floats
+  (let [precision           (php/ini_set "precision" "3")
+        serialize-precision (php/ini_set "serialize_precision" "3")]
+    (try
+      (doseq [x [(/ 1.0 3) 1.0000000000000002 1.7976931348623157E+308 5e-324 -0.0 17.0]]
+        (is (= (str x) (pr-str x)))
+        (is (php/=== x (read-string (pr-str x))))
+        (is (php/=== x (read-string (str x)))))
+      (is (= "-0.0" (str -0.0)))
+      (is (= "1.0000000000000002" (str 1.0000000000000002)))
+      (finally
+        (php/ini_set "precision" precision)
+        (php/ini_set "serialize_precision" serialize-precision)))))
