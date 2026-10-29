@@ -14,7 +14,7 @@ allowed-tools:
 
 # Integration Fixture
 
-Scaffolds a new `.test` fixture in the two-section `--PHEL--` / `--PHP--` format defined in `.agnostic-ai/rules/integration-tests.md`.
+Scaffolds a new `.test` fixture in the two-section `--PHEL--` / `--PHP--` format defined in `.agnostic-ai/rules/compiler-fixtures.md`.
 
 ## Context
 
@@ -36,14 +36,14 @@ Run first: `ls tests/php/Integration/Fixtures/`.
    --PHP--
    ```
 
-4. **Capture the output** as `.agnostic-ai/rules/integration-tests.md` describes, and check it is the output you intended.
+4. **Capture the output** as `.agnostic-ai/rules/compiler-fixtures.md` describes, and check it is the output you intended.
 
 5. **Diagnose a mismatch** with a category-filtered run only when needed to capture output or investigate a failure:
    ```bash
    ./vendor/bin/phpunit --testsuite=integration --filter=<Category>
    ```
 
-6. If the fixture fails, trace the mismatch against the intended behavior. Regenerate expected PHP only for an intentional behavior or source-location change; otherwise fix the compiler within the assigned scope or report the defect. After reviewing the completed change, run the final gate per `.agnostic-ai/rules/build-test-and-development-commands.md`, including for fixture-only changes. That gate includes the integration suite; do not run it separately again.
+6. If the fixture fails, trace the mismatch against the intended behavior. Regenerate expected PHP only for an intentional behavior or source-location change; otherwise fix the compiler within the assigned scope or report the defect. After reviewing the completed change, select verification per `.agnostic-ai/rules/build-test-and-development-commands.md`, including for fixture-only changes. Reuse passing fixture checks on unchanged code.
 
 ## Constraints
 

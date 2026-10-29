@@ -28,7 +28,7 @@ Requires **PHP 8.5+** and **Composer**.
 
 ```bash
 composer install
-composer test       # must pass before you start
+COMPOSER_PROCESS_TIMEOUT=0 composer test   # baseline after setup
 ```
 
 ## Making Changes
@@ -44,7 +44,7 @@ composer test       # must pass before you start
 **Day-to-day:**
 
 ```bash
-composer test       # Run everything (quality + compiler + core)
+COMPOSER_PROCESS_TIMEOUT=0 composer test   # Run everything (quality + compiler + core)
 composer fix        # Auto-format (Rector + CS Fixer)
 composer create-pr  # Open a PR
 ```
@@ -82,14 +82,17 @@ composer phpbench-ref   # Compare to baseline
 
 ## Which Tests to Run
 
-| What you changed | Command | Notes |
+Start with tests for the changed behavior and its affected integration path. Broaden for cross-cutting changes, failures or explicit requirements. Run affected quality checks after reviewing the final diff, and reuse passing results on unchanged code.
+
+| Scope | Command | Notes |
 |------------------|---------|-------|
-| `src/php/**` | `composer test-compiler` | PHPUnit unit + integration |
-| `src/phel/**` | `composer test-core` | Phel core tests |
-| Single PHP module | `./vendor/bin/phpunit --filter=ModuleName` | Fastest for focused work |
+| PHP behavior | `./vendor/bin/phpunit --filter=ClassOrMethod` | Include affected integration tests |
 | Single Phel file | `./bin/phel test tests/phel/<file>` | Target specific test |
-| Code style only | `composer test-quality` | Static analysis |
-| Mixed PHP + Phel | `composer test` | Run everything |
+| Compiler fixture | `./vendor/bin/phpunit --testsuite=integration --filter=fixture-stem` | Generate expected PHP from the actual output |
+| Compiler test group | `composer test-compiler` | PHPUnit unit + integration |
+| Standard library test group | `composer test-core` | Phel core tests |
+| Quality checks | `composer test-quality` | Formatter, static analysis and config; use affected checks when isolating a change |
+| Full gate | `COMPOSER_PROCESS_TIMEOUT=0 composer test` | Run when broader coverage is needed |
 
 See the [testing docs](https://phel-lang.org/documentation/testing/) for more on the Phel test framework.
 
@@ -101,7 +104,7 @@ Optional but recommended:
 tools/git-hooks/init.sh
 ```
 
-Installs a pre-commit hook that runs `composer test` before each commit. Skip with `--no-verify` in a pinch, but always run `composer test` before pushing.
+Installs a pre-commit hook that runs `composer test-all` when PHP or Phel files are staged. Let required hooks complete and reuse a successful gate on unchanged code. Fixture-only changes still need the selected checks because `.test` files do not trigger this hook.
 
 ## Commit Messages
 
@@ -122,12 +125,12 @@ For user-facing changes (`feat:`, `fix:`), update `CHANGELOG.md` under `## Unrel
 
 ## AI Tooling
 
-[.agnostic-ai/](../.agnostic-ai/) is the single source for the agent config used on this repository. [agnostic-ai](https://github.com/Chemaclass/agnostic-ai) generates Claude Code (`.claude/`, `CLAUDE.md`) and Codex (`.codex/`, `.agents/`, `AGENTS.md`) from it. The generated files are gitignored, so run `sync` after cloning and after every spec change. `agnostic-ai.yaml` pins 0.87.0 to match CI; `agnostic-ai upgrade --version v0.87.0` installs it.
+[.agnostic-ai/](../.agnostic-ai/) is the single source for the agent config used on this repository. [agnostic-ai](https://github.com/Chemaclass/agnostic-ai) generates Claude Code (`.claude/`, `CLAUDE.md`) and Codex (`.codex/`, `.agents/`, `AGENTS.md`) from it. The generated files are gitignored, so run `sync` after cloning and after every spec change. `agnostic-ai.yaml` pins stable 0.90.0 to match CI; `agnostic-ai upgrade --version v0.90.0` installs it.
 
-Each PHP module is documented by a rule scoped to its directory, `.agnostic-ai/rules/module-<name>.md`. Sync emits it as `src/php/<Module>/AGENTS.md` for Codex and as a path-scoped rule under `.claude/rules/src/php/` for Claude Code. Edit the rule, not the output.
+Each PHP module is documented by a rule scoped to its directory, `.agnostic-ai/rules/module-<name>.md`. Sync emits it as `src/php/<Module>/AGENTS.md` for Codex and as a path-scoped rule under `.claude/rules/` for Claude Code. Edit the rule, not the output.
 
 ```bash
-brew install Chemaclass/tap/agnostic-ai   # or: go install github.com/chemaclass/agnostic-ai/cmd/agnostic-ai@v0.87.0
+brew install Chemaclass/tap/agnostic-ai   # or: go install github.com/chemaclass/agnostic-ai/cmd/agnostic-ai@v0.90.0
 agnostic-ai sync
 ```
 
@@ -149,7 +152,7 @@ Issues labeled [`good first issue`](https://github.com/phel-lang/phel-lang/issue
 
 **`composer test` fails after fresh clone?** Check PHP 8.5+ (`php -v`) and run `composer install` again.
 
-**Tests pass locally but CI fails?** CI runs the full suite; make sure you ran `composer test`, not a subset.
+**Tests pass locally but CI fails?** Inspect the failing job and reproduce its affected test or group. Broaden local coverage when the failure shows the initial scope was incomplete.
 
 **Code style errors?** Run `composer fix`.
 
