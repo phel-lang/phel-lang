@@ -9,6 +9,32 @@ use PHPUnit\Framework\TestCase;
 
 final class DocumentTest extends TestCase
 {
+    public function test_utf16_offsets_clamp_at_code_point_and_line_boundaries(): void
+    {
+        $document = new Document('file:///x.phel', 'phel', 1, "é😀x\r\nb\n");
+        foreach ([0 => 0, 1 => 2, 2 => 2, 3 => 6, 4 => 7, 99 => 7] as $character => $offset) {
+            self::assertSame($offset, $document->positionToOffset(['line' => 0, 'character' => $character]));
+        }
+
+        self::assertSame(9, $document->positionToOffset(['line' => 1, 'character' => 0]));
+        self::assertSame(11, $document->positionToOffset(['line' => 2, 'character' => 0]));
+        self::assertSame(11, $document->positionToOffset(['line' => 99, 'character' => 0]));
+    }
+
+    public function test_incremental_edits_preserve_crlf_bytes(): void
+    {
+        $document = new Document('file:///x.phel', 'phel', 1, "(def é 1)\r\n(def x 2)\r\n");
+        $document->applyRange(['start' => ['line' => 1, 'character' => 5], 'end' => ['line' => 1, 'character' => 6]], 'y');
+        self::assertSame("(def é 1)\r\n(def y 2)\r\n", $document->text);
+    }
+
+    public function test_incremental_edits_count_utf16_units_after_unicode(): void
+    {
+        $document = new Document('file:///x.phel', 'phel', 1, 'é😀 x');
+        $document->applyRange(['start' => ['line' => 0, 'character' => 4], 'end' => ['line' => 0, 'character' => 5]], 'y');
+        self::assertSame('é😀 y', $document->text);
+    }
+
     public function test_constructor_captures_initial_fields(): void
     {
         $document = new Document('file:///x.phel', 'phel', 3, '(ns x)');
