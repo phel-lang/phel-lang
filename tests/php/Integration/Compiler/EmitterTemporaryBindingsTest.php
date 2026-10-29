@@ -16,6 +16,7 @@ final class EmitterTemporaryBindingsTest extends AbstractCompilerRuntimeTestCase
     public static function scratchBindings(): iterable
     {
         yield 'truthiness parameter' => ['((fn [__truthy] (if (identity nil) 1 __truthy)) 5)', 5];
+        yield 'munged truthiness parameter' => ['((fn [_-truthy] (if (identity nil) 1 _-truthy)) 5)', 5];
         yield 'or parameter' => ['((fn [__or] (or (identity nil) __or)) 5)', 5];
         yield 'constant parameter' => ['((fn [__phel_const_0] (do (identity [1 2 3]) __phel_const_0)) 5)', 5];
         yield 'call slot parameter' => ['((fn [__phel_call_0] (do (identity 1) __phel_call_0)) 5)', 5];
@@ -24,6 +25,7 @@ final class EmitterTemporaryBindingsTest extends AbstractCompilerRuntimeTestCase
         yield 'variadic parameter' => ['((fn [& __phel_const_0] (do (identity [1 2 3]) (first __phel_const_0))) 5)', 5];
         yield 'typed parameter' => ['((fn [^float __truthy] (if (identity nil) 1.0 __truthy)) 5)', 5.0];
         yield 'loop binding' => ['((fn [] (loop [__phel_const 5] (identity [1]) (identity [2]) (+ __phel_const __phel_const))))', 10];
+        yield 'munged loop binding' => ['((fn [] (loop [-_phel_const 5] (identity [1]) (identity [2]) (+ -_phel_const -_phel_const))))', 10];
         yield 'foreach binding' => ['((fn [] (let [r (atom nil)] (foreach [__phel_const [5]] (identity [1]) (identity [2]) (reset! r __phel_const)) (deref r))))', 5];
         yield 'generated parameter' => ['(defmacro colliding-fn [] (let [p (Phel.Lang.Symbol/createGenerated "__phel_const_0")] (list (symbol "fn") (vector p) (list (symbol "do") (list (symbol "identity") [1 2 3]) p)))) ((colliding-fn) 5)', 5];
         yield 'generated-looking user parameter' => ['((fn [__truthy __phel_1] (if (identity nil) 0 (+ __truthy __phel_1))) 2 3)', 5];

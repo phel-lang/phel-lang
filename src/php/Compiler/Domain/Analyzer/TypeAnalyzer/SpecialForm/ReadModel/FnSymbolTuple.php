@@ -178,7 +178,7 @@ final class FnSymbolTuple
         $taken = [];
         foreach ($this->params as $i => $param) {
             $phpName = $munge->encode($param->getName());
-            if (isset($taken[$phpName]) || in_array($phpName, self::SUPERGLOBALS, true) || LocalBindingName::isReserved($param)) {
+            if (isset($taken[$phpName]) || in_array($phpName, self::SUPERGLOBALS, true) || LocalBindingName::isReserved($param, $phpName)) {
                 $fresh = Symbol::gen()->copyLocationFrom($param)->withMeta($param->getMeta());
                 $this->params[$i] = $fresh;
                 $this->lets[] = $param;

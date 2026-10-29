@@ -15,13 +15,14 @@ use function str_starts_with;
  */
 final class LocalBindingName
 {
-    public static function isReserved(Symbol $symbol): bool
+    public static function isReserved(Symbol $symbol, ?string $phpName = null): bool
     {
-        if ($symbol->getName() === 'this') {
+        $name = $symbol->getName();
+        if ($name === 'this' || ($name[0] ?? '') !== '_' && ($name[0] ?? '') !== '-') {
             return false;
         }
 
-        $name = new Munge()->encode($symbol->getName());
+        $name = $phpName ?? new Munge()->encode($name);
         // Plain generated names are unique and never name an emitter scratch slot.
         if ($symbol->isGenerated() && preg_match('/^__phel_[0-9]+(?:_[0-9]+)*$/', $name) === 1) {
             return false;
