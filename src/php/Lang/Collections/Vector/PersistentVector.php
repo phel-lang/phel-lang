@@ -317,7 +317,7 @@ final class PersistentVector extends AbstractPersistentVector
         $newShift = $this->shift;
         $newRoot ??= [];
 
-        if ($this->shift > self::SHIFT && $newRoot[1] === null) {
+        if ($this->shift > self::SHIFT && count($newRoot) === 1) {
             $newRoot = $newRoot[0];
             $newShift -= self::SHIFT;
         }
@@ -509,7 +509,12 @@ final class PersistentVector extends AbstractPersistentVector
             }
 
             $ret = $node;
-            $ret[$subIndex] = $newChild;
+            if ($newChild === null) {
+                array_pop($ret);
+            } else {
+                $ret[$subIndex] = $newChild;
+            }
+
             return $ret;
         }
 
@@ -518,7 +523,7 @@ final class PersistentVector extends AbstractPersistentVector
         }
 
         $ret = $node;
-        $ret[$subIndex] = null;
+        array_pop($ret);
 
         return $ret;
     }
