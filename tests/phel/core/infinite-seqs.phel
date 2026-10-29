@@ -1050,3 +1050,52 @@
         "identity equality on infinite range via atom/deref should not realize the sequence")
     (is (true? (= r r))
         "identity equality on infinite range directly should not realize the sequence")))
+
+(deftest test-iterate-head-does-not-call-the-step
+  (let [calls  (atom [])
+        values (iterate (fn [x] (swap! calls conj x) (inc x)) 0)]
+    (is (= [] @calls))
+    (is (= 0 (first values)))
+    (is (= [] @calls))
+    (let [tail (rest values)]
+      (is (= [] @calls))
+      (is (= 1 (first tail)))
+      (is (= [0] @calls))
+      (is (= 1 (first tail)))
+      (is (= [0] @calls)))
+    (is (= [0 1 2] (vec (take 3 values))))
+    (is (= [0 1] @calls))))
+
+(deftest test-iterate-head-survives-a-throwing-step
+  (is (= 0 (first (iterate (fn [_] (throw (ex-info "boom" {}))) 0)))))
+
+(deftest test-repeatedly-calls-once-per-requested-value
+  (doseq [bounded? [false true]]
+    (let [calls  (atom 0)
+          f      (fn [] (swap! calls inc))
+          values (if bounded? (repeatedly 3 f) (repeatedly f))]
+      (is (= 0 @calls))
+      (is (= 1 (first values)))
+      (is (= 1 @calls))
+      (is (= 1 (first values)))
+      (is (= 1 @calls))
+      (is (= [1 2 3] (vec (take 3 values))))
+      (is (= 3 @calls)))))
+
+(deftest test-cycle-defers-source-cells-and-reuses-them
+  (let [calls  (atom [])
+        source (lazy-seq
+                 (swap! calls conj :head)
+                 (cons 1 (lazy-seq (swap! calls conj :tail) (list 2))))
+        values (cycle source)]
+    (is (= [] @calls))
+    (is (= 1 (first values)))
+    (is (= [:head] @calls))
+    (is (= 2 (second values)))
+    (is (= [:head :tail] @calls))
+    (is (= [1 2 1 2 1] (vec (take 5 values))))
+    (is (= [:head :tail] @calls))))
+
+(deftest test-cycle-reuses-a-one-shot-source
+  (let [source ((fn [] (php/yield 1) (php/yield 2)))]
+    (is (= [1 2 1 2 1] (vec (take 5 (cycle source)))))))
