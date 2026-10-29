@@ -10,6 +10,7 @@ use Phel\Lang\Collections\Vector\TransientVector;
 use Phel\Lang\Keyword;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -223,6 +224,90 @@ final class TransientVectorTest extends TestCase
 
         $this->assertCount($length, $v1);
         $this->assertCount($length, $v2);
+    }
+
+    #[DataProvider('pop_sizes')]
+    public function test_pop_then_append_preserves_values(int $size): void
+    {
+        $values = range(0, $size - 1);
+        $original = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), $values);
+        $transient = $original->asTransient();
+        array_pop($values);
+        $values[] = 'replacement';
+
+        $result = $transient->pop()->append('replacement')->persistent();
+
+        $this->assertSame($values, $result->toArray());
+        $this->assertCount($size, $result);
+        $this->assertSame(range(0, $size - 1), $original->toArray());
+    }
+
+    #[DataProvider('pop_sizes')]
+    public function test_pop_then_persist_removes_only_last_value(int $size): void
+    {
+        $values = range(0, $size - 1);
+        $transient = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), $values);
+        array_pop($values);
+
+        $result = $transient->pop()->persistent();
+
+        $this->assertSame($values, $result->toArray());
+        $this->assertCount($size - 1, $result);
+    }
+
+    public function test_repeated_pop_and_append_matches_array(): void
+    {
+        $original = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, 1056));
+        $transient = $original->asTransient();
+        $values = range(0, 1056);
+
+        foreach ([1025, 97] as $popCount) {
+            for ($i = 0; $i < $popCount; ++$i) {
+                $transient->pop();
+                array_pop($values);
+            }
+
+            if ($values !== []) {
+                for ($i = 0; $i < 65; ++$i) {
+                    $transient->append($i);
+                    $values[] = $i;
+                }
+            }
+        }
+
+        for ($i = 0; $i < 1057; ++$i) {
+            $transient->append($i);
+            $values[] = $i;
+        }
+
+        $this->assertSame($values, $transient->persistent()->toArray());
+        $this->assertSame(range(0, 1056), $original->toArray());
+    }
+
+    #[DataProvider('pop_sizes')]
+    public function test_append_after_pop_keeps_every_index_readable(int $size): void
+    {
+        $values = range(0, $size - 1);
+        $transient = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), $values);
+        $transient->pop();
+        array_pop($values);
+        for ($i = 0; $i < 40; ++$i) {
+            $transient->append($i);
+            $values[] = $i;
+        }
+
+        $result = $transient->persistent();
+        foreach ($values as $index => $value) {
+            $this->assertSame($value, $result->get($index));
+        }
+        $this->assertSame($values, $result->toArray());
+    }
+
+    public static function pop_sizes(): iterable
+    {
+        foreach ([1, 2, 5, 33, 34, 37, 65, 1025, 1057, 32769] as $size) {
+            yield (string) $size => [$size];
+        }
     }
 
     public function test_append_after_persistent_throws(): void
