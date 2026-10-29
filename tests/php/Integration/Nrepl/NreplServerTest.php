@@ -41,6 +41,123 @@ final class NreplServerTest extends TestCase
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
+    public function test_endless_garbage_closes_only_the_offending_connection(): void
+    {
+        Phel::bootstrap(__DIR__);
+        $server = new NreplFacade()->createSocketServer(0, '127.0.0.1');
+        $server->start();
+
+        $client = $this->connect($server);
+        try {
+            for ($i = 0; $i < 4096 && !feof($client); ++$i) {
+                if (@fwrite($client, str_repeat('x', 8192)) === false) {
+                    break;
+                }
+
+                $this->pump($server);
+                fread($client, 8192);
+            }
+
+            fread($client, 8192);
+            self::assertTrue(feof($client));
+            $other = $this->connect($server);
+            try {
+                $this->writeMessage($other, 'd2:op5:clonee');
+                $response = $this->readUntil($other, new BencodeStreamDecoder(), $server, 1);
+                self::assertArrayHasKey('new-session', $response[0]);
+            } finally {
+                fclose($other);
+            }
+        } finally {
+            fclose($client);
+            $server->stop();
+        }
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_it_answers_a_valid_request_before_reporting_its_bad_suffix(): void
+    {
+        Phel::bootstrap(__DIR__);
+        $server = new NreplFacade()->createSocketServer(0, '127.0.0.1');
+        $server->start();
+
+        $client = $this->connect($server);
+        try {
+            $this->writeMessage($client, 'd2:op5:cloneex');
+            $responses = $this->readUntil($client, new BencodeStreamDecoder(), $server, 2);
+            self::assertArrayHasKey('new-session', $responses[0]);
+            self::assertContains('invalid-message', $responses[1]['status']);
+        } finally {
+            fclose($client);
+            $server->stop();
+        }
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_it_closes_an_oversized_frame_and_keeps_serving_other_clients(): void
+    {
+        Phel::bootstrap(__DIR__);
+        $server = new NreplFacade()->createSocketServer(0, '127.0.0.1');
+        $server->start();
+
+        $client = $this->connect($server);
+        $decoder = new BencodeStreamDecoder();
+        try {
+            $this->writeMessage($client, '33554432:');
+            for ($i = 0; $i < 2049; ++$i) {
+                $this->writeMessage($client, str_repeat('a', 8192));
+                $this->pump($server);
+            }
+
+            $error = $this->readUntil($client, $decoder, $server, 1);
+            self::assertContains('invalid-message', $error[0]['status']);
+            fread($client, 1);
+            self::assertTrue(feof($client));
+            $other = $this->connect($server);
+            try {
+                $this->writeMessage($other, 'd2:op5:clonee');
+                $response = $this->readUntil($other, new BencodeStreamDecoder(), $server, 1);
+                self::assertArrayHasKey('new-session', $response[0]);
+            } finally {
+                fclose($other);
+            }
+        } finally {
+            fclose($client);
+            $server->stop();
+        }
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_it_recovers_after_malformed_and_deeply_nested_frames(): void
+    {
+        Phel::bootstrap(__DIR__);
+        $server = new NreplFacade()->createSocketServer(0, '127.0.0.1');
+        $server->start();
+
+        $client = $this->connect($server);
+        $decoder = new BencodeStreamDecoder();
+        try {
+            foreach (['x', str_repeat('l', 100), '999999999999999999999999:'] as $payload) {
+                $this->writeMessage($client, $payload);
+                $error = $this->readUntil($client, $decoder, $server, 1);
+                self::assertCount(1, $error);
+                self::assertContains('invalid-message', $error[0]['status']);
+                $this->writeMessage($client, 'd2:op5:clonee');
+                $response = $this->readUntil($client, $decoder, $server, 1);
+                self::assertCount(1, $response);
+                self::assertArrayHasKey('new-session', $response[0]);
+            }
+        } finally {
+            fclose($client);
+            $server->stop();
+        }
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_it_handles_describe_clone_eval_and_close_over_a_live_socket(): void
     {
         Phel::bootstrap(__DIR__);

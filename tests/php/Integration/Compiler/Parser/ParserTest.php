@@ -29,6 +29,7 @@ use Phel\Shared\Parser\Node\NilNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\NumberNode;
 use Phel\Shared\Parser\Node\QuoteNode;
+use Phel\Shared\Parser\Node\ReaderConditionalNode;
 use Phel\Shared\Parser\Node\StringNode;
 use Phel\Shared\Parser\Node\SymbolNode;
 use Phel\Shared\Parser\Node\TaggedLiteralNode;
@@ -594,7 +595,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new NumberNode('42', $this->loc(1, 9), $this->loc(1, 11), 42),
-            $this->parse('#?(:phel 42 :clj 99)'),
+            $this->selected($this->parse('#?(:phel 42 :clj 99)')),
         );
     }
 
@@ -602,13 +603,13 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new NumberNode('0', $this->loc(1, 20), $this->loc(1, 21), 0),
-            $this->parse('#?(:clj 99 :default 0)'),
+            $this->selected($this->parse('#?(:clj 99 :default 0)')),
         );
     }
 
     public function test_reader_conditional_no_matching_branch_returns_comment(): void
     {
-        $node = $this->parse('#?(:clj 99)');
+        $node = $this->selected($this->parse('#?(:clj 99)'));
         self::assertInstanceOf(CommentNode::class, $node);
     }
 
@@ -616,7 +617,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new NumberNode('42', $this->loc(1, 20), $this->loc(1, 22), 42),
-            $this->parse('#?(:default 0 :phel 42)'),
+            $this->selected($this->parse('#?(:default 0 :phel 42)')),
         );
     }
 
@@ -624,7 +625,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new NumberNode('2', $this->loc(1, 17), $this->loc(1, 18), 2),
-            $this->parse('#?(:phel 1 :phel 2)'),
+            $this->selected($this->parse('#?(:phel 1 :phel 2)')),
         );
     }
 
@@ -632,14 +633,13 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new NumberNode('42', $this->loc(1, 9), $this->loc(1, 11), 42),
-            $this->parse('#?(:phel 42 :default)'),
+            $this->selected($this->parse('#?(:phel 42 :default)')),
         );
     }
 
     public function test_reader_conditional_trailing_newline_before_close_paren(): void
     {
-        // Closing paren on its own line should not fail — issue #1547.
-        $node = $this->parse("#?(:phel nil\n          :default identity\n         )");
+        $node = $this->selected($this->parse("#?(:phel nil\n          :default identity\n         )"));
         self::assertInstanceOf(NilNode::class, $node);
     }
 
@@ -647,41 +647,28 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new NumberNode('42', $this->loc(1, 9), $this->loc(1, 11), 42),
-            $this->parse('#?(:phel 42 :default 0   )'),
+            $this->selected($this->parse('#?(:phel 42 :default 0   )')),
         );
     }
 
     public function test_reader_conditional_splicing_trailing_newline_before_close_paren(): void
     {
-        // [1 #?@(:phel [2 3]\n      ) 4] → [1 2 3 4]
-        $tokenStream = $this->compilerFacade->lexString("[1 #?@(:phel [2 3]\n      ) 4]");
-        $node = $this->compilerFacade->parseNext($tokenStream);
-
-        self::assertInstanceOf(ListNode::class, $node);
-
-        $nonTrivia = array_values(array_filter(
-            $node->getChildren(),
-            static fn(NodeInterface $n): bool => !$n instanceof WhitespaceNode && !$n instanceof NewlineNode,
-        ));
-
-        self::assertCount(4, $nonTrivia);
-        self::assertSame(1, $nonTrivia[0]->getValue());
-        self::assertSame(2, $nonTrivia[1]->getValue());
-        self::assertSame(3, $nonTrivia[2]->getValue());
-        self::assertSame(4, $nonTrivia[3]->getValue());
+        $source = "[1 #?@(:phel [2 3]\n      ) 4]";
+        $node = $this->parse($source);
+        self::assertSame($source, $node->getCode());
+        self::assertSame([1, 2, 3, 4], $this->compilerFacade->read($node)->getAst()->toArray());
     }
 
     public function test_reader_conditional_nested(): void
     {
         self::assertEquals(
             new NumberNode('1', $this->loc(1, 18), $this->loc(1, 19), 1),
-            $this->parse('#?(:phel #?(:phel 1 :default 2))'),
+            $this->selected($this->parse('#?(:phel #?(:phel 1 :default 2))')),
         );
     }
 
     public function test_reader_conditional_inside_list(): void
     {
-        // (+ #?(:phel 1 :clj 2) 3) — the reader conditional resolves to 1 and is inlined into the list
         $tokenStream = $this->compilerFacade->lexString('(+ #?(:phel 1 :clj 2) 3)');
         $node = $this->compilerFacade->parseNext($tokenStream);
 
@@ -692,71 +679,36 @@ final class ParserTest extends TestCase
             static fn(NodeInterface $n): bool => !$n instanceof WhitespaceNode && !$n instanceof NewlineNode,
         ));
 
-        // children: '+', 1 (inlined from #?), 3
         self::assertCount(3, $nonTrivia);
         self::assertInstanceOf(SymbolNode::class, $nonTrivia[0]);
-        self::assertInstanceOf(NumberNode::class, $nonTrivia[1]);
-        self::assertSame(1, $nonTrivia[1]->getValue());
+        self::assertInstanceOf(ReaderConditionalNode::class, $nonTrivia[1]);
+        self::assertSame(1, $nonTrivia[1]->getSelected()->getValue());
         self::assertInstanceOf(NumberNode::class, $nonTrivia[2]);
         self::assertSame(3, $nonTrivia[2]->getValue());
     }
 
     public function test_reader_conditional_splicing_inside_vector(): void
     {
-        // [1 #?@(:phel [2 3]) 4] → [1 2 3 4]
-        $tokenStream = $this->compilerFacade->lexString('[1 #?@(:phel [2 3]) 4]');
-        $node = $this->compilerFacade->parseNext($tokenStream);
-
-        self::assertInstanceOf(ListNode::class, $node);
-
-        $nonTrivia = array_values(array_filter(
-            $node->getChildren(),
-            static fn(NodeInterface $n): bool => !$n instanceof WhitespaceNode && !$n instanceof NewlineNode,
-        ));
-
-        self::assertCount(4, $nonTrivia);
-        self::assertSame(1, $nonTrivia[0]->getValue());
-        self::assertSame(2, $nonTrivia[1]->getValue());
-        self::assertSame(3, $nonTrivia[2]->getValue());
-        self::assertSame(4, $nonTrivia[3]->getValue());
+        $source = '[1 #?@(:phel [2 3]) 4]';
+        $node = $this->parse($source);
+        self::assertSame($source, $node->getCode());
+        self::assertSame([1, 2, 3, 4], $this->compilerFacade->read($node)->getAst()->toArray());
     }
 
     public function test_reader_conditional_splicing_default_branch(): void
     {
-        // [1 #?@(:clj [8 9] :default [2 3]) 4] → [1 2 3 4]
-        $tokenStream = $this->compilerFacade->lexString('[1 #?@(:clj [8 9] :default [2 3]) 4]');
-        $node = $this->compilerFacade->parseNext($tokenStream);
-
-        self::assertInstanceOf(ListNode::class, $node);
-
-        $nonTrivia = array_values(array_filter(
-            $node->getChildren(),
-            static fn(NodeInterface $n): bool => !$n instanceof WhitespaceNode && !$n instanceof NewlineNode,
-        ));
-
-        self::assertCount(4, $nonTrivia);
-        self::assertSame(1, $nonTrivia[0]->getValue());
-        self::assertSame(2, $nonTrivia[1]->getValue());
-        self::assertSame(3, $nonTrivia[2]->getValue());
-        self::assertSame(4, $nonTrivia[3]->getValue());
+        $source = '[1 #?@(:clj [8 9] :default [2 3]) 4]';
+        $node = $this->parse($source);
+        self::assertSame($source, $node->getCode());
+        self::assertSame([1, 2, 3, 4], $this->compilerFacade->read($node)->getAst()->toArray());
     }
 
     public function test_reader_conditional_splicing_no_match_drops_silently(): void
     {
-        // [1 #?@(:clj [8 9]) 4] → [1 4]
-        $tokenStream = $this->compilerFacade->lexString('[1 #?@(:clj [8 9]) 4]');
-        $node = $this->compilerFacade->parseNext($tokenStream);
-
-        self::assertInstanceOf(ListNode::class, $node);
-
-        $nonTrivia = array_values(array_filter(
-            $node->getChildren(),
-            static fn(NodeInterface $n): bool => !$n instanceof WhitespaceNode && !$n instanceof NewlineNode,
-        ));
-
-        self::assertCount(2, $nonTrivia);
-        self::assertSame(1, $nonTrivia[0]->getValue());
-        self::assertSame(4, $nonTrivia[1]->getValue());
+        $source = '[1 #?@(:clj [8 9]) 4]';
+        $node = $this->parse($source);
+        self::assertSame($source, $node->getCode());
+        self::assertSame([1, 4], $this->compilerFacade->read($node)->getAst()->toArray());
     }
 
     public function test_reader_conditional_splicing_at_top_level_throws(): void
@@ -833,6 +785,18 @@ final class ParserTest extends TestCase
         self::assertInstanceOf(ListNode::class, $node->getForm());
     }
 
+    public function test_tagged_literal_retains_comments_without_changing_its_form(): void
+    {
+        $source = "#custom ; preserve this\n  1";
+        $node = $this->parse($source);
+
+        self::assertInstanceOf(TaggedLiteralNode::class, $node);
+        self::assertSame($source, $node->getCode());
+        self::assertSame('custom', $node->getTag());
+        self::assertInstanceOf(NumberNode::class, $node->getForm());
+        self::assertSame(1, $node->getForm()->getValue());
+    }
+
     public function test_tagged_literal_with_atom_form(): void
     {
         /** @var TaggedLiteralNode $node */
@@ -844,21 +808,15 @@ final class ParserTest extends TestCase
 
     public function test_tagged_literal_inside_unselected_reader_conditional_parses_cleanly(): void
     {
-        // `#cpp` lands in the :jank branch which is not selected. The entire
-        // reader conditional should resolve to the :phel branch value (42)
-        // without raising a parser error.
-        $node = $this->parse('#?(:phel 42 :jank (#cpp (foo bar)))');
+        $node = $this->selected($this->parse('#?(:phel 42 :jank (#cpp (foo bar)))'));
         self::assertInstanceOf(NumberNode::class, $node);
         self::assertSame(42, $node->getValue());
     }
 
     public function test_tagged_literal_in_selected_branch_reaches_parser(): void
     {
-        // Conversely, if #cpp is in the :phel branch, it should reach the
-        // parser output as a TaggedLiteralNode (the error fires at Reader
-        // time, not parse time).
         /** @var TaggedLiteralNode $node */
-        $node = $this->parse('#?(:phel (#cpp 1) :default 0)');
+        $node = $this->selected($this->parse('#?(:phel (#cpp 1) :default 0)'));
         self::assertInstanceOf(ListNode::class, $node);
     }
 
@@ -894,4 +852,14 @@ final class ParserTest extends TestCase
     {
         return new SourceLocation('string', $line, $column);
     }
+
+    private function selected(NodeInterface $node): NodeInterface
+    {
+        while ($node instanceof ReaderConditionalNode) {
+            $node = $node->getSelected();
+        }
+
+        return $node;
+    }
+
 }

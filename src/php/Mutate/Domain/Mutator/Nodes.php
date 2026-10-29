@@ -10,6 +10,7 @@ use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\NilNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\NumberNode;
+use Phel\Shared\Parser\Node\ReaderConditionalNode;
 use Phel\Shared\Parser\Node\StringNode;
 use Phel\Shared\Parser\Node\SymbolNode;
 use Phel\Shared\Parser\Node\Token;
@@ -127,6 +128,7 @@ final class Nodes
      */
     public static function isVector(NodeInterface $node): bool
     {
+        $node = self::selected($node);
         return $node instanceof ListNode && $node->getTokenType() === Token::T_OPEN_BRACKET;
     }
 
@@ -135,11 +137,21 @@ final class Nodes
      */
     public static function symbolName(NodeInterface $node): ?string
     {
+        $node = self::selected($node);
         if (!$node instanceof SymbolNode) {
             return null;
         }
 
         return $node->getValue()->getFullName();
+    }
+
+    public static function selected(NodeInterface $node): NodeInterface
+    {
+        while ($node instanceof ReaderConditionalNode) {
+            $node = $node->getSelected();
+        }
+
+        return $node;
     }
 
     public static function isInt(NodeInterface $node): bool
