@@ -22,6 +22,7 @@ use RuntimeException;
 
 use function addslashes;
 use function count;
+use function ini_set;
 use function is_array;
 use function is_bool;
 use function is_float;
@@ -29,7 +30,7 @@ use function is_infinite;
 use function is_int;
 use function is_nan;
 use function is_string;
-use function preg_match;
+use function var_export;
 
 /**
  * @internal
@@ -134,8 +135,6 @@ final readonly class LiteralEmitter
 
     private function formatFloatLiteral(float $x): string
     {
-        // NAN and INF have no PHP literal form, and (string) coercion of NAN
-        // emits an E_WARNING on PHP 8.5+. Emit constant expressions instead.
         if (is_nan($x)) {
             return 'NAN';
         }
@@ -144,16 +143,16 @@ final readonly class LiteralEmitter
             return $x > 0 ? 'INF' : '-INF';
         }
 
-        $str = (string) $x;
-        // (string) 10.0 renders as "10"; append .0 so the literal stays
-        // a float in PHP. Skip when the string already carries a decimal
-        // point or scientific notation (e.g. -9.22E+18) — appending .0
-        // would yield invalid PHP like "-9.22E+18.0".
-        if (preg_match('/^-?\d+$/', $str) === 1) {
-            $str .= '.0';
+        $precision = ini_set('serialize_precision', '-1');
+        if ($precision === false) {
+            throw new RuntimeException('Cannot configure float literal precision');
         }
 
-        return $str;
+        try {
+            return var_export($x, true);
+        } finally {
+            ini_set('serialize_precision', $precision);
+        }
     }
 
     private function emitInt(int $x): void

@@ -1,0 +1,7 @@
+--PHEL--
+(fn [] [0.30000000000000004 1.7976931348623157E+308 -0.0 1e100])
+--PHP--
+(function(): \Phel\Lang\Collections\Vector\PersistentVectorInterface {
+  static $__phel_const_0;
+  return ($__phel_const_0 ??= \Phel::vector([0.30000000000000004, 1.7976931348623157E+308, -0.0, 1.0E+100]));
+});
