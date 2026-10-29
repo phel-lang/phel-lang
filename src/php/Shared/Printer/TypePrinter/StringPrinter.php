@@ -75,19 +75,19 @@ final readonly class StringPrinter implements TypePrinterInterface
                 continue;
             }
 
-            if ($this->isMask110XXXXX($asciiChar)) {
+            if ($this->isMask110XXXXX($asciiChar) && $this->hasContinuationBytes($str, $index, 1)) {
                 $return .= substr($str, $index, 2);
                 ++$index;
                 continue;
             }
 
-            if ($this->isMask1110XXXX($asciiChar)) {
+            if ($this->isMask1110XXXX($asciiChar) && $this->hasContinuationBytes($str, $index, 2)) {
                 $return .= substr($str, $index, 3);
                 $index += 2;
                 continue;
             }
 
-            if ($this->isMask11110XXX($asciiChar)) {
+            if ($this->isMask11110XXX($asciiChar) && $this->hasContinuationBytes($str, $index, 3)) {
                 $return .= substr($str, $index, 4);
                 $index += 3;
                 continue;
@@ -102,6 +102,17 @@ final readonly class StringPrinter implements TypePrinterInterface
         }
 
         return '"' . $return . '"';
+    }
+
+    private function hasContinuationBytes(string $str, int $index, int $count): bool
+    {
+        for ($offset = 1; $offset <= $count; ++$offset) {
+            if (!isset($str[$index + $offset]) || (ord($str[$index + $offset]) & 0xC0) !== 0x80) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

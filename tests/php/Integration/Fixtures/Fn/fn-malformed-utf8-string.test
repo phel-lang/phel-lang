@@ -1,0 +1,7 @@
+--PHEL--
+(fn [] ["\xC3\"" "\xC3$x" "\xC3\\"])
+--PHP--
+(function(): \Phel\Lang\Collections\Vector\PersistentVectorInterface {
+  static $__phel_const_0;
+  return ($__phel_const_0 ??= \Phel::vector(["\xc3\"", "\xc3\$x", "\xc3\\"]));
+});
