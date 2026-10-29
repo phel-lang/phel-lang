@@ -168,14 +168,20 @@ final class Reader implements ReaderInterface
         };
 
         if ($fnPrefix !== null) {
+            if ($this->fnArgs !== null) {
+                throw ReaderException::forNode($node, $root, 'Nested #()s are not allowed');
+            }
+
             $this->fnArgs = [];
             $this->fnPlaceholderPrefix = $fnPrefix;
-            $result = $this->readerFactory
-                ->createListFnReader($this)
-                ->read($node, $this->fnArgs, $root);
-            $this->fnPlaceholderPrefix = null;
-
-            return $result;
+            try {
+                return $this->readerFactory
+                    ->createListFnReader($this)
+                    ->read($node, $this->fnArgs, $root);
+            } finally {
+                $this->fnArgs = null;
+                $this->fnPlaceholderPrefix = null;
+            }
         }
 
         throw new RuntimeException('Not a valid ListNode: ' . $node::class);
