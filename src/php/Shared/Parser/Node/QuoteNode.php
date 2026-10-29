@@ -15,6 +15,7 @@ final class QuoteNode implements InnerNodeInterface
         private readonly SourceLocation $endLocation,
         private NodeInterface $expression,
         private readonly ?string $codePrefix = null,
+        private readonly string $trivia = '',
     ) {}
 
     /**
@@ -37,7 +38,7 @@ final class QuoteNode implements InnerNodeInterface
 
     public function getCode(): string
     {
-        return $this->getCodePrefix() . $this->expression->getCode();
+        return $this->getCodePrefix() . $this->trivia . $this->expression->getCode();
     }
 
     public function getCodePrefix(): string

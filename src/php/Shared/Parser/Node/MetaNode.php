@@ -19,6 +19,7 @@ final class MetaNode implements InnerNodeInterface
         private readonly SourceLocation $startLocation,
         private readonly SourceLocation $endLocation,
         private array $children,
+        private readonly string $trivia = '',
     ) {}
 
     /**
@@ -47,7 +48,7 @@ final class MetaNode implements InnerNodeInterface
             $code .= $child->getCode();
         }
 
-        return $this->getCodePrefix() . $this->meta->getCode() . $code;
+        return $this->getCodePrefix() . $this->trivia . $this->meta->getCode() . $code;
     }
 
     public function getCodePrefix(): string
