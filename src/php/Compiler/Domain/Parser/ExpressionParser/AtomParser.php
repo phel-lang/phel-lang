@@ -21,7 +21,6 @@ use Phel\Shared\Parser\Node\NumberNode;
 use Phel\Shared\Parser\Node\SymbolNode;
 use Phel\Shared\Parser\Node\Token;
 
-use function is_float;
 use function is_int;
 use function ord;
 use function sprintf;
@@ -48,21 +47,8 @@ final readonly class AtomParser
 
     private const string REGEX_RADIX_NUMBER = '/^([+-])?(2|[3-9]|[12]\d|3[0-6])[rR]([0-9a-zA-Z]+(?:_[0-9a-zA-Z]+)*)$/';
 
-    /**
-     * Clojure-style arbitrary-precision integer literal, e.g. `1N`, `-123N`,
-     * `1_000_000N`. Phel has no first-class BigInt, so the `N` suffix is
-     * stripped and the value is parsed as a plain PHP int — callers that
-     * need values beyond `PHP_INT_MAX` must use an explicit library.
-     */
     private const string REGEX_BIGINT_LITERAL = '/^([+-]?\d+(?:_\d+)*)N$/';
 
-    /**
-     * Clojure-style arbitrary-precision decimal literal, e.g. `1.5M`, `0M`,
-     * `-123.456M`, `1.5e3M`. Phel has no first-class BigDecimal, so the `M`
-     * suffix is stripped and the value is parsed as a plain PHP float —
-     * callers that need arbitrary-precision decimals must use an explicit
-     * library.
-     */
     private const string REGEX_BIGDEC_LITERAL = '/^([+-]?\d+(?:_\d+)*(?:\.\d+(?:_\d+)*)?(?:[eE][+-]?\d+)?)M$/';
 
     /**
@@ -217,7 +203,7 @@ final readonly class AtomParser
         $value = $this->unsignedInBase(str_replace('_', '', $unsignedInteger), 2);
 
         if ($sign === -1) {
-            $value = $this->normalizeNegativeOverflow(-$value);
+            $value = $this->negateInteger($value);
         }
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
@@ -233,7 +219,7 @@ final readonly class AtomParser
         $value = $this->unsignedInBase(str_replace('_', '', $unsignedInteger), 16);
 
         if ($sign === -1) {
-            $value = $this->normalizeNegativeOverflow(-$value);
+            $value = $this->negateInteger($value);
         }
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
@@ -249,7 +235,7 @@ final readonly class AtomParser
         $value = $this->unsignedInBase(str_replace('_', '', $unsignedInteger), 8);
 
         if ($sign === -1) {
-            $value = $this->normalizeNegativeOverflow(-$value);
+            $value = $this->negateInteger($value);
         }
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
@@ -271,7 +257,7 @@ final readonly class AtomParser
         $value = $this->unsignedInBase($digits, $base);
 
         if ($sign === -1) {
-            $value = $this->normalizeNegativeOverflow(-$value);
+            $value = $this->negateInteger($value);
         }
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
@@ -304,14 +290,7 @@ final readonly class AtomParser
         return true;
     }
 
-    /**
-     * The value of `$digits` in `$base`, as an int while it fits and a float
-     * past `PHP_INT_MAX`, the way `hexdec()` answers. Computed by hand: PHP
-     * 8.6's `bindec`/`hexdec`/`octdec`/`base_convert` raise a notice past
-     * `PHP_INT_MAX`, which the `PHP_INT_MIN` literals reach, and
-     * `base_convert` gives a digit string there that an `(int)` cast clamps.
-     */
-    private function unsignedInBase(string $digits, int $base): int|float
+    private function unsignedInBase(string $digits, int $base): int|BigInt
     {
         $value = 0;
         foreach (str_split(strtolower($digits)) as $digit) {
@@ -321,42 +300,32 @@ final readonly class AtomParser
                 continue;
             }
 
-            $value = (float) $value * (float) $base + (float) $digitValue;
+            $value = ($value instanceof BigInt ? $value : BigInt::fromInt($value))
+                ->multiply(BigInt::fromInt($base))
+                ->add(BigInt::fromInt($digitValue));
         }
 
         return $value;
     }
 
-    /**
-     * When a bin/hex/oct literal equals the 64-bit minimum (e.g. `-0x8000000000000000`),
-     * `bindec`/`hexdec`/`octdec` silently overflow the unsigned magnitude to a float.
-     * Negating that float yields `(float) PHP_INT_MIN`, which the emitter then writes
-     * as `-9223372036854775808.0` — a literal PHP itself cannot parse. Clamp that
-     * single representable edge case back to the actual int `PHP_INT_MIN`.
-     */
-    private function normalizeNegativeOverflow(float|int $value): float|int
+    private function negateInteger(int|BigInt $value): int|BigInt
     {
-        if (is_float($value) && $value === (float) PHP_INT_MIN) {
-            return PHP_INT_MIN;
+        if ($value instanceof BigInt) {
+            $negative = $value->negate();
+
+            return $negative->fitsInPhpInt() ? $negative->toInt() : $negative;
         }
 
-        return $value;
+        return -$value;
     }
 
-    /**
-     * Casts a numeric integer literal to PHP `int`, falling back to `float`
-     * when the literal exceeds `PHP_INT_MAX` / `PHP_INT_MIN`. Without this
-     * fallback PHP's `(int)` cast silently clamps oversize literals to the
-     * platform integer bound, so a literal like `99999999999999999999` would
-     * compare equal to `PHP_INT_MAX` instead of preserving its magnitude.
-     */
-    private function parseIntegerWithOverflowFallback(string $word): float|int
+    private function parseIntegerWithOverflowFallback(string $word): int|BigInt
     {
         $intValue = (int) $word;
         $magnitude = ltrim($word, '+-0') ?: '0';
         $canonical = ($word[0] === '-' && $magnitude !== '0' ? '-' : '') . $magnitude;
 
-        return ((string) $intValue === $canonical) ? $intValue : (float) $word;
+        return ((string) $intValue === $canonical) ? $intValue : BigInt::fromString($canonical);
     }
 
     /**
@@ -364,6 +333,11 @@ final readonly class AtomParser
      */
     private function parseDecimalNumber(array $matches, string $word, Token $token): NumberNode
     {
+        $digits = str_replace('_', '', $word);
+        if (preg_match('/^[+-]?\d+$/', $digits) === 1) {
+            return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $this->parseIntegerWithOverflowFallback($digits));
+        }
+
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
         $value = (int) str_replace('_', '', $word);
 
