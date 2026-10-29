@@ -8,48 +8,34 @@ allowed-tools:
   - "shell(./bin/phel *)"
 ---
 
-# Quick Test Runner
+# Test Runner
 
-## Scope mapping
+Follow `.agnostic-ai/rules/build-test-and-development-commands.md` for gate timing and required hooks.
 
-Use the narrowest scope for diagnosis or an explicit focused request. For the final gate, follow `.agnostic-ai/rules/build-test-and-development-commands.md`; a focused pass does not replace it.
+## Select the scope
 
-| Changed                  | Command                                       | Notes                              |
-|--------------------------|-----------------------------------------------|------------------------------------|
-| `src/php/**`             | `composer test-compiler`                      | PHPUnit unit + integration         |
-| `src/phel/**`            | `composer test-core`                          | Phel core tests                    |
-| Single PHP module        | `./vendor/bin/phpunit tests/php/Unit/<Module>` | Fastest for focused work           |
-| Integration fixtures     | `composer test-integration`                   | Paratest, integration suite only   |
-| Single Phel file         | `./bin/phel test tests/phel/<file>`           | Target a specific test             |
-| Any `.php` style change  | `composer test-quality`                       | Formatting, analysis and config    |
-| Mixed PHP + Phel         | `composer test`                               | Run everything                     |
+1. Honor an explicit file, filter or suite. With no argument, or `quick`, inspect `git status --short`, `git diff` and `git diff --cached`; choose checks for the changed behavior rather than defaulting to every suite.
+2. Cover the behavior and its affected integration boundary. For a compiler change, include the relevant compilation fixture or runtime path; for PHP/Phel interop, exercise the Phel caller too. Broaden for failures or effects that a focused run cannot cover.
+3. Run affected quality checks on the final diff. Formatter and Rector dry runs accept changed PHP paths; static analysis accepts affected `src/` paths, never tests (ADR 0010). Coordinate expensive checks across workers and never overlap typechecks.
+4. Reuse passing results on unchanged code, including a commit hook's gate. After a fix, repeat the affected checks. Report exact commands, counts and any coverage limit.
 
-Every command is described in `.agnostic-ai/rules/build-test-and-development-commands.md`.
+## Commands
 
-## Instructions
+Install dependencies with `composer install` before PHP/Phel tooling if `vendor/` is missing or the lock file changed.
 
-1. If the argument is empty or `all`:
-   ```bash
-   COMPOSER_PROCESS_TIMEOUT=0 composer test
-   ```
+| Scope | Command and coverage |
+|---|---|
+| PHP class or method | `./vendor/bin/phpunit --filter=<Class-or-method>` |
+| PHP test file or module | `./vendor/bin/phpunit tests/php/<path>`; include its affected integration tests |
+| Compiler fixture | `./vendor/bin/phpunit --testsuite=integration --filter=<fixture-stem>` |
+| Phel test file | `./bin/phel test tests/phel/<file>` |
+| `unit` / `integration` | `composer test-unit` / `composer test-integration` (integration uses paratest) |
+| `compiler` | `composer test-compiler`: PHP unit and integration suites |
+| `core` | `composer test-core`: Phel workers, then timing-sensitive tests alone; `composer test-core:serial` runs serially |
+| `quality` | `composer test-quality`: formatter dry run, Psalm, PHPStan, Rector and config validation |
+| `all` | `COMPOSER_PROCESS_TIMEOUT=0 composer test`: quality, compiler and core, matching CI |
+| Formatting fixes | `composer fix`: Rector then CS Fixer; prefer explicit changed paths when isolating a change |
+| `bench` | `composer phpbench`; select affected subjects and follow `.agnostic-ai/skills/benchmark/SKILL.md` |
+| PHAR packaging | `./build/phar.sh`: builds `build/out/phel.phar` |
 
-2. If the argument is a known scope:
-   - `quality` → `composer test-quality`
-   - `compiler` → `composer test-compiler`
-   - `core` → `composer test-core`
-   - `quick` → `composer test-compiler && composer test-core` (skip static analysis)
-   - `bench` → `composer phpbench`
-
-3. If the argument looks like a test class or method name:
-   ```bash
-   ./vendor/bin/phpunit --filter "<argument>"
-   ```
-
-4. If the argument looks like a file path:
-   ```bash
-   ./vendor/bin/phpunit "<argument>"
-   # or for Phel tests:
-   ./bin/phel test "<argument>"
-   ```
-
-5. Report results clearly with pass/fail count.
+An explicit `all`, or a change whose effects cannot be covered by narrower checks, uses the full gate. Do not repeat a completed full gate unless subsequent changes affect its results.
