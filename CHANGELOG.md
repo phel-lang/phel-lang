@@ -125,7 +125,7 @@ Compiler:
 
 Runtime:
 
-- `pop!` removes the last element of a transient vector, including at trie boundaries, and subsequent `conj!` and `persistent!` preserve the remaining values. It used to retain removed elements or lose live elements while reporting success. (#3673)
+- `pop` and `pop!` preserve vector contents at trie boundaries, including after appending and converting to a persistent vector. Persistent vectors used to crash during traversal or later appends; transient vectors retained removed elements or lost live ones while reporting success. (#3672 #3673)
 - **BREAKING**: `phel.http-client` accepts only `http` and `https` URLs, including redirect targets. `(hc/get "file:///etc/hosts")` and `php://` or `data://` URLs used to read local data through `file_get_contents`. A redirect to another origin keeps only `accept`, `accept-encoding`, `accept-language`, `user-agent` and `content-type`: custom headers such as the `x-api-key` `phel.ai` sends used to follow it. More than 20 redirects throw. (#3531)
 - On PHP 8.6, a `defstruct`, `defexception` or `defenum` predicate or a `definterface` method called with a string, and hashing a PHP object (a fn in a set, `distinct`, `frequencies`), print no deprecation. A fn returning `(php/=& target value)` runs with OPcache's default optimizer; PHP 8.6 RC2 used to stop with `Invalid opcode 62/4/0`. (#3522)
 - `range` accepts a ratio, `BigInt` or `BigDecimal` bound or step, so `(repeat 1/2 :x)`, `(repeatedly 5/2 f)`, `(dotimes [i 5/2] ...)` and `(for [i :range [5/2]] i)` run as they do with a float. They used to fail with a `TypeError` from `Seq::range()`. (#3557)
