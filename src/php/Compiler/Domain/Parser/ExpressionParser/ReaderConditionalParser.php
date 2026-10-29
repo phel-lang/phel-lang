@@ -110,6 +110,10 @@ final readonly class ReaderConditionalParser
                 break;
             }
 
+            while ($keywordNode instanceof ReaderConditionalNode) {
+                $keywordNode = $keywordNode->getSelected();
+            }
+
             if ($keywordNode instanceof KeywordNode) {
                 $keywordCode = $keywordNode->getCode();
                 if ($keywordCode === ':phel') {

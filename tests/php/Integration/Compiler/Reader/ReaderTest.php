@@ -1521,6 +1521,15 @@ final class ReaderTest extends TestCase
         self::assertSame([1, 2], $this->read('[#?@(:phel #?(:phel [1 2]))]')->toArray());
     }
 
+    public function test_reader_conditionals_resolve_nested_feature_keywords(): void
+    {
+        self::assertSame(1, $this->read('#?(#?(:phel :phel) 1 :default 2)'));
+        self::assertSame(1, $this->read('#?(:default 2 #?(:phel #?(:phel :phel)) 1)'));
+        self::assertSame(2, $this->read('#?(#?(:phel :default) 2 :clj 3)'));
+        self::assertSame([1, 2], $this->read('[#?@(#?(:phel :phel) [1 2] :default [3])]')->toArray());
+        self::assertSame([1, 2], $this->read('[#?@(:default [3] #?(:phel #?(:phel :phel)) [1 2])]')->toArray());
+    }
+
     public function test_reader_conditionals_in_php_tag_prefix_contexts(): void
     {
         self::assertSame('(php-indexed-array 1 2)', Printer::readable()->print($this->read('#php #?(:phel [1 2])')));
