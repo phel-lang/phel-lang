@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NumericOperationSpecialization;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
@@ -215,6 +216,35 @@ final class NumericOperationSpecializationTest extends TestCase
                 NumericOperationSpecialization::typedBinaryOpName($node),
                 sprintf('arithmetic op %s over two int literals must not specialise', $op),
             );
+        }
+    }
+
+    public function test_nested_variadic_inference_visits_each_operand_once(): void
+    {
+        $this->env();
+        $depth = 12;
+        $env = $this->createMock(NodeEnvironmentInterface::class);
+        $env->expects(self::exactly(2 * $depth + 1))->method('inferredTypeOf')->willReturn('int');
+        $local = new LocalVarNode($env, Symbol::create('x'));
+        $node = $local;
+        for ($i = 0; $i < $depth; ++$i) {
+            $node = $this->coreCall('+', [$local, $local, $node]);
+        }
+
+        self::assertSame('int', NumericOperationSpecialization::inferredTypeOfNode($node));
+    }
+
+    public function test_runtime_arithmetic_does_not_publish_a_primitive_result_type(): void
+    {
+        $env = $this->env();
+        foreach (['+', '-', '*'] as $op) {
+            foreach ([2, 3] as $arity) {
+                $args = array_fill(0, $arity, new LiteralNode($env, PHP_INT_MAX));
+                $inner = $this->coreCall($op, $args);
+                self::assertNull(NumericOperationSpecialization::inferredTypeOfNode($inner));
+                $outer = $this->coreCall('-', [$inner, new LiteralNode($env, 1)]);
+                self::assertNull(NumericOperationSpecialization::typedBinaryOpName($outer));
+            }
         }
     }
 

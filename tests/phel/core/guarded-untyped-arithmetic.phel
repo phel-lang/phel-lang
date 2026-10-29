@@ -50,3 +50,14 @@
       (outcome #(- (f :c x) 1))
       (outcome #(* 2 (f :d y)))
       (is (= [:a :b :c :d] @log) (str "operands " (pr-str x) " " (pr-str y))))))
+
+(deftest test-nested-arithmetic-preserves-bigint-promotion
+  (is (= php/PHP_INT_MAX (- (+ 9223372036854775807 1) 1)))
+  (is (= 18446744073709551616N (* (+ 9223372036854775807 1) 2)))
+  (is (= 9223372036854775807N (- (* 4611686018427387904 2) 1)))
+  (is (= 9223372036854775807N (- (+ 9223372036854775807 1 1) 2)))
+  (is (> (+ 9223372036854775807 1) 9223372036854775807))
+  (is (= 4611686018427387904N (/ (+ 9223372036854775807 1) 2)))
+  (let [max-value (identity php/PHP_INT_MAX)]
+    (is (= php/PHP_INT_MAX (- (+ max-value 1) 1)))
+    (is (= 18446744073709551616N (* (+ max-value 1) 2)))))
