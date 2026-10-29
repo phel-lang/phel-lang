@@ -8,24 +8,18 @@ use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\ParserInterface;
+use Phel\Lang\SourceLocation;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Parser\Node\CommentNode;
 use Phel\Shared\Parser\Node\KeywordNode;
 use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\ReaderConditionalNode;
 use Phel\Shared\Parser\Node\ReaderCondSplicingNode;
 use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 /**
- * Parses reader conditionals `#?(:phel ... :default ...)` and their splicing
- * variant `#?@(:phel [...] :default [...])`.
- *
- * Both forms scan the same `keyword form` branch pairs and select the
- * `:phel` branch (falling back to `:default`); they differ only in how the
- * matched branch is wrapped. The shared scan + closing-paren handling lives
- * in {@see resolveBranch()}.
- *
  * @internal
  */
 final readonly class ReaderConditionalParser
@@ -38,14 +32,13 @@ final readonly class ReaderConditionalParser
      */
     public function parseCond(TokenStream $tokenStream, Token $openToken): NodeInterface
     {
-        $matchedNode = $this->resolveBranch($tokenStream, $openToken, 'Unterminated reader conditional #?()');
+        [$matchedNode, $end, $code, $prefix, $suffix] = $this->resolveBranch($tokenStream, $openToken, 'Unterminated reader conditional #?()');
 
         if ($matchedNode instanceof NodeInterface) {
-            return $matchedNode;
+            return new ReaderConditionalNode($code, $matchedNode, $openToken->getStartLocation(), $end, $prefix, $suffix);
         }
 
-        // No matching branch → treated as trivia (dropped)
-        return CommentNode::createWithToken($openToken);
+        return new CommentNode($code, $openToken->getStartLocation(), $end);
     }
 
     /**
@@ -54,13 +47,21 @@ final readonly class ReaderConditionalParser
      */
     public function parseCondSplicing(TokenStream $tokenStream, Token $openToken): NodeInterface
     {
-        $matchedNode = $this->resolveBranch($tokenStream, $openToken, 'Unterminated reader conditional splicing #?@()');
+        [$matchedNode, $end, $code, $prefix, $suffix] = $this->resolveBranch($tokenStream, $openToken, 'Unterminated reader conditional splicing #?@()');
+
+        $source = $matchedNode === null ? null : new ReaderConditionalNode($code, $matchedNode, $openToken->getStartLocation(), $end, $prefix, $suffix);
+
+        while ($matchedNode instanceof ReaderConditionalNode) {
+            $matchedNode = $matchedNode->getSelected();
+        }
 
         if ($matchedNode instanceof ListNode) {
             return new ReaderCondSplicingNode(
                 $matchedNode->getChildren(),
                 $openToken->getStartLocation(),
-                $matchedNode->getEndLocation(),
+                $end,
+                $code,
+                $source,
             );
         }
 
@@ -72,11 +73,11 @@ final readonly class ReaderConditionalParser
             );
         }
 
-        // No matching branch → splice nothing
         return new ReaderCondSplicingNode(
             [],
             $openToken->getStartLocation(),
-            $openToken->getEndLocation(),
+            $end,
+            $code,
         );
     }
 
@@ -85,9 +86,14 @@ final readonly class ReaderConditionalParser
      * and returns the selected branch (`:phel`, else `:default`, else null).
      *
      * @throws UnfinishedParserException
+     *
+     * @return array{?NodeInterface, SourceLocation, string, string, string}
      */
-    private function resolveBranch(TokenStream $tokenStream, Token $openToken, string $unterminatedMessage): ?NodeInterface
+    private function resolveBranch(TokenStream $tokenStream, Token $openToken, string $unterminatedMessage): array
     {
+        $startIndex = $tokenStream->getReadTokenIndex() - 1;
+        $phelRange = null;
+        $defaultRange = null;
         $phelNode = null;
         $defaultNode = null;
 
@@ -97,17 +103,25 @@ final readonly class ReaderConditionalParser
                 break;
             }
 
-            $formNode = $this->readNonTriviaExpression($tokenStream);
+            $formStart = 0;
+            $formNode = $this->readNonTriviaExpression($tokenStream, $formStart);
+            $formEnd = $tokenStream->getReadTokenIndex() - 1;
             if (!$formNode instanceof NodeInterface) {
                 break;
+            }
+
+            while ($keywordNode instanceof ReaderConditionalNode) {
+                $keywordNode = $keywordNode->getSelected();
             }
 
             if ($keywordNode instanceof KeywordNode) {
                 $keywordCode = $keywordNode->getCode();
                 if ($keywordCode === ':phel') {
                     $phelNode = $formNode;
+                    $phelRange = [$formStart, $formEnd];
                 } elseif ($keywordCode === ':default') {
                     $defaultNode = $formNode;
+                    $defaultRange = [$formStart, $formEnd];
                 }
             }
         }
@@ -122,9 +136,15 @@ final readonly class ReaderConditionalParser
             );
         }
 
+        $endIndex = $tokenStream->getReadTokenIndex();
+        $code = $tokenStream->getCodeRange($startIndex, $endIndex);
+        $selectedRange = $phelRange ?? $defaultRange;
+        $prefix = $selectedRange === null ? '' : $tokenStream->getCodeRange($startIndex, $selectedRange[0] - 1);
+        $suffix = $selectedRange === null ? '' : $tokenStream->getCodeRange($selectedRange[1] + 1, $endIndex);
+        $end = $tokenStream->current()->getEndLocation();
         $tokenStream->next();
 
-        return $phelNode ?? $defaultNode;
+        return [$phelNode ?? $defaultNode, $end, $code, $prefix, $suffix];
     }
 
     /**
@@ -135,7 +155,7 @@ final readonly class ReaderConditionalParser
      * @throws UnexpectedParserException
      * @throws UnfinishedParserException
      */
-    private function readNonTriviaExpression(TokenStream $tokenStream): ?NodeInterface
+    private function readNonTriviaExpression(TokenStream $tokenStream, int &$startIndex = 0): ?NodeInterface
     {
         while ($tokenStream->valid()) {
             $tokenType = $tokenStream->current()->getType();
@@ -146,6 +166,7 @@ final readonly class ReaderConditionalParser
                 return null;
             }
 
+            $startIndex = $tokenStream->getReadTokenIndex();
             $node = $this->parser->readExpression($tokenStream);
             if (!$node instanceof TriviaNodeInterface) {
                 return $node;
