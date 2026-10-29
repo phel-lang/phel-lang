@@ -1,7 +1,7 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/Chemaclass/agnostic-ai/v0.87.0/docs/schemas/config.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Chemaclass/agnostic-ai/v0.90.0/docs/schemas/config.schema.json
 version: 1
 
-requires: "0.87.0"
+requires: "0.90.0"
 
 sources:
   agents: .agnostic-ai/agents
@@ -52,8 +52,8 @@ sync:
   collision-policy: fail
 
 lint:
-  # Startup instructions are ~800 words (Claude) and ~1100 (Codex); warn before they grow past this.
-  instructions-words: 1300
+  # Keep startup policy concise; command details live in the test skill.
+  instructions-words: 1000
   # Codex truncates past project_doc_max_bytes (65536, .agnostic-ai/overlays/codex.config.toml).
-  # Warn well before that: the largest chain (Compiler/Domain/Emitter) is ~36 KB.
+  # Warn before scoped instructions approach the configured limit.
   codex-chain-bytes: 40960

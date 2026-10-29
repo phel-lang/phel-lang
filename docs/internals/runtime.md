@@ -53,6 +53,8 @@ Opening and closing costs about what eight writes save; for fewer, a multi-key `
 
 Value equality: `(= [1 2] [1 2])` is true regardless of object identity.
 
+Values created by `defstruct` or `defrecord` compare equal only to values of the same struct type with equal fields. A struct and a plain map are unequal in either argument order, even when their entries match. They remain distinct as map keys and set members.
+
 - `Equalizer`: `===` for scalars, structural for collections.
 - `Hasher`: `int` hashes that agree with `Equalizer`. A mismatch loses map entries.
 

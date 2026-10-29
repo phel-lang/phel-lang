@@ -15,6 +15,7 @@ use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Ratio;
 use Phel\Lang\SourceLocation;
@@ -1040,6 +1041,35 @@ final class ReaderTest extends TestCase
         );
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function nestedHashFunctions(): iterable
+    {
+        yield 'direct nesting' => ['#(f #(g %) %)'];
+        yield 'selected conditional' => ['#(f #?(:phel #(g %) :clj 1) %)'];
+        yield 'selected splicing conditional' => ['#(f #?@(:phel [#(g %)] :clj []) %)'];
+    }
+
+    #[DataProvider('nestedHashFunctions')]
+    public function test_nested_hash_function_errors_point_to_the_inner_function(string $source): void
+    {
+        try {
+            $this->read($source);
+            self::fail('Expected a nested shorthand function reader error');
+        } catch (ReaderException $readerException) {
+            self::assertSame('Nested #()s are not allowed', $readerException->getMessage());
+            self::assertSame(ErrorCode::READER_ERROR, $readerException->getErrorCode());
+            self::assertSame(strpos($source, '#(', 2), $readerException->getStartLocation()->getColumn());
+        }
+    }
+
+    public function test_hash_functions_ignore_unselected_conditional_branches(): void
+    {
+        $form = $this->read('#(f #?(:clj #(g %) :phel %) %)');
+        self::assertCount(1, $form->get(1));
+    }
+
     public function test_read_hash_fn_zero_args(): void
     {
         self::assertEquals(
@@ -1542,6 +1572,15 @@ final class ReaderTest extends TestCase
         self::assertSame('(quote [1 2])', Printer::readable()->print($this->read("'#?(:phel [1 2])")));
         self::assertSame('(quote [1 2])', Printer::readable()->print($this->read("'[ #?@(:phel [1 2])]")));
         self::assertTrue($this->read('^#?(:phel :flag) #?(:phel [])')->getMeta()->find(Keyword::create('flag')));
+    }
+
+    public function test_multibyte_character_literals_read_as_single_values(): void
+    {
+        self::assertSame('é', $this->read('\\é'));
+        $characters = $this->read('[\\é \\€ \\😀]');
+
+        self::assertInstanceOf(PersistentVectorInterface::class, $characters);
+        self::assertSame(['é', '€', '😀'], $characters->toArray());
     }
 
     private function read(string $string, bool $withLocation = true): float|bool|int|string|TypeInterface|null

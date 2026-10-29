@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Map;
 use NoDiscard;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
+use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Lang\EqualizerInterface;
 
 use Phel\Lang\HasherInterface;
@@ -69,6 +70,10 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
         }
 
         if (!$other instanceof PersistentMapInterface) {
+            return false;
+        }
+
+        if (($this instanceof AbstractPersistentStruct) !== ($other instanceof AbstractPersistentStruct)) {
             return false;
         }
 

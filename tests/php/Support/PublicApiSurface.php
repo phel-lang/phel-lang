@@ -20,6 +20,7 @@ use Phel\Shared\Exceptions\SourceMappedErrorHandler;
 use Phel\Shared\ExistingPaths;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\FloatFormatter;
 use Phel\Shared\FrameworkNamespaces;
 use Phel\Shared\InvocationError;
 use Phel\Shared\Lint\LintRuleExplainerInterface;
@@ -223,6 +224,7 @@ final readonly class PublicApiSurface
             InvocationError::class,
             StandardError::class,
             EnvVar::class,
+            FloatFormatter::class,
             NumericOption::class,
             SourceMappedErrorHandler::class,
         ], true);

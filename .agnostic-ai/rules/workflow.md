@@ -11,5 +11,5 @@ description: Commit, changelog, pull request, and public writing requirements.
 - Follow `.github/PULL_REQUEST_TEMPLATE.md` exactly, including its emoji-prefixed headings.
 - Link related issues with `Closes #X` when the pull request resolves them.
 - When adding changes to an open pull request, create a new commit. Do not amend or force push unless requested.
-- Write public GitHub comments in the maintainer's voice. Do not mention AI or LLM tooling.
+- Write public GitHub text in the maintainer's voice. Mention AI tooling only when it is the subject. Never add a Co-authored-by trailer or a "Generated with" line.
 - Releases: only `tools/release.sh`, `--dry-run` first, and an explicit human go before the real run. Details: `.agnostic-ai/rules/releases.md`.
