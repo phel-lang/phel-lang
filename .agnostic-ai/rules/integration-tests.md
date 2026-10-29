@@ -1,63 +1,14 @@
 ---
 name: integration-tests
-description: Integration test fixture format and conventions
+description: Find the format for compiler and REPL fixtures.
 scope: tests/php/Integration
 ---
 
-# Integration Test Fixtures
+# Integration Fixtures
 
-## `.test` File Format
+Before changing a fixture or its loader, read its format:
 
-Integration test fixtures use a two-section format separated by markers:
+- Compiler `.test` files: `.agnostic-ai/rules/compiler-fixtures.md`.
+- REPL transcripts: `.agnostic-ai/rules/repl-fixtures.md`.
 
-```
---PHEL--
-(def x 1)
---PHP--
-\Phel::addDefinition(
-  "user",
-  "x",
-  1,
-  ...
-);
-```
-
-- `--PHEL--` section: Phel source code input
-- `--PHP--` section: expected compiled PHP output (exact match)
-
-## Conventions
-
-- One fixture per behavior. Name files descriptively: `fn-variadic.test`, `try-one-catch.test`
-- Fixtures live in `tests/php/Integration/Fixtures/<Category>/`
-- Categories mirror language constructs: `Def/`, `Fn/`, `Let/`, `Try/`, `Call/`, etc.
-- PHP output uses `\Phel::` static helpers (`addDefinition`, `map`, `keyword`, `vector`, etc.)
-- Source locations are embedded in metadata: update line/column if you change the Phel input
-
-## REPL Fixtures
-
-REPL test fixtures live in `tests/php/Integration/Run/Command/Repl/Fixtures/` (no core lib) and
-`.../FixturesWithCoreLib/` (core lib preloaded). They use no markers at all: a fixture is a literal
-REPL transcript, and the whole file is the expected output.
-
-```
-user:1> (php/+ 1 1)
-2
-```
-
-`ReplCommandTest::getInputs()` recovers the inputs by matching each line against the prompt regex
-`(?<prompt>(?:[\w\\.-]+|\.{4}):\d+> ?)(?<phel_code>.+)?`, so:
-
-- Every input line must carry a real prompt: `<ns>:<n>> ` for a new form, `....:<n>> ` for a
-  continuation line inside an unfinished form.
-- Everything without a prompt is expected output (results, error reports, code snippets).
-- Comparison is `assertSame` on the whole transcript after `trim()`, so blank leading/trailing lines
-  are ignored but interior whitespace is significant.
-
-## Running
-
-```bash
-composer test-integration                                  # paratest, whole suite
-./vendor/bin/phpunit --testsuite=integration --filter=ClassName
-```
-
-Never hand-write the `--PHP--` section. Leave it empty, run `./vendor/bin/phpunit --filter=IntegrationTest`, and copy the actual output from the failure diff, then check it is the output you intended.
+Other integration tests follow `.agnostic-ai/rules/php.md`; verification selection is in `.agnostic-ai/rules/build-test-and-development-commands.md`.

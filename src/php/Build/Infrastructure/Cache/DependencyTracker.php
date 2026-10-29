@@ -10,6 +10,9 @@ use Gacela\Framework\Cache\ScopedCache;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Build\Domain\Cache\DependencyTrackerInterface;
 
+use function array_keys;
+use function array_pop;
+use function is_array;
 use function is_string;
 
 /**
@@ -50,8 +53,9 @@ final readonly class DependencyTracker implements DependencyTrackerInterface
         $fileKey = $this->fileKey($sourcePath);
         $nsKey = $this->nsKey($namespace);
 
-        if (!$this->cache->has($fileKey)) {
-            $this->cache->put($fileKey, $sourcePath);
+        $file = ['source' => $sourcePath, 'namespace' => $namespace];
+        if ($this->cache->get($fileKey) !== $file) {
+            $this->cache->put($fileKey, $file);
         }
 
         if (!$this->cache->has($nsKey)) {
@@ -93,24 +97,44 @@ final readonly class DependencyTracker implements DependencyTrackerInterface
             return [];
         }
 
-        $dependents = $this->cache->dependents($nsKey);
+        $pending = [$nsKey];
+        $visited = [];
         $invalidated = [];
 
-        foreach ($dependents as $key) {
-            if (!str_starts_with($key, 'file:')) {
+        while ($pending !== []) {
+            $current = array_pop($pending);
+            if (isset($visited[$current])) {
                 continue;
             }
 
-            $sourcePath = $this->cache->get($key);
-            if (!is_string($sourcePath)) {
-                continue;
-            }
+            $visited[$current] = true;
+            foreach ($this->cache->dependents($current) as $key) {
+                if (!str_starts_with($key, 'file:')) {
+                    continue;
+                }
 
-            $compiledCodeCache->invalidate($sourcePath);
-            $invalidated[] = $sourcePath;
+                $file = $this->cache->get($key);
+                if (!is_array($file)) {
+                    continue;
+                }
+
+                $sourcePath = $file['source'] ?? null;
+                $definedNamespace = $file['namespace'] ?? null;
+                if (!is_string($sourcePath) || !is_string($definedNamespace)) {
+                    continue;
+                }
+
+                if (isset($invalidated[$sourcePath])) {
+                    continue;
+                }
+
+                $compiledCodeCache->invalidate($sourcePath);
+                $invalidated[$sourcePath] = true;
+                $pending[] = $this->nsKey($definedNamespace);
+            }
         }
 
-        return $invalidated;
+        return array_keys($invalidated);
     }
 
     public function clear(): void

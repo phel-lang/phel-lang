@@ -6,15 +6,6 @@ namespace Phel\Shared\Parser\Node;
 
 use Phel\Lang\SourceLocation;
 
-/**
- * Represents a Clojure-style tagged literal: `#<tag> <form>`.
- *
- * The tag is an identifier (e.g. `cpp`, `uuid`, `inst`) and the form is
- * the next parseable expression. Phel does not register any tags natively
- * — the node is emitted so that unknown tags inside non-selected reader
- * conditional branches parse cleanly. Known-tag dispatch can be layered
- * on top of this node later.
- */
 final readonly class TaggedLiteralNode implements NodeInterface
 {
     public function __construct(
@@ -22,6 +13,7 @@ final readonly class TaggedLiteralNode implements NodeInterface
         private NodeInterface $form,
         private SourceLocation $startLocation,
         private SourceLocation $endLocation,
+        private string $trivia = ' ',
     ) {}
 
     public function getTag(): string
@@ -36,7 +28,7 @@ final readonly class TaggedLiteralNode implements NodeInterface
 
     public function getCode(): string
     {
-        return '#' . $this->tag . $this->form->getCode();
+        return '#' . $this->tag . $this->trivia . $this->form->getCode();
     }
 
     public function getStartLocation(): SourceLocation

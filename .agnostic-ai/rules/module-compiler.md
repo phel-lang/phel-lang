@@ -2,8 +2,6 @@
 name: module-compiler
 description: 'Compiler module: lexer, parser, reader, analyzer, simplifier and emitter pipeline.'
 scope: src/php/Compiler
-globs:
-  - tests/php/Unit/Compiler/**
 ---
 
 # Compiler Module
@@ -101,7 +99,7 @@ The analyzer uses dot form internally; emission goes through `encodePhpNs`.
 1. Analyzer in `Domain/Analyzer/TypeAnalyzer/SpecialForm/`, dispatched from `AnalyzePersistentList`. No ad-hoc handling elsewhere.
 2. A node in `Domain/Analyzer/Ast/` and its emitter in `Domain/Emitter/OutputEmitter/NodeEmitter/`.
 3. A row in `docs/spec/language-surface.md`. `LanguageSurfaceSpecTest` checks the table against the dispatch.
-4. A `.test` fixture per behavior, per `.agnostic-ai/rules/integration-tests.md`.
+4. A `.test` fixture per behavior, per `.agnostic-ai/rules/compiler-fixtures.md`.
 
 Tests: `tests/php/Unit/Compiler/` per phase, `tests/php/Integration/` end to end.
 

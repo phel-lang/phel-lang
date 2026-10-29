@@ -83,7 +83,7 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge, **Con
 ### Caching (two levels: namespace extraction + compiled code, each optional)
 
 - **Compiled-code cache** (`CompiledCodeCache`) keys entries by `CompiledSourceHash::of(source, optimizationLevel, envFingerprint)` under an index stamped with the running Phel version (beta commits included). Delegates to `CacheDirectory` (layout), `CacheIndexFile` (index load/save/merge), `NamespaceEnvironmentStore` (env data), `CachePathResolver`, `AtomicFileWriter`.
-- An entry stores its compile's deprecation notices (`EmitterResult::getDeprecations()`, index field `deprecations`; `INDEX_FORMAT_VERSION` 1.8), replayed by `FileEvaluator` via `CompilerFacadeInterface::replayDeprecations()` on every hit, so `--warn-deprecations` matches warm and cold (#3222). Never key the cache on the flag: a repeat flagged run would go silent. `NamespaceExtractor` reads `ns` forms inside `withoutDeprecations()`: notices come from compiling, never indexing (#3381).
+- An entry stores its compile's deprecation notices (`EmitterResult::getDeprecations()`, index field `deprecations`; `INDEX_FORMAT_VERSION` 1.9), replayed by `FileEvaluator` via `CompilerFacadeInterface::replayDeprecations()` on every hit, so `--warn-deprecations` matches warm and cold (#3222). Never key the cache on the flag: a repeat flagged run would go silent. `NamespaceExtractor` reads `ns` forms inside `withoutDeprecations()`: notices come from compiling, never indexing (#3381).
 - `put`/`invalidate` mutate the in-memory index only; it flushes **once per process at shutdown** (`DeferredFlushTrait`), keeping cold-build index I/O O(N), not O(N²). `CacheIndexFile::save()` does atomic write + `flock` + disk merge, so concurrent `phel test` workers lose no entries. Compiled `.php` files are written eagerly (`AtomicFileWriter`), so a crash costs a recompile, never corruption. `clear()` writes the empty index eagerly.
 - **Test gotcha:** tests needing cross-instance disk persistence in one process must call `save()` explicitly.
 - **Scan-index cache** (`PhpScanIndexCache`, `<cacheDir>/scan-index.php`, impl `ScanIndexCacheInterface`; `NullScanIndexCache` when disabled) lets `CachedNamespaceExtractor` skip the directory walk across processes. Keyed by resolved dir-set; served only if all hold:
@@ -106,6 +106,7 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge, **Con
 
 ### Compilation order & invalidation
 
+- `DependencyTracker` stores each file's source and owning namespace. Namespace invalidation completes the transitive cascade before returning, with visited sets for cycles, so later processes cannot serve stale dependents through another entry point. Do not cascade on every cold miss: core `(load ...)` fragments share `phel.core`, so that evicts valid siblings.
 - `ProjectCompiler` relies on `TopologicalNamespaceSorter` order: it force-recompiles any dependent whose `getDependencies()` includes a namespace recompiled this run (`dependsOnRecompiled`), even with unchanged mtime. Transitive in one pass, so a changed macro never leaves a stale expansion.
 - Main namespace auto-detect: `core.phel` or `main.phel` in source dirs.
 - The output dir is excluded from extraction (prevents namespace shadowing).
