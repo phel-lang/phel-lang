@@ -67,6 +67,7 @@ PHP API:
 
 Tooling:
 
+- Running Phel from a subdirectory resolves configured source and test directories from the project root. A matching subdirectory used to take precedence and could load the wrong namespace. (#3701)
 - `phel cache:clear` rejects unsafe cache directories and exits 2 before deleting any cache. A misconfigured path such as `.` used to remove project files. (#3702)
 - `phel lint` reports a call with the wrong number of arguments once. A call to a function of the same file used to be reported twice under `phel/arity-mismatch`, with two wordings. (#3655)
 - `phel doc` and the API reference link `definterface`, `defstruct` and `defexception` to the same guide section as their `definterface*`, `defstruct*` and `defexception*` special forms. The macros, which are what users call, had no link. (#3656)

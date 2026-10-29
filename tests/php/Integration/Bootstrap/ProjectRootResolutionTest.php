@@ -4,26 +4,21 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Bootstrap;
 
+use PhelTest\Support\RemoveDirTrait;
 use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
 use function dirname;
-use function implode;
 use function mkdir;
 use function random_bytes;
 use function realpath;
 use function sys_get_temp_dir;
 
-/**
- * Runs the source `bin/phel` against a temp project that has its own
- * `phel-config.php` but NO local `vendor/` — the shape of a global/PHAR
- * install. Before #2640 the launcher anchored the project root to the
- * autoloader it walked up to (the phel-lang checkout's own `vendor/`), so
- * `phel config` reported the binary's directory instead of the user's project.
- */
 final class ProjectRootResolutionTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $binPath;
 
     private string $projectDir;
@@ -44,9 +39,7 @@ final class ProjectRootResolutionTest extends TestCase
 
     protected function tearDown(): void
     {
-        @unlink($this->projectDir . '/phel-config.php');
-        @rmdir($this->projectDir . '/src');
-        @rmdir($this->projectDir);
+        $this->removeDir($this->projectDir);
     }
 
     public function test_config_reports_the_cwd_project_root_not_the_binary_dir(): void
@@ -74,6 +67,44 @@ final class ProjectRootResolutionTest extends TestCase
         );
     }
 
+    public function test_run_uses_the_project_source_directory_from_a_subdirectory(): void
+    {
+        mkdir($this->projectDir . '/src/app', 0755, true);
+        mkdir($this->projectDir . '/sub/src/app', 0755, true);
+        file_put_contents($this->projectDir . '/src/app/main.phel', '(ns app.main) (println "project-source")');
+        file_put_contents($this->projectDir . '/sub/src/app/main.phel', '(ns app.main) (println "cwd-source")');
+
+        $result = $this->runPhelInDir($this->projectDir . '/sub', ['run', 'app.main']);
+
+        self::assertSame(0, $result['exit'], $result['stderr'] . $result['stdout']);
+        self::assertSame('project-source', trim($result['stdout']));
+    }
+
+    public function test_relative_vendor_directory_uses_the_project_root(): void
+    {
+        file_put_contents(
+            $this->projectDir . '/phel-config.php',
+            "<?php return new \\Phel\\Config\\PhelConfig()->withSrcDirs(['src'])->withVendorDir('deps');",
+        );
+        foreach (['' => 'project-vendor', '/sub' => 'cwd-vendor'] as $prefix => $value) {
+            $package = $this->projectDir . $prefix . '/deps/acme/example';
+            mkdir($package . '/src/library', 0755, true);
+            file_put_contents($package . '/phel-config.php', "<?php return ['src-dirs' => ['src']];");
+            file_put_contents($package . '/src/library/sample.phel', '(ns library.sample) (def marker "' . $value . '")');
+        }
+
+        mkdir($this->projectDir . '/src/app');
+        file_put_contents(
+            $this->projectDir . '/src/app/main.phel',
+            '(ns app.main (:require library.sample)) (println library.sample/marker)',
+        );
+
+        $result = $this->runPhelInDir($this->projectDir . '/sub', ['run', 'app.main']);
+
+        self::assertSame(0, $result['exit'], $result['stderr'] . $result['stdout']);
+        self::assertSame('project-vendor', trim($result['stdout']));
+    }
+
     /**
      * @param list<string> $args
      *
@@ -81,13 +112,10 @@ final class ProjectRootResolutionTest extends TestCase
      */
     private function runPhelInDir(string $cwd, array $args): array
     {
-        $cmd = implode(' ', [
-            escapeshellarg(PHP_BINARY),
-            escapeshellarg($this->binPath),
-            ...array_map(escapeshellarg(...), $args),
-        ]);
-
-        $process = Subprocess::run($cmd, $cwd);
+        $env = getenv();
+        $env['PHEL_CACHE_DIR'] = $this->projectDir . '/cache';
+        $env['PHEL_NO_OPCACHE_REEXEC'] = '1';
+        $process = Subprocess::run([PHP_BINARY, $this->binPath, ...$args], $cwd, env: $env);
 
         return ['exit' => $process->exitCode, 'stdout' => $process->stdout, 'stderr' => $process->stderr];
     }

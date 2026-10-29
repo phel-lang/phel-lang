@@ -147,6 +147,26 @@ final class PhelProjectDirectory
         return self::envValue(self::DIR_ENV);
     }
 
+    /**
+     * @internal
+     */
+    public static function isAbsolutePath(string $path): bool
+    {
+        if ($path === '') {
+            return false;
+        }
+
+        if ($path[0] === '/' || $path[0] === '\\') {
+            return true;
+        }
+
+        if (str_starts_with($path, 'phar://')) {
+            return true;
+        }
+
+        return (bool) preg_match('~^[A-Za-z]:[\\\\/]~', $path);
+    }
+
     private static function envValue(string $name): ?string
     {
         $value = getenv($name);
@@ -164,22 +184,5 @@ final class PhelProjectDirectory
         }
 
         return rtrim($projectRoot, '/\\') . DIRECTORY_SEPARATOR . $candidate;
-    }
-
-    private static function isAbsolutePath(string $path): bool
-    {
-        if ($path === '') {
-            return false;
-        }
-
-        if ($path[0] === '/' || $path[0] === '\\') {
-            return true;
-        }
-
-        if (str_starts_with($path, 'phar://')) {
-            return true;
-        }
-
-        return (bool) preg_match('~^[A-Za-z]:[\\\\/]~', $path);
     }
 }
