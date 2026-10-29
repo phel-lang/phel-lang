@@ -17,6 +17,23 @@ use function explode;
 
 final class ArgvInputSanitizerTest extends TestCase
 {
+    #[DataProvider('terminatedRunArguments')]
+    public function test_an_explicit_option_terminator_preserves_the_path_and_script_arguments(array $argv): void
+    {
+        self::assertSame($argv, $this->sanitizer()->sanitize($argv));
+    }
+
+    public static function terminatedRunArguments(): iterable
+    {
+        yield 'plain path' => [['phel', 'run', '--', 'main.phel', 'a', 'b']];
+        yield 'run options' => [['phel', 'run', '-t', '--', 'main.phel', '-x']];
+        yield 'option looking path' => [['phel', 'run', '--', '--debug', '--', '-x']];
+        yield 'deprecation looking path' => [['phel', 'run', '--', '--warn-deprecations', 'a']];
+        yield 'empty tail' => [['phel', 'run', '--']];
+        yield 'global option' => [['phel', '--no-ansi', 'run', '--', 'main.phel', '-x']];
+        yield 'script delimiters' => [['phel', 'run', '--', 'main.phel', '--', '-x', '--']];
+    }
+
     public function test_returns_argv_unchanged_when_not_a_run_invocation(): void
     {
         $argv = ['phel', 'test', '--filter=foo'];
