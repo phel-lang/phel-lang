@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Printer\TypePrinter;
 
+use Phel\Shared\FloatFormatter;
+
 use function is_float;
 use function is_infinite;
 use function is_nan;
-use function preg_match;
 
 /**
  * @implements TypePrinterInterface<float|int>
@@ -46,11 +47,6 @@ final class NumberPrinter implements TypePrinterInterface
             return $form > 0 ? 'Infinity' : '-Infinity';
         }
 
-        $str = (string) $form;
-
-        // A plain cast drops the trailing `.0` (so `17.0` becomes `17`),
-        // which would make a float indistinguishable from an int. Restore
-        // it unless the cast already carries a decimal point or exponent.
-        return preg_match('/[.eE]/', $str) === 1 ? $str : $str . '.0';
+        return FloatFormatter::format($form);
     }
 }
