@@ -20,6 +20,12 @@ final class BencodeStreamDecoder
 {
     private string $buffer = '';
 
+    private ?BencodeException $pendingError = null;
+
+    private bool $hasNewInput = false;
+
+    private int $bytesSinceMessage = 0;
+
     private readonly BencodeDecoder $decoder;
 
     public function __construct(?BencodeDecoder $decoder = null)
@@ -29,7 +35,19 @@ final class BencodeStreamDecoder
 
     public function feed(string $chunk): void
     {
+        if ($chunk === '') {
+            return;
+        }
+
+        if ($this->bytesSinceMessage + strlen($chunk) > 16 * 1024 * 1024) {
+            $this->buffer = '';
+            $this->bytesSinceMessage = 0;
+            throw BencodeException::bufferLimitExceeded();
+        }
+
         $this->buffer .= $chunk;
+        $this->bytesSinceMessage += strlen($chunk);
+        $this->hasNewInput = true;
     }
 
     /**
@@ -39,22 +57,43 @@ final class BencodeStreamDecoder
      */
     public function drain(): array
     {
+        if ($this->pendingError instanceof BencodeException) {
+            $exception = $this->pendingError;
+            $this->pendingError = null;
+            throw $exception;
+        }
+
+        if (!$this->hasNewInput) {
+            return [];
+        }
+
+        $this->hasNewInput = false;
         $messages = [];
 
         while ($this->buffer !== '') {
             try {
                 [$value, $consumed] = $this->decoder->decodeWithLength($this->buffer);
-            } catch (BencodeException) {
-                // Partial frame: keep buffered, wait for more bytes.
-                break;
-            }
 
-            if ($consumed <= 0 || $consumed > strlen($this->buffer)) {
-                break;
-            }
+                if ($consumed <= 0 || $consumed > strlen($this->buffer)) {
+                    break;
+                }
 
-            $messages[] = $value;
-            $this->buffer = substr($this->buffer, $consumed);
+                $messages[] = $value;
+                $this->buffer = substr($this->buffer, $consumed);
+                $this->bytesSinceMessage = strlen($this->buffer);
+            } catch (BencodeException $exception) {
+                if ($exception->isIncomplete()) {
+                    break;
+                }
+
+                $this->buffer = '';
+                if ($messages !== []) {
+                    $this->pendingError = $exception;
+                    break;
+                }
+
+                throw $exception;
+            }
         }
 
         return $messages;
