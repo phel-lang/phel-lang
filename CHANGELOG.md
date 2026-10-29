@@ -100,6 +100,7 @@ PHP API:
 
 Compiler:
 
+- Strings containing invalid UTF-8 bytes compile as literal data. A quote, backslash or dollar sign after such a byte used to change the generated PHP, allowing string contents to run as code. (#3664)
 - **BREAKING**: `~` and `~@` outside quasiquote fail with `PHEL210` at the marker. They used to read as whitespace, so `[~@a]` read as `[a]`. Use these markers only inside quasiquote; a splice also needs an enclosing collection. (#3524)
 - **BREAKING**: A macro call with more or fewer arguments than the macro declares fails with `PHEL002`, the same as a function call. `if-not`, `if-let`, `if-some`, `assert` and `defexception` declare their optional argument as a second arity, so `(if-not true 1 2 3)` and `(assert true "m" :x)` fail too. They used to drop the extra arguments, and a call with too few reported `expected 3 arguments, got 2`, counting `&form` and `&env`. (#3524)
 - **BREAKING**: Type declarations named `let` or `is`, and interface constants named `let`, `is` or `namespace`, fail with a compile error regardless of case. Choose another name; these declarations otherwise produce reserved PHP syntax on PHP 8.6. (#3522)
