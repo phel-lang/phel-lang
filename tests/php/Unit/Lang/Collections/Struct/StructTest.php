@@ -6,11 +6,14 @@ namespace PhelTest\Unit\Lang\Collections\Struct;
 
 use InvalidArgumentException;
 use Phel;
+use Phel\Lang\Collections\Map\PersistentArrayMap;
 use Phel\Lang\Collections\Map\PersistentHashMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\SortedMap\PersistentSortedMap;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class StructTest extends TestCase
@@ -119,6 +122,35 @@ final class StructTest extends TestCase
         );
 
         self::assertFalse($s->equals($map));
+    }
+
+    #[DataProvider('plain_map_types')]
+    public function test_plain_maps_and_structs_are_unequal_in_both_orders(string $mapType): void
+    {
+        $factory = TypeFactory::getInstance();
+        $values = [Keyword::create('a'), 1, Keyword::create('b'), 2];
+        $struct = FakeStruct::fromKVs(...$values);
+        $map = $mapType::fromArray($factory->getHasher(), $factory->getEqualizer(), $values);
+
+        self::assertFalse($map->equals($struct));
+        self::assertFalse($struct->equals($map));
+        self::assertTrue($map->equals($mapType::fromArray($factory->getHasher(), $factory->getEqualizer(), $values)));
+        $withMap = PersistentHashMap::empty($factory->getHasher(), $factory->getEqualizer())->put($map, 'map');
+        $withStruct = PersistentHashMap::empty($factory->getHasher(), $factory->getEqualizer())->put($struct, 'struct');
+        self::assertNull($withMap->find($struct));
+        self::assertNull($withStruct->find($map));
+        foreach ([$withMap->put($struct, 'struct'), $withStruct->put($map, 'map')] as $combined) {
+            self::assertCount(2, $combined);
+            self::assertSame('map', $combined->find($map));
+            self::assertSame('struct', $combined->find($struct));
+        }
+    }
+
+    public static function plain_map_types(): iterable
+    {
+        yield 'array map' => [PersistentArrayMap::class];
+        yield 'hash map' => [PersistentHashMap::class];
+        yield 'sorted map' => [PersistentSortedMap::class];
     }
 
     public function test_equals_different_values(): void
