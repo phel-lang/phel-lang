@@ -144,6 +144,18 @@ final class BindingTypeInferrerTest extends TestCase
         self::assertSame('int', $this->tagOf($inc->getSymbol()));
     }
 
+    public function test_overflowing_literal_arithmetic_leaves_binding_untagged(): void
+    {
+        $sum = $this->letBinding('sum', $this->coreCall('+', [
+            new LiteralNode($this->env, PHP_INT_MAX),
+            new LiteralNode($this->env, 1),
+        ]));
+        new BindingTypeInferrer()->graftLetBindings([$sum]);
+
+        self::assertNull($this->tagOf($sum->getSymbol()));
+        self::assertNull($this->tagOf($sum->getShadow()));
+    }
+
     public function test_float_operand_promotes_arithmetic_to_float(): void
     {
         $product = $this->letBinding('m', $this->coreCall('*', [
