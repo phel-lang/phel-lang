@@ -10,33 +10,18 @@ use Phel\Shared\Parser\Node\Token;
 
 use function chr;
 use function hexdec;
-use function max;
-use function min;
 use function octdec;
 use function sprintf;
 use function strlen;
 use function substr;
 
 /**
- * Decodes Clojure-style character literal tokens produced by the lexer into
- * single-character `StringNode` values. PHP has no distinct character type, so
- * char literals compile to single-character PHP strings (UTF-8 encoded for
- * Unicode escapes).
- *
- * Assumes the token source matches the lexer's char-literal rule: that is,
- * `\<named>`, `\u<4 hex>`, `\o<1-3 octal>`, or `\<single char>`. The lexer
- * handles shape; this parser decodes and additionally rejects an octal escape
- * whose value is not a byte, which the lexer's 1-3 digit rule cannot express.
- *
  * @internal
  */
 final class CharParser
 {
     /** The widest value chr() accepts; see StringParser::MAX_BYTE. */
     private const int MAX_BYTE = 0xFF;
-
-    /** The widest codepoint the `\uNNNN` rule can express. */
-    private const int MAX_CODEPOINT = 0xFFFF;
 
     private const array NAMED_CHARS = [
         '\\space' => ' ',
@@ -67,9 +52,8 @@ final class CharParser
         }
 
         // Unicode escape: \uNNNN (exactly 4 hex digits, validated by the lexer).
-        // 4 hex digits yields a codepoint in [0, 0xFFFF], always representable as UTF-8.
         if (strlen($raw) === 6 && $raw[1] === 'u') {
-            return $this->codepointToUtf8((int) hexdec(substr($raw, 2)));
+            return UnicodeEscape::encode((int) hexdec(substr($raw, 2)));
         }
 
         // Octal escape: \oNNN (1-3 octal digits, validated by the lexer).
@@ -91,26 +75,4 @@ final class CharParser
         return substr($raw, 1);
     }
 
-    /**
-     * Encodes a Unicode codepoint in [0, 0xFFFF] as a UTF-8 byte sequence.
-     * The input range is guaranteed by the `\uNNNN` lexer rule (exactly 4 hex
-     * digits). Clamping the domain up front is what lets each branch below stay
-     * provably inside chr()'s byte range.
-     */
-    private function codepointToUtf8(int $codepoint): string
-    {
-        $codepoint = max(0, min($codepoint, self::MAX_CODEPOINT));
-
-        if ($codepoint <= 0x7F) {
-            return chr($codepoint);
-        }
-
-        if ($codepoint <= 0x7FF) {
-            return chr(($codepoint >> 6) + 0xC0) . chr(($codepoint & 0x3F) + 0x80);
-        }
-
-        return chr(($codepoint >> 12) + 0xE0)
-            . chr((($codepoint >> 6) & 0x3F) + 0x80)
-            . chr(($codepoint & 0x3F) + 0x80);
-    }
 }

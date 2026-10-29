@@ -113,6 +113,7 @@ PHP API:
 
 Compiler:
 
+- Unicode escapes reject values above `U+10FFFF` and lone surrogates with a located parser error. They used to produce invalid bytes or PHP warnings. Adjacent UTF-16 high/low escapes in strings, such as `\uD83D\uDE00`, combine into one character. (#3711)
 - Strings containing invalid UTF-8 bytes compile as literal data. A quote, backslash or dollar sign after such a byte used to change the generated PHP, allowing string contents to run as code. (#3664)
 - A float literal such as `0.30000000000000004` keeps its value when compiled. It used to become `0.3`, changing comparisons and arithmetic. (#3665)
 - **BREAKING**: Nested shorthand functions such as `#(f #(g %) %)` fail with `PHEL210` at the inner `#(`, as in Clojure. They used to silently drop the outer function's parameters. Write the inner function with `fn`. (#3709)
