@@ -28,6 +28,50 @@ use function strlen;
 
 final class AtomParserTest extends TestCase
 {
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function oversized_integer_literals(): iterable
+    {
+        yield '9223372036854775809' => ['9223372036854775809', '9223372036854775809'];
+        yield '-9223372036854775809' => ['-9223372036854775809', '-9223372036854775809'];
+        yield '0x8000000000000001' => ['0x8000000000000001', '9223372036854775809'];
+        yield '-0x8000000000000001' => ['-0x8000000000000001', '-9223372036854775809'];
+        yield '0b1000000000000000000000000000000000000000000000000000000000000001' => ['0b1000000000000000000000000000000000000000000000000000000000000001', '9223372036854775809'];
+        yield '-0b1000000000000000000000000000000000000000000000000000000000000001' => ['-0b1000000000000000000000000000000000000000000000000000000000000001', '-9223372036854775809'];
+        yield '01000000000000000000001' => ['01000000000000000000001', '9223372036854775809'];
+        yield '-01000000000000000000001' => ['-01000000000000000000001', '-9223372036854775809'];
+        yield '16r8000000000000001' => ['16r8000000000000001', '9223372036854775809'];
+        yield '-16r8000000000000001' => ['-16r8000000000000001', '-9223372036854775809'];
+        yield '+9_223_372_036_854_775_809' => ['+9_223_372_036_854_775_809', '9223372036854775809'];
+        yield '-9_223_372_036_854_775_809' => ['-9_223_372_036_854_775_809', '-9223372036854775809'];
+        yield '340282366920938463463374607431768211457' => ['340282366920938463463374607431768211457', '340282366920938463463374607431768211457'];
+        yield '-340282366920938463463374607431768211457' => ['-340282366920938463463374607431768211457', '-340282366920938463463374607431768211457'];
+        yield '0x100000000000000000000000000000001' => ['0x100000000000000000000000000000001', '340282366920938463463374607431768211457'];
+        yield '-0x100000000000000000000000000000001' => ['-0x100000000000000000000000000000001', '-340282366920938463463374607431768211457'];
+        yield '0b100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001' => ['0b100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001', '340282366920938463463374607431768211457'];
+        yield '-0b100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001' => ['-0b100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001', '-340282366920938463463374607431768211457'];
+        yield '04000000000000000000000000000000000000000001' => ['04000000000000000000000000000000000000000001', '340282366920938463463374607431768211457'];
+        yield '-04000000000000000000000000000000000000000001' => ['-04000000000000000000000000000000000000000001', '-340282366920938463463374607431768211457'];
+        yield '16r100000000000000000000000000000001' => ['16r100000000000000000000000000000001', '340282366920938463463374607431768211457'];
+        yield '-16r100000000000000000000000000000001' => ['-16r100000000000000000000000000000001', '-340282366920938463463374607431768211457'];
+        yield '+340_282_366_920_938_463_463_374_607_431_768_211_457' => ['+340_282_366_920_938_463_463_374_607_431_768_211_457', '340282366920938463463374607431768211457'];
+        yield '-340_282_366_920_938_463_463_374_607_431_768_211_457' => ['-340_282_366_920_938_463_463_374_607_431_768_211_457', '-340282366920938463463374607431768211457'];
+    }
+
+    #[DataProvider('oversized_integer_literals')]
+    public function test_integer_overflow_preserves_exact_value(string $word, string $expected): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $location = new SourceLocation('string', 0, 0);
+        $node = $parser->parse(new Token(Token::T_ATOM, $word, $location, $location));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        $value = $node->getValue();
+        self::assertInstanceOf(BigInt::class, $value);
+        self::assertSame($expected, (string) $value);
+    }
+
     public function test_parse_true(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());
@@ -508,7 +552,7 @@ final class AtomParserTest extends TestCase
         self::assertSame(1295, $node->getValue());
     }
 
-    public function test_parse_radix_number_past_php_int_max_is_a_float(): void
+    public function test_parse_radix_number_past_php_int_max_is_a_bigint(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);
@@ -517,10 +561,11 @@ final class AtomParserTest extends TestCase
         $node = $parser->parse(new Token(Token::T_ATOM, '36rZZZZZZZZZZZZZZ', $start, $end));
 
         self::assertInstanceOf(NumberNode::class, $node);
-        self::assertSame(36.0 ** 14 - 1, $node->getValue());
+        self::assertInstanceOf(BigInt::class, $node->getValue());
+        self::assertSame('6140942214464815497215', (string) $node->getValue());
     }
 
-    public function test_parse_hexadecimal_past_php_int_max_is_a_float(): void
+    public function test_parse_hexadecimal_past_php_int_max_is_a_bigint(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);
@@ -529,7 +574,8 @@ final class AtomParserTest extends TestCase
         $node = $parser->parse(new Token(Token::T_ATOM, '0xFFFFFFFFFFFFFFFF', $start, $end));
 
         self::assertInstanceOf(NumberNode::class, $node);
-        self::assertSame(2.0 ** 64 - 1, $node->getValue());
+        self::assertInstanceOf(BigInt::class, $node->getValue());
+        self::assertSame('18446744073709551615', (string) $node->getValue());
     }
 
     public function test_parse_radix_number_is_case_insensitive(): void
@@ -987,7 +1033,7 @@ final class AtomParserTest extends TestCase
         $parser->parse(new Token(Token::T_ATOM, '0/0', $start, $end));
     }
 
-    public function test_parse_oversize_decimal_int_literal_returns_float(): void
+    public function test_parse_oversize_decimal_int_literal_returns_bigint(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);
@@ -998,11 +1044,11 @@ final class AtomParserTest extends TestCase
 
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
-        self::assertIsFloat($value);
-        self::assertSame((float) '99999999999999999999', $value);
+        self::assertInstanceOf(BigInt::class, $value);
+        self::assertSame('99999999999999999999', (string) $value);
     }
 
-    public function test_parse_oversize_negative_decimal_int_literal_returns_float(): void
+    public function test_parse_oversize_negative_decimal_int_literal_returns_bigint(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);
@@ -1012,7 +1058,8 @@ final class AtomParserTest extends TestCase
         );
 
         self::assertInstanceOf(NumberNode::class, $node);
-        self::assertIsFloat($node->getValue());
+        self::assertInstanceOf(BigInt::class, $node->getValue());
+        self::assertSame('-99999999999999999999', (string) $node->getValue());
     }
 
     public function test_parse_php_int_max_decimal_literal_stays_int(): void
