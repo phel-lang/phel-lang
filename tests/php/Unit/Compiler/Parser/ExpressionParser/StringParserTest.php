@@ -85,6 +85,7 @@ final class StringParserTest extends TestCase
             $escape = '\u{' . dechex($codepoint) . '}';
             yield $escape => [$escape, mb_chr($codepoint, 'UTF-8')];
         }
+
         yield 'leading zeroes' => ['\u{000000000000000000000000000000000041}', 'A'];
         yield 'only zeroes' => ['\u{000000000000000000000000000000000000}', "\0"];
     }
