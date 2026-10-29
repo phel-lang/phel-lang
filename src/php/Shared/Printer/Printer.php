@@ -51,16 +51,22 @@ use Phel\Shared\Printer\TypePrinter\UUIDPrinter;
 use Phel\Shared\Printer\TypePrinter\VarPrinter;
 use ReflectionClass;
 use RuntimeException;
+use WeakMap;
 
 use function gettype;
 use function is_object;
 
 final readonly class Printer implements PrinterInterface
 {
+    /** @var WeakMap<object, mixed> */
+    private WeakMap $printingAtoms;
+
     public function __construct(
         private bool $readable,
         private bool $withColor = false,
-    ) {}
+    ) {
+        $this->printingAtoms = new WeakMap();
+    }
 
     public static function readable(): self
     {
@@ -77,12 +83,22 @@ final readonly class Printer implements PrinterInterface
         return new self(readable: false);
     }
 
-    /**
-     * Converts a form to a printable string.
-     */
     public function print(mixed $form): string
     {
-        return $this->createTypePrinter($form)->print($form);
+        if (!$form instanceof Atom) {
+            return $this->createTypePrinter($form)->print($form);
+        }
+
+        if (isset($this->printingAtoms[$form])) {
+            return '#<cycle>';
+        }
+
+        $this->printingAtoms->offsetSet($form, true);
+        try {
+            return $this->createTypePrinter($form)->print($form);
+        } finally {
+            $this->printingAtoms->offsetUnset($form);
+        }
     }
 
     /**

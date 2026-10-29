@@ -48,11 +48,20 @@ PHP API:
 
 ### Added
 
-- Public PHP API: `\Phel::assertBuiltWith(string $version)` rejects generated PHP built with another Phel version and reports how to rebuild it. `Phel\Shared\VersionResolver::current()` and `currentReference()` expose the running version and commit for the process. (#3519)
-- Public PHP API: `PhelConfig::defaultTempDir()` and `Phel\Shared\CurrentUser`, which finds the effective uid also on a PHP built without the posix extension. (#3532)
-- Security reports can go through GitHub's private vulnerability reporting as well as email, and `SECURITY.md` states that the latest 1.x minor gets security fixes. The README shows how to check a downloaded `phel.phar` against the sha256 digest of the release asset. (#3533)
+Compiler:
+
 - `declare` takes several names, `(declare a b)`, as in Clojure. Anything but a symbol fails: `(declare f [x])` used to declare `f` and drop the vector. (#3524)
+
+Tooling:
+
+- Security reports can go through GitHub's private vulnerability reporting as well as email, and `SECURITY.md` states that the latest 1.x minor gets security fixes. The README shows how to check a downloaded `phel.phar` against the sha256 digest of the release asset. (#3533)
 - `phel api-daemon` answers a `version` request with the running Phel version, so an editor can check it is compatible. `phel lsp` reports the same version as `serverInfo.version` instead of `0.1.0`. (#3525)
+
+PHP API:
+
+- `\Phel::assertBuiltWith(string $version)` rejects generated PHP built with another Phel version and reports how to rebuild it. `Phel\Shared\VersionResolver::current()` and `currentReference()` expose the running version and commit for the process. (#3519)
+- `PhelConfig::defaultTempDir()` and `Phel\Shared\CurrentUser`, which finds the effective uid also on a PHP built without the posix extension. (#3532)
+- `Phel\Shared\Parser\Node\ReaderConditionalNode` is public. It exposes the selected branch while retaining the source of every reader-conditional branch. (#3669)
 
 ### Fixed
 
@@ -88,9 +97,11 @@ Tooling:
 - `phel eval '#| x |# 1'` reports `[PHEL310]` with the offending line and a caret under the character, like `phel run`. It used to print the raw exception block. (#3537)
 - `phel lint`, `phel analyze` and the LSP handle a file with an `#inst` literal and go on to the next file. The value an `#inst` reads as, a `DateTimeImmutable`, used to abort the whole run with `DateTimeImmutable given`. (#3610)
 - `phel config` and `phel config --format=json` report the values a command runs with: `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations` beat the config file, as they do when the command runs. The JSON has every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`. It used to show the config file's values only and leave those four keys out. (#3525)
+- `phel nrepl` rejects malformed messages, bounds pending input and nesting, and keeps serving after invalid input. A malformed message used to stall its connection, and unbounded input could exhaust server memory. (#3681)
 - A project with a `.phel` file that has no `ns` form, such as a data or scratch file, no longer re-reads every source on each `phel test` or `phel run`. That one file used to turn off the namespace index for the whole project, which made `phel test` on this repository about twice as slow. The file is read again once it changes, so adding an `ns` form to it is still picked up. (#3629)
 - `phel test --reporter=junit-xml --parallel=N` prints the same JUnit XML document a serial run prints: on stdout with the progress and summary on stderr, or to the `-o` file. It used to print only the parallel summary, and with `-o` the workers overwrote each other's file. `--reporter=tap` still runs serially, and its `Ignoring --parallel` notice under `-v` goes to stderr. (#3627)
 - `phel test --reporter=tap`, and `--reporter=junit-xml` without `-o`, send what a test body prints, and the message for a test file that does not compile, to stderr, so stdout holds only the TAP lines or the XML document. Both used to land on stdout next to the reporter's lines, and the report no longer parsed. `output?` and `with-out-str` inside a test still capture it. (#3642)
+- `phel format` preserves every branch of a reader conditional, including splicing conditionals and forms without a matching feature. It used to replace the conditional with its selected branch and delete the other source. (#3669)
 
 PHP API:
 
@@ -107,7 +118,7 @@ Compiler:
 - **BREAKING**: A macro call with more or fewer arguments than the macro declares fails with `PHEL002`, the same as a function call. `if-not`, `if-let`, `if-some`, `assert` and `defexception` declare their optional argument as a second arity, so `(if-not true 1 2 3)` and `(assert true "m" :x)` fail too. They used to drop the extra arguments, and a call with too few reported `expected 3 arguments, got 2`, counting `&form` and `&env`. (#3524)
 - **BREAKING**: Type declarations named `let` or `is`, and interface constants named `let`, `is` or `namespace`, fail with a compile error regardless of case. Choose another name; these declarations otherwise produce reserved PHP syntax on PHP 8.6. (#3522)
 - **BREAKING**: `recur` inside a `foreach`, `doseq`, `dotimes` or `dofor` body fails with `PHEL010`. It used to rebind the enclosing `loop` or fn and keep iterating the inner loop instead of restarting: `(loop [i 0] (doseq [x [:a :b :c]] (when (< i 1) (recur 10))))` printed every element. Write the `loop` inside the body, or collect with `reduce`. (#3523)
-- A radix literal past `PHP_INT_MAX` reads as a float: `36rZZZZZZZZZZZZZZ` used to read as `PHP_INT_MAX`. Hex, binary and octal literals past `PHP_INT_MAX`, such as `-0x8000000000000000`, no longer raise a notice on PHP 8.6. (#3522)
+- Integer literals beyond the native integer range read as exact `BigInt` values, including decimal, hexadecimal, binary, octal and radix notation. They used to become floats, so different integers could compare equal. Hex, binary and octal literals past `PHP_INT_MAX`, such as `-0x8000000000000000`, no longer raise a notice on PHP 8.6. (#3522 #3706)
 - A `fn`, `defn`, `defmacro`, protocol method or `extend-type` impl that declares one arity twice fails with `PHEL007` on the second parameter vector. It used to stop PHP with `Cannot redeclare ...::invokeArity1()`. (#3534)
 - A `definterface` that declares one method name twice, or one parameter twice in a method, fails with `PHEL009`. A PHP method has a single signature, so a second arity needs its own name. It used to stop PHP with `Cannot redeclare app\main\I::m()` or `Redefinition of parameter $x`. (#3534)
 - A fn parameter named twice binds the last argument, as in Clojure: `((fn [x x] x) 1 2)` returns `2`. It used to stop PHP with `Redefinition of parameter $x`. (#3534)
@@ -134,6 +145,7 @@ Runtime:
 - `(load "missing")` reports the file and line of the `(load ...)` form. It used to name a line past the end of the file, the line of the generated PHP. (#3537)
 - `with-meta` and `vary-meta` work on a `fn` literal: `(meta (with-meta (fn [x] x) {:b 2}))` returns `{:b 2}` and the result is still a callable fn. They used to fail with `Call to undefined method Closure::withMeta()`. (#3537)
 - `file-seq` on a tree with a symlink back to a parent directory ends and lists each real file once, on every PHP build. It used to walk the cycle until the path got too long, listing a file under a deep `sub/up/sub/up/...` path, and threw `UnexpectedValueException` on thread-safe (ZTS) PHP builds. (#3537)
+- `pr-str` and REPL output show `#<cycle>` when an atom refers back to itself, directly or through a collection. Printing such a value used to exhaust the process. (#3705)
 
 ## [0.54.0](https://github.com/phel-lang/phel-lang/compare/v0.53.0...v0.54.0) - 2026-10-04
 

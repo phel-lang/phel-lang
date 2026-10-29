@@ -118,6 +118,7 @@ final class BodyDropMutator implements MutatorInterface
      */
     private function isPrelude(NodeInterface $node): bool
     {
+        $node = Nodes::selected($node);
         return $node instanceof StringNode
             || ($node instanceof ListNode && $node->getTokenType() === Token::T_OPEN_BRACE);
     }

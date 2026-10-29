@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Nrepl\Domain\Transport;
 
 use Phel\Nrepl\Domain\Bencode\BencodeEncoder;
+use Phel\Nrepl\Domain\Bencode\BencodeException;
 use Phel\Nrepl\Domain\Bencode\BencodeStreamDecoder;
 
 use function fclose;
@@ -60,13 +61,22 @@ final class ClientConnection
         }
 
         $chunk = @fread($this->stream, 8192);
-        if ($chunk === false || $chunk === '') {
+        if ($chunk === false) {
             return [];
         }
 
-        $this->decoder->feed($chunk);
+        try {
+            $this->decoder->feed($chunk);
 
-        return $this->decoder->drain();
+            return $this->decoder->drain();
+        } catch (BencodeException $bencodeException) {
+            $this->send(['status' => ['error', 'invalid-message', 'done']]);
+            if ($bencodeException->isBufferLimitExceeded()) {
+                $this->close();
+            }
+
+            return [];
+        }
     }
 
     public function isClosed(): bool

@@ -11,6 +11,7 @@ use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use RuntimeException;
 
+use function count;
 use function in_array;
 
 /**
@@ -75,6 +76,21 @@ final class TokenStream implements Iterator
     public function valid(): bool
     {
         return $this->tokenGenerator->valid();
+    }
+
+    public function getReadTokenIndex(): int
+    {
+        return count($this->readTokens) - 1;
+    }
+
+    public function getCodeRange(int $start, int $end): string
+    {
+        $code = '';
+        for ($index = $start; $index <= $end; ++$index) {
+            $code .= $this->readTokens[$index]->getCode();
+        }
+
+        return $code;
     }
 
     public function clearReadTokens(): void

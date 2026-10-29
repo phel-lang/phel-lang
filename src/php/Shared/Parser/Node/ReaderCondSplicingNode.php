@@ -19,6 +19,8 @@ final readonly class ReaderCondSplicingNode implements NodeInterface
         private array $children,
         private SourceLocation $startLocation,
         private SourceLocation $endLocation,
+        private ?string $code = null,
+        private ?ReaderConditionalNode $source = null,
     ) {}
 
     /**
@@ -29,8 +31,21 @@ final readonly class ReaderCondSplicingNode implements NodeInterface
         return $this->children;
     }
 
+    public function getSelected(): ?NodeInterface
+    {
+        return $this->source?->getSelected();
+    }
+
     public function getCode(): string
     {
+        if ($this->source instanceof ReaderConditionalNode) {
+            return $this->source->getCode();
+        }
+
+        if ($this->code !== null) {
+            return $this->code;
+        }
+
         $code = '';
         foreach ($this->children as $child) {
             $code .= $child->getCode();
