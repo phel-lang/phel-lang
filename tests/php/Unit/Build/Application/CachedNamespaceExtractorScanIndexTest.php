@@ -19,6 +19,8 @@ use Phel\Shared\NamespaceInformation;
 use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
+use function dirname;
+
 final class CachedNamespaceExtractorScanIndexTest extends TestCase
 {
     use RemoveDirTrait;
@@ -38,6 +40,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $this->dir = realpath(sys_get_temp_dir()) . '/phel-scan-index-test-' . uniqid();
         mkdir($this->dir, 0777, true);
         $this->cacheFile = $this->dir . '/.cache/scan-index.php';
+        mkdir(dirname($this->cacheFile));
     }
 
     protected function tearDown(): void
@@ -277,6 +280,8 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         Phel::bootstrap(__DIR__);
         $this->writePhel('main.phel', '(ns app.main)');
         $this->writePhel('bad.phel', '(ns app.bad (:require [phel.string :refer :all]))');
+        touch($this->dir, time() - 10);
+        clearstatcache();
 
         $cache = $this->scanIndexCache();
         $extractor = new CachedNamespaceExtractor(
