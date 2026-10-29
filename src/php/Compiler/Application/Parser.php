@@ -316,14 +316,14 @@ final readonly class Parser implements ParserInterface
      */
     private function parseTaggedLiteralNode(TokenStream $tokenStream, Token $token): TaggedLiteralNode
     {
-        // Tag name is everything after the leading '#'
         $tag = substr($token->getCode(), 1);
 
-        // The stream is already past the tag token at this point because
-        // T_TAGGED_LITERAL is in TOKENS_THAT_SHOULD_STREAM_NEXT.
-        // Read the next non-trivia form as the tagged value.
+        $trivia = '';
         do {
             $form = $this->readExpression($tokenStream);
+            if ($form instanceof TriviaNodeInterface) {
+                $trivia .= $form->getCode();
+            }
         } while ($form instanceof TriviaNodeInterface);
 
         return new TaggedLiteralNode(
@@ -331,6 +331,7 @@ final readonly class Parser implements ParserInterface
             $form,
             $token->getStartLocation(),
             $form->getEndLocation(),
+            $trivia,
         );
     }
 

@@ -24,6 +24,31 @@ final class FormatterFacadeTest extends TestCase
         $this->formatterFactory = new FormatterFactory();
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function tagged_literals(): iterable
+    {
+        yield 'numeric custom tag' => ["(def x #phel/foo 1)\n"];
+        yield 'instant' => ["(def x #inst \"2020-01-01\")\n"];
+        yield 'uuid without gap' => ["(def x #uuid\"abc\")\n"];
+        yield 'php array' => ["(def x #php [1 2])\n"];
+        yield 'nested tags' => ["(def x #outer #inner 1)\n"];
+        yield 'comment gap' => ["(def x #phel/foo ; preserve this\n  1)\n"];
+        yield 'comma gap' => ["(def x #phel/foo , 1)\n"];
+        yield 'tab gap' => ["(def x #phel/foo\t1)\n"];
+    }
+
+    #[DataProvider('tagged_literals')]
+    public function test_tagged_literals_preserve_trivia_and_format_idempotently(string $source): void
+    {
+        $formatter = $this->formatterFactory->createFormatter();
+        $formatted = $formatter->format($source);
+
+        self::assertSame($source, $formatted);
+        self::assertSame($formatted, $formatter->format($formatted));
+    }
+
     #[DataProvider('providerIndent')]
     #[DataProvider('providerReformatted')]
     #[DataProvider('providerRemoveTrailingWhitespaceRule')]

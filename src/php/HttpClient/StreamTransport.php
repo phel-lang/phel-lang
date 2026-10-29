@@ -16,9 +16,11 @@ use function explode;
 use function implode;
 use function in_array;
 use function parse_url;
+use function preg_match;
 use function sprintf;
 use function str_starts_with;
 use function strcspn;
+use function strpbrk;
 use function strrpos;
 use function strtolower;
 use function strtoupper;
@@ -51,7 +53,7 @@ final class StreamTransport
      * @param array<string, string> $headers Header name => value pairs
      * @param array<string, mixed>  $options Transport options (timeout, follow_redirects, verify_ssl)
      *
-     * @throws InvalidArgumentException when the URL, or a redirect target, is not http or https
+     * @throws InvalidArgumentException when headers are invalid, or a URL is not http or https
      *
      * @return array{status: int, headers: array<string, string>, body: string, version: string, reason: string}
      */
@@ -63,6 +65,7 @@ final class StreamTransport
         array $options,
     ): array {
         self::assertHttpUrl($url);
+        self::assertHeaders($headers);
         $followRedirects = (bool) ($options['follow_redirects'] ?? true);
 
         for ($redirects = 0; ; ++$redirects) {
@@ -202,6 +205,22 @@ final class StreamTransport
         $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
         if ($scheme !== 'http' && $scheme !== 'https') {
             throw new InvalidArgumentException(sprintf('Only http and https URLs are supported, got: %s', $url));
+        }
+    }
+
+    /**
+     * @param array<array-key, scalar|null> $headers
+     */
+    private static function assertHeaders(array $headers): void
+    {
+        foreach ($headers as $name => $value) {
+            if (preg_match('/\A[!#$%&\'*+\-.^_`|~0-9A-Za-z]+\z/', (string) $name) !== 1) {
+                throw new InvalidArgumentException('Invalid HTTP header name');
+            }
+
+            if (strpbrk((string) $value, "\r\n") !== false) {
+                throw new InvalidArgumentException('Invalid HTTP header value: CR and LF are not allowed');
+            }
         }
     }
 

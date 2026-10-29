@@ -785,6 +785,18 @@ final class ParserTest extends TestCase
         self::assertInstanceOf(ListNode::class, $node->getForm());
     }
 
+    public function test_tagged_literal_retains_comments_without_changing_its_form(): void
+    {
+        $source = "#custom ; preserve this\n  1";
+        $node = $this->parse($source);
+
+        self::assertInstanceOf(TaggedLiteralNode::class, $node);
+        self::assertSame($source, $node->getCode());
+        self::assertSame('custom', $node->getTag());
+        self::assertInstanceOf(NumberNode::class, $node->getForm());
+        self::assertSame(1, $node->getForm()->getValue());
+    }
+
     public function test_tagged_literal_with_atom_form(): void
     {
         /** @var TaggedLiteralNode $node */
