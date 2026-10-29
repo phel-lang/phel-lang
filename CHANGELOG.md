@@ -68,6 +68,7 @@ PHP API:
 
 Tooling:
 
+- Parallel compilation preserves every namespace dependency, so later macro edits invalidate all affected files. Concurrent workers used to lose dependencies when saving caches. (#3700)
 - `phel cache:clear` rejects unsafe cache directories and exits 2 before deleting any cache. A misconfigured path such as `.` used to remove project files. (#3702)
 - `phel lint` reports a call with the wrong number of arguments once. A call to a function of the same file used to be reported twice under `phel/arity-mismatch`, with two wordings. (#3655)
 - `phel doc` and the API reference link `definterface`, `defstruct` and `defexception` to the same guide section as their `definterface*`, `defstruct*` and `defexception*` special forms. The macros, which are what users call, had no link. (#3656)
