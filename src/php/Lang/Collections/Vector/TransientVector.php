@@ -375,6 +375,7 @@ final class TransientVector implements TransientVectorInterface, Stringable
             } else {
                 $ret[$subIndex] = $newChild;
             }
+
             return $ret;
         }
 

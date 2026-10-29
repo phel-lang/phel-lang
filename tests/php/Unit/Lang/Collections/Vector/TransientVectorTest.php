@@ -300,6 +300,7 @@ final class TransientVectorTest extends TestCase
         foreach ($values as $index => $value) {
             $this->assertSame($value, $result->get($index));
         }
+
         $this->assertSame($values, $result->toArray());
     }
 
