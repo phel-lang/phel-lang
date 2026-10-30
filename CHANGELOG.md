@@ -96,6 +96,7 @@ Runtime:
 
 Builds and caches:
 
+- PHAR builds exclude untracked project files and produce the same checksum when source and production dependencies are unchanged. They used to include stray project files and vary with checkout timestamps. (#3697)
 - Built entry points and exported PHP wrappers reject a different Phel runtime version, including patch and development revisions; rebuild with `phel build` or `phel export` after upgrading. Builds also warn when their version differs from the project's lock file. Mismatches used to fail later on missing internal methods. (#3519, ADR 0020)
 - Same-second source rewrites refresh namespace information and compiled output. Whole-second timestamps used to preserve stale dependencies or ship old code. (#3537 #3564)
 - Namespace, scan and compiled-code caches survive concurrent processes and interrupted writes instead of exposing partial PHP files. A torn cache from an older version is treated as empty. (#3553)
