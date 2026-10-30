@@ -31,6 +31,7 @@ use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
+use Phel\Build\Domain\Extractor\SourcePathResolver;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
@@ -291,16 +292,27 @@ final class BuildFactory extends AbstractFactory
     }
 
     /**
-     * Compiled output contains a `.phel` source copy next to every generated
-     * `.php`; excluding that dir prevents duplicate-namespace shadowing when a
-     * scan root (e.g. cwd) sits above it.
+     * Generated output and cache writes must not join the source scan. A cache
+     * containing a namespace scan root stays visible rather than hiding code.
      */
     private function createExcludedScanPaths(): ExcludedScanPaths
     {
         $outputDirectory = $this->getCommandFacade()->getOutputDirectory();
+        $cacheDirectory = $this->getConfig()->getCacheDir();
+        $cacheDirectory = SourcePathResolver::resolve($cacheDirectory) ?? $cacheDirectory;
+
+        $cachePrefix = rtrim($cacheDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        $containsScanRoot = array_any(
+            $this->getCommandFacade()->getAllPhelDirectories(),
+            static function (string $root) use ($cachePrefix): bool {
+                $root = SourcePathResolver::resolve($root) ?? $root;
+
+                return str_starts_with(rtrim($root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR, $cachePrefix);
+            },
+        );
 
         return new ExcludedScanPaths(
-            excludedDirectories: [$outputDirectory],
+            excludedDirectories: $containsScanRoot ? [$outputDirectory] : [$outputDirectory, $cacheDirectory],
             destDirBasename: basename($outputDirectory),
         );
     }

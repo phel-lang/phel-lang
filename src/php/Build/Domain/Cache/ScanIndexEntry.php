@@ -22,17 +22,16 @@ use function is_string;
  * Validation combines two independent layers so that a stale namespace can
  * never be served:
  *
- * 1. Per-directory `mtime` + phel-file `fileCount`. A directory's mtime does
- *    NOT change on an in-place edit, only on add/remove/rename — and mtime has
- *    1s resolution — so the file count is paired with it to catch same-second
- *    add/remove churn that the mtime alone would miss.
+ * 1. Every discovered directory's `mtime`, including empty directories, is
+ *    recorded before descent. Recent directory stamps invalidate the entry
+ *    like recent file stamps, catching same-second add/remove churn.
  * 2. Per-file `mtime` (authoritative). Each scanned file's mtime is stored and
  *    re-checked, which is what guards each namespace's name + dependency list
  *    against in-place edits. A file whose mtime is not older than `recordedAt`,
  *    the second the scan started, may have been rewritten after it was read
  *    without its mtime moving, so it invalidates the entry too (#3537).
  *
- * @phpstan-type DirFingerprint array{mtime: int, fileCount: int}
+ * @phpstan-type DirFingerprint array{mtime: int}
  * @phpstan-type FileStamp array{file: string, mtime: int}
  * @phpstan-type SerializedScanIndexEntry array{
  *     perDir: array<string, DirFingerprint>,
@@ -71,10 +70,7 @@ final readonly class ScanIndexEntry
         return array_all($existingDirectories, fn(string $dir): bool => isset($this->perDir[$dir]));
     }
 
-    /**
-     * @param callable(string): int $fileCountOf returns the current phel-file count for a resolved dir
-     */
-    public function isValid(callable $fileCountOf): bool
+    public function isValid(): bool
     {
         foreach ($this->perDir as $dir => $fingerprint) {
             if (!is_dir($dir)) {
@@ -82,11 +78,11 @@ final readonly class ScanIndexEntry
             }
 
             $currentMtime = @filemtime($dir);
-            if ($currentMtime === false || $currentMtime !== $fingerprint['mtime']) {
-                return false;
-            }
-
-            if ($fileCountOf($dir) !== $fingerprint['fileCount']) {
+            if ($currentMtime === false
+                || $currentMtime <= 0
+                || $currentMtime !== $fingerprint['mtime']
+                || $currentMtime >= $this->recordedAt
+            ) {
                 return false;
             }
         }
@@ -170,14 +166,13 @@ final readonly class ScanIndexEntry
         foreach ($data['perDir'] as $dir => $fingerprint) {
             if (!is_string($dir)
                 || !is_array($fingerprint)
-                || !isset($fingerprint['mtime'], $fingerprint['fileCount'])
+                || !isset($fingerprint['mtime'])
                 || !is_int($fingerprint['mtime'])
-                || !is_int($fingerprint['fileCount'])
             ) {
                 return null;
             }
 
-            $perDir[$dir] = ['mtime' => $fingerprint['mtime'], 'fileCount' => $fingerprint['fileCount']];
+            $perDir[$dir] = ['mtime' => $fingerprint['mtime']];
         }
 
         $files = [];

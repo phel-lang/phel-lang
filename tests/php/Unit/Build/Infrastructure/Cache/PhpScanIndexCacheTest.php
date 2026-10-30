@@ -72,6 +72,18 @@ final class PhpScanIndexCacheTest extends TestCase
         self::assertNotNull($cache->get($this->liveDir));
     }
 
+    public function test_the_old_root_only_fingerprint_format_is_not_reused(): void
+    {
+        $entry = $this->serializedEntry($this->liveDir, $this->liveFile);
+        $entry['perDir'][$this->liveDir]['fileCount'] = 1;
+        file_put_contents($this->cacheFile, '<?php return ' . var_export([
+            'version' => '1.1',
+            'entries' => [$this->liveDir => $entry],
+        ], true) . ';');
+
+        self::assertNull(new PhpScanIndexCache($this->cacheFile)->get($this->liveDir));
+    }
+
     /**
      * `clear()` is no barrier against a process that is still running: its
      * next flush writes back what it holds in memory, as the in-place write
@@ -139,20 +151,20 @@ final class PhpScanIndexCacheTest extends TestCase
     }
 
     /**
-     * @return array<string, array{mtime: int, fileCount: int}>
+     * @return array<string, array{mtime: int}>
      */
     private function fingerprintOfLiveDir(): array
     {
-        return [$this->liveDir => ['mtime' => (int) filemtime($this->liveDir), 'fileCount' => 1]];
+        return [$this->liveDir => ['mtime' => (int) filemtime($this->liveDir)]];
     }
 
     /**
-     * @return array{perDir: array<string, array{mtime: int, fileCount: int}>, files: list<array{file: string, mtime: int}>, recordedAt: int, infos: list<array{file: string, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}>}
+     * @return array{perDir: array<string, array{mtime: int}>, files: list<array{file: string, mtime: int}>, recordedAt: int, infos: list<array{file: string, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}>}
      */
     private function serializedEntry(string $dir, string $file, int $mtime = 100): array
     {
         return [
-            'perDir' => [$dir => ['mtime' => $mtime, 'fileCount' => 1]],
+            'perDir' => [$dir => ['mtime' => $mtime]],
             'files' => [['file' => $file, 'mtime' => $mtime]],
             'recordedAt' => $mtime + 1,
             'infos' => [[
@@ -170,7 +182,7 @@ final class PhpScanIndexCacheTest extends TestCase
     private function writeCacheFile(array $entries): void
     {
         $payload = [
-            'version' => '1.1',
+            'version' => '1.2',
             'entries' => $entries,
         ];
 
