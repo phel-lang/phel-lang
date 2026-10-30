@@ -1,0 +1,4 @@
+--PHEL--
+(- (+ 9223372036854775807 1) 1)
+--PHP--
+(\is_int(($__phel_guard_1 = (\Phel\Lang\Registry::readRoot("phel.core", "+"))->__invoke(9223372036854775807, 1))) && \is_int($__phel_guard_2 = $__phel_guard_1 - 1) ? $__phel_guard_2 : (\Phel\Lang\Registry::readRoot("phel.core", "-"))->__invoke($__phel_guard_1, 1));

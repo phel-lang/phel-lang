@@ -560,8 +560,21 @@ final readonly class NumericOperationSpecialization
             return null;
         }
 
+        if (count($args) === 2 && self::isOverflowProneLiteralArithmetic($name, $args)) {
+            return null;
+        }
+
+        $variadic = count($args) > 2;
+        if ($variadic && !in_array($name, ['+', '*'], true)) {
+            return null;
+        }
+
         $anyFloat = false;
         foreach ($args as $arg) {
+            if ($variadic && $arg instanceof LiteralNode) {
+                return null;
+            }
+
             $tag = self::operandNumericTag($arg);
             if ($tag === null) {
                 return null;
