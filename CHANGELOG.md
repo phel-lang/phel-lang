@@ -83,6 +83,7 @@ Compiler:
 
 Runtime:
 
+- Same-origin HTTP redirects keep URL credentials. `phel.http-client` accepts `:max-body-bytes` to reject oversized response bodies; the default remains unlimited. It used to drop credentials on redirects and buffer bodies without a limit. (#3688)
 - `pop` and `pop!` preserve vectors at trie boundaries, including after appending or converting a transient to persistent. They used to crash, retain removed values or lose live ones. (#3672 #3673)
 - Structs and records compare unequal to plain maps in both argument orders and stay distinct as map keys and set members. String and symbol lookup keys work consistently with array access; unsupported keys return false or nil. Equality used to depend on argument order, and lookup could raise PHP errors. (#3674 #3675)
 - `iterate` returns its seed without calling the step function; `repeatedly` and `cycle` also realize values only on demand. Reading a head used to prefetch later values and trigger extra effects. (#3678)

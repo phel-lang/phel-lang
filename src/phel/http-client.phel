@@ -26,11 +26,13 @@
 
 (defn- build-options-array
   "Converts Phel options to a PHP associative array for the transport."
-  [{:timeout timeout, :follow-redirects follow-redirects, :verify-ssl verify-ssl}]
+  [{:timeout timeout, :follow-redirects follow-redirects, :verify-ssl verify-ssl
+    :max-body-bytes max-body-bytes}]
   (let [arr (php-indexed-array)]
     (when timeout (aset arr "timeout" timeout))
     (when-not (nil? follow-redirects) (aset arr "follow_redirects" follow-redirects))
     (when-not (nil? verify-ssl) (aset arr "verify_ssl" verify-ssl))
+    (when-not (nil? max-body-bytes) (aset arr "max_body_bytes" max-body-bytes))
     arr))
 
 (defn- append-query-params
@@ -79,13 +81,15 @@
     :query-params     - Map of query parameters to append to URL
     :timeout          - Timeout in seconds as float (default 30.0)
     :follow-redirects - Follow HTTP redirects (default true)
-    :verify-ssl       - Verify SSL certificates (default true)"
+    :verify-ssl       - Verify SSL certificates (default true)
+    :max-body-bytes   - Non-negative integer response body limit; nil is unlimited (default)"
   {:doc "Makes an HTTP request. Returns an http/response struct."
    :example "(request :get \"https://example.com\" {:headers {:accept \"application/json\"}})"
    :see-also ["get" "post" "put" "delete" "patch" "head"]}
   [method url & [{:headers headers :body body :json json-body
                   :query-params query-params :timeout timeout
-                  :follow-redirects follow-redirects :verify-ssl verify-ssl}]]
+                  :follow-redirects follow-redirects :verify-ssl verify-ssl
+                  :max-body-bytes max-body-bytes}]]
   (let [headers        (or headers {})
         [headers body] (if json-body
                          [(assoc headers :content-type "application/json")
@@ -99,7 +103,8 @@
                                            body
                                            (build-options-array {:timeout timeout
                                                                  :follow-redirects follow-redirects
-                                                                 :verify-ssl verify-ssl})))))
+                                                                 :verify-ssl verify-ssl
+                                                                 :max-body-bytes max-body-bytes})))))
 
 (defn get
   "Makes a GET request. See `request` for available options."
