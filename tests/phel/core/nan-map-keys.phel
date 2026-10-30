@@ -3,6 +3,21 @@
 
 (def- nan php/NAN)
 
+(deftest test-finite-float-hashes-and-map-keys
+  (is (not= (hash 1.5) (hash 1.7)) "fractional hashes do not truncate")
+  (is (not= (hash 1e300) (hash 1e301)) "huge finite values retain their bits")
+  (is (= (hash 1) (hash (bigint "1"))) "integer and BigInt hashing stays aligned")
+  (let [base (into {} (map (fn [n] [n n]) (range 10)))
+        m    (assoc base 0.0 :zero 1.5 :fraction-a 1.7 :fraction-b 1e300 :huge 1e301 :larger nan :nan)]
+    (is (= 16 (count m)) "a hash map keeps all distinct numeric keys")
+    (is (= 0 (get m 0)) "integer zero remains a separate key")
+    (is (= :zero (get m -0.0)) "signed zeros share a key")
+    (is (= :fraction-a (get m 1.5)))
+    (is (= :fraction-b (get m 1.7)))
+    (is (= :huge (get m 1e300)))
+    (is (= :larger (get m 1e301)))
+    (is (= :nan (get m nan)))))
+
 (deftest test-nan-as-map-key
   (is (= "value" (get {nan "value"} nan)) "get with a NaN key returns its value")
   (is (contains? {nan "value"} nan) "contains? finds a NaN key")

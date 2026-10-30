@@ -56,7 +56,7 @@ An unclosed `"` never fails to lex: the atom rule swallows it (`Balance` relies 
 
 Opt-in, off by default (`CompilerConfig::isIntermediateCacheEnabled()`). Wired only into `createCodeCompilerForCache` (build path), never the REPL.
 
-- `CodeCompiler` persists read results via `Domain/Cache/ReaderResultCacheInterface`: `Infrastructure/Cache/FileSystemReaderResultCache` (gzip'd `serialize` under `<cacheDir>/read-result/`, key `md5(format|version|Olevel|source)`) or `NullReaderResultCache`. The factory supplies `VersionResolver::current()`, including its development reference, so a compiler update cannot replay converted results from another revision.
+- `CodeCompiler` persists read results via `Domain/Cache/ReaderResultCacheInterface`: `Infrastructure/Cache/FileSystemReaderResultCache` (gzip'd `serialize` under `<cacheDir>/read-result/`, key `md5(format|version|Olevel|source)`) or `NullReaderResultCache`. The factory supplies `VersionResolver::current()`, including its development reference, so a compiler update cannot replay converted results from another revision. Bump its format when serialized form layout or collection hashing changes; format 3 rejects older float-key tries before deserialization.
 - A warm hit skips lex/parse/read and replays each form's read-phase gensym delta (`Domain/Cache/CachedReaderResult`) before analysis, so `Symbol::gen()` follows the cold trajectory.
 - GOTCHA: replayed forms are deserialized, so map keys must compare by value (`Keyword::equals`/`Symbol::equals`), not identity, or keyword-keyed lookups silently miss.
 - Gensym names are process-global; a build mixing fresh compiles with compiled-code-cache hits can renumber them (independent of this cache).
