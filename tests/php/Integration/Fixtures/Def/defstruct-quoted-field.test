@@ -1,0 +1,21 @@
+--PHEL--
+(defstruct* ^{:php/json true} quoted-field [x'])
+--PHP--
+if (!class_exists('user\quoted_field')) {
+final class quoted_field extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \JsonSerializable {
+
+  protected const array ALLOWED_KEYS = ['x\''];
+
+  protected $x_SINGLEQUOTE_;
+
+  public function __construct($x_SINGLEQUOTE_, $meta = null) {
+    parent::__construct();
+    $this->x_SINGLEQUOTE_ = $x_SINGLEQUOTE_;
+    $this->meta = $meta;
+  }
+
+  public function jsonSerialize(): array {
+    return ['x\'' => $this->x_SINGLEQUOTE_];
+  }
+}
+}

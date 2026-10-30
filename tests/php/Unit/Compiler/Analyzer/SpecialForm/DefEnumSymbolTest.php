@@ -69,7 +69,7 @@ final class DefEnumSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("'defenum requires at least one case");
 
-        $list = Phel::list([Symbol::create(Symbol::NAME_DEF_ENUM), Symbol::create('Empty')]);
+        $list = Phel::list([Symbol::create(Symbol::NAME_DEF_ENUM), Symbol::create('EmptyEnum')]);
 
         $this->analyze($list);
     }
@@ -98,7 +98,7 @@ final class DefEnumSymbolTest extends TestCase
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_ENUM),
-            Symbol::create('Mixed'),
+            Symbol::create('MixedEnum'),
             Keyword::create('a'), 1,
             Keyword::create('b'), 'two',
         ]);

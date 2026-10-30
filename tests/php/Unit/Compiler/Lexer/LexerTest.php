@@ -552,6 +552,70 @@ final class LexerTest extends TestCase
         self::assertSame(Token::T_CLOSE_PARENTHESIS, $tokens[5]->getType());
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function unicode_characters(): iterable
+    {
+        foreach (['é', 'Ā', "\u{800}", "\u{D7FF}", "\u{E000}", '€', '😀', "\u{10000}", "\u{10FFFF}"] as $character) {
+            yield bin2hex($character) => [$character];
+        }
+    }
+
+    #[DataProvider('unicode_characters')]
+    public function test_unicode_character_literal_is_one_token(string $character): void
+    {
+        $literal = '\\' . $character;
+        $tokens = $this->lex($literal);
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame($literal, $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+        self::assertSame(2, $tokens[0]->getEndLocation()->getColumn());
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalid_utf8_characters(): iterable
+    {
+        foreach (["\xE0\x80\x80", "\xE0\x9F\xBF", "\xED\xA0\x80", "\xED\xBF\xBF", "\xF0\x80\x80\x80", "\xF0\x8F\xBF\xBF", "\xF4\x90\x80\x80"] as $bytes) {
+            yield bin2hex($bytes) => [$bytes];
+        }
+    }
+
+    #[DataProvider('invalid_utf8_characters')]
+    public function test_invalid_utf8_character_keeps_the_single_byte_fallback(string $bytes): void
+    {
+        $tokens = $this->lex('\\' . $bytes);
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\' . $bytes[0], $tokens[0]->getCode());
+        self::assertSame(substr($bytes, 1), $tokens[1]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[2]->getType());
+    }
+
+    public function test_unicode_class_name_remains_one_atom(): void
+    {
+        $tokens = $this->lex('\\éClass');
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame('\\éClass', $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
+    public function test_binary_source_still_accepts_byte_characters_and_strings(): void
+    {
+        $tokens = $this->lex("\\\xE9 \"\xFF\" \\é");
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame("\\\xE9", $tokens[0]->getCode());
+        self::assertSame(Token::T_STRING, $tokens[2]->getType());
+        self::assertSame("\"\xFF\"", $tokens[2]->getCode());
+        self::assertSame(Token::T_CHAR, $tokens[4]->getType());
+        self::assertSame('\\é', $tokens[4]->getCode());
+    }
+
     public function test_char_literal_single_alpha(): void
     {
         $tokens = $this->lex('\\a');

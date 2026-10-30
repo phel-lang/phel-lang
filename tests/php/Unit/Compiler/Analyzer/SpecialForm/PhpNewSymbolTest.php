@@ -25,6 +25,16 @@ final class PhpNewSymbolTest extends TestCase
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
+    public function test_dashed_class_is_rejected(): void
+    {
+        $this->expectException(AbstractLocatedException::class);
+        $this->expectExceptionMessage('Invalid PHP identifier Foo-Bar');
+        new PhpNewSymbol($this->analyzer)->analyze(
+            Phel::list([Symbol::create(Symbol::NAME_PHP_NEW), Symbol::create('\\Foo-Bar')]),
+            NodeEnvironment::empty(),
+        );
+    }
+
     public function test_named_args_after_marker_become_named_arg_nodes(): void
     {
         $list = Phel::list([
