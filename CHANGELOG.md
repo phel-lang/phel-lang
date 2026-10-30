@@ -67,7 +67,6 @@ PHP API:
 
 Compiler:
 
-- An empty symbol, including one returned by a macro, reports `PHEL001` without a PHP warning. It used to raise `Uninitialized string offset 0` before the unresolved-symbol error, as did an empty PHP import. (#3720)
 - Strings with invalid UTF-8 compile as literal data. A quote, backslash or dollar sign after an invalid byte used to turn string contents into executable PHP. (#3664)
 - Float literals retain their exact value, and integers outside the native range read as `BigInt` in decimal, hexadecimal, binary, octal and radix notation. Arithmetic keeps using `BigInt` after overflow instead of failing on the next operation. These paths used to lose precision or fail, and large non-decimal literals could warn on PHP 8.6. (#3522 #3665 #3676 #3706)
 - Duplicate arities in functions, macros, protocol methods and `extend-type` fail with `PHEL007`; duplicate interface methods or parameters fail with `PHEL009`. Struct, record and type fields cannot repeat, share a PHP property name or use `hasher`, `equalizer` or `meta`; these fail with `PHEL007`, as do parameter tags `^void` and `^never`. These declarations used to cause PHP errors. (#3534)
@@ -80,6 +79,7 @@ Compiler:
 - Type tags for structs, interfaces, exceptions and enums in the same namespace work in `run`, `test` and the REPL. They used to accept values only after a build. (#3654)
 - A malformed PHP member, class or type tag such as `.foo-bar` or `\Foo-Bar` fails with `PHEL007` at its symbol. It used to produce invalid PHP or interpret the dash as subtraction. (#3667)
 - PHP class names such as `PDO` no longer produce constant-collision warnings in constructor, static-member or callable positions. The warning still applies to bare value positions. (#3537)
+- An empty symbol, including one returned by a macro, reports `PHEL001` without a PHP warning. It used to raise `Uninitialized string offset 0` before the unresolved-symbol error, as did an empty PHP import. (#3720)
 - Character literals such as `\é` and `\😀` read as whole Unicode characters instead of splitting after the first byte. (#3708)
 
 Runtime:
