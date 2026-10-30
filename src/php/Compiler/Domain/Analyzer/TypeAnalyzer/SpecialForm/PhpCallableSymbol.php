@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\BareHostClass;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\PhpIdentifier;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
@@ -91,6 +92,7 @@ final readonly class PhpCallableSymbol implements SpecialFormAnalyzerInterface
         }
 
         $exprEnv = $env->withExpressionContext()->withDisallowRecurFrame();
+        PhpIdentifier::assertName($methodSymbol, $methodSymbol->getName());
 
         $classNode = $this->resolveClassReference($target, $env, $exprEnv);
         if ($classNode instanceof PhpClassNameNode) {

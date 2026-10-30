@@ -70,6 +70,10 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
 
     private const string STATE_REST = 'rest';
 
+    private const string STATE_AFTER_REST = 'after-rest';
+
+    private const string STATE_AS = 'as';
+
     private const string STATE_DONE = 'done';
 
     private string $currentState = self::STATE_START;
@@ -103,9 +107,17 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
         $bindings[] = [$arrSymbol, $value];
         $this->currentListSymbol = $arrSymbol;
         $this->valueSymbol = $arrSymbol;
+        $asMarker = null;
 
         /** @var PersistentVectorInterface<mixed> $binding */
         foreach ($binding as $current) {
+            if (($this->currentState === self::STATE_START || $this->currentState === self::STATE_AFTER_REST)
+                && $current instanceof Keyword && $current->getName() === 'as') {
+                $asMarker = $current;
+                $this->currentState = self::STATE_AS;
+                continue;
+            }
+
             switch ($this->currentState) {
                 case self::STATE_START:
                     $this->stateStart($bindings, $current);
@@ -113,9 +125,27 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
                 case self::STATE_REST:
                     $this->stateRest($bindings, $current);
                     break;
+                case self::STATE_AS:
+                    $this->deconstructor->deconstructBindings($bindings, $current, $this->valueSymbol);
+                    $this->currentState = self::STATE_DONE;
+                    break;
                 case self::STATE_DONE:
+                    throw AnalyzerException::withLocation(
+                        'No binding forms may follow :as',
+                        $binding,
+                        errorCode: ErrorCode::BINDING_ERROR,
+                    );
+                case self::STATE_AFTER_REST:
                     $this->triggerUnsupportedBindingFormException($binding);
             }
+        }
+
+        if ($this->currentState === self::STATE_AS && $asMarker instanceof Keyword) {
+            throw AnalyzerException::withLocation(
+                ':as requires a binding form',
+                $asMarker,
+                errorCode: ErrorCode::BINDING_ERROR,
+            );
         }
     }
 
@@ -157,7 +187,7 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
      */
     private function stateRest(array &$bindings, mixed $current): void
     {
-        $this->currentState = self::STATE_DONE;
+        $this->currentState = self::STATE_AFTER_REST;
         $accessSymbol = Symbol::gen()->copyLocationFrom($current);
         if ($this->index === 0) {
             $bindings[] = [$accessSymbol, $this->currentListSymbol];
