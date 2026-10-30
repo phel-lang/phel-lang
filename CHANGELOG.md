@@ -106,6 +106,7 @@ Tooling:
 - `phel test --reporter=junit-xml --parallel=N` prints the same JUnit XML document a serial run prints: on stdout with the progress and summary on stderr, or to the `-o` file. It used to print only the parallel summary, and with `-o` the workers overwrote each other's file. `--reporter=tap` still runs serially, and its `Ignoring --parallel` notice under `-v` goes to stderr. (#3627)
 - `phel test --reporter=tap`, and `--reporter=junit-xml` without `-o`, send what a test body prints, and the message for a test file that does not compile, to stderr, so stdout holds only the TAP lines or the XML document. Both used to land on stdout next to the reporter's lines, and the report no longer parsed. `output?` and `with-out-str` inside a test still capture it. (#3642)
 - `phel format` preserves every branch of a reader conditional, including splicing conditionals and forms without a matching feature, and the whitespace and comments between a tagged literal and its value. It used to delete unselected conditional source or merge `#phel/foo 1` into an unreadable token. A second formatting pass succeeds. (#3669 #3670)
+- `phel format` aligns Unicode keys and indents forms after Unicode names by character columns. It used to count UTF-8 bytes and misalign names such as `é` and `日本語`. (#3671)
 
 PHP API:
 
