@@ -9,6 +9,7 @@ use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\CatchNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -21,6 +22,17 @@ use PHPUnit\Framework\TestCase;
 
 final class TrySymbolTest extends TestCase
 {
+    public function test_an_empty_list_in_the_body_remains_a_literal(): void
+    {
+        $empty = Phel::list([]);
+        $node = $this->analyze(Phel::list([Symbol::create(Symbol::NAME_TRY), $empty]));
+        $body = $node->getBody();
+
+        self::assertInstanceOf(DoNode::class, $body);
+        self::assertInstanceOf(QuoteNode::class, $body->getRet());
+        self::assertSame($empty, $body->getRet()->getValue());
+    }
+
     public function test_requires_symbol_as_first_argument_of_catch(): void
     {
         $this->expectException(AnalyzerException::class);
