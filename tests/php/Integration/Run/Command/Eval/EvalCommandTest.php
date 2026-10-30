@@ -152,6 +152,16 @@ final class EvalCommandTest extends AbstractTestCommand
         self::assertSame(0, $exitCode);
     }
 
+    public function test_a_macro_returning_an_empty_symbol_reports_only_the_unresolved_symbol_error(): void
+    {
+        $output = $this->captureEvalOutput('(defmacro empty-symbol [] (symbol "")) (empty-symbol)');
+
+        self::assertStringContainsString('[PHEL001]', $output);
+        self::assertStringContainsString("Cannot resolve symbol ''", $output);
+        self::assertStringNotContainsString('Warning', $output);
+        self::assertStringNotContainsString('Uninitialized string offset', $output);
+    }
+
     public function test_runtime_error_collapses_internal_frames_and_names_the_flag(): void
     {
         $output = $this->captureEvalOutput(self::THROWING_EXPRESSION);

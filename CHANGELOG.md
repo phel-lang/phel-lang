@@ -118,6 +118,7 @@ PHP API:
 Compiler:
 
 - Strings containing invalid UTF-8 bytes compile as literal data. A quote, backslash or dollar sign after such a byte used to change the generated PHP, allowing string contents to run as code. (#3664)
+- An empty symbol, including one returned by a macro, reports `PHEL001` without a PHP warning. It used to raise `Uninitialized string offset 0` before the unresolved-symbol error, as did an empty PHP import. (#3720)
 - A float literal such as `0.30000000000000004` keeps its value when compiled. It used to become `0.3`, changing comparisons and arithmetic. (#3665)
 - **BREAKING**: Nested shorthand functions such as `#(f #(g %) %)` fail with `PHEL210` at the inner `#(`, as in Clojure. They used to silently drop the outer function's parameters. Write the inner function with `fn`. (#3709)
 - **BREAKING**: `~` and `~@` outside quasiquote fail with `PHEL210` at the marker. They used to read as whitespace, so `[~@a]` read as `[a]`. Use these markers only inside quasiquote; a splice also needs an enclosing collection. (#3524)
