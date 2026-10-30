@@ -166,7 +166,7 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
     {
         $pos = strpos($name, '/');
 
-        if ($pos === false || $name === '/') {
+        if ($pos === false || $pos === 0) {
             return new self(null, $name);
         }
 
