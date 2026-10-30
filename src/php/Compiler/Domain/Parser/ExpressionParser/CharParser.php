@@ -23,6 +23,8 @@ final class CharParser
     /** The widest value chr() accepts; see StringParser::MAX_BYTE. */
     private const int MAX_BYTE = 0xFF;
 
+    private const int MAX_CODEPOINT = 0xFFFF;
+
     private const array NAMED_CHARS = [
         '\\space' => ' ',
         '\\newline' => "\n",
@@ -53,7 +55,7 @@ final class CharParser
 
         // Unicode escape: \uNNNN (exactly 4 hex digits, validated by the lexer).
         if (strlen($raw) === 6 && $raw[1] === 'u') {
-            return UnicodeEscape::encode((int) hexdec(substr($raw, 2)));
+            return $this->codepointToUtf8((int) hexdec(substr($raw, 2)));
         }
 
         // Octal escape: \oNNN (1-3 octal digits, validated by the lexer).
@@ -75,4 +77,22 @@ final class CharParser
         return substr($raw, 1);
     }
 
+    private function codepointToUtf8(int $codepoint): string
+    {
+        if ($codepoint < 0 || $codepoint > self::MAX_CODEPOINT || ($codepoint >= 0xD800 && $codepoint <= 0xDFFF)) {
+            throw new StringParserException('Invalid UTF-8 codepoint escape sequence: Not a Unicode scalar');
+        }
+
+        if ($codepoint <= 0x7F) {
+            return chr($codepoint);
+        }
+
+        if ($codepoint <= 0x7FF) {
+            return chr(($codepoint >> 6) + 0xC0) . chr(($codepoint & 0x3F) + 0x80);
+        }
+
+        return chr(($codepoint >> 12) + 0xE0)
+            . chr((($codepoint >> 6) & 0x3F) + 0x80)
+            . chr(($codepoint & 0x3F) + 0x80);
+    }
 }

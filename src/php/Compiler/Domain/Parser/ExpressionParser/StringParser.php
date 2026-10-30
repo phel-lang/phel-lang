@@ -25,6 +25,8 @@ final class StringParser
      */
     private const int MAX_BYTE = 0xFF;
 
+    private const int MAX_CODEPOINT = 0x10FFFF;
+
     private const int BRACED_UNICODE_ESCAPE_MATCH = 2;
 
     private const int FIXED_UNICODE_ESCAPE_MATCH = 3;
@@ -130,6 +132,28 @@ final class StringParser
             $codepoint = 0x10000 + (($codepoint - 0xD800) << 10) + ((int) hexdec($lowSurrogate) - 0xDC00);
         }
 
-        return UnicodeEscape::encode($codepoint);
+        return $this->codePointToUtf8($codepoint);
+    }
+
+    private function codePointToUtf8(int $num): string
+    {
+        if ($num < 0 || $num > self::MAX_CODEPOINT || ($num >= 0xD800 && $num <= 0xDFFF)) {
+            throw new StringParserException('Invalid UTF-8 codepoint escape sequence: Not a Unicode scalar');
+        }
+
+        if ($num <= 0x7F) {
+            return chr($num);
+        }
+
+        if ($num <= 0x7FF) {
+            return chr(($num >> 6) + 0xC0) . chr(($num & 0x3F) + 0x80);
+        }
+
+        if ($num <= 0xFFFF) {
+            return chr(($num >> 12) + 0xE0) . chr((($num >> 6) & 0x3F) + 0x80) . chr(($num & 0x3F) + 0x80);
+        }
+
+        return chr(($num >> 18) + 0xF0) . chr((($num >> 12) & 0x3F) + 0x80)
+            . chr((($num >> 6) & 0x3F) + 0x80) . chr(($num & 0x3F) + 0x80);
     }
 }
