@@ -31,11 +31,6 @@ final class MacroExpansionDepthTest extends TestCase
         $this->analyzer = new Analyzer($this->environment);
     }
 
-    protected function tearDown(): void
-    {
-        Phel::clear();
-    }
-
     public function test_self_expansion_unwinds_after_repeated_failures(): void
     {
         $this->macro('recursive', static fn($form) => $form);
