@@ -2,7 +2,7 @@
   (:use DateTime)
   (:use RuntimeException)
   (:use Phel.Lang.Symbol)
-  (:require phel.test :refer [deftest is are]))
+  (:require phel.test :refer [deftest is are thrown? thrown-with-msg?]))
 
 (deftest test-type
   (is (= :vector (type [])) "type of vector")
@@ -581,6 +581,13 @@
   (is (= "string" (name "string")) "name on string")
   (is (= "symbol" (name 'symbol)) "name on symbol")
   (is (= "keyword" (name :keyword)) "name of keyword"))
+
+(deftest test-name-rejects-unsupported-values-with-an-argument-error
+  (is (thrown-with-msg? InvalidArgumentException
+                        "name expects a string, keyword or symbol, got :nil"
+                        (name nil)))
+  (doseq [value [42 true [] {}]]
+    (is (thrown? InvalidArgumentException (name value)))))
 
 (deftest test-symbol
   (is (= "Phel\\Lang\\Symbol" (php/get_class (symbol "abc"))) "symbol returns Symbol class instance")
