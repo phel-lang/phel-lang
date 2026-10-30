@@ -141,22 +141,11 @@ final readonly class CacheIndexFile
      */
     private function parseIndexContent(string $content): array
     {
-        $tempFile = @tempnam(sys_get_temp_dir(), 'phel_cache_merge_');
-        if ($tempFile === false) {
-            return [];
-        }
-
         try {
-            if (file_put_contents($tempFile, $content) === false) {
-                return [];
-            }
-
-            /** @psalm-suppress UnresolvableInclude */
-            $data = @include $tempFile;
+            // Use the locked byte snapshot, without consulting OPcache or rereading a replaced path.
+            $data = @eval('?>' . $content);
         } catch (ParseError) {
             return [];
-        } finally {
-            @unlink($tempFile);
         }
 
         return $this->normalize($data);
