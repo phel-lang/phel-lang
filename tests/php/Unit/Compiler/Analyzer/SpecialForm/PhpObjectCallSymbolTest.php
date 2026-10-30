@@ -27,6 +27,16 @@ final class PhpObjectCallSymbolTest extends TestCase
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
+    public function test_dashed_member_is_rejected(): void
+    {
+        $this->expectException(AbstractLocatedException::class);
+        $this->expectExceptionMessage('Invalid PHP identifier foo-bar');
+        new PhpObjectCallSymbol($this->analyzer, isStatic: false)->analyze(
+            Phel::list([Symbol::create(Symbol::NAME_PHP_OBJECT_CALL), 1, Phel::list([Symbol::create('foo-bar')])]),
+            NodeEnvironment::empty(),
+        );
+    }
+
     public function test_list_without_argument(): void
     {
         $this->expectException(AbstractLocatedException::class);
@@ -34,7 +44,7 @@ final class PhpObjectCallSymbolTest extends TestCase
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
-            Symbol::create('\\'),
+            Symbol::create('\\stdClass'),
         ]);
 
         new PhpObjectCallSymbol($this->analyzer, isStatic: true)
@@ -48,7 +58,7 @@ final class PhpObjectCallSymbolTest extends TestCase
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
-            Symbol::create('\\'),
+            Symbol::create('\\stdClass'),
             '',
         ]);
         new PhpObjectCallSymbol($this->analyzer, isStatic: false)
@@ -59,8 +69,8 @@ final class PhpObjectCallSymbolTest extends TestCase
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
-            Symbol::create('\\'),
-            Symbol::create(''),
+            Symbol::create('\\stdClass'),
+            Symbol::create('foo_bar'),
         ]);
         $objCallNode = new PhpObjectCallSymbol($this->analyzer, $isStatic = true)
             ->analyze($list, NodeEnvironment::empty());
@@ -73,8 +83,8 @@ final class PhpObjectCallSymbolTest extends TestCase
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
-            Symbol::create('\\'),
-            Symbol::create(''),
+            Symbol::create('\\stdClass'),
+            Symbol::create('foo_bar'),
         ]);
 
         $objCallNode = new PhpObjectCallSymbol($this->analyzer, $isStatic = false)
@@ -89,8 +99,8 @@ final class PhpObjectCallSymbolTest extends TestCase
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
-            Symbol::create('\\'),
-            Phel::list([Symbol::create(''), '', '']),
+            Symbol::create('\\stdClass'),
+            Phel::list([Symbol::create('foo_bar'), '', '']),
         ]);
 
         $objCallNode = new PhpObjectCallSymbol($this->analyzer, isStatic: true)
@@ -105,8 +115,8 @@ final class PhpObjectCallSymbolTest extends TestCase
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
-            Symbol::create('\\'),
-            Symbol::create(''),
+            Symbol::create('\\stdClass'),
+            Symbol::create('foo_bar'),
         ]);
 
         $objCallNode = new PhpObjectCallSymbol($this->analyzer, isStatic: true)
@@ -139,7 +149,7 @@ final class PhpObjectCallSymbolTest extends TestCase
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
-            Symbol::create('\\'),
+            Symbol::create('\\stdClass'),
             Phel::list([Symbol::create('$foo')]),
         ]);
 
@@ -151,7 +161,7 @@ final class PhpObjectCallSymbolTest extends TestCase
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
-            Symbol::create('\\'),
+            Symbol::create('\\stdClass'),
             Symbol::create('$foo'),
         ]);
 
@@ -165,7 +175,7 @@ final class PhpObjectCallSymbolTest extends TestCase
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
-            Symbol::create('\\'),
+            Symbol::create('\\stdClass'),
             Symbol::create('$foo'),
         ]);
 
@@ -180,7 +190,7 @@ final class PhpObjectCallSymbolTest extends TestCase
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
-            Symbol::create('\\'),
+            Symbol::create('\\stdClass'),
             Symbol::create('foo'),
             Symbol::create('bar'),
         ]);

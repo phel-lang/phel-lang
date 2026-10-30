@@ -53,9 +53,7 @@ final readonly class DidChangeHandler implements HandlerInterface
             return null;
         }
 
-        if ($this->publisher->shouldPublish($uri)) {
-            $this->publisher->publish($document, $session->sink());
-        }
+        $this->publisher->schedule($document, $session->sink());
 
         return null;
     }
