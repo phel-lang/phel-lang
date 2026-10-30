@@ -540,6 +540,10 @@ TXT;
      */
     private function assertValidNamespace(array $parts, Symbol $nsSymbol): void
     {
+        if ($nsSymbol->getNamespace() !== null) {
+            throw AnalyzerException::withLocation(self::INVALID_NAMESPACE_MESSAGE, $nsSymbol);
+        }
+
         foreach ($parts as $part) {
             if ($part === '' || !$this->isValidNamespacePart($part)) {
                 throw AnalyzerException::withLocation(self::INVALID_NAMESPACE_MESSAGE, $nsSymbol);
