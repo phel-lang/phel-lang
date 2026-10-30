@@ -62,7 +62,7 @@ final class StringParserTest extends TestCase
      */
     public static function invalid_unicode_escapes(): iterable
     {
-        foreach (['\uDC00\uD800', '\uD800x\uDC00', '\uD800\u{DC00}', '\u{D800}\uDC00', '\u0041\uDC00', '\uD800\\\\uDC00', '\\\\uD800\uDC00', '\u{110000}', '\u{1FFFFF}', '\u{10000000000000000}', '\u{FFFFFFFFFFFFFFFFFFFFFFFF}', '\uD800', '\uDBFF', '\uDC00', '\uDFFF', '\u{D800}', '\u{DFFF}'] as $escape) {
+        foreach (['\uDC00\uD800', '\uD800x\uDC00', '\uD800\u{DC00}', '\u{D800}\uDC00', '\u0041\uDC00', '\uD800\\\\uDC00', '\\\\uD800\uDC00', '\u{110000}', '\u{1FFFFF}', '\u{10000000000000000}', '\u{FFFFFFFFFFFFFFFFFFFFFFFF}', '\uD800', '\uDBFF', '\uDC00', '\uDFFF', '\ud800', '\udfff', '\u{D800}', '\u{DFFF}'] as $escape) {
             yield $escape => [$escape];
         }
     }
@@ -86,6 +86,10 @@ final class StringParserTest extends TestCase
             yield $escape => [$escape, mb_chr($codepoint, 'UTF-8')];
         }
 
+        yield 'fixed before marker range' => ['\uCFFF', "\u{CFFF}"];
+        yield 'fixed marker overapproximation' => ['\uD000', "\u{D000}"];
+        yield 'lowercase marker before surrogates' => ['\ud7ff', "\u{D7FF}"];
+        yield 'fixed after surrogates' => ['\uE000', "\u{E000}"];
         yield 'leading zeroes' => ['\u{000000000000000000000000000000000041}', 'A'];
         yield 'only zeroes' => ['\u{000000000000000000000000000000000000}', "\0"];
     }
@@ -123,6 +127,13 @@ final class StringParserTest extends TestCase
     {
         self::assertSame('AB', $this->parse('"\u0041\u0042"')->getValue());
         self::assertSame('\uD800\uDC00', $this->parse('"\\\\uD800\\\\uDC00"')->getValue());
+    }
+
+    public function test_surrogate_pairs_preserve_escaped_quotes(): void
+    {
+        $quoted = '\\"' . '\uD83D\uDE00' . '\\"';
+
+        self::assertSame('"😀"', $this->parse('"' . $quoted . '"')->getValue());
     }
 
     private function parse(string $raw): StringNode

@@ -17,7 +17,9 @@ use function strlen;
  */
 final class StringParser
 {
-    private const string ESCAPE_SEQUENCE_PATTERN = '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4})(?:\\\\u([dD][c-fC-F][0-9a-fA-F]{2}))?)~';
+    private const string ESCAPE_SEQUENCE_PATTERN = '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4}))~';
+
+    private const string SURROGATE_ESCAPE_SEQUENCE_PATTERN = '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4})(?:\\\\u([dD][c-fC-F][0-9a-fA-F]{2}))?)~';
 
     /**
      * The widest value chr() accepts. Above it PHP 8.5 deprecates the call and
@@ -59,10 +61,15 @@ final class StringParser
 
     private function parseEscapedString(string $str): string
     {
+        $str = str_replace('\\"', '"', $str);
+        $pattern = str_contains($str, '\\uD') || str_contains($str, '\\ud')
+            ? self::SURROGATE_ESCAPE_SEQUENCE_PATTERN
+            : self::ESCAPE_SEQUENCE_PATTERN;
+
         $result = preg_replace_callback(
-            self::ESCAPE_SEQUENCE_PATTERN,
+            $pattern,
             $this->replaceEscapeSequence(...),
-            str_replace('\\"', '"', $str),
+            $str,
         );
 
         if ($result === null) {
