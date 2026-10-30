@@ -42,7 +42,7 @@ trait AnalyzeBindingsTrait
             }
 
             $sym = TagCanonicalizer::symbol($sym, $this->analyzer);
-            $shadowSym = Symbol::gen($sym->getName() . '_')->copyLocationFrom($sym);
+            $shadowSym = LocalBindingName::shadow($sym);
             $init = $vector->get($i + 1);
 
             $nextBoundTo = $initEnv->getBoundTo() . '.' . $sym->getName();

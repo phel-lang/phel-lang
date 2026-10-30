@@ -196,6 +196,7 @@ final class BuildFactory extends AbstractFactory
     public function flushCompiledCodeCache(): void
     {
         $this->createCompiledCodeCache()?->save();
+        $this->createDependencyTracker()?->save();
     }
 
     private function createSecondaryFileHarvester(): SecondaryFileHarvester

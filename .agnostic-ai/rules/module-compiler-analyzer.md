@@ -19,6 +19,8 @@ Clojure-style interop spellings expand to `php/*` forms before analysis, never r
 
 `Domain/Analyzer/QualifiedMemberSyntax` is the single statement of how a class member is spelled. Call position, value position and `phel.core/set!` all use it, so `(\Foo/m 1)`, `\Foo/CONST` and `(set! \Foo/slot v)` cannot disagree; `set!` re-spells it in Phel because the stdlib cannot import `@internal` classes. Purely lexical: `PhpClassLike` answers existence.
 
+`Domain/Analyzer/PhpIdentifier` validates raw host members, class segments and type tags before emission, including PHP's identifier bytes above ASCII. Phel declaration names are munged before validation; host names are not. `ReservedDeclarationName` applies PHP type-name reservations separately, preserving keyword members and the allowed type names `enum`, `resource` and `numeric`.
+
 `NodeEmitter/PhpObjectSetEmitter` shares `PhpObjectCallDispatchResolver` with the read path, so a class-name target is static however written, and prefixes a bare static member with `$`: a class constant is not assignable (#2907).
 
 Bare host symbols read by **position**, never by probing the class table (ADR 0016). `SymbolResolver::resolveBareHostSymbol()` reads an all-caps name as a global constant; `Domain/Analyzer/BareHostClass` re-reads it as a class wherever only a class can stand (member target in `PhpObjectCallSymbol`, `PhpNewSymbol`, `PhpCallableSymbol`), so `(WP_CLI/log "x")` emits `\WP_CLI::log("x")` whether or not the class loads. `php/NAME` stays a constant everywhere. Do not reintroduce probing: emitted PHP then depends on what the process had autoloaded, and the compiled-code cache freezes whichever ran first.
@@ -44,6 +46,10 @@ Runs after `ConstantFolder` (in `Domain/Analyzer/TypeAnalyzer/Simplification/`):
 - The `let` is marked `LetNode::withSplicedFnBodyAfter()`: `ParamTypeInferrer` stops there as at a fn body, `TailCallRewriter` carries the mark, `CallInliner` and `LetSimplifier` leave it alone.
 - Body and extra arguments must be fully on the `SpliceableBody` allowlist: literals, local and global reads, collection literals without reader metadata, `php/aget`, `if`/`do`/`let` (not `loop`), nested fns, and calls to PHP operators except `=`/`=&`, a few pure builtins (`max`, `min`, `abs`, ...), keywords, or global Phel fns that are not `^:dynamic`/`^:redef` and whose `__invoke` has no by-ref param (reflected; undefined counts as by-ref). Extra arguments are restricted because the closure captured enclosing locals before they ran. Keep it an allowlist: a denylist kept leaking.
 - `recur` to the fn, rest/multi-arity/named fns, tagged params and any return type (declared or inferred) keep the closure.
+
+## Local binding names
+
+`TypeAnalyzer/SpecialForm/LocalBindingName` keeps function parameters and local shadows in `let`/`loop`, `foreach` and `catch` apart from emitter scratch prefixes (`__truthy`, `__or`, `__phel`). Rebinding preserves parameter metadata. Plain generated numeric names and `this` retain their existing mappings.
 
 ## Type Tags (inference and canonicalization)
 
