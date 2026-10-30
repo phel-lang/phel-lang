@@ -13,7 +13,7 @@ use Phel\Shared\Parser\Node\WhitespaceNode;
 
 use function array_slice;
 use function count;
-use function strlen;
+use function mb_strlen;
 
 /**
  * Pads horizontal whitespace between key/value pair children so values line up
@@ -123,7 +123,7 @@ final readonly class PairAligner
                 return null;
             }
 
-            $width = strlen($code);
+            $width = mb_strlen($code, 'UTF-8');
             if ($width > $max) {
                 $max = $width;
             }
@@ -151,7 +151,7 @@ final readonly class PairAligner
         while ($i < $count) {
             $output[] = $children[$i];
             if (isset($pairByKeyIdx[$i]) && $this->gapIsHorizontal($children, $i, $pairByKeyIdx[$i])) {
-                $padWidth = $maxKeyWidth - strlen($children[$i]->getCode()) + 1;
+                $padWidth = $maxKeyWidth - mb_strlen($children[$i]->getCode(), 'UTF-8') + 1;
                 $output[] = $this->makeWhitespace($padWidth);
                 $i = $pairByKeyIdx[$i];
                 continue;

@@ -14,6 +14,16 @@ use RuntimeException;
 
 final class QuoteNodeTest extends TestCase
 {
+    public function test_legacy_serialized_node_has_empty_prefix_trivia(): void
+    {
+        // Serialized by the node implementation before prefix trivia (903500215).
+        $payload = 'H4sIAAAAAAAC/5WRwW6DMAyGeZY8QWmgm8yp9wqYuiOXDFwaLU1QEiamae++GNpNmjoGN0f5P/v37wI4B1aeUVXHs7DYVKWwDm2Vmwarp954pIpBCh8OkgRY9K848uYV9fN7hyyTECdZAB8Xgc4L6w+mFl4azbICtsnV3EHotjqa3tb4/Q8JeeKbW+s7mugkVXDhYAfMeSt1S495REk9GSfldk5ZG9VfNGk3tGM8p8WhE9qFqrCylQHKs8/A7Bblgrr5ScUCp2npMnLoLDp3jZPHf986l2q69JjqrLH9S8hS1H7vzWWcUhNIcQHTUlGVpmv4X3efNkz5mhb3InpY0+BNqB5vZ1kWLq1dWjzJYeS+APviXuRMAwAA';
+        $node = unserialize(gzdecode(base64_decode($payload)));
+
+        self::assertInstanceOf(QuoteNode::class, $node);
+        self::assertSame("'nil", $node->getCode());
+    }
+
     public function test_get_code_quote(): void
     {
         self::assertSame(

@@ -545,9 +545,7 @@ Without arguments, uses a default cache size of 128 entries."
    :see-also ["merge" "deep-merge"]}
   ;; Fixed arities: the rest argument was allocated and counted only to be
   ;; unpacked with `first` and `second` again (#2973, #3021).
-  ;; `f` is unused here and in the one-map arity; both are the identity cases
-  ;; the old `case` answered with `{}` and `(first hash-maps)`.
-  ([f] {})
+  ([f] nil)
   ([f m] m)
   ([f m1 m2] (merge-with-2 f m1 m2))
   ([f m1 m2 & hash-maps]

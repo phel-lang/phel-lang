@@ -12,12 +12,39 @@ use Phel\Shared\Parser\Node\KeywordNode;
 use Phel\Shared\Parser\Node\NewlineNode;
 use Phel\Shared\Parser\Node\NumberNode;
 use Phel\Shared\Parser\Node\WhitespaceNode;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function strlen;
 
 final class PairAlignerTest extends TestCase
 {
+    public static function unicode_keys(): iterable
+    {
+        yield 'accented' => ['é', '    '];
+        yield 'CJK' => ['日本語', '  '];
+        yield 'supplementary' => ['😀', '    '];
+    }
+
+    #[DataProvider('unicode_keys')]
+    public function test_unicode_keys_align_by_code_point_columns(string $key, string $padding): void
+    {
+        $children = [
+            $this->keyword($key),
+            $this->whitespace(' '),
+            $this->number('1'),
+            $this->newline(),
+            $this->keyword('bbbb'),
+            $this->whitespace(' '),
+            $this->number('2'),
+        ];
+
+        $result = new PairAligner()->align($children, 0, false);
+
+        self::assertSame($padding, $result[1]->getCode());
+        self::assertSame(' ', $result[5]->getCode());
+    }
+
     public function test_it_aligns_values_under_a_common_column(): void
     {
         // {:a 1\n :longkey 2}

@@ -24,6 +24,7 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 use function sprintf;
+use function strlen;
 
 final class FileEvaluatorTest extends TestCase
 {
@@ -443,6 +444,33 @@ final class FileEvaluatorTest extends TestCase
         $result = $evaluator->evalFile($sourceFile);
 
         self::assertSame($sourceFile, $result->getSourceFile());
+    }
+
+    public function test_same_size_rewrite_with_preserved_mtime_still_recompiles(): void
+    {
+        $sourceFile = $this->tempDir . '/same-size.phel';
+        $namespace = 'test.namespace';
+        $oldCode = '(ns test.namespace) (def x 1)';
+        $newCode = '(ns test.namespace) (def x 2)';
+        $mtime = time() - 60;
+        file_put_contents($sourceFile, $oldCode);
+        touch($sourceFile, $mtime);
+        $cache = new CompiledCodeCache($this->tempDir . '/cache');
+        $cache->put($sourceFile, $namespace, hash('xxh128', $oldCode), '$old = true;');
+
+        file_put_contents($sourceFile, $newCode);
+        touch($sourceFile, $mtime);
+        clearstatcache(true, $sourceFile);
+        self::assertSame(strlen($oldCode), filesize($sourceFile));
+        self::assertSame($mtime, filemtime($sourceFile));
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->once())->method('compileForCache')
+            ->willReturn(new EmitterResult(false, '$new = true;', '', ''));
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(new NamespaceInformation($sourceFile, $namespace, []));
+
+        new FileEvaluator($compilerFacade, $namespaceExtractor, $cache)->evalFile($sourceFile);
     }
 
     public function test_eval_file_recovers_from_corrupt_cache(): void

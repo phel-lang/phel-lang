@@ -15,6 +15,16 @@ use PHPUnit\Framework\TestCase;
 
 final class MetaNodeTest extends TestCase
 {
+    public function test_legacy_serialized_node_has_empty_prefix_trivia(): void
+    {
+        // Serialized by the node implementation before prefix trivia (903500215).
+        $payload = 'H4sIAAAAAAAC/5VSQW6DMBDkKRUvCAaaaDnlnkKkVOqFi2vcsJKxI9tElSL+XpvSNG0JhdtKnpmdHU8BMYFwX3NRHmqqeVXuqTZcl7mqePnELfVDCAlcDMQbCIP/sEHjhjArII7uC+cobnSTxwnd7auxmjK7tarp9ZknZs4NhBKFn9J0Cd9Yqu1OMWpRSW+UJIPRHZXH8qBazfj1fbh89bVhBBO8oegduTPcLpTH3t4kRaB0FITII8kUkinRNtJjVw6bRFNY/n6i0rip0HhER8qzzsUTL4mHy+o7HA2JX7peInCmouXD6knmtTG/fmRYms6hjrklc4isRlFp7lgUCFx8ukVf8HvMlxotNyfK+Gdz4765mxnJPGs8I/3RXfeLD31z18v4o0nNqv+NyJ/MOt9DDSTrug/wcPAAEAQAAA==';
+        $node = unserialize(gzdecode(base64_decode($payload)));
+
+        self::assertInstanceOf(MetaNode::class, $node);
+        self::assertSame('^nil nil', $node->getCode());
+    }
+
     public function test_get_code(): void
     {
         self::assertSame(

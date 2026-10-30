@@ -23,11 +23,17 @@ Clojure-style interop spellings expand to `php/*` forms before analysis, never r
 
 `NodeEmitter/PhpObjectSetEmitter` shares `PhpObjectCallDispatchResolver` with the read path, so a class-name target is static however written, and prefixes a bare static member with `$`: a class constant is not assignable (#2907).
 
-Bare host symbols read by **position**, never by probing the class table (ADR 0016). `SymbolResolver::resolveBareHostSymbol()` reads an all-caps name as a global constant; `Domain/Analyzer/BareHostClass` re-reads it as a class wherever only a class can stand (member target in `PhpObjectCallSymbol`, `PhpNewSymbol`, `PhpCallableSymbol`), so `(WP_CLI/log "x")` emits `\WP_CLI::log("x")` whether or not the class loads. `php/NAME` stays a constant everywhere. Do not reintroduce probing: emitted PHP then depends on what the process had autoloaded, and the compiled-code cache freezes whichever ran first.
+Bare values and calls resolve lexical locals first, then own namespace definitions or interfaces, `:use` aliases, `:refer` bindings and core definitions. A qualified name keeps its explicit namespace.
+
+Bare host symbols read by **position**, never by probing the class table (ADR 0016). `SymbolResolver::resolveBareHostSymbol()` reads an all-caps name as a global constant; `Domain/Analyzer/BareHostClass` re-reads it as a class wherever only a class can stand (member target in `PhpObjectCallSymbol`, `PhpNewSymbol`, `PhpCallableSymbol`), so `(WP_CLI/log "x")` emits `\WP_CLI::log("x")` whether or not the class loads. `BareHostClass` also recovers declared class imports when an own definition shadows the alias, including before `QualifiedMemberExpander` reflects a qualified callable. Lexical locals remain dynamic targets. `php/NAME` stays a constant everywhere. Do not reintroduce probing: emitted PHP then depends on what the process had autoloaded, and the compiled-code cache freezes whichever ran first.
 
 `Domain/Analyzer/PhpClassLike` is the single class-like existence predicate. It still answers for `:use` alias targets (asserted at compile time), lowercase-initial bare names (`stdClass`), and `Environment/AmbiguousBareHostWarner`, which warns when value position reads a constant that a loadable class shadows.
 
 `Domain/Analyzer/UnresolvedSymbolAdvisor` builds the unresolved-symbol error. A qualified symbol is searched only in its own namespace (alias resolved, plus `BundledSymbolIndex`); an unknown alias names the bundled namespace to require; a bare name from a bundled namespace names the `:require ... :refer`. `BundledSymbolIndex` regex-reads public defs from stdlib sources and never loads a namespace, keeping the error path cheap (#3458).
+
+## PHP import aliases
+
+`UseAliasRegistrar` rejects conflicting explicit targets with `PHEL004`; `NsSymbol` shares collision tracking across one `ns` form so a later namespace evaluation can replace old imports. `UseAliasOrigin` distinguishes replaceable default aliases from explicit imports, which always clear that marker. `NamespaceEnvironmentSerializer` preserves only the dedicated `default_alias` flag for imported targets, not arbitrary symbol metadata.
 
 ## Simplification pass
 

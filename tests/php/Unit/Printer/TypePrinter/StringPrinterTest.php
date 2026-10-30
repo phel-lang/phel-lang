@@ -25,6 +25,12 @@ final class StringPrinterTest extends TestCase
         self::assertSame('"str"', StringPrinter::readable()->print('str'));
     }
 
+    public function test_readable_control_boundaries_are_escaped(): void
+    {
+        self::assertSame('"\\x1f ~\\x7f"', StringPrinter::readable()->print("\x1f ~\x7f"));
+        self::assertSame("\x1f ~\x7f", StringPrinter::nonReadable()->print("\x1f ~\x7f"));
+    }
+
     public function test_mark_110(): void
     {
         self::assertSame('"Ā"', StringPrinter::readable()->print("\u{100}"));

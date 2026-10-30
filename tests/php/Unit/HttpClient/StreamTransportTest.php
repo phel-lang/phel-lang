@@ -12,6 +12,28 @@ use RuntimeException;
 
 final class StreamTransportTest extends TestCase
 {
+    public static function invalid_body_limits(): iterable
+    {
+        yield 'negative' => [-1];
+        yield 'float zero' => [0.0];
+        yield 'fraction' => [1.5];
+        yield 'overflow float' => [(float) PHP_INT_MAX];
+        yield 'numeric string' => ['1'];
+        yield 'empty string' => [''];
+        yield 'true' => [true];
+        yield 'false' => [false];
+        yield 'array' => [[]];
+    }
+
+    #[DataProvider('invalid_body_limits')]
+    public function test_invalid_body_limits_are_rejected_before_opening_a_connection(mixed $limit): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('max_body_bytes must be a non-negative integer or null');
+
+        StreamTransport::send('GET', 'http://127.0.0.1:1/', [], null, ['max_body_bytes' => $limit, 'timeout' => 0.1]);
+    }
+
     #[DataProvider('invalidHeaders')]
     public function test_send_rejects_invalid_headers_before_opening_a_connection(string $name, string $value): void
     {

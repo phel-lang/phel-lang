@@ -113,6 +113,7 @@ These Shared classes are internal despite their namespace:
 The same applies to these individual methods on otherwise public classes:
 `OptimizationLevel::pin()`, `NoColor::followOutput()`,
 `ExistingPaths::reportMissing()`, `CpuCountDetector::fromEnv()`,
+`PhelProjectDirectory::{cacheDirOverride,dirOverride,isAbsolutePath}()`,
 `ClassNotFoundHint::javaClassHint()` and
 `FrameworkNamespaces::{clojureTarget,isPhel}()`.
 

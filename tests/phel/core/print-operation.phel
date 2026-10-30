@@ -32,6 +32,28 @@
   (is (= "Infinity" (str php/INF)) "str on positive infinity")
   (is (= "-Infinity" (str (php/- 0 php/INF))) "str on negative infinity"))
 
+(deftest test-readable-special-numbers
+  (is (= "##NaN" (pr-str ##NaN)))
+  (is (= "##Inf" (pr-str ##Inf)))
+  (is (= "##-Inf" (pr-str ##-Inf)))
+  (is (nan? (read-string (pr-str ##NaN))))
+  (is (= ##Inf (read-string (pr-str ##Inf))))
+  (is (= ##-Inf (read-string (pr-str ##-Inf))))
+  (is (= "NaN Infinity -Infinity" (print-str ##NaN ##Inf ##-Inf))))
+
+(deftest test-readable-resource-in-map
+  (let [handle (php/fopen "php://memory" "r")]
+    (try
+      (let [marker (str "#<PHP Resource id #" (php/get_resource_id handle) ">")]
+        (is (= (str "{:h " marker "}") (pr-str {:h handle})))
+        (is (= marker (print-str handle))))
+      (finally (php/fclose handle)))))
+
+(deftest test-readable-control-boundaries
+  (is (= "\"\\x1f\\x7f\"" (pr-str "\u{1f}\u{7f}")))
+  (is (= "\u{1f}\u{7f}" (read-string (pr-str "\u{1f}\u{7f}"))))
+  (is (= "\u{1f}\u{7f}" (print-str "\u{1f}\u{7f}"))))
+
 (deftest test-print-str
   (is (= "" (print-str)) "print-str with no arg")
   (is (= "hello\nworld" (print-str "hello\nworld")) "print-str with one arg")

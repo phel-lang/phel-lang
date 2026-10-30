@@ -53,7 +53,7 @@ jobs:
       # summary.
       COVERAGE_FLOOR: '85'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: ./.github/actions/setup-phel
         with:
           # pcov is several times faster than Xdebug for line coverage and is all
@@ -70,6 +70,8 @@ jobs:
             --do-not-cache-result
 
       - name: Publish the figure and enforce the floor
+        env:
+          RUN_COVERAGE_FLOOR: ${{ github.event.inputs.coverage-floor || env.COVERAGE_FLOOR }}
         run: |
           php tools/check-coverage.php data/clover.xml \
-            "${{ github.event.inputs.coverage-floor || env.COVERAGE_FLOOR }}"
+            "$RUN_COVERAGE_FLOOR"

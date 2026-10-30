@@ -58,6 +58,9 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         }
 
         [$name, $list] = $this->extractOptionalName($list);
+        if (count($list) < 2) {
+            throw AnalyzerException::wrongArity($list, '(fn name? [params] body ...)');
+        }
 
         $second = $list->get(1);
         if ($second instanceof PersistentVectorInterface) {

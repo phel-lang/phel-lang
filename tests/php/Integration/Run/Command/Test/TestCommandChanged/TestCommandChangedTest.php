@@ -146,6 +146,30 @@ final class TestCommandChangedTest extends TestCase
         self::assertStringContainsString('affected: 2 test namespace(s)', $output);
     }
 
+    public function test_an_option_looking_ref_is_rejected_without_creating_a_file(): void
+    {
+        $this->gitInitAndCommit();
+        $injectedOutput = $this->projectDir . '/injected.diff';
+
+        [$exitCode, $output] = $this->runPhelTest(['--changed=--output=' . $injectedOutput, '--list']);
+
+        self::assertFileDoesNotExist($injectedOutput);
+        self::assertSame(2, $exitCode, $output);
+        self::assertStringContainsString('invalid ref', $output);
+    }
+
+    public function test_a_named_ref_with_a_dash_leading_component_still_works(): void
+    {
+        $this->gitInitAndCommit();
+        $this->git('update-ref refs/heads/-baseline HEAD');
+        file_put_contents($this->projectDir . '/src/app/util.phel', "(ns app.util)\n\n(defn twice [x] (+ x x))\n");
+
+        [$exitCode, $output] = $this->runPhelTest(['--changed=refs/heads/-baseline', '--list']);
+
+        self::assertSame(0, $exitCode, $output);
+        self::assertStringContainsString('affected: 2 test namespace(s)', $output);
+    }
+
     public function test_outside_a_git_repository_it_is_an_error(): void
     {
         [$exitCode, $output] = $this->runPhelTest(['--changed']);

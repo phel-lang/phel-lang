@@ -14,7 +14,6 @@ final class ResourcePrinter implements TypePrinterInterface
      */
     public function print(mixed $form): string
     {
-        /** @psalm-suppress InvalidOperand */
-        return '<PHP Resource id #' . $form . '>';
+        return '#<PHP Resource id #' . get_resource_id($form) . '>';
     }
 }
