@@ -118,6 +118,7 @@ Compiler:
 
 - Strings containing invalid UTF-8 bytes compile as literal data. A quote, backslash or dollar sign after such a byte used to change the generated PHP, allowing string contents to run as code. (#3664)
 - A float literal such as `0.30000000000000004` keeps its value when compiled. It used to become `0.3`, changing comparisons and arithmetic. (#3665)
+- Own namespace definitions take precedence over PHP `:use` aliases in bare values and calls. An imported alias used to hide a same-named `def`. Constructors, static calls, class callables and type tags still use the import. (#3717)
 - **BREAKING**: Nested shorthand functions such as `#(f #(g %) %)` fail with `PHEL210` at the inner `#(`, as in Clojure. They used to silently drop the outer function's parameters. Write the inner function with `fn`. (#3709)
 - **BREAKING**: `~` and `~@` outside quasiquote fail with `PHEL210` at the marker. They used to read as whitespace, so `[~@a]` read as `[a]`. Use these markers only inside quasiquote; a splice also needs an enclosing collection. (#3524)
 - **BREAKING**: A macro call with more or fewer arguments than the macro declares fails with `PHEL002`, the same as a function call. `if-not`, `if-let`, `if-some`, `assert` and `defexception` declare their optional argument as a second arity, so `(if-not true 1 2 3)` and `(assert true "m" :x)` fail too. They used to drop the extra arguments, and a call with too few reported `expected 3 arguments, got 2`, counting `&form` and `&env`. (#3524)

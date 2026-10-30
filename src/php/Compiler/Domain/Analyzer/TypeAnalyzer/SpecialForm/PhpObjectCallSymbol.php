@@ -99,7 +99,7 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
         $resolved = $this->analyzer->resolve($target, $env);
 
         // A member target names a class by position; see BareHostClass (#3064).
-        return BareHostClass::reread($target, $resolved, $env)
+        return BareHostClass::reread($target, $resolved, $env, $this->analyzer)
             ?? $resolved
             ?? $this->analyzer->analyze($target, $env);
     }
