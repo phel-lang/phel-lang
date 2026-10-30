@@ -68,6 +68,7 @@ PHP API:
 
 Tooling:
 
+- `phel test --changed=<ref>` and `phel mutate --changed=<ref>` reject a ref beginning with `-` and exit 2. Such a value used to become a Git option, allowing `--output=...` to create a file. (#3691)
 - Parallel compilation preserves every namespace dependency, so later macro edits invalidate all affected files. Concurrent workers used to lose dependencies when saving caches. (#3700)
 - `phel cache:clear` rejects unsafe cache directories and exits 2 before deleting any cache. A misconfigured path such as `.` used to remove project files. (#3702)
 - `phel lint` reports a call with the wrong number of arguments once. A call to a function of the same file used to be reported twice under `phel/arity-mismatch`, with two wordings. (#3655)

@@ -313,6 +313,20 @@ final class MutateCommandTest extends TestCase
         }
     }
 
+    public function test_changed_rejects_an_option_ref_without_creating_a_file(): void
+    {
+        $this->git('init -q');
+        $this->git('add -A');
+        $this->git('commit -q -m init');
+        $injectedOutput = $this->projectDir . '/injected.diff';
+
+        [$exitCode, $output] = $this->runPhelMutate(['--changed=--output=' . $injectedOutput]);
+
+        self::assertFileDoesNotExist($injectedOutput);
+        self::assertSame(2, $exitCode, $output);
+        self::assertStringContainsString('invalid ref', $output);
+    }
+
     public function test_the_optimization_level_in_the_config_does_not_change_the_verdicts(): void
     {
         $this->writeSource(<<<'PHEL'
