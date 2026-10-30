@@ -87,14 +87,16 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge, **Con
 - `put`/`invalidate` mutate the in-memory index only; it flushes **once per process at shutdown** (`DeferredFlushTrait`), keeping cold-build index I/O O(N), not O(N²). `CacheIndexFile::save()` does atomic write + `flock` + disk merge, so concurrent `phel test` workers lose no entries. Compiled `.php` files are written eagerly (`AtomicFileWriter`), so a crash costs a recompile, never corruption. `clear()` writes the empty index eagerly.
 - **Test gotcha:** tests needing cross-instance disk persistence in one process must call `save()` explicitly.
 - **Scan-index cache** (`PhpScanIndexCache`, `<cacheDir>/scan-index.php`, impl `ScanIndexCacheInterface`; `NullScanIndexCache` when disabled) lets `CachedNamespaceExtractor` skip the directory walk across processes. Keyed by resolved dir-set; served only if all hold:
-  - per-dir `mtime` + phel-file count match (same-second add/remove);
+  - every discovered, non-pruned directory's `mtime` matches, including empty nested directories;
   - per-file `mtime` matches (in-place edits);
-  - every per-file `mtime` is older than the entry's `recordedAt`;
+  - every directory and file `mtime` is older than the entry's `recordedAt`;
   - `ScanIndexEntry::covers()` the requested directories that exist now (only this catches a configured dir that appears after the scan, #3205).
   
-  Same mechanics as `PhpNamespaceCache`. Injected via `BuildFactory::createScanIndexCache()`; path from `BuildConfig::getScanIndexCacheFile()`; cleared by `CacheClearer`.
+  Directory stamps are captured before descent, so warm validation does not recount files. Format 1.2 rejects older root-only fingerprints. The active cache subtree is excluded unless it equals or contains a configured source, test or vendor scan root (resolved paths, including symlinks); overlapping layouts remain visible and may invalidate after cache writes.
+
+  Same persistence mechanics as `PhpNamespaceCache`. Injected via `BuildFactory::createScanIndexCache()`; path from `BuildConfig::getScanIndexCacheFile()`; cleared by `CacheClearer`.
 - **The namespace and scan-index caches prune unreachable entries in `save()`**, after the disk merge, before the write. Unreachable means the anchor path is *gone* (`ScanIndexEntry::isReachable()` probes `perDir` keys; `PhpNamespaceCache` the file key), not out of date (a changed mtime gets overwritten by the next scan). Otherwise the merge keeps dead entries forever, e.g. the unique `.phel_temp_<uniqid>` dir `Api\Infrastructure\PhelFunctionRuntimeLoader` scans per `phel doc` / LSP hover / REPL completion (#3007). Never prune at load: `isValid()` already rejects dead entries, so it would only add a `stat` per entry to every start.
-- **Racily clean entries are never served.** `filemtime` is whole-second. `NamespaceCacheEntry` and `ScanIndexEntry` carry `recordedAt`, taken *before* the read or walk; a file with mtime not older than it is reread (git's racily clean rule, #3537). Tests expecting a warm hit must backdate their files. `ProjectCompiler`'s incremental reuse (target mtime equals source mtime) does the same: a source not older than its compile start gets target mtime 0, forcing a recompile (#3564).
+- **Racily clean entries are never served.** `filemtime` is whole-second. `NamespaceCacheEntry` and `ScanIndexEntry` carry `recordedAt`, taken *before* the read or walk; a file with mtime not older than it is reread (git's racily clean rule, #3537). Scan-index directory stamps follow the same rule. Tests expecting a warm hit must backdate their files and directories. `ProjectCompiler`'s incremental reuse (target mtime equals source mtime) does the same: a source not older than its compile start gets target mtime 0, forcing a recompile (#3564).
 - `DependenciesForNamespace` memoizes per `(dirs, seeds)` within a process for its three root callers (`FileRunner`, `DataReadersLoader`, `NamespaceLoader`).
 
 ### OPcache file cache

@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Build\Application;
 use Phel;
 use Phel\Build\Application\CachedNamespaceExtractor;
 use Phel\Build\Application\NamespaceExtractor;
+use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
@@ -16,6 +17,7 @@ use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Compiler\CompilerFacade;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\NamespaceInformation;
+use PhelTest\Support\CountingScanFileStream;
 use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
@@ -57,6 +59,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
     public function test_warm_run_serves_from_persisted_index_without_walking(): void
     {
         $this->writePhel('main.phel', '(ns app\\main)');
+        touch($this->dir, time() - 10);
 
         $callCount = 0;
         // A fresh extractor + cache per "process", sharing only the on-disk file.
@@ -76,6 +79,43 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         self::assertSame('app\\main', $warmResult[0]->getNamespace());
     }
 
+    public function test_fifty_file_warm_scan_opens_no_directories(): void
+    {
+        for ($group = 0; $group < 5; ++$group) {
+            mkdir($this->dir . '/group' . $group);
+            for ($file = 0; $file < 10; ++$file) {
+                $this->writePhel('group' . $group . '/file' . $file . '.phel', '(ns app.group' . $group . '.file' . $file . ')');
+            }
+
+            touch($this->dir . '/group' . $group, time() - 10);
+        }
+
+        touch($this->dir . '/.cache', time() - 10);
+        touch($this->dir, time() - 10);
+        clearstatcache();
+        $callCount = 0;
+        $coldCache = $this->scanIndexCache();
+        $cold = $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$this->dir]);
+        $coldCache->save();
+        $warm = $this->makeExtractor($this->scanIndexCache(), $callCount);
+
+        CountingScanFileStream::$directoryOpens = 0;
+        CountingScanFileStream::$stats = 0;
+        stream_wrapper_unregister('file');
+        stream_wrapper_register('file', CountingScanFileStream::class);
+        try {
+            clearstatcache();
+            $result = $warm->getNamespacesFromDirectories([$this->dir]);
+        } finally {
+            stream_wrapper_restore('file');
+        }
+
+        self::assertCount(50, $result);
+        self::assertEquals($cold, $result);
+        self::assertGreaterThanOrEqual(50, CountingScanFileStream::$stats, 'Indexed file stamps are still checked.');
+        self::assertSame(0, CountingScanFileStream::$directoryOpens, 'Warm validation must not recursively recount files.');
+    }
+
     public function test_added_file_invalidates_even_within_same_second(): void
     {
         $this->writePhel('main.phel', '(ns app\\main)');
@@ -86,8 +126,8 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $coldCache->save();
 
         // Add a second file but pin the directory mtime back to the cold value,
-        // simulating an add within the same 1s mtime window. Only the file
-        // count differs, which must still invalidate.
+        // simulating an add within the same 1s mtime window. The recent
+        // directory stamp must still invalidate.
         $dirMtime = (int) filemtime($this->dir);
         $this->writePhel('extra.phel', '(ns app\\extra)');
         touch($this->dir, $dirMtime);
@@ -97,8 +137,92 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $result = $this->makeExtractor($this->scanIndexCache(), $callCount)
             ->getNamespacesFromDirectories([$this->dir]);
 
-        self::assertSame(2, $callCount, 'Added file (same-second) must force a re-walk via file-count mismatch.');
+        self::assertSame(2, $callCount, 'A same-second addition must force a fresh walk.');
         self::assertCount(2, $result);
+    }
+
+    public function test_an_empty_nested_directory_is_indexed_and_detects_a_new_source(): void
+    {
+        mkdir($this->dir . '/empty');
+        $this->writePhel('main.phel', '(ns app.main)');
+        touch($this->dir . '/empty', time() - 10);
+        touch($this->dir, time() - 10);
+        clearstatcache();
+        $rootMtime = filemtime($this->dir);
+        $callCount = 0;
+        $cache = $this->scanIndexCache();
+        $this->makeExtractor($cache, $callCount)->getNamespacesFromDirectories([$this->dir]);
+        $cache->save();
+
+        $entry = $cache->get($this->dir);
+        self::assertNotNull($entry);
+        self::assertArrayHasKey($this->dir . '/empty', $entry->perDir);
+        $this->writePhel('empty/new.cljc', '(ns app.new)');
+        touch($this->dir, $rootMtime);
+        clearstatcache();
+
+        $callCount = 0;
+        $result = $this->makeExtractor($this->scanIndexCache(), $callCount)
+            ->getNamespacesFromDirectories([$this->dir]);
+
+        self::assertSame(2, $callCount);
+        self::assertContains('app.new', $this->namespacesOf($result));
+    }
+
+    public function test_a_new_nested_directory_is_found_without_a_root_mtime_change(): void
+    {
+        mkdir($this->dir . '/existing');
+        $this->writePhel('main.phel', '(ns app.main)');
+        touch($this->dir . '/existing', time() - 10);
+        touch($this->dir, time() - 10);
+        clearstatcache();
+        $rootMtime = filemtime($this->dir);
+        $callCount = 0;
+        $cache = $this->scanIndexCache();
+        $this->makeExtractor($cache, $callCount)->getNamespacesFromDirectories([$this->dir]);
+        $cache->save();
+
+        mkdir($this->dir . '/existing/new');
+        $this->writePhel('existing/new/lib.phel', '(ns app.lib)');
+        touch($this->dir, $rootMtime);
+        clearstatcache();
+        $callCount = 0;
+        $result = $this->makeExtractor($this->scanIndexCache(), $callCount)
+            ->getNamespacesFromDirectories([$this->dir]);
+
+        self::assertSame(2, $callCount);
+        self::assertContains('app.lib', $this->namespacesOf($result));
+    }
+
+    public function test_a_directory_changed_after_the_walk_is_not_saved_as_a_clean_scan(): void
+    {
+        $this->writePhel('main.phel', '(ns app.main)');
+        touch($this->dir, time() - 10);
+        clearstatcache();
+        $inner = $this->createStub(NamespaceExtractorInterface::class);
+        $inner->method('getNamespaceFromFile')->willReturnCallback(function (string $path): NamespaceInformation {
+            $this->writePhel('late.phel', '(ns app.late)');
+            touch($this->dir, time() + 60);
+            clearstatcache();
+
+            return new NamespaceInformation($path, 'app.main', [], true);
+        });
+        $cache = $this->scanIndexCache();
+        $cold = new CachedNamespaceExtractor(
+            $inner,
+            new NullNamespaceCache(),
+            new TopologicalNamespaceSorter(),
+            new ExcludedScanPaths([dirname($this->cacheFile)]),
+            $cache,
+        );
+        self::assertCount(1, $cold->getNamespacesFromDirectories([$this->dir]));
+        $cache->save();
+        $callCount = 0;
+        $result = $this->makeExtractor($this->scanIndexCache(), $callCount)
+            ->getNamespacesFromDirectories([$this->dir]);
+
+        self::assertSame(2, $callCount);
+        self::assertContains('app.late', $this->namespacesOf($result));
     }
 
     public function test_removed_file_invalidates_even_within_same_second(): void
@@ -120,7 +244,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $result = $this->makeExtractor($this->scanIndexCache(), $callCount)
             ->getNamespacesFromDirectories([$this->dir]);
 
-        self::assertSame(1, $callCount, 'Removed file (same-second) must force a re-walk via file-count mismatch.');
+        self::assertSame(1, $callCount, 'A same-second removal must force a fresh walk.');
         self::assertCount(1, $result);
     }
 
@@ -187,6 +311,8 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         mkdir($other, 0777, true);
         $this->writePhel('main.phel', '(ns app\\main)');
         $this->writePhel('other/lib.phel', '(ns app\\lib)');
+        touch($other, time() - 10);
+        touch($this->dir, time() - 10);
 
         $callCount = 0;
         $cache = $this->scanIndexCache();
@@ -256,6 +382,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         $missing = $this->dir . '/never-created';
         mkdir($src, 0777, true);
         $this->writePhel('src/main.phel', '(ns app\\main)');
+        touch($src, time() - 10);
 
         $callCount = 0;
         $coldCache = $this->scanIndexCache();
@@ -288,7 +415,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
             new NamespaceExtractor(new CompilerFacade(), new TopologicalNamespaceSorter(), new SystemFileIo()),
             new NullNamespaceCache(),
             new TopologicalNamespaceSorter(),
-            null,
+            new ExcludedScanPaths([dirname($this->cacheFile)]),
             $cache,
         );
 
@@ -311,6 +438,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
     {
         $this->writePhel('main.phel', '(ns app.main)');
         $this->writePhel('stray.phel', "(def x 1)\n");
+        touch($this->dir, time() - 10);
 
         $callCount = 0;
         $coldCache = $this->scanIndexCache();
@@ -362,6 +490,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
     {
         $this->writePhel('main.phel', '(ns app.main)');
         $this->writePhel('stray.phel', "(def x 1)\n");
+        touch($this->dir, time() - 10);
 
         $callCount = 0;
         $coldCache = $this->scanIndexCache();
@@ -398,7 +527,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
             new NamespaceExtractor(new CompilerFacade(), new TopologicalNamespaceSorter(), new SystemFileIo()),
             new NullNamespaceCache(),
             new TopologicalNamespaceSorter(),
-            null,
+            new ExcludedScanPaths([dirname($this->cacheFile)]),
             $this->scanIndexCache(),
         );
         $extractor->getNamespacesFromDirectories([$this->dir]);
@@ -469,7 +598,7 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
             $inner,
             new NullNamespaceCache(),
             new TopologicalNamespaceSorter(),
-            null,
+            new ExcludedScanPaths([dirname($this->cacheFile)]),
             $scanIndexCache,
         );
     }

@@ -16,8 +16,8 @@ use function is_string;
 
 /**
  * Persists directory-scan results to `<cacheDir>/scan-index.php` so that warm
- * runs can skip the `RecursiveDirectoryIterator` walk + per-file `filemtime`
- * sweep entirely when the source tree has not changed.
+ * runs can validate directory and file stamps without recursively recounting
+ * the source tree.
  *
  * Mirrors {@see PhpNamespaceCache}: a `var_export`ed PHP file, written through
  * an exclusive `flock` with a disk-merge so concurrent processes don't clobber
@@ -31,7 +31,7 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
 {
     use DeferredFlushTrait;
 
-    private const string VERSION = '1.1';
+    private const string VERSION = '1.2';
 
     /** @var array<string, ScanIndexEntry> */
     private array $entries;

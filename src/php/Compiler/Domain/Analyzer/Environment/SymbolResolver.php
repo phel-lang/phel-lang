@@ -67,7 +67,7 @@ final readonly class SymbolResolver
             );
         }
 
-        if ($strName[0] === '\\') {
+        if (str_starts_with($strName, '\\')) {
             PhpIdentifier::assertClassName($name, $strName);
             return new PhpClassNameNode($env, $name, $name->getStartLocation());
         }

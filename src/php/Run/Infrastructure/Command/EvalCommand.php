@@ -11,6 +11,7 @@ use Phel\Run\Domain\StdinReaderInterface;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFactory;
 use Phel\Shared\CompilerConstants;
+use Phel\Shared\InvocationError;
 use Phel\Shared\ReplConstants;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
@@ -67,12 +68,16 @@ HELP)
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->getFacade()->loadPhelNamespaces();
-
         $expression = ScalarCoercion::toString($input->getArgument('expression') ?? null);
         if ($expression === self::STDIN_MARKER) {
             $expression = ($this->stdinReader ?? $this->getFactory()->createStdinReader())->read();
         }
+
+        if (trim($expression) === '') {
+            return InvocationError::report($output, 'Missing expression. Pass a Phel expression or "-" to read stdin.');
+        }
+
+        $this->getFacade()->loadPhelNamespaces();
 
         // Same input model as the REPL prompt: forms a human typed, where
         // re-defining a symbol is expected rather than a mistake (#2896).

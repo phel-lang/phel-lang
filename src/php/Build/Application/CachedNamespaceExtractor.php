@@ -100,14 +100,12 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
             return $this->directoriesScanCache[$cacheKey];
         }
 
-        // Second-level, cross-process cache: serve the persisted scan index
-        // when both the per-directory fingerprint (mtime + phel-file count) and
-        // every stored per-file mtime still validate, skipping the directory
-        // walk entirely.
+        // Validate the indexed directory and file stamps without reopening
+        // directories. Recent stamps remain racy and force a fresh walk.
         $persisted = $this->scanIndexCache->get($cacheKey);
         if ($persisted instanceof ScanIndexEntry
             && $persisted->covers($this->existingDirectories($directories))
-            && $persisted->isValid(fn(string $dir): int => $this->countPhelFiles($dir))
+            && $persisted->isValid()
         ) {
             return $this->directoriesScanCache[$cacheKey] = $persisted->infos;
         }
@@ -116,7 +114,8 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         $recordedAt = time();
         $allInfos = [];
         $skippedFiles = [];
-        foreach ($this->findAllPhelFiles($directories) as $file) {
+        $perDir = [];
+        foreach ($this->findAllPhelFiles($directories, $perDir) as $file) {
             try {
                 $allInfos[] = $this->getNamespaceFromFile($file);
             } catch (AnalyzerException|ExtractorException|MissingNsFormException|CompilerException) {
@@ -132,37 +131,9 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
 
         $grouped = $this->grouper->groupAndSort($allInfos);
 
-        $this->scanIndexCache->put($cacheKey, $this->perDirFingerprint($directories), $grouped, $recordedAt, $skippedFiles);
+        $this->scanIndexCache->put($cacheKey, $perDir, $grouped, $recordedAt, $skippedFiles);
 
         return $this->directoriesScanCache[$cacheKey] = $grouped;
-    }
-
-    /**
-     * Per-directory validation fingerprint for the persisted scan index: the
-     * resolved directory's own mtime paired with its phel-file count. The count
-     * catches same-second add/remove churn that the 1s-resolution mtime alone
-     * would miss.
-     *
-     * @param list<string> $directories
-     *
-     * @return array<string, DirFingerprint>
-     */
-    private function perDirFingerprint(array $directories): array
-    {
-        $perDir = [];
-        foreach ($this->existingDirectories($directories) as $realpath) {
-            $mtime = @filemtime($realpath);
-            if ($mtime === false) {
-                continue;
-            }
-
-            $perDir[$realpath] = [
-                'mtime' => $mtime,
-                'fileCount' => $this->countPhelFiles($realpath),
-            ];
-        }
-
-        return $perDir;
     }
 
     /**
@@ -187,38 +158,6 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         }
 
         return $existing;
-    }
-
-    /**
-     * Count the `.phel`/`.cljc` files reachable under a resolved directory,
-     * applying the same pruning + exclusion rules as the full scan so the
-     * count matches what `findAllPhelFiles` would have collected.
-     */
-    private function countPhelFiles(string $realpath): int
-    {
-        if (!is_dir($realpath)) {
-            return 0;
-        }
-
-        $count = 0;
-        try {
-            foreach ($this->phelFileIterator($realpath) as $file) {
-                if (!is_array($file)) {
-                    continue;
-                }
-
-                /** @var array<int, string> $file */
-                if ($this->excludedPaths->contains($file[0], $realpath)) {
-                    continue;
-                }
-
-                ++$count;
-            }
-        } catch (UnexpectedValueException) {
-            return 0;
-        }
-
-        return $count;
     }
 
     /**
@@ -259,17 +198,19 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
     }
 
     /**
-     * @param list<string> $directories
+     * @param list<string>                  $directories
+     * @param array<string, DirFingerprint> $perDir
      *
      * @return list<string>
      */
-    private function findAllPhelFiles(array $directories): array
+    private function findAllPhelFiles(array $directories, array &$perDir): array
     {
         $files = [];
 
         foreach ($this->existingDirectories($directories) as $realpath) {
+            $perDir[$realpath] = ['mtime' => @filemtime($realpath) ?: 0];
             try {
-                foreach ($this->phelFileIterator($realpath) as $file) {
+                foreach ($this->phelFileIterator($realpath, $perDir) as $file) {
                     if (!is_array($file)) {
                         continue;
                     }
@@ -285,6 +226,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
                     }
                 }
             } catch (UnexpectedValueException) {
+                $perDir[$realpath] = ['mtime' => 0];
                 continue;
             }
         }
@@ -301,9 +243,11 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
      * array, so the offset-0 capture holds the matched filename (narrowed at
      * the call site since `RegexIterator`'s generic cannot express it).
      *
+     * @param array<string, DirFingerprint> $perDir
+     *
      * @return Iterator<mixed, mixed>
      */
-    private function phelFileIterator(string $root): Iterator
+    private function phelFileIterator(string $root, array &$perDir): Iterator
     {
         $directoryIterator = new RecursiveDirectoryIterator(
             $root,
@@ -312,16 +256,22 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         $excludedPaths = $this->excludedPaths;
         $prunedDescent = new RecursiveCallbackFilterIterator(
             $directoryIterator,
-            static function (mixed $current) use ($excludedPaths, $root): bool {
+            static function (mixed $current) use ($excludedPaths, $root, &$perDir): bool {
                 if (!$current instanceof SplFileInfo || !$current->isDir()) {
                     return true;
                 }
 
-                return !$excludedPaths->shouldPruneDirectory(
+                if ($excludedPaths->shouldPruneDirectory(
                     $current->getFilename(),
                     $current->getPathname(),
                     $root,
-                );
+                )) {
+                    return false;
+                }
+
+                $perDir[$current->getPathname()] = ['mtime' => @filemtime($current->getPathname()) ?: 0];
+
+                return true;
             },
         );
 

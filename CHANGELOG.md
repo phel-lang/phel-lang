@@ -85,6 +85,7 @@ Compiler:
 - A malformed PHP member, class or type tag such as `.foo-bar` or `\Foo-Bar` fails with `PHEL007` at its symbol. It used to produce invalid PHP or interpret the dash as subtraction. (#3667)
 - Own namespace definitions take precedence over PHP `:use` aliases in bare values and calls. An imported alias used to hide a same-named `def`. Constructors, static calls, class callables and type tags still use the import. (#3717)
 - PHP class names such as `PDO` no longer produce constant-collision warnings in constructor, static-member or callable positions. The warning still applies to bare value positions. (#3537)
+- An empty symbol, including one returned by a macro, reports `PHEL001` without a PHP warning. It used to raise `Uninitialized string offset 0` before the unresolved-symbol error, as did an empty PHP import. (#3720)
 - Character literals such as `\é` and `\😀` read as whole Unicode characters instead of splitting after the first byte. (#3708)
 - Reader prefixes accept whitespace and comments before their forms, including `' x` and `^ :a x`. They used to fail or read the wrong form. Comments survive formatting, and a missing form reports the prefix instead of an unrelated `Unterminated list` error. (#3713)
 
@@ -94,6 +95,7 @@ Runtime:
 - `pop` and `pop!` preserve vectors at trie boundaries, including after appending or converting a transient to persistent. They used to crash, retain removed values or lose live ones. (#3672 #3673)
 - `merge-with` with no maps returns nil instead of `{}`, matching `merge`. Other arities are unchanged. (#3680)
 - Structs and records compare unequal to plain maps in both argument orders and stay distinct as map keys and set members. String and symbol lookup keys work consistently with array access; unsupported keys return false or nil. Equality used to depend on argument order, and lookup could raise PHP errors. (#3674 #3675)
+- Finite float hashes retain fractional and large-value distinctions without integer-cast warnings. Hashes used to collapse to truncated integers, making unrelated float keys share buckets. Signed zero and NaN key lookup remain consistent, and old reader caches are rebuilt before loading incompatible float-key maps. (#3677)
 - `iterate` returns its seed without calling the step function; `repeatedly` and `cycle` also realize values only on demand. Reading a head used to prefetch later values and trigger extra effects. (#3678)
 - `range` accepts ratio, `BigInt` and `BigDecimal` bounds and steps, including through `repeat`, `repeatedly`, `dotimes` and `for :range`. These used to fail with a `Seq::range()` type error. (#3557)
 - `partition` rejects nonpositive integer sizes and nonpositive numeric steps for integer-sized chunks before realization, matching `partition-all` on size validation. It used to return an empty sequence or repeat without advancing. (#3680)
@@ -108,6 +110,7 @@ Runtime:
 
 Builds and caches:
 
+- A stable warm `phel run` or `phel test` validates the namespace scan cache without walking source directories again. New, removed and edited sources still invalidate it. (#3699)
 - PHAR builds exclude untracked project files and produce the same checksum when source and production dependencies are unchanged. They used to include stray project files and vary with checkout timestamps. (#3697)
 - Built entry points and exported PHP wrappers reject a different Phel runtime version, including patch and development revisions; rebuild with `phel build` or `phel export` after upgrading. Builds also warn when their version differs from the project's lock file. Mismatches used to fail later on missing internal methods. (#3519, ADR 0020)
 - Same-second source rewrites refresh namespace information and compiled output. Whole-second timestamps used to preserve stale dependencies or ship old code. (#3537 #3564)
@@ -141,6 +144,7 @@ Analysis, diagnostics and docs:
 - Lint and analyze resolve definitions in files loaded with `load`, and lint ignores calls inside quoted data while still checking `~x`. These used to produce unresolved-symbol or arity errors for valid code. (#3551 #3550)
 - Lint, analyze and the LSP continue after files containing `#inst` literals instead of aborting on `DateTimeImmutable`. (#3610)
 - `phel run` prints every compiler error code; `phel eval` renders lexer errors with a code, source line and caret. A zero denominator such as `1/0` reports located `PHEL120` instead of escaping as an uncoded exception. These errors used to lose codes or print raw exception blocks. (#3537 #3608)
+- `phel eval` rejects missing or blank expressions, including empty stdin, with exit 2 instead of silently succeeding. Command exit codes outside `0..255` become 255 instead of wrapping to success. (#3695)
 - `PHEL402` argument errors and missing `load` files name the calling `.phel` file and line instead of a generated PHP location. PHP warnings, notices and deprecations from files loaded by `run` or `test` also point to Phel source; `error_get_last()` keeps its message. Typed eval/REPL code and built output keep PHP's own filenames. (#3537)
 - `phel doc` and the API reference link declaration macros and their special forms, `apply`, `ns` and PHP array, object, class, callable and reference forms to existing guide sections. They and REPL completion use the resolvable `phel.http-client` name instead of `http_client`. (#3656 #3645)
 - `debug:container`, `debug:dependencies`, `debug:modules`, `profile:report`, `validate:config` and `cache:warm` help uses `phel ...` examples instead of `bin/gacela` and `gacela.php`. `phel doctor` recommends the existing `phel cache:clear` command. (#3537 #3563 #3577)

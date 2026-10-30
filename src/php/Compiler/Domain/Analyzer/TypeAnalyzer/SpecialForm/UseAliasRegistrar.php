@@ -62,7 +62,7 @@ final readonly class UseAliasRegistrar
             BackslashSeparatorDeprecator::getInstance()->maybeWarn($useSymbol);
             $useSymbol = $this->normalizeSymbolSeparators($useSymbol);
 
-            if ($useSymbol->getName()[0] !== '\\') {
+            if (!str_starts_with($useSymbol->getName(), '\\')) {
                 $useSymbol = Symbol::createForNamespace($useSymbol->getNamespace(), '\\' . $useSymbol->getName())
                     ->copyLocationFrom($useSymbol);
             }

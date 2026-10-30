@@ -25,9 +25,8 @@ use function is_array;
  */
 final readonly class FileSystemReaderResultCache implements ReaderResultCacheInterface
 {
-    // Bump when the serialized form shape changes within a release, e.g. a new
-    // Symbol property: entries written before it unserialize with its default.
-    private const string FORMAT_VERSION = '2';
+    // Bump when serialized forms or collection hashing change within a release.
+    private const string FORMAT_VERSION = '3';
 
     private string $dir;
 
