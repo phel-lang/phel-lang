@@ -49,6 +49,16 @@ final class FormatterFacadeTest extends TestCase
         self::assertSame($formatted, $formatter->format($formatted));
     }
 
+    public function test_shebang_and_quoted_shebang_text_are_preserved_idempotently(): void
+    {
+        $source = "#!/usr/bin/env phel\n(ns shebang-script)\n(println \"#! is text\")\n";
+        $formatter = $this->formatterFactory->createFormatter();
+        $formatted = $formatter->format($source);
+
+        self::assertSame($source, $formatted);
+        self::assertSame($formatted, $formatter->format($formatted));
+    }
+
     public static function unicode_columns(): iterable
     {
         yield 'accented binding' => [

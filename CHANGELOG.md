@@ -78,6 +78,7 @@ Compiler:
 - Vector destructuring binds `:as` to the original input, including after rest bindings and in nested patterns. It used to reject the keyword as a binding. (#3721)
 - `binding` and `with-redefs` require var targets and report `PHEL008` instead of an internal assertion. `defn`, `defn-` and `defmacro` require parameter vectors, including each multi-arity form, instead of failing inside `apply`. (#3534 #3537)
 - Interface implementations report mismatched method parameter counts with `PHEL009`; structs report missing methods, and interface methods reject a missing `this` parameter. `reify` and `extend-type` name unknown protocol methods instead of reporting an unresolved dispatch function. These used to fail in PHP or with unrelated compiler errors. (#3537 #3646 #3647 #3648)
+- Phel scripts accept a `#!` shebang line, and `phel format` preserves it. They used to fail to lex the opening `#`. (#3714)
 - Recursive macro expansion stops after 1,000 nested expansions with `PHEL005` at the original call. It used to hang builds, lint and the LSP. (#3719)
 - Type tags for structs, interfaces, exceptions and enums in the same namespace work in `run`, `test` and the REPL. They used to accept values only after a build. (#3654)
 - A malformed PHP member, class or type tag such as `.foo-bar` or `\Foo-Bar` fails with `PHEL007` at its symbol. It used to produce invalid PHP or interpret the dash as subtraction. (#3667)
