@@ -56,7 +56,8 @@ The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 
 - New LSP method: add a `HandlerInterface` subclass in `Application/Handler/`, register it in `LspFactory::createDispatcher()`.
 - Handlers never touch transport directly; return via `RequestDispatcher` or push via `Session::sink()`.
 - `DocumentStore` is authoritative for open-file content.
-- Diagnostics are cooperatively debounced: callers check `DiagnosticPublisher::shouldPublish()` before `publish()`; `publishNow()` skips debounce (used on didSave).
+- Server and handlers share one `DiagnosticPublisher`: edits replace the queued document per URI and reset its 200 ms deadline; the server calls `publishDue()` between reads. Open/save publish immediately and cancel pending work; close cancels before clearing diagnostics. Notifications include the document version.
+- `MessageReader` retains partial headers and bodies across bounded readiness waits, preserving idle wakeups for queued diagnostics. It drains buffered frames before EOF and reports unsupported readiness as a transport failure. Lint diagnostics use the document buffer through `LintFacade::lintSource()`, never saved source text or the lint result cache.
 - Converters in `Application/Convert/` must stay pure (no Facade state) so they remain unit-testable.
 - `Diagnostic`, `Location` and `Definition` arrive 1-based; `PositionConverter` is the only place that turns them into 0-based LSP positions. `DiagnosticRangeLspTest` pins that the shift happens once.
 - PHP interop (completion/hover/signatureHelp) resolves through the Api facade (`phpInteropHoverAt`, `phpInteropSignatureAt`, `completeAtPoint`). `CompletionHandler`/`HoverHandler`/`SignatureHelpHandler` try interop first, then fall back to Phel symbols; signature help reads the symbol's documented arities via `phelSignatureAt`.
