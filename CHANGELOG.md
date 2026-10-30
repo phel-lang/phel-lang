@@ -83,16 +83,16 @@ Compiler:
 
 Runtime:
 
-- `merge-with` with no maps returns nil instead of `{}`, matching `merge`. Other arities are unchanged. (#3680)
-- `partition` rejects nonpositive integer sizes and nonpositive numeric steps for integer-sized chunks before realization, matching `partition-all` on size validation. It used to return an empty sequence or repeat without advancing. (#3680)
-- `name` rejects nil and other unsupported values with an explicit argument error naming their type instead of a PHP member-call error. Strings, keywords and symbols keep their existing behavior. (#3680)
 - `pop` and `pop!` preserve vectors at trie boundaries, including after appending or converting a transient to persistent. They used to crash, retain removed values or lose live ones. (#3672 #3673)
+- `merge-with` with no maps returns nil instead of `{}`, matching `merge`. Other arities are unchanged. (#3680)
 - Structs and records compare unequal to plain maps in both argument orders and stay distinct as map keys and set members. String and symbol lookup keys work consistently with array access; unsupported keys return false or nil. Equality used to depend on argument order, and lookup could raise PHP errors. (#3674 #3675)
 - `iterate` returns its seed without calling the step function; `repeatedly` and `cycle` also realize values only on demand. Reading a head used to prefetch later values and trigger extra effects. (#3678)
 - `range` accepts ratio, `BigInt` and `BigDecimal` bounds and steps, including through `repeat`, `repeatedly`, `dotimes` and `for :range`. These used to fail with a `Seq::range()` type error. (#3557)
+- `partition` rejects nonpositive integer sizes and nonpositive numeric steps for integer-sized chunks before realization, matching `partition-all` on size validation. It used to return an empty sequence or repeat without advancing. (#3680)
 - `pr-str` and `str` preserve exact finite floats, including `1.0000000000000002` and `(/ 1.0 3)`, instead of losing digits to PHP's display precision. (#3707)
 - `pr-str` and REPL output render cyclic atoms as `#<cycle>`, including cycles through collections. Printing them used to exhaust the process. (#3705)
 - `(symbol "/a")` keeps its full name without a namespace instead of becoming `a` with an empty namespace. (#3524 #3710)
+- `name` rejects nil and other unsupported values with an explicit argument error naming their type instead of a PHP member-call error. Strings, keywords and symbols keep their existing behavior. (#3680)
 - `with-meta` and `vary-meta` accept fn literals, preserving their metadata and callable behavior instead of failing on a missing method. (#3537)
 - `file-seq` ends at symlink cycles and lists each real file once on all PHP builds. It used to repeat paths or throw on thread-safe builds. (#3537)
 - On PHP 8.6, struct, exception and enum predicates, interface methods called with strings, and hashing PHP objects no longer emit deprecations. Functions returning `(php/=& target value)` also work with OPcache's default optimizer instead of stopping with `Invalid opcode 62/4/0` on PHP 8.6 RC2. (#3522)
