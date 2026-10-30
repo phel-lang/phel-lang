@@ -19,6 +19,8 @@ Clojure-style interop spellings expand to `php/*` forms before analysis, never r
 
 `Domain/Analyzer/QualifiedMemberSyntax` is the single statement of how a class member is spelled. Call position, value position and `phel.core/set!` all use it, so `(\Foo/m 1)`, `\Foo/CONST` and `(set! \Foo/slot v)` cannot disagree; `set!` re-spells it in Phel because the stdlib cannot import `@internal` classes. Purely lexical: `PhpClassLike` answers existence.
 
+`Domain/Analyzer/PhpIdentifier` validates raw host members, class segments and type tags before emission, including PHP's identifier bytes above ASCII. Phel declaration names are munged before validation; host names are not. `ReservedDeclarationName` applies PHP type-name reservations separately, preserving keyword members and the allowed type names `enum`, `resource` and `numeric`.
+
 `NodeEmitter/PhpObjectSetEmitter` shares `PhpObjectCallDispatchResolver` with the read path, so a class-name target is static however written, and prefixes a bare static member with `$`: a class constant is not assignable (#2907).
 
 Bare values and calls resolve lexical locals first, then own namespace definitions or interfaces, `:use` aliases, `:refer` bindings and core definitions. A qualified name keeps its explicit namespace.

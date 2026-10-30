@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PropertyOrConstantAccessNode;
 use Phel\Compiler\Domain\Analyzer\BareHostClass;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\PhpIdentifier;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
@@ -72,6 +73,11 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
             $isStaticPlace = !$methodCall
                 && ($this->isStatic && $i === 2 || $targetExpr instanceof PhpClassNameNode);
             $this->assertSigilNamesAStaticProperty($current, $isStaticPlace, $list);
+            $member = $current instanceof PersistentListInterface ? $current->get(0) : $current;
+            if ($member instanceof Symbol) {
+                $name = $member->getName();
+                PhpIdentifier::assertName($member, $isStaticPlace && str_starts_with($name, '$') ? substr($name, 1) : $name);
+            }
 
             $isLast = $i === $counter - 1;
             $nodeEnv = $isLast ? $env : $env->withExpressionContext();

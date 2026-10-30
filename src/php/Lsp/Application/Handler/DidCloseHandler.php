@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
+use Phel\Lsp\Application\Diagnostics\DiagnosticPublisher;
 use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
@@ -15,6 +16,7 @@ final readonly class DidCloseHandler implements HandlerInterface
 {
     public function __construct(
         private ParamsExtractor $params,
+        private ?DiagnosticPublisher $publisher = null,
     ) {}
 
     public function method(): string
@@ -34,6 +36,7 @@ final readonly class DidCloseHandler implements HandlerInterface
     {
         $uri = $this->params->uri($params);
         if ($uri !== '') {
+            $this->publisher?->cancel($uri);
             $session->documents()->close($uri);
             $session->sink()->notify('textDocument/publishDiagnostics', [
                 'uri' => $uri,

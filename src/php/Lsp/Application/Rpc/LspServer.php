@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Phel\Lsp\Application\Rpc;
 
 use JsonException;
+use Phel\Lsp\Application\Diagnostics\DiagnosticPublisher;
 use Phel\Lsp\Application\Session\Session;
 use Throwable;
-
-use function feof;
 
 /**
  * Owns the read/dispatch/write loop. Terminates when the client closes
@@ -24,6 +23,7 @@ final readonly class LspServer
         private RequestDispatcher $dispatcher,
         private ResponseBuilder $responses,
         private Session $session,
+        private ?DiagnosticPublisher $publisher = null,
     ) {}
 
     /**
@@ -36,12 +36,14 @@ final readonly class LspServer
     {
         $iterations = 0;
         while (true) {
-            if (feof($input)) {
+            if ($maxIterations > 0 && $iterations >= $maxIterations) {
                 return 0;
             }
 
-            if ($maxIterations > 0 && $iterations >= $maxIterations) {
-                return 0;
+            try {
+                $this->publisher?->publishDue();
+            } catch (Throwable) {
+                return 1;
             }
 
             $message = $this->readMessage($input, $output);
