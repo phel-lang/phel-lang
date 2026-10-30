@@ -141,6 +141,7 @@ Editors and servers:
 - The LSP substitutes invalid UTF-8 in responses and turns other encoding failures into protocol errors instead of stopping the server. (#3684)
 - nREPL bounds pending input and nesting, rejects malformed messages and sends complete responses to slow clients without blocking other connections. These used to stall connections, exhaust memory or truncate replies. SIGTERM and Ctrl+C stop the server cleanly instead of exiting 1; binding outside loopback warns that nREPL has no authentication. (#3681 #3682 #3575 #3532)
 - `phel format` retains all reader-conditional branches, including splicing and unmatched forms, plus whitespace and comments between tagged literals and values. It used to delete branches or produce unreadable tokens; a second formatting pass now succeeds. Malformed conditionals such as `#?(:phel)` and `#?(1 2)` report a located parser error. (#3669 #3670 #3715)
+- `phel format` aligns Unicode keys and indents forms after Unicode names by character columns. It used to count UTF-8 bytes and misalign names such as `é` and `日本語`. (#3671)
 
 PHP API:
 
