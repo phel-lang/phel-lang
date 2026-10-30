@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace PhelTest\Benchmark\Build;
 
+use LogicException;
 use Phel;
 use Phel\Build\Application\CachedNamespaceExtractor;
 use Phel\Build\Application\NamespaceExtractor;
+use Phel\Build\Domain\Extractor\ExcludedScanPaths;
+use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Infrastructure\Cache\NullNamespaceCache;
 use Phel\Build\Infrastructure\Cache\PhpScanIndexCache;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Shared\NamespaceInformation;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
@@ -57,13 +61,16 @@ final class ScanIndexBench
 
         $this->dir = sys_get_temp_dir() . '/phel-scan-index-bench-' . uniqid();
         mkdir($this->dir, 0777, true);
+        mkdir($this->dir . '/.cache');
         $this->scanIndexFile = $this->dir . '/.cache/scan-index.php';
         $this->directories = [$this->dir];
 
+        $fixtureDirectories = [$this->dir];
         for ($i = 0; $i < self::FILE_COUNT; ++$i) {
             $sub = $this->dir . '/pkg' . intdiv($i, 25);
             if (!is_dir($sub)) {
                 mkdir($sub, 0777, true);
+                $fixtureDirectories[] = $sub;
             }
 
             $file = sprintf('%s/ns%d.phel', $sub, $i);
@@ -73,6 +80,11 @@ final class ScanIndexBench
             touch($file, time() - 10);
         }
 
+        foreach ($fixtureDirectories as $directory) {
+            touch($directory, time() - 10);
+        }
+
+        clearstatcache();
         $this->phelSourceDirectories = [$projectRoot . 'src'];
 
         // Prime the persisted index once so the warm subjects read it back.
@@ -80,6 +92,8 @@ final class ScanIndexBench
         $this->makeExtractor($cache)->getNamespacesFromDirectories($this->directories);
         $this->makeExtractor($cache)->getNamespacesFromDirectories($this->phelSourceDirectories);
         $cache->save();
+        $this->assertWarmScan($this->directories);
+        $this->assertWarmScan($this->phelSourceDirectories);
     }
 
     /**
@@ -100,8 +114,7 @@ final class ScanIndexBench
     }
 
     /**
-     * Warm scan: the persisted index validates (per-dir mtime + file count and
-     * every per-file mtime), so the walk is skipped entirely.
+     * Warm scan: a validated persisted index supplies the namespace list.
      *
      * @Revs(5)
      *
@@ -116,8 +129,7 @@ final class ScanIndexBench
     }
 
     /**
-     * Warm scan of Phel's own `src/`, the first source dir of every run. Its
-     * validation recounts the Phel files, so it must not walk `src/php` (#3467).
+     * Warm scan of Phel's own `src/`, the first source dir of every run.
      * The input is the real tree on purpose: the cost under guard is its size.
      *
      * @Revs(5)
@@ -132,20 +144,50 @@ final class ScanIndexBench
         $this->makeExtractor($cache)->getNamespacesFromDirectories($this->phelSourceDirectories);
     }
 
+    /**
+     * @param list<string> $directories
+     */
+    private function assertWarmScan(array $directories): void
+    {
+        $inner = new class() implements NamespaceExtractorInterface {
+            public function getNamespaceFromFile(string $path): NamespaceInformation
+            {
+                throw new LogicException('Warm scan benchmark requires a valid persisted index: ' . $path);
+            }
+
+            public function getNamespacesFromDirectories(array $directories, bool $failOnInvalidNsForm = false): array
+            {
+                throw new LogicException('Warm scan benchmark unexpectedly bypassed its index.');
+            }
+        };
+        $extractor = new CachedNamespaceExtractor(
+            $inner,
+            new NullNamespaceCache(),
+            new TopologicalNamespaceSorter(),
+            new ExcludedScanPaths(excludedDirectories: [$this->dir . '/.cache']),
+            new PhpScanIndexCache($this->scanIndexFile),
+        );
+        if ($extractor->getNamespacesFromDirectories($directories) === []) {
+            throw new LogicException('Warm scan benchmark requires a nonempty persisted index.');
+        }
+    }
+
     private function makeExtractor(PhpScanIndexCache $scanIndexCache): CachedNamespaceExtractor
     {
         $sorter = new TopologicalNamespaceSorter();
+        $excludedPaths = new ExcludedScanPaths(excludedDirectories: [$this->dir . '/.cache']);
         $inner = new NamespaceExtractor(
             new CompilerFacade(),
             $sorter,
             new SystemFileIo(),
+            $excludedPaths,
         );
 
         return new CachedNamespaceExtractor(
             $inner,
             new NullNamespaceCache(),
             $sorter,
-            null,
+            $excludedPaths,
             $scanIndexCache,
         );
     }

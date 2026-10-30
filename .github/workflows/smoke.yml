@@ -60,8 +60,14 @@ jobs:
         with:
           ini-values: phar.readonly=0
 
-      - name: Build PHAR
-        run: ./build/phar.sh
+      - name: Build PHAR twice and compare checksums
+        run: |
+          ./build/phar.sh
+          first_hash=$(php -r 'echo hash_file("sha256", "build/out/phel.phar");')
+          ./build/phar.sh
+          second_hash=$(php -r 'echo hash_file("sha256", "build/out/phel.phar");')
+          echo "PHAR checksums: $first_hash $second_hash"
+          test "$first_hash" = "$second_hash"
 
       - name: Assert PHAR exists and is under size budget
         # `stat -c` is GNU; BSD stat wants `-f`. `wc -c` is in POSIX and needs no
