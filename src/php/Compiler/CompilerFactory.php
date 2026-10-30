@@ -57,7 +57,7 @@ use Phel\Shared\Facade\FilesystemFacadeInterface;
 use Phel\Shared\Munge;
 use Phel\Shared\MungeInterface;
 use Phel\Shared\Printer\Printer;
-use Phel\Shared\VersionFinder;
+use Phel\Shared\VersionResolver;
 
 /**
  * @extends AbstractFactory<CompilerConfig>
@@ -273,7 +273,7 @@ final class CompilerFactory extends AbstractFactory
 
         return new FileSystemReaderResultCache(
             $this->getConfig()->getCacheDir(),
-            VersionFinder::LATEST_VERSION,
+            VersionResolver::current(),
         );
     }
 
