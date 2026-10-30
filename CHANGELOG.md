@@ -111,9 +111,9 @@ Builds and caches:
 
 Commands and test output:
 
-- `phel --version`, `phel help` and `phel list` leave empty directories unchanged. They used to create `.phel/` and its OPcache directory even when no code was compiled. (#3690)
 - `phel run` accepts every declared option before the path, including `--stack-trace --debug`, instead of treating some as a namespace. `--warn-deprecations` after the path reaches the script instead of being stripped. (#3537)
 - `phel config` and its JSON output report effective environment and flag overrides, including `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations`. JSON includes every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`; these used to be missing or show only file values. (#3525)
+- `phel --version`, `phel help` and `phel list` leave empty directories unchanged. They used to create `.phel/` and its OPcache directory even when no code was compiled. (#3690)
 - Machine output stays parseable: TAP and stdout JUnit timing, mutation JSON progress, and `index -o` persistence notices go to stderr. Loaded-namespace output also goes there for analyze, lint, JSON doc/profile/mutate and api-daemon; daemon startup failures report their reason there. This text used to pollute machine output. (#3525)
 - Parallel JUnit runs produce the same XML document as serial runs, on stdout or in the `-o` file with progress and summary on stderr, instead of a summary or workers overwriting the file. TAP remains serial, with its verbose `Ignoring --parallel` notice on stderr. Test-body output and test-file compile errors go to stderr for TAP and stdout JUnit; `output?` and `with-out-str` still capture output inside tests. (#3627 #3642)
 - An exception outside `is` counts as a test error, and later tests and the summary still run. It used to abort serial runs or lose a parallel namespace without counting an error. (#3537)
