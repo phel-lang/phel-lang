@@ -66,7 +66,7 @@ Opt-in, off by default (`CompilerConfig::isIntermediateCacheEnabled()`). Wired o
 - Special forms are registered centrally; no ad-hoc handling in the analyzer loop.
 - Source locations propagate through all phases.
 - Every special-form analyzer checks argument count before reading an argument (`AssertsFormArityTrait::assertArityAtLeast()`). Otherwise `PersistentListInterface::get()` throws a runtime `[PHEL403] Index out of bounds` with no snippet. `SpecialFormArityTest` walks the `AnalyzePersistentList` registry and fails on anything but an `AnalyzerException` (#3297).
-- Type declarations reject `let` and `is` case-insensitively; interface constants also reject `namespace` (PHP 8.6, shared via `ReservedDeclarationName`).
+- Type declarations validate munged PHP identifiers and reject reserved PHP type names case-insensitively; interface constants reject `let`, `is` and `namespace` (`ReservedDeclarationName`).
 - A reference assignment in return position goes through a temporary: returning it directly triggers `Invalid opcode 62/4/0` in PHP 8.6 RC2's OPcache. Both operands still evaluate once.
 - Do NOT rename `GlobalEnvironmentSingleton`: the emitter writes `\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()` into generated PHP, baked into cached `.phel` files. It is an ABI shim over the same slot as `GlobalEnvironmentManager`.
 - Do NOT rename `Phel\Lang\LoadClasspath`: `LoadEmitter` bakes its FQN into generated PHP. It lives in `Lang` because its state is the `*load-classpath*` slot in `Lang\Registry`.
