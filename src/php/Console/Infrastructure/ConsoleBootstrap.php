@@ -92,7 +92,7 @@ final class ConsoleBootstrap extends Application
         $exitCode = parent::run($input, $output);
         $this->getFactory()->getFilesystemFacade()->clearAll();
 
-        exit($exitCode);
+        exit($exitCode < 0 || $exitCode > 255 ? 255 : $exitCode);
     }
 
     /**
