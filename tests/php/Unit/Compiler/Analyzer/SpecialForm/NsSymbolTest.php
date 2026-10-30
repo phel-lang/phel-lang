@@ -74,6 +74,26 @@ final class NsSymbolTest extends TestCase
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
+    public function test_a_qualified_namespace_symbol_fails_at_its_location_without_changing_namespace(): void
+    {
+        $name = Symbol::create('a/b');
+        $location = new SourceLocation('/app/main.phel', 2, 4);
+        $name->setStartLocation($location);
+        $previousNamespace = $this->globalEnv->getNs();
+        $list = Phel::list([Symbol::create(Symbol::NAME_NS), $name]);
+
+        try {
+            new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+            self::fail('Expected an invalid namespace error.');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertStringStartsWith('Invalid namespace.', $analyzerException->getMessage());
+            self::assertSame(ErrorCode::INVALID_SPECIAL_FORM, $analyzerException->getErrorCode());
+            self::assertSame($location, $analyzerException->getStartLocation());
+        }
+
+        self::assertSame($previousNamespace, $this->globalEnv->getNs());
+    }
+
     #[DataProvider('phpKeywordNamespacePartProvider')]
     public function test_namespace_part_allows_php_keywords(string $keyword): void
     {

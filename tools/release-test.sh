@@ -519,6 +519,69 @@ function test_parse_args_all_flags_with_name() {
     assert_equals "1.2.3" "$NEW_VERSION"
 }
 
+record_release_request() (
+    local gh_result="${5:-0}"
+
+    gh() {
+        printf '%s\n' "$@" > "$TEMP_DIR/gh-args"
+        cat > "$TEMP_DIR/gh-notes"
+        return "$gh_result"
+    }
+
+    get_contributors() { printf '%s\n' '@maintainer'; }
+    check_claude_installed() { return 1; }
+
+    printf '# Changelog\n\n## [%s]\n\n### Fixed\n\n- Release notes\n\n## [0.54.0]\n' "$1" > "$TEMP_DIR/CHANGELOG.md"
+    create_github_release "$1" "$TEMP_DIR/CHANGELOG.md" "$3" "$4" "$2" '0.54.0' "$TEMP_DIR" '### Fixed
+- Release notes' > "$TEMP_DIR/release-output" 2>&1
+)
+
+function test_release_title_is_literal_data() {
+    local release_name
+    printf -v release_name 'x $(touch "%s") `touch "%s"` "quoted" $PHEL_RELEASE' "$TEMP_DIR/substitution" "$TEMP_DIR/backticks"
+
+    record_release_request '1.2.3' "$release_name" "$TEMP_DIR/missing.phar" 0
+
+    assert_file_not_exists "$TEMP_DIR/substitution"
+    assert_file_not_exists "$TEMP_DIR/backticks"
+    local expected
+    expected=$(printf '%s\n' release create v1.2.3 --repo phel-lang/phel-lang --title "1.2.3 - $release_name" --notes-file -)
+    assert_same "$expected" "$(cat "$TEMP_DIR/gh-args")"
+    assert_file_contains "$TEMP_DIR/gh-notes" 'Release notes'
+    assert_file_contains "$TEMP_DIR/gh-notes" '@maintainer'
+    assert_file_contains "$TEMP_DIR/gh-notes" 'https://github.com/phel-lang/phel-lang/compare/v0.54.0...v1.2.3'
+}
+
+function test_prerelease_keeps_the_asset_path_as_one_argument() {
+    local phar="$TEMP_DIR/phel release.phar"
+    touch "$phar"
+
+    record_release_request '1.2.3-rc1' 'Release Candidate' "$phar" 0
+
+    local expected
+    expected=$(printf '%s\n' release create v1.2.3-rc1 --repo phel-lang/phel-lang --title '1.2.3-rc1 - Release Candidate' --notes-file - --prerelease "$phar")
+    assert_same "$expected" "$(cat "$TEMP_DIR/gh-args")"
+}
+
+function test_release_can_skip_an_existing_asset_and_omit_the_name() {
+    local phar="$TEMP_DIR/phel.phar"
+    touch "$phar"
+
+    record_release_request '1.2.3' '' "$phar" 1
+
+    local expected
+    expected=$(printf '%s\n' release create v1.2.3 --repo phel-lang/phel-lang --title '1.2.3' --notes-file -)
+    assert_same "$expected" "$(cat "$TEMP_DIR/gh-args")"
+}
+
+function test_release_reports_a_failed_github_command() {
+    local result=0
+    record_release_request '1.2.3' '' "$TEMP_DIR/missing.phar" 1 7 || result=$?
+
+    assert_same '1' "$result"
+    assert_file_contains "$TEMP_DIR/release-output" 'Failed to create GitHub release'
+}
+
 # =============================================================================
 # Release Name Functions Tests
 # =============================================================================
