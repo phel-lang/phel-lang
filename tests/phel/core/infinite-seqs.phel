@@ -777,6 +777,23 @@
         "variadic map should return a lazy sequence")))
 
 ;; Tests for partition
+(deftest test-partition-rejects-non-positive-integer-sizes-before-realization
+  (doseq [n [0 -1 0N -1N]]
+    (is (thrown? InvalidArgumentException (partition n [1 2])))
+    (is (thrown? InvalidArgumentException (partition n 1 [1 2])))
+    (is (thrown? InvalidArgumentException (partition n 1 [:pad] [1 2]))))
+  (is (thrown-with-msg? InvalidArgumentException
+                        "partition expects a positive integer chunk size, got 0"
+                        (partition 0 [1 2]))))
+
+(deftest test-partition-rejects-non-positive-steps-before-realization
+  (doseq [step [0 -1 0N -1N 0.0 -0.5]]
+    (is (thrown? InvalidArgumentException (partition 2 step [1 2])))
+    (is (thrown? InvalidArgumentException (partition 2 step [:pad] [1 2]))))
+  (is (thrown-with-msg? InvalidArgumentException
+                        "partition expects a positive step, got 0"
+                        (partition 2 0 [1 2]))))
+
 (deftest test-partition-basic
   (is (= [[1 2 3] [4 5 6]] (doall (partition 3 [1 2 3 4 5 6])))
       "partition should divide collection into chunks of size n"))
