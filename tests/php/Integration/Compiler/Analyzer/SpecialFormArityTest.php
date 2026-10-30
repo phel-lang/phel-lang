@@ -9,7 +9,12 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentList;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\Exceptions\ErrorCode;
 use PhelTest\Integration\Compiler\AbstractCompilerRuntimeTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Throwable;
 
 use function implode;
@@ -32,6 +37,35 @@ final class SpecialFormArityTest extends AbstractCompilerRuntimeTestCase
 {
     /** How many leading arguments to try before moving on to the next form. */
     private const int MAX_ARGS = 2;
+
+    public function test_named_fn_without_parameters_keeps_its_arity_code_and_snippet(): void
+    {
+        try {
+            $this->compilerFacade->compile('(fn foo)', new CompileOptions()->setSource('named-fn.phel')->setStartingLine(7));
+            self::fail('Expected a CompilerException');
+        } catch (CompilerException $compilerException) {
+            self::assertSame(ErrorCode::ARITY_ERROR, $compilerException->getNestedException()->getErrorCode());
+            self::assertStringContainsString('(fn name? [params] body ...)', $compilerException->getMessage());
+            self::assertSame('(fn foo)', $compilerException->getCodeSnippet()->getCode());
+            self::assertSame('named-fn.phel', $compilerException->getNestedException()->getStartLocation()?->getFile());
+            self::assertSame(7, $compilerException->getNestedException()->getStartLocation()?->getLine());
+        }
+    }
+
+    #[DataProvider('emptyTryForms')]
+    public function test_empty_list_try_bodies_evaluate_as_empty_lists(string $source): void
+    {
+        $value = $this->compilerFacade->eval($source);
+
+        self::assertInstanceOf(PersistentListInterface::class, $value);
+        self::assertCount(0, $value);
+    }
+
+    public static function emptyTryForms(): iterable
+    {
+        yield 'body only' => ['(try ())'];
+        yield 'with catch' => ['(try () (catch \\Exception e 1))'];
+    }
 
     public function test_no_special_form_fails_with_anything_but_an_analyzer_error(): void
     {

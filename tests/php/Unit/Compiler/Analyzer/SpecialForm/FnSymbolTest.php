@@ -19,10 +19,13 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\FnSymbol;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ErrorCode;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -51,6 +54,23 @@ final class FnSymbolTest extends TestCase
         ]);
 
         new FnSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_a_name_without_parameters_reports_arity_at_the_original_form(): void
+    {
+        $list = Phel::list([Symbol::create(Symbol::NAME_FN), Symbol::create('foo')]);
+        $list->setStartLocation(new SourceLocation('named-fn.phel', 7, 4));
+        $list->setEndLocation(new SourceLocation('named-fn.phel', 7, 12));
+
+        try {
+            new FnSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+            self::fail('Expected an AnalyzerException');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertSame("Wrong number of arguments for 'fn. Usage: (fn name? [params] body ...)", $analyzerException->getMessage());
+            self::assertSame(ErrorCode::ARITY_ERROR, $analyzerException->getErrorCode());
+            self::assertSame($list->getStartLocation(), $analyzerException->getStartLocation());
+            self::assertSame($list->getEndLocation(), $analyzerException->getEndLocation());
+        }
     }
 
     public function test_second_arg_must_be_a_vector(): void

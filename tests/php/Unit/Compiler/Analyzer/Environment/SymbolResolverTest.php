@@ -125,6 +125,49 @@ final class SymbolResolverTest extends TestCase
         );
     }
 
+    public function test_an_own_definition_wins_over_a_use_alias(): void
+    {
+        $this->globalEnv->setNs('app');
+        $this->globalEnv->addUseAlias('app', Symbol::create('Date'), Symbol::create('\\DateTime'));
+        $this->globalEnv->addDefinition('app', Symbol::create('Date'));
+
+        $env = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new GlobalVarNode($env, 'app', Symbol::create('Date'), Phel::map()),
+            $this->resolver->resolve(Symbol::create('Date'), $env),
+        );
+    }
+
+    public function test_a_qualified_definition_is_not_intercepted_by_a_bare_import(): void
+    {
+        $this->globalEnv->setNs('app');
+        $this->globalEnv->addDefinition('app', Symbol::create('Date'));
+        $this->globalEnv->addDefinition('other', Symbol::create('Date'));
+        $this->globalEnv->addUseAlias('app', Symbol::create('Date'), Symbol::create('\\DateTime'));
+
+        $env = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new GlobalVarNode($env, 'other', Symbol::create('Date'), Phel::map()),
+            $this->resolver->resolve(Symbol::createForNamespace('other', 'Date'), $env),
+        );
+    }
+
+    public function test_a_use_alias_still_wins_over_refers_and_core(): void
+    {
+        $this->globalEnv->setNs('app');
+        $this->globalEnv->addDefinition('other', Symbol::create('Date'));
+        $this->globalEnv->addDefinition('phel.core', Symbol::create('Date'));
+        $this->globalEnv->addRefer('app', Symbol::create('Date'), Symbol::create('other'));
+
+        $target = Symbol::create('\\DateTime');
+        $this->globalEnv->addUseAlias('app', Symbol::create('Date'), $target);
+        $env = NodeEnvironment::empty();
+
+        self::assertEquals(new PhpClassNameNode($env, $target), $this->resolver->resolve(Symbol::create('Date'), $env));
+    }
+
     public function test_use_alias_prefers_a_class_over_a_same_named_global_constant(): void
     {
         $this->globalEnv->setNs('foo');

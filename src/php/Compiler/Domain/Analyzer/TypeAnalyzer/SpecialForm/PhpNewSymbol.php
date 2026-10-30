@@ -63,7 +63,7 @@ final class PhpNewSymbol implements SpecialFormAnalyzerInterface
         $resolvedClassExpr = $this->analyzer->resolve($classExpr, $env);
 
         // A constructor names a class by position; see BareHostClass (#3064).
-        $bareClass = BareHostClass::reread($classExpr, $resolvedClassExpr, $env);
+        $bareClass = BareHostClass::reread($classExpr, $resolvedClassExpr, $env, $this->analyzer);
         if ($bareClass instanceof PhpClassNameNode) {
             return $bareClass;
         }

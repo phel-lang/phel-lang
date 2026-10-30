@@ -48,11 +48,15 @@ Lexer (→ `TokenStream`) → Parser (→ `FileNode`) → Reader (→ `ReaderRes
 
 An unclosed `"` never fails to lex: the atom rule swallows it (`Balance` relies on that, see `.agnostic-ai/rules/module-balance.md`). `Parser::parseAtomNode` raises `UNTERMINATED_STRING` on the leading quote.
 
+### Prefix forms
+
+`Domain/Parser/ExpressionParser/PrefixFormReader` requires one semantic form after a quote-like or metadata prefix, retaining intervening trivia and reporting missing forms at the prefix. Shared `QuoteNode` and `MetaNode` preserve prefix gaps in their source code without changing semantic child ordering; cloning and child replacement must retain those gaps for the formatter.
+
 ### Reader-result cache
 
 Opt-in, off by default (`CompilerConfig::isIntermediateCacheEnabled()`). Wired only into `createCodeCompilerForCache` (build path), never the REPL.
 
-- `CodeCompiler` persists read results via `Domain/Cache/ReaderResultCacheInterface`: `Infrastructure/Cache/FileSystemReaderResultCache` (gzip'd `serialize` under `<cacheDir>/read-result/`, key `md5(version|optLevel|source)`) or `NullReaderResultCache`.
+- `CodeCompiler` persists read results via `Domain/Cache/ReaderResultCacheInterface`: `Infrastructure/Cache/FileSystemReaderResultCache` (gzip'd `serialize` under `<cacheDir>/read-result/`, key `md5(format|version|Olevel|source)`) or `NullReaderResultCache`. The factory supplies `VersionResolver::current()`, including its development reference, so a compiler update cannot replay converted results from another revision.
 - A warm hit skips lex/parse/read and replays each form's read-phase gensym delta (`Domain/Cache/CachedReaderResult`) before analysis, so `Symbol::gen()` follows the cold trajectory.
 - GOTCHA: replayed forms are deserialized, so map keys must compare by value (`Keyword::equals`/`Symbol::equals`), not identity, or keyword-keyed lookups silently miss.
 - Gensym names are process-global; a build mixing fresh compiles with compiled-code-cache hits can renumber them (independent of this cache).

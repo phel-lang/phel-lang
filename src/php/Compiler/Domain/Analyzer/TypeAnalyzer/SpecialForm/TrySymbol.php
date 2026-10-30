@@ -104,7 +104,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
      */
     private function isCatchForm(PersistentListInterface $form): bool
     {
-        return $this->isSymWithName($form->get(0), 'catch');
+        return $this->isSymWithName($form->first(), 'catch');
     }
 
     /**
@@ -112,7 +112,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
      */
     private function isFinallyForm(PersistentListInterface $form): bool
     {
-        return $this->isSymWithName($form->get(0), 'finally');
+        return $this->isSymWithName($form->first(), 'finally');
     }
 
     /**

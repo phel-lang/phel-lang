@@ -1180,7 +1180,11 @@ bindings is a vector of function specs: (letfn [(f [params] body) (g [params] bo
   {:example "(name :foo) ; => \"foo\"\n(name 'bar) ; => \"bar\""
    :see-also ["namespace" "full-name" "keyword"]}
   ^string [x]
-  (if (string? x) x (.getName x)))
+  (cond
+    (string? x)                                 x
+    (php/instanceof x Phel.Lang.NamedInterface) (.getName x)
+    true                                        (throw (new InvalidArgumentException
+                                                            (str "name expects a string, keyword or symbol, got " (type x))))))
 
 (defn namespace
   "Return the namespace string of a symbol or keyword. Nil if not present."

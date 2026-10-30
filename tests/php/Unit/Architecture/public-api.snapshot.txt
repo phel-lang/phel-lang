@@ -2058,7 +2058,7 @@ final class Phel\Shared\Parser\Node\ListNode implements Phel\Shared\Parser\Node\
   public function replaceChildren(array $children): Phel\Shared\Parser\Node\InnerNodeInterface
 
 final class Phel\Shared\Parser\Node\MetaNode implements Phel\Shared\Parser\Node\InnerNodeInterface
-  public function __construct(Phel\Shared\Parser\Node\NodeInterface $meta, Phel\Lang\SourceLocation $startLocation, Phel\Lang\SourceLocation $endLocation, array $children)
+  public function __construct(Phel\Shared\Parser\Node\NodeInterface $meta, Phel\Lang\SourceLocation $startLocation, Phel\Lang\SourceLocation $endLocation, array $children, string $trivia = '')
   public function getChildren(): array
   public function getCode(): string
   public function getCodePostfix(): ?string
@@ -2081,7 +2081,7 @@ interface Phel\Shared\Parser\Node\NodeInterface
 final class Phel\Shared\Parser\Node\NumberNode extends Phel\Shared\Parser\Node\AbstractAtomNode
 
 final class Phel\Shared\Parser\Node\QuoteNode implements Phel\Shared\Parser\Node\InnerNodeInterface
-  public function __construct(int $tokenType, Phel\Lang\SourceLocation $startLocation, Phel\Lang\SourceLocation $endLocation, Phel\Shared\Parser\Node\NodeInterface $expression, ?string $codePrefix = null)
+  public function __construct(int $tokenType, Phel\Lang\SourceLocation $startLocation, Phel\Lang\SourceLocation $endLocation, Phel\Shared\Parser\Node\NodeInterface $expression, ?string $codePrefix = null, string $trivia = '')
   public function getChildren(): array
   public function getCode(): string
   public function getCodePostfix(): ?string
@@ -2240,7 +2240,7 @@ final class Phel\Shared\Printer\TypePrinter\NullPrinter implements Phel\Shared\P
   public function print(mixed $form): string
 
 final class Phel\Shared\Printer\TypePrinter\NumberPrinter implements Phel\Shared\Printer\TypePrinter\TypePrinterInterface
-  public function __construct(bool $withColor = false)
+  public function __construct(bool $withColor = false, bool $readable = false)
   public function print(mixed $form): string
 
 final class Phel\Shared\Printer\TypePrinter\ObjectPrinter implements Phel\Shared\Printer\TypePrinter\TypePrinterInterface

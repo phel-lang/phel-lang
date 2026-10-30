@@ -25,7 +25,7 @@ jobs:
     name: Sync drift check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Install agnostic-ai
         run: |
@@ -33,6 +33,7 @@ jobs:
           version="v0.90.0"
           curl -sSfL -o agnostic-ai.tar.gz \
             "https://github.com/Chemaclass/agnostic-ai/releases/download/${version}/agnostic-ai_linux_amd64.tar.gz"
+          echo "bdf1364dbd80602dbf11fcd451429a425c22429e0a0579dbfe1a41e0cd3567da  agnostic-ai.tar.gz" | sha256sum -c -
           tar -xzf agnostic-ai.tar.gz agnostic-ai
           sudo mv agnostic-ai /usr/local/bin/
           agnostic-ai --version

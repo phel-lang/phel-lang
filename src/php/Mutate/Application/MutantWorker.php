@@ -40,6 +40,11 @@ final class MutantWorker
 {
     private const int SELECT_TIMEOUT_MICROS = 100_000;
 
+    private const int STDERR_TAIL_BYTES = 16_384;
+
+    // A continuous writer must not prevent the parent from checking its deadline.
+    private const int STDERR_DRAIN_BYTES = 65_536;
+
     /** @var closed-resource|resource */
     private readonly mixed $stdin;
 
@@ -50,6 +55,8 @@ final class MutantWorker
     private readonly mixed $stderr;
 
     private string $readBuffer = '';
+
+    private string $stderrTail = '';
 
     /** Wall-clock deadline of the frame in flight, null when idle. */
     private ?float $deadline = null;
@@ -135,6 +142,7 @@ final class MutantWorker
      */
     public function tryReceive(): ?array
     {
+        $this->drainStderr();
         $answer = $this->tryReadFrame();
         if ($answer !== null) {
             $this->deadline = null;
@@ -178,24 +186,22 @@ final class MutantWorker
     public function waitForOutput(): void
     {
         $reads = [$this->stdout];
+        if (is_resource($this->stderr) && !feof($this->stderr)) {
+            $reads[] = $this->stderr;
+        }
+
         $writes = null;
         $exceptions = null;
         /** @psalm-suppress InvalidArgument */
         @stream_select($reads, $writes, $exceptions, 0, self::SELECT_TIMEOUT_MICROS);
+        $this->drainStderr();
     }
 
     public function readStderr(): string
     {
-        $out = '';
-        while (true) {
-            /** @psalm-suppress PossiblyInvalidArgument */
-            $chunk = @fread($this->stderr, 8192);
-            if ($chunk === false || $chunk === '') {
-                break;
-            }
-
-            $out .= $chunk;
-        }
+        $this->drainStderr();
+        $out = $this->stderrTail;
+        $this->stderrTail = '';
 
         return $out;
     }
@@ -224,6 +230,24 @@ final class MutantWorker
             if (is_resource($pipe)) {
                 @fclose($pipe);
             }
+        }
+    }
+
+    private function drainStderr(): void
+    {
+        if (!is_resource($this->stderr)) {
+            return;
+        }
+
+        $remaining = self::STDERR_DRAIN_BYTES;
+        while ($remaining > 0) {
+            $chunk = @fread($this->stderr, min(8192, $remaining));
+            if ($chunk === false || $chunk === '') {
+                return;
+            }
+
+            $this->stderrTail = substr($this->stderrTail . $chunk, -self::STDERR_TAIL_BYTES);
+            $remaining -= strlen($chunk);
         }
     }
 

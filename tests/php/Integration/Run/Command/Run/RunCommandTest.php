@@ -38,6 +38,24 @@ final class RunCommandTest extends AbstractTestCommand
         );
     }
 
+    public function test_runs_a_script_with_a_first_line_shebang(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-shebang-' . uniqid();
+        mkdir($dir);
+        $path = $dir . '/script.phel';
+        file_put_contents($path, "#!/usr/bin/env phel\n(ns shebang-script)\n(println \"shebang script ran\")\n");
+        $this->expectOutputString("shebang script ran\n");
+
+        try {
+            $exitCode = $this->createRunCommand()->run($this->stubInput($path), $this->stubOutput());
+        } finally {
+            unlink($path);
+            rmdir($dir);
+        }
+
+        self::assertSame(0, $exitCode);
+    }
+
     public function test_requiring_a_missing_namespace_fails_instead_of_silently_exiting_zero(): void
     {
         $output = $this->captureRunOutput(

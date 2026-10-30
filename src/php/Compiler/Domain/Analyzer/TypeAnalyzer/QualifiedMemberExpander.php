@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer;
 use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\BareHostClass;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\QualifiedMemberSyntax;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -97,10 +98,10 @@ final readonly class QualifiedMemberExpander
         Symbol $symbol,
         NodeEnvironmentInterface $env,
     ): bool {
-        $classNode = $this->analyzer->resolve(
-            Symbol::create($ns)->copyLocationFrom($symbol),
-            $env->withExpressionContext(),
-        );
+        $classSymbol = Symbol::create($ns)->copyLocationFrom($symbol);
+        $classEnv = $env->withExpressionContext();
+        $resolved = $this->analyzer->resolve($classSymbol, $classEnv);
+        $classNode = BareHostClass::reread($classSymbol, $resolved, $classEnv, $this->analyzer) ?? $resolved;
 
         if (!$classNode instanceof PhpClassNameNode) {
             return false;

@@ -24,10 +24,16 @@ final class UriConverter
 {
     public function toFilePath(string $uri): string
     {
-        if (str_starts_with($uri, 'file://')) {
+        if ($this->isFileUri($uri)) {
             $parsed = parse_url($uri);
             if ($parsed !== false && isset($parsed['path'])) {
-                return rawurldecode($parsed['path']);
+                $path = rawurldecode($parsed['path']);
+                $host = strtolower($parsed['host'] ?? '');
+                if (($host === '' || $host === 'localhost') && preg_match('/^\/[A-Za-z]:\//', $path) === 1) {
+                    return substr($path, 1);
+                }
+
+                return $path;
             }
         }
 

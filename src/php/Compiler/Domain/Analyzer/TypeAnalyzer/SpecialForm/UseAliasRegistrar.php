@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\PhpClassLike;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
 
@@ -20,6 +21,7 @@ use function ltrim;
 use function sprintf;
 use function str_contains;
 use function str_replace;
+use function strcasecmp;
 
 /**
  * @internal
@@ -37,12 +39,14 @@ final readonly class UseAliasRegistrar
      */
     /**
      * @param PersistentListInterface<mixed> $form
+     * @param array<string, Symbol>|null     $aliasesInForm
      */
     public function register(
         string $ns,
         PersistentListInterface $form,
         int $startIndex = 1,
         string $label = ':use',
+        ?array &$aliasesInForm = null,
     ): void {
         $elements = $form->toArray();
         $count = count($elements);
@@ -101,11 +105,32 @@ final readonly class UseAliasRegistrar
                 );
             }
 
+            $useSymbol = UseAliasOrigin::explicit($useSymbol);
             $this->assertImportExists($useSymbol, $form);
 
             $alias = $this->createAliasFromSymbol($aliasValue, $useSymbol);
+            $bound = ($aliasesInForm ?? $this->analyzer->getUseAliases($ns))[$alias->getName()] ?? null;
+            if ($bound instanceof Symbol && !UseAliasOrigin::isDefault($bound) && !$this->isSameImport($bound, $useSymbol)) {
+                $aliasSource = $aliasValue ?? $useSymbol;
+                throw AnalyzerException::withLocation(
+                    sprintf("Alias '%s' already names %s in %s, so it cannot also name %s.", $alias->getName(), $bound->getName(), $ns, $useSymbol->getName()),
+                    $aliasSource->getStartLocation() instanceof SourceLocation ? $aliasSource : $form,
+                    errorCode: ErrorCode::DUPLICATE_DEFINITION,
+                );
+            }
+
             $this->analyzer->addUseAlias($ns, $alias, $useSymbol);
+            if ($aliasesInForm !== null) {
+                $aliasesInForm[$alias->getName()] = $useSymbol;
+            }
         }
+    }
+
+    private function isSameImport(Symbol $first, Symbol $second): bool
+    {
+        return $first->getName() === $second->getName()
+            || (strcasecmp($first->getName(), $second->getName()) === 0
+                && PhpClassLike::exists(ltrim($second->getName(), '\\')));
     }
 
     private function normalizeSymbolSeparators(Symbol $symbol): Symbol

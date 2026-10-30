@@ -15,16 +15,21 @@ use function end;
 use function explode;
 use function implode;
 use function in_array;
+use function is_int;
 use function parse_url;
 use function preg_match;
 use function sprintf;
 use function str_starts_with;
 use function strcspn;
+use function strlen;
 use function strpbrk;
+use function strpos;
 use function strrpos;
 use function strtolower;
 use function strtoupper;
 use function substr;
+
+use function substr_replace;
 
 use const ARRAY_FILTER_USE_KEY;
 
@@ -51,7 +56,7 @@ final class StreamTransport
 
     /**
      * @param array<string, string> $headers Header name => value pairs
-     * @param array<string, mixed>  $options Transport options (timeout, follow_redirects, verify_ssl)
+     * @param array<string, mixed>  $options Transport options (timeout, follow_redirects, verify_ssl, max_body_bytes)
      *
      * @throws InvalidArgumentException when headers are invalid, or a URL is not http or https
      *
@@ -66,10 +71,11 @@ final class StreamTransport
     ): array {
         self::assertHttpUrl($url);
         self::assertHeaders($headers);
+        $maxBodyBytes = self::bodyLimit($options);
         $followRedirects = (bool) ($options['follow_redirects'] ?? true);
 
         for ($redirects = 0; ; ++$redirects) {
-            $response = self::fetch($method, $url, $headers, $body, $options);
+            $response = self::fetch($method, $url, $headers, $body, $options, $maxBodyBytes);
             $location = $response['headers']['location'] ?? null;
             if (!$followRedirects || $location === null || !in_array($response['status'], self::REDIRECT_STATUSES, true)) {
                 return $response;
@@ -98,6 +104,8 @@ final class StreamTransport
                     static fn(string $name): bool => in_array(strtolower($name), self::CROSS_ORIGIN_HEADERS, true),
                     ARRAY_FILTER_USE_KEY,
                 );
+            } else {
+                $next = self::retainCredentials($url, $next);
             }
 
             $url = $next;
@@ -123,23 +131,29 @@ final class StreamTransport
      *
      * @return array{status: int, headers: array<string, string>, body: string, version: string, reason: string}
      */
-    private static function fetch(string $method, string $url, array $headers, ?string $body, array $options): array
+    private static function fetch(string $method, string $url, array $headers, ?string $body, array $options, ?int $maxBodyBytes): array
     {
         $context = self::buildContext($method, $headers, $body, $options);
 
         $http_response_header = [];
-        // Suppress the warning fopen/file_get_contents emits on failure; the
+        // Suppress the warning fopen emits on failure; the
         // precise reason is recovered via error_get_last() so the exception
         // carries an accurate message instead of a generic "request failed".
-        $responseBody = @file_get_contents($url, false, $context);
+        $stream = @fopen($url, 'rb', false, $context);
 
-        if ($responseBody === false) {
+        if ($stream === false) {
             // error_get_last() may return null (or an array without a 'message'
             // key) in edge cases, so fall back to a safe default.
             $error = error_get_last();
             throw new RuntimeException(
                 sprintf('HTTP request to %s failed: %s', $url, $error['message'] ?? 'Unknown error'),
             );
+        }
+
+        try {
+            $responseBody = self::readBody($stream, $url, $maxBodyBytes);
+        } finally {
+            fclose($stream);
         }
 
         $parsed = ResponseParser::parse($http_response_header);
@@ -151,6 +165,36 @@ final class StreamTransport
             'version' => $parsed['version'],
             'reason' => $parsed['reason'],
         ];
+    }
+
+    /**
+     * @param resource $stream
+     */
+    private static function readBody($stream, string $url, ?int $maxBodyBytes): string
+    {
+        $body = '';
+        while (!feof($stream)) {
+            $remaining = $maxBodyBytes === null ? 8192 : $maxBodyBytes - strlen($body);
+            $chunk = @fread($stream, $remaining <= 0 ? 1 : min(8192, $remaining));
+            $metadata = stream_get_meta_data($stream);
+            if ($chunk === false || $metadata['timed_out'] || ($chunk === '' && !feof($stream))) {
+                $error = error_get_last();
+                $reason = $metadata['timed_out'] ? 'Timed out reading response body' : ($error['message'] ?? 'Unable to read response body');
+                throw new RuntimeException(sprintf('HTTP request to %s failed: %s', $url, $reason));
+            }
+
+            if ($chunk === '') {
+                break;
+            }
+
+            if ($maxBodyBytes !== null && $remaining <= 0) {
+                throw new RuntimeException(sprintf('HTTP response from %s exceeds max_body_bytes limit of %d', $url, $maxBodyBytes));
+            }
+
+            $body .= $chunk;
+        }
+
+        return $body;
     }
 
     /**
@@ -177,7 +221,7 @@ final class StreamTransport
 
         // Stream context describes the request: HTTP method, headers, body and
         // timeout under 'http', SSL peer verification (hostname + certificate)
-        // under 'ssl'. ignore_errors => true makes file_get_contents() return
+        // under 'ssl'. ignore_errors => true makes the HTTP stream return
         // the body for non-2xx responses instead of false, so error statuses
         // can still be parsed.
         return stream_context_create([
@@ -197,7 +241,7 @@ final class StreamTransport
     }
 
     /**
-     * `file_get_contents()` also opens `file://`, `php://` and `data://`, so a
+     * PHP streams also open `file://`, `php://` and `data://`, so a
      * URL taken from user input would read local files.
      */
     private static function assertHttpUrl(string $url): void
@@ -224,6 +268,19 @@ final class StreamTransport
         }
     }
 
+    /**
+     * @param array<string, mixed> $options
+     */
+    private static function bodyLimit(array $options): ?int
+    {
+        $limit = $options['max_body_bytes'] ?? null;
+        if ($limit !== null && (!is_int($limit) || $limit < 0)) {
+            throw new InvalidArgumentException('max_body_bytes must be a non-negative integer or null');
+        }
+
+        return $limit;
+    }
+
     private static function origin(string $url): string
     {
         $parts = parse_url($url);
@@ -231,6 +288,20 @@ final class StreamTransport
         $port = $parts['port'] ?? ($scheme === 'https' ? 443 : 80);
 
         return sprintf('%s://%s:%d', $scheme, strtolower($parts['host'] ?? ''), $port);
+    }
+
+    private static function retainCredentials(string $base, string $target): string
+    {
+        $baseParts = parse_url($base);
+        $targetParts = parse_url($target);
+        $schemeEnd = strpos($target, '://');
+        if (!isset($baseParts['user']) || isset($targetParts['user']) || $schemeEnd === false) {
+            return $target;
+        }
+
+        $credentials = $baseParts['user'] . (isset($baseParts['pass']) ? ':' . $baseParts['pass'] : '') . '@';
+
+        return substr_replace($target, $credentials, $schemeEnd + 3, 0);
     }
 
     /**

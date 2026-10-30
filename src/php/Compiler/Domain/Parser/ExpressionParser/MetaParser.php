@@ -7,7 +7,6 @@ namespace Phel\Compiler\Domain\Parser\ExpressionParser;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Shared\Parser\Node\MetaNode;
-use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 /**
  * @internal
@@ -18,18 +17,16 @@ final readonly class MetaParser
 
     public function parse(TokenStream $tokenStream): MetaNode
     {
-        $startLocation = $tokenStream->current()->getStartLocation();
+        $token = $tokenStream->current();
+        $startLocation = $token->getStartLocation();
         $tokenStream->next();
 
-        $meta = $this->parser->readExpression($tokenStream);
-        $children = [];
-        do {
-            $object = $this->parser->readExpression($tokenStream);
-            $children[] = $object;
-        } while ($object instanceof TriviaNodeInterface);
+        [$meta, , $prefixTrivia] = PrefixFormReader::read($this->parser, $tokenStream, $token);
+        [$object, $children] = PrefixFormReader::read($this->parser, $tokenStream, $token);
+        $children[] = $object;
 
         $endLocation = $tokenStream->current()->getEndLocation();
 
-        return new MetaNode($meta, $startLocation, $endLocation, $children);
+        return new MetaNode($meta, $startLocation, $endLocation, $children, $prefixTrivia);
     }
 }

@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\BareHostClass;
 use Phel\Compiler\Domain\Analyzer\PhpClassLike;
 use Phel\Compiler\Domain\Analyzer\PhpIdentifier;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -19,7 +20,6 @@ use Phel\Shared\CompilerConstants;
 use Phel\Shared\FrameworkNamespaces;
 use RuntimeException;
 
-use function ltrim;
 use function strlen;
 
 /**
@@ -89,9 +89,16 @@ final readonly class SymbolResolver
             return new PhpClassNameNode($env, $fqn, $name->getStartLocation());
         }
 
-        $useAliasNode = $this->resolveFromUseAlias($name, $env);
-        if ($useAliasNode instanceof AbstractNode) {
-            return $useAliasNode;
+        if ($name->getNamespace() === null) {
+            $ownNode = $this->resolveInterfaceOrDefinitionForCurrentNs($name, $env, $this->globalEnv->getNs());
+            if ($ownNode instanceof AbstractNode) {
+                return $ownNode;
+            }
+
+            $useAliasNode = $this->resolveFromUseAlias($name, $env);
+            if ($useAliasNode instanceof AbstractNode) {
+                return $useAliasNode;
+            }
         }
 
         $resolved = ($name->getNamespace() !== null)
@@ -149,19 +156,7 @@ final readonly class SymbolResolver
             return null;
         }
 
-        $alias = $useAliases[$strName];
-        $alias->copyLocationFrom($name);
-
-        $targetName = ltrim($alias->getName(), '\\');
-        if (
-            $alias->getNamespace() === null
-            && $this->looksLikePhpConstantName($targetName)
-            && !PhpClassLike::exists($targetName)
-        ) {
-            return new PhpVarNode($env, $alias->getName(), $name->getStartLocation());
-        }
-
-        return new PhpClassNameNode($env, $alias, $name->getStartLocation());
+        return BareHostClass::fromUseAlias($useAliases[$strName], $name, $env);
     }
 
     private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
@@ -299,15 +294,6 @@ final readonly class SymbolResolver
     private function resolveWithoutAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
         $currentNs = $this->globalEnv->getNs();
-
-        // The namespace's own definition beats a `:refer` of the same name, as in
-        // Clojure (#2897). Falling through rather than returning early keeps a
-        // forward reference (not registered yet when the bare name is analysed)
-        // resolving to the refer.
-        $ownNode = $this->resolveInterfaceOrDefinitionForCurrentNs($name, $env, $currentNs);
-        if ($ownNode instanceof AbstractNode) {
-            return $ownNode;
-        }
 
         $refers = $this->globalEnv->getRefers($currentNs);
         if (isset($refers[$name->getName()])) {

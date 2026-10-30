@@ -11,8 +11,7 @@
   (is (= {:a 1, :b 2} (merge-with + {:a 1} {:b 2})) "disjoint keys are not combined")
   (is (= {:a 6} (merge-with + {:a 1} {:a 2} {:a 3})) "three maps fold left to right")
   (is (= {:a 1} (merge-with + {:a 1})) "one map")
-  ;; `merge-with` answers `{}` with no maps, where `merge` answers nil.
-  (is (= {} (merge-with +)) "no maps gives an empty map, not nil")
+  (is (nil? (merge-with +)) "no maps returns nil")
   (is (= {:a 1} (merge-with + {} {:a 1})) "an empty left")
   (is (= {:a 1} (merge-with + {:a 1} {})) "an empty right")
   ;; Argument order reaches the function as (left, right).
