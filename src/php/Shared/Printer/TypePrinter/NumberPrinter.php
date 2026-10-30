@@ -16,9 +16,13 @@ use function is_nan;
 final class NumberPrinter implements TypePrinterInterface
 {
     use ColorizeTrait;
-    use WithColorTrait;
 
     private const string COLOR = '0;92';
+
+    public function __construct(
+        private bool $withColor = false,
+        private bool $readable = false,
+    ) {}
 
     /**
      * @param float|int $form
@@ -32,19 +36,16 @@ final class NumberPrinter implements TypePrinterInterface
         return $this->colorize((string) $form, self::COLOR);
     }
 
-    /**
-     * Renders a float so it agrees with `str`/`float-to-str` (in
-     * `src/phel/core/strings.phel`): integer-valued floats keep their `.0`,
-     * and the special values spell out readably. Keep both in lockstep.
-     */
     private function printFloat(float $form): string
     {
         if (is_nan($form)) {
-            return 'NaN';
+            return $this->readable ? '##NaN' : 'NaN';
         }
 
         if (is_infinite($form)) {
-            return $form > 0 ? 'Infinity' : '-Infinity';
+            return $this->readable
+                ? ($form > 0 ? '##Inf' : '##-Inf')
+                : ($form > 0 ? 'Infinity' : '-Infinity');
         }
 
         return FloatFormatter::format($form);

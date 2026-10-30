@@ -158,6 +158,7 @@ Runtime:
 - `with-meta` and `vary-meta` work on a `fn` literal: `(meta (with-meta (fn [x] x) {:b 2}))` returns `{:b 2}` and the result is still a callable fn. They used to fail with `Call to undefined method Closure::withMeta()`. (#3537)
 - `file-seq` on a tree with a symlink back to a parent directory ends and lists each real file once, on every PHP build. It used to walk the cycle until the path got too long, listing a file under a deep `sub/up/sub/up/...` path, and threw `UnexpectedValueException` on thread-safe (ZTS) PHP builds. (#3537)
 - `pr-str` and `str` preserve the exact value of finite floats when read back, including `1.0000000000000002` and the result of `(/ 1.0 3)`. They used to lose digits according to PHP's display precision. (#3707)
+- `pr-str` prints `##NaN`, `##Inf` and `##-Inf` so special numbers read back correctly. It escapes `0x1F` and `0x7F`, which used to appear as raw bytes. PHP resources, including values inside collections, print as `#<PHP Resource id #N>` instead of throwing in readable mode. (#3712)
 - `pr-str` and REPL output show `#<cycle>` when an atom refers back to itself, directly or through a collection. Printing such a value used to exhaust the process. (#3705)
 
 ## [0.54.0](https://github.com/phel-lang/phel-lang/compare/v0.53.0...v0.54.0) - 2026-10-04
