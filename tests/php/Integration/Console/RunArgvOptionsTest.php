@@ -47,6 +47,40 @@ final class RunArgvOptionsTest extends TestCase
         }
     }
 
+    public function test_an_option_terminator_before_the_path_runs_the_script(): void
+    {
+        $result = $this->phelRun(['--', $this->script, 'a', 'b']);
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertSame("a,b\n", $result->stdout);
+    }
+
+    public function test_an_option_looking_path_and_script_delimiters_are_preserved(): void
+    {
+        $path = $this->dir . '/--warn-deprecations';
+        copy($this->script, $path);
+        try {
+            $result = $this->phelRun(['--', '--warn-deprecations', '--', '-x']);
+            self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+            self::assertSame("--,-x\n", $result->stdout);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function test_a_script_delimiter_after_a_regular_path_keeps_its_existing_meaning(): void
+    {
+        $result = $this->phelRun([$this->script, '--', '-x']);
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertSame("--,-x\n", $result->stdout);
+    }
+
+    public function test_global_options_before_the_command_keep_working_with_a_terminator(): void
+    {
+        $result = $this->phelRun(['run', '--', $this->script, '-x'], '--no-ansi');
+        self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertSame("-x\n", $result->stdout);
+    }
+
     public function test_run_options_before_the_path_are_not_read_as_the_path(): void
     {
         $result = $this->phelRun(['--stack-trace', '--debug', $this->script, 'one']);
