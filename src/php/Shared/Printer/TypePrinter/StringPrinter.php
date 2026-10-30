@@ -70,7 +70,7 @@ final readonly class StringPrinter implements TypePrinterInterface
                 continue;
             }
 
-            if ($this->isAsciiCharacter($asciiChar)) {
+            if ($this->isPrintableAsciiCharacter($asciiChar)) {
                 $return .= $str[$index];
                 continue;
             }
@@ -93,7 +93,7 @@ final readonly class StringPrinter implements TypePrinterInterface
                 continue;
             }
 
-            if ($asciiChar < 31 || $asciiChar > 126) {
+            if ($asciiChar < 32 || $asciiChar > 126) {
                 $return .= '\x' . str_pad(dechex($asciiChar), 2, '0', STR_PAD_LEFT);
                 continue;
             }
@@ -115,12 +115,9 @@ final readonly class StringPrinter implements TypePrinterInterface
         return true;
     }
 
-    /**
-     * Characters U-00000000 - U-0000007F (same as ASCII).
-     */
-    private function isAsciiCharacter(int $asciiChar): bool
+    private function isPrintableAsciiCharacter(int $asciiChar): bool
     {
-        return $asciiChar >= 32 && $asciiChar <= 127;
+        return $asciiChar >= 32 && $asciiChar <= 126;
     }
 
     /**

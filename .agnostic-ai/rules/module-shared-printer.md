@@ -12,7 +12,7 @@ Converts Phel/PHP values into string representations. Stateless strategy pattern
 
 | Member | Purpose |
 |--------|---------|
-| `Printer::readable()` | reader round-trippable output |
+| `Printer::readable()` | reader literals where supported, opaque markers for host values |
 | `Printer::readableWithColor()` | readable + ANSI color |
 | `Printer::nonReadable()` | human-facing output (e.g. `str`) |
 | `print(mixed $form): string` | instance method; dispatches by type |
@@ -30,7 +30,8 @@ Converts Phel/PHP values into string representations. Stateless strategy pattern
 ## Non-obvious renderings
 
 - `BigDecimalPrinter` appends `M` for reader round-trip; `UUIDPrinter` → `#uuid "..."`; `VarPrinter` → `#'ns/name`; `PersistentQueuePrinter` → `<-(...)-<` to show FIFO direction.
-- Plain-object fallback order: `__toString` → `ToStringPrinter`; anonymous class → `AnonymousClassPrinter`; else `NonPrintableClassPrinter` → `#<Fully\Qualified\Class>`. Scalars in non-readable mode fall to `ObjectPrinter`/`ResourcePrinter`.
+- Plain-object fallback order: `__toString` → `ToStringPrinter`; anonymous class → `AnonymousClassPrinter`; else `NonPrintableClassPrinter` → `#<Fully\Qualified\Class>`. Other scalar fallbacks use `ObjectPrinter` only in non-readable mode.
+- Live PHP resources use `ResourcePrinter` in both modes, including nested values, and render the opaque `#<PHP Resource id #N>` marker.
 
 ## Key Constraints
 

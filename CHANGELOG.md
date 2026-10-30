@@ -91,6 +91,7 @@ Runtime:
 - `iterate` returns its seed without calling the step function; `repeatedly` and `cycle` also realize values only on demand. Reading a head used to prefetch later values and trigger extra effects. (#3678)
 - `range` accepts ratio, `BigInt` and `BigDecimal` bounds and steps, including through `repeat`, `repeatedly`, `dotimes` and `for :range`. These used to fail with a `Seq::range()` type error. (#3557)
 - `pr-str` and `str` preserve exact finite floats, including `1.0000000000000002` and `(/ 1.0 3)`, instead of losing digits to PHP's display precision. (#3707)
+- `pr-str` prints `##NaN`, `##Inf` and `##-Inf` so special numbers read back correctly. It escapes `0x1F` and `0x7F`, which used to appear as raw bytes. PHP resources, including values inside collections, print as `#<PHP Resource id #N>` instead of throwing in readable mode. (#3712)
 - `pr-str` and REPL output render cyclic atoms as `#<cycle>`, including cycles through collections. Printing them used to exhaust the process. (#3705)
 - `(symbol "/a")` keeps its full name without a namespace instead of becoming `a` with an empty namespace. (#3524 #3710)
 - `with-meta` and `vary-meta` accept fn literals, preserving their metadata and callable behavior instead of failing on a missing method. (#3537)
