@@ -5,6 +5,7 @@ set -euo pipefail
 # Optional environment variables:
 #   OFFICIAL_RELEASE=1  - Build an official release (no beta flag)
 #   SKIP_CACHE=1        - Skip vendor cache and rebuild dependencies fresh
+#   SOURCE_DATE_EPOCH   - Archive timestamp (defaults to the HEAD commit time)
 # Usage: OFFICIAL_RELEASE=true build/phar.sh
 
 # ============================================================================
@@ -63,6 +64,7 @@ check_dir() {
 cleanup() {
     local exit_code=$?
     if [[ $exit_code -ne 0 ]] && [[ -d "$WORK_DIR" ]]; then
+        printf 'Removing PHAR workdir: %s\n' "$WORK_DIR"
         rm -rf "$WORK_DIR"
     fi
 }
@@ -75,6 +77,7 @@ trap cleanup EXIT
 check_command "php"
 check_command "composer"
 check_command "rsync"
+check_command "git"
 check_file "$BUILD_SCRIPT"
 check_dir "$REPO_ROOT"
 
@@ -87,7 +90,13 @@ fi
 # ============================================================================
 # Cleanup & Setup
 # ============================================================================
-[[ -d "$WORK_DIR" ]] && rm -rf "$WORK_DIR"
+SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(git -C "$REPO_ROOT" log -1 --format=%ct)}"
+export SOURCE_DATE_EPOCH
+
+if [[ -d "$WORK_DIR" ]]; then
+    printf 'Removing PHAR workdir: %s\n' "$WORK_DIR"
+    rm -rf "$WORK_DIR"
+fi
 [[ -f "$PHAR_FILE" ]] && rm -f "$PHAR_FILE"
 
 mkdir -p "$WORK_DIR" "$CACHE_DIR" "$OUTPUT_DIR"
@@ -95,7 +104,7 @@ mkdir -p "$WORK_DIR" "$CACHE_DIR" "$OUTPUT_DIR"
 # ============================================================================
 # Sync Project Files
 # ============================================================================
-rsync -a "$REPO_ROOT/" "$WORK_DIR/" \
+git -C "$REPO_ROOT" ls-files -z | rsync -a --files-from=- --from0 "$REPO_ROOT/" "$WORK_DIR/" \
   --include='resources/' \
   --include='resources/agents/' \
   --exclude='resources/agents/examples/*/vendor/' \
@@ -152,6 +161,7 @@ if [[ $VENDOR_CACHE_VALID -eq 0 ]]; then
         error "Composer install failed"
     fi
 
+    printf 'Removing PHAR vendor cache: %s\n' "$VENDOR_CACHE_DIR"
     rm -rf "$VENDOR_CACHE_DIR"
     cp -a ./vendor "$VENDOR_CACHE_DIR"
     cp composer.lock "$LOCK_FILE_CACHE"
@@ -188,6 +198,7 @@ fi
 popd >/dev/null
 
 mv "$WORK_DIR/phel.phar" "$PHAR_FILE"
+printf 'Removing PHAR workdir: %s\n' "$WORK_DIR"
 rm -rf "$WORK_DIR"
 
 if [[ ! -x "$PHAR_FILE" ]]; then
