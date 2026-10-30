@@ -1,0 +1,6 @@
+--PHEL--
+(fn [] (quote /a))
+--PHP--
+(function() {
+  return (\Phel\Lang\Symbol::create("/a"));
+});

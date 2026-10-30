@@ -17,7 +17,7 @@ Namespace extraction, dependency ordering, compilation and caching.
 | `unresolvedRequireError(required, requiring, requiringFile, searchedDirs)` | Error for a require that matched no source file, or null when `BundledNamespaceIndex` says it resolves anyway. The emitted `ns` form calls it on its miss path and throws the result |
 | `compileFile(src, dest)` | Compile to PHP, write output |
 | `evalFile(src)` | `compileFile` without writing output |
-| `flushCompiledCodeCache()` | Writes the compiled-code cache index now (otherwise once at shutdown); a parent calls it before spawning workers so they see what it compiled |
+| `flushCompiledCodeCache()` | Flushes the compiled-code index and dependency graph; a parent calls it before spawning workers so they see both |
 | `compileProject(Shared\BuildOptions)` | Returns `CompiledFile[]` |
 | `clearCache()` | Returns `string[]` paths cleared from the temp, cache and OPcache dirs |
 | `getHealthCheck()` | Cache, output, source dir checks |
@@ -93,7 +93,7 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge, **Con
   - `ScanIndexEntry::covers()` the requested directories that exist now (only this catches a configured dir that appears after the scan, #3205).
   
   Same mechanics as `PhpNamespaceCache`. Injected via `BuildFactory::createScanIndexCache()`; path from `BuildConfig::getScanIndexCacheFile()`; cleared by `CacheClearer`.
-- **Both `LockedPhpCacheWriter` caches prune unreachable entries in `save()`**, after the disk merge, before the write. Unreachable means the anchor path is *gone* (`ScanIndexEntry::isReachable()` probes `perDir` keys; `PhpNamespaceCache` the file key), not out of date (a changed mtime gets overwritten by the next scan). Otherwise the merge keeps dead entries forever, e.g. the unique `.phel_temp_<uniqid>` dir `Api\Infrastructure\PhelFunctionRuntimeLoader` scans per `phel doc` / LSP hover / REPL completion (#3007). Never prune at load: `isValid()` already rejects dead entries, so it would only add a `stat` per entry to every start.
+- **The namespace and scan-index caches prune unreachable entries in `save()`**, after the disk merge, before the write. Unreachable means the anchor path is *gone* (`ScanIndexEntry::isReachable()` probes `perDir` keys; `PhpNamespaceCache` the file key), not out of date (a changed mtime gets overwritten by the next scan). Otherwise the merge keeps dead entries forever, e.g. the unique `.phel_temp_<uniqid>` dir `Api\Infrastructure\PhelFunctionRuntimeLoader` scans per `phel doc` / LSP hover / REPL completion (#3007). Never prune at load: `isValid()` already rejects dead entries, so it would only add a `stat` per entry to every start.
 - **Racily clean entries are never served.** `filemtime` is whole-second. `NamespaceCacheEntry` and `ScanIndexEntry` carry `recordedAt`, taken *before* the read or walk; a file with mtime not older than it is reread (git's racily clean rule, #3537). Tests expecting a warm hit must backdate their files. `ProjectCompiler`'s incremental reuse (target mtime equals source mtime) does the same: a source not older than its compile start gets target mtime 0, forcing a recompile (#3564).
 - `DependenciesForNamespace` memoizes per `(dirs, seeds)` within a process for its three root callers (`FileRunner`, `DataReadersLoader`, `NamespaceLoader`).
 
@@ -106,7 +106,7 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge, **Con
 
 ### Compilation order & invalidation
 
-- `DependencyTracker` stores each file's source and owning namespace. Namespace invalidation completes the transitive cascade before returning, with visited sets for cycles, so later processes cannot serve stale dependents through another entry point. Do not cascade on every cold miss: core `(load ...)` fragments share `phel.core`, so that evicts valid siblings.
+- `DependencyTracker` stores each file's source and owning namespace. Graph writes defer to shutdown (`DeferredFlushTrait`) or explicit `save()`; `LockedPhpCacheWriter` holds a lock while atomically merging disk and in-memory edges, preserving concurrent workers' dependencies. Namespace invalidation completes the transitive cascade before returning, with visited sets for cycles, so later processes cannot serve stale dependents through another entry point. Do not cascade on every cold miss: core `(load ...)` fragments share `phel.core`, so that evicts valid siblings.
 - `ProjectCompiler` relies on `TopologicalNamespaceSorter` order: it force-recompiles any dependent whose `getDependencies()` includes a namespace recompiled this run (`dependsOnRecompiled`), even with unchanged mtime. Transitive in one pass, so a changed macro never leaves a stale expansion.
 - Main namespace auto-detect: `core.phel` or `main.phel` in source dirs.
 - The output dir is excluded from extraction (prevents namespace shadowing).

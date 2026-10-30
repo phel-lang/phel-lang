@@ -211,25 +211,29 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          # Needed to check out the merge base below.
+          # Needed to resolve both frozen benchmark revisions.
           fetch-depth: 0
+
+      - name: Freeze benchmark revisions
+        env:
+          BENCHMARK_EVENT: ${{ github.event_name }}
+          BENCHMARK_EVENT_SHA: ${{ github.sha }}
+          BENCHMARK_PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: bash tools/benchmark-revisions.sh "$BENCHMARK_EVENT" "$BENCHMARK_EVENT_SHA" "$BENCHMARK_PR_HEAD" >> "$GITHUB_ENV"
 
       - uses: ./.github/actions/setup-phel
 
       - name: Measure the base revision and store it as `baseline`
         run: |
-          head_sha=$(git rev-parse HEAD)
-          base_sha='${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || format('{0}~1', github.sha) }}'
-          echo "head=$head_sha base=$base_sha"
-          echo "HEAD_SHA=$head_sha" >> "$GITHUB_ENV"
+          echo "head=$HEAD_SHA base=$BASE_SHA"
 
-          git checkout --quiet --detach "$base_sha"
+          git checkout --quiet --detach "$BASE_SHA"
           # The benchmark definitions and the tolerance stay at the PR's version
           # so both runs measure the same set of cases against the same rules.
           # Only the code under measurement comes from the base. `vendor/` is
           # likewise the PR's, so what gets compared is this change, not
           # dependency drift.
-          git checkout --quiet "$head_sha" -- tests/php/Benchmark phpbench.json
+          git checkout --quiet "$HEAD_SHA" -- tests/php/Benchmark phpbench.json
           vendor/bin/phpbench run --iterations=5 --warmup=2 --tag=baseline --store --progress=none --report=aggregate
 
       # The iteration count is raised because a shared runner is not a

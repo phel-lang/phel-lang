@@ -35,6 +35,7 @@ use Phel\Shared\Parser\Node\SymbolNode;
 use Phel\Shared\Parser\Node\TaggedLiteralNode;
 use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\Node\WhitespaceNode;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
@@ -631,10 +632,39 @@ final class ParserTest extends TestCase
 
     public function test_reader_conditional_odd_forms_dangling_keyword(): void
     {
-        self::assertEquals(
-            new NumberNode('42', $this->loc(1, 9), $this->loc(1, 11), 42),
-            $this->selected($this->parse('#?(:phel 42 :default)')),
-        );
+        $this->expectException(UnexpectedParserException::class);
+        $this->expectExceptionMessage('Reader conditional requires an even number of forms');
+
+        $this->parse('#?(:phel 42 :default)');
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function malformed_reader_conditionals(): iterable
+    {
+        foreach (['#?(:phel)', '#?(:clj)', '#?@(:phel)', '#?(:clj #?(:phel))'] as $source) {
+            yield $source => [$source, 'Reader conditional requires an even number of forms'];
+        }
+
+        foreach (['#?(1 2)', '#?@("phel" [1])', '#?(:phel 1 2 3)', '#?(:clj #?(1 2))'] as $source) {
+            yield $source => [$source, 'Reader conditional feature must be a keyword'];
+        }
+    }
+
+    #[DataProvider('malformed_reader_conditionals')]
+    public function test_malformed_reader_conditional_has_a_located_parser_error(string $source, string $message): void
+    {
+        try {
+            $this->parse($source);
+            self::fail('Expected a parser error');
+        } catch (UnexpectedParserException $unexpectedParserException) {
+            self::assertSame($message, $unexpectedParserException->getMessage());
+            $location = $unexpectedParserException->getStartLocation();
+            self::assertNotNull($location);
+            self::assertSame('string', $location->getFile());
+            self::assertSame(1, $location->getLine());
+        }
     }
 
     public function test_reader_conditional_trailing_newline_before_close_paren(): void
