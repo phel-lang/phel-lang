@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Rpc;
 
+use JsonException;
 use Phel\Lsp\Application\Session\Session;
 use Throwable;
 
@@ -43,16 +44,9 @@ final readonly class LspServer
                 return 0;
             }
 
-            try {
-                $message = $this->reader->read($input);
-            } catch (Throwable $throwable) {
-                $this->writer->write($output, $this->responses->error(
-                    null,
-                    ResponseBuilder::PARSE_ERROR,
-                    $throwable->getMessage(),
-                ));
-                ++$iterations;
-                continue;
+            $message = $this->readMessage($input, $output);
+            if ($message === false) {
+                return 1;
             }
 
             if ($message === null) {
@@ -65,8 +59,8 @@ final readonly class LspServer
             }
 
             $response = $this->dispatcher->dispatch($message, $this->session);
-            if ($response !== null) {
-                $this->writer->write($output, $response);
+            if ($response !== null && !$this->writeResponse($output, $response)) {
+                return 1;
             }
 
             if ($this->session->shutdownRequested() && ($message['method'] ?? '') === 'exit') {
@@ -76,4 +70,47 @@ final readonly class LspServer
             ++$iterations;
         }
     }
+
+    /**
+     * @param resource $input
+     * @param resource $output
+     *
+     * @return array<string, mixed>|false|null false when the parse-error response cannot be written
+     */
+    private function readMessage($input, $output): array|false|null
+    {
+        try {
+            return $this->reader->read($input);
+        } catch (Throwable $throwable) {
+            return $this->writeResponse($output, $this->responses->error(
+                null,
+                ResponseBuilder::PARSE_ERROR,
+                $throwable->getMessage(),
+            )) ? [] : false;
+        }
+    }
+
+    /**
+     * @param resource             $output
+     * @param array<string, mixed> $response
+     */
+    private function writeResponse($output, array $response): bool
+    {
+        try {
+            try {
+                $this->writer->write($output, $response);
+            } catch (JsonException) {
+                $this->writer->write($output, $this->responses->error(
+                    $response['id'] ?? null,
+                    ResponseBuilder::INTERNAL_ERROR,
+                    'Could not encode response',
+                ));
+            }
+        } catch (Throwable) {
+            return false;
+        }
+
+        return true;
+    }
+
 }

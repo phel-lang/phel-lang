@@ -1,0 +1,9 @@
+--PHEL--
+(def unicode-chars [\é \€ \😀])
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "unicode-chars",
+  \Phel::vector(["é", "€", "😀"]),
+  static fn() => \Phel::locationMeta(\Phel::location("Def/char-literal-multibyte.test", 1, 0), \Phel::location("Def/char-literal-multibyte.test", 1, 30))
+);

@@ -16,12 +16,14 @@ use Phel\Shared\BuildOptions;
 use Phel\Shared\CompiledFile;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Munge;
 use Phel\Shared\NamespaceInformation;
 use RuntimeException;
 
 use function dirname;
 use function filemtime;
 use function sprintf;
+use function strtolower;
 use function time;
 
 /**
@@ -109,6 +111,7 @@ final readonly class ProjectCompiler
             || $this->storedCacheEnvFingerprint($dest) !== $this->cacheEnvFingerprint;
 
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories, failOnInvalidNsForm: true);
+        $this->assertDistinctNamespaces($namespaceInformation);
         /** @var list<CompiledFile> $result */
         $result = [];
         // Dependency-ordered, so checking direct requires against this set
@@ -181,6 +184,37 @@ final readonly class ProjectCompiler
         }
 
         return $result;
+    }
+
+    /**
+     * @param list<NamespaceInformation> $namespaceInformation
+     */
+    private function assertDistinctNamespaces(array $namespaceInformation): void
+    {
+        $namespaces = [];
+        foreach ($namespaceInformation as $info) {
+            if ($this->shouldIgnoreNs($info)) {
+                continue;
+            }
+
+            $phpNamespace = $this->compilerFacade->encodeNs($info->getNamespace());
+            $key = strtolower($phpNamespace);
+            $existing = $namespaces[$key] ?? null;
+            if ($existing instanceof NamespaceInformation
+                && Munge::canonicalNs($existing->getNamespace()) !== Munge::canonicalNs($info->getNamespace())
+            ) {
+                throw new RuntimeException(sprintf(
+                    'Namespace output collision: "%s" (%s) and "%s" (%s) both compile to PHP namespace "%s".',
+                    $existing->getNamespace(),
+                    $existing->getFile(),
+                    $info->getNamespace(),
+                    $info->getFile(),
+                    $phpNamespace,
+                ));
+            }
+
+            $namespaces[$key] ??= $info;
+        }
     }
 
     /**
