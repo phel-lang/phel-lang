@@ -32,6 +32,7 @@ final class PharBuilder
     private string $pharFile;
     private string $releaseConfigFile;
     private bool $isOfficialRelease;
+    private readonly int $sourceDateEpoch;
     private array $stats = [
         'start_time' => 0,
         'files_added' => 0,
@@ -151,6 +152,13 @@ final class PharBuilder
 
     public function __construct(string $root)
     {
+        $epoch = getenv('SOURCE_DATE_EPOCH');
+        $epoch = $epoch === false || $epoch === '' ? '0' : $epoch;
+        if (preg_match('/\A(?:0|[1-9][0-9]{0,9})\z/', $epoch) !== 1 || $epoch > '4294967295') {
+            throw new InvalidArgumentException('SOURCE_DATE_EPOCH must be an integer between 0 and 4294967295');
+        }
+
+        $this->sourceDateEpoch = (int) $epoch;
         $this->root = realpath($root) ?: $root;
         $this->pharFile = $this->root . '/phel.phar';
         $this->releaseConfigFile = $this->root . '/.phel-release.php';
@@ -269,6 +277,9 @@ final class PharBuilder
             $phar->setSignatureAlgorithm(Phar::SHA256);
 
             $phar->stopBuffering();
+            $stubLength = \strlen($phar->getStub());
+            unset($phar);
+            $this->normalizeArchiveTimestamps($stubLength);
 
             if (!chmod($this->pharFile, 0755)) {
                 throw new RuntimeException('Failed to set executable permissions on PHAR');
@@ -457,7 +468,7 @@ final class PharBuilder
         );
 
         $suffix = '.' . $extension;
-        foreach ($iterator as $fileInfo) {
+        foreach ($this->sortedFiles($iterator) as $fileInfo) {
             if ($fileInfo->isFile() && str_ends_with($fileInfo->getFilename(), $suffix)) {
                 yield $fileInfo->getPathname();
             }
@@ -565,7 +576,7 @@ final class PharBuilder
         );
 
         try {
-            $added = $phar->buildFromIterator($iterator, $this->root);
+            $added = $phar->buildFromIterator($this->sortedFiles($iterator), $this->root);
         } catch (Exception $e) {
             $this->stats['errors'][] = "buildFromIterator failed: {$e->getMessage()}";
             return;
@@ -619,7 +630,7 @@ final class PharBuilder
             new RecursiveDirectoryIterator($examplesRoot, FilesystemIterator::SKIP_DOTS),
         );
 
-        foreach ($iterator as $fileInfo) {
+        foreach ($this->sortedFiles($iterator) as $fileInfo) {
             if (!$fileInfo->isFile()) {
                 continue;
             }
@@ -693,6 +704,79 @@ EOF;
             // depending on the underlying gzip support.
             $this->stats['errors'][] = "compressFiles failed: {$e->getMessage()}";
         }
+    }
+
+    private function sortedFiles(Iterator $iterator): ArrayIterator
+    {
+        $files = iterator_to_array($iterator);
+        ksort($files, SORT_STRING);
+
+        return new ArrayIterator($files);
+    }
+
+    private function normalizeArchiveTimestamps(int $stubLength): void
+    {
+        // PHP exposes no timestamp setter; preserve the documented native manifest and SHA256 format.
+        $archive = file_get_contents($this->pharFile);
+        if ($archive === false || substr($archive, -8) !== pack('V', Phar::SHA256) . 'GBMB') {
+            throw new RuntimeException('Expected a native PHAR with a SHA256 signature');
+        }
+
+        $bodyLength = \strlen($archive) - 40;
+        if (!hash_equals(hash('sha256', substr($archive, 0, $bodyLength), true), substr($archive, -40, 32))) {
+            throw new RuntimeException('PHAR signature is invalid before timestamp normalization');
+        }
+
+        $manifestLength = $this->readManifestUint32($archive, $stubLength, $bodyLength);
+        $offset = $stubLength + 4;
+        $manifestEnd = $offset + $manifestLength;
+        if ($manifestEnd > $bodyLength) {
+            throw new RuntimeException('PHAR manifest exceeds the archive bounds');
+        }
+
+        $entries = $this->readManifestUint32($archive, $offset, $manifestEnd);
+        $offset += 10;
+        $aliasLength = $this->readManifestUint32($archive, $offset, $manifestEnd);
+        $offset += 4 + $aliasLength;
+        $metadataLength = $this->readManifestUint32($archive, $offset, $manifestEnd);
+        $offset += 4 + $metadataLength;
+        if ($offset > $manifestEnd || $entries > intdiv($manifestEnd - $offset, 28)) {
+            throw new RuntimeException('PHAR manifest entry count is invalid');
+        }
+
+        for ($entry = 0; $entry < $entries; ++$entry) {
+            $nameLength = $this->readManifestUint32($archive, $offset, $manifestEnd);
+            $offset += 4 + $nameLength + 4;
+            $this->readManifestUint32($archive, $offset, $manifestEnd);
+            $archive = substr_replace($archive, pack('V', $this->sourceDateEpoch), $offset, 4);
+            $offset += 16;
+            $metadataLength = $this->readManifestUint32($archive, $offset, $manifestEnd);
+            $offset += 4 + $metadataLength;
+        }
+
+        if ($offset !== $manifestEnd) {
+            throw new RuntimeException('PHAR manifest entry bounds are invalid');
+        }
+
+        $body = substr($archive, 0, $bodyLength);
+        $normalized = $body . hash('sha256', $body, true) . pack('V', Phar::SHA256) . 'GBMB';
+        if (file_put_contents($this->pharFile, $normalized) !== \strlen($normalized)) {
+            throw new RuntimeException('Failed to write normalized PHAR');
+        }
+    }
+
+    private function readManifestUint32(string $archive, int $offset, int $limit): int
+    {
+        if ($offset < 0 || $offset + 4 > $limit) {
+            throw new RuntimeException('PHAR manifest field exceeds its bounds');
+        }
+
+        $field = unpack('Vvalue', substr($archive, $offset, 4));
+        if ($field === false || !isset($field['value']) || !\is_int($field['value'])) {
+            throw new RuntimeException('Invalid PHAR manifest integer');
+        }
+
+        return $field['value'];
     }
 
     private function formatDuration(float $seconds): string
