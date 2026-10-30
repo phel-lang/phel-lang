@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
+use ErrorException;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\UseNode;
@@ -110,6 +111,21 @@ final class UseSymbolTest extends TestCase
         ]);
 
         $this->analyze($list);
+    }
+
+    public function test_an_empty_import_reports_the_existing_error_without_a_php_warning(): void
+    {
+        set_error_handler(static function (int $severity, string $message): never {
+            throw new ErrorException($message, 0, $severity);
+        });
+
+        try {
+            $this->expectException(AnalyzerException::class);
+            $this->expectExceptionMessage('Cannot import unknown PHP symbol \\.');
+            $this->analyze(Phel::list([Symbol::create(Symbol::NAME_USE), Symbol::create('')]));
+        } finally {
+            restore_error_handler();
+        }
     }
 
     public function test_preserves_source_location(): void

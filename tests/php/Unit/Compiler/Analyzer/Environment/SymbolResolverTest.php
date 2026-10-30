@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\Environment;
 
+use ErrorException;
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
@@ -62,6 +63,19 @@ final class SymbolResolverTest extends TestCase
     protected function tearDown(): void
     {
         $this->stopCapturingDeprecations();
+    }
+
+    public function test_an_empty_symbol_stays_unresolved_without_a_php_warning(): void
+    {
+        set_error_handler(static function (int $severity, string $message): never {
+            throw new ErrorException($message, 0, $severity);
+        });
+
+        try {
+            self::assertNull($this->resolver->resolve(Symbol::create(''), NodeEnvironment::empty()));
+        } finally {
+            restore_error_handler();
+        }
     }
 
     public function test_resolve_magic_dir_constant(): void

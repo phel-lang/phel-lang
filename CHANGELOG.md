@@ -84,6 +84,7 @@ Compiler:
 - A malformed PHP member, class or type tag such as `.foo-bar` or `\Foo-Bar` fails with `PHEL007` at its symbol. It used to produce invalid PHP or interpret the dash as subtraction. (#3667)
 - Own namespace definitions take precedence over PHP `:use` aliases in bare values and calls. An imported alias used to hide a same-named `def`. Constructors, static calls, class callables and type tags still use the import. (#3717)
 - PHP class names such as `PDO` no longer produce constant-collision warnings in constructor, static-member or callable positions. The warning still applies to bare value positions. (#3537)
+- An empty symbol, including one returned by a macro, reports `PHEL001` without a PHP warning. It used to raise `Uninitialized string offset 0` before the unresolved-symbol error, as did an empty PHP import. (#3720)
 - Character literals such as `\é` and `\😀` read as whole Unicode characters instead of splitting after the first byte. (#3708)
 - Reader prefixes accept whitespace and comments before their forms, including `' x` and `^ :a x`. They used to fail or read the wrong form. Comments survive formatting, and a missing form reports the prefix instead of an unrelated `Unterminated list` error. (#3713)
 
