@@ -15,6 +15,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 final class StructTest extends TestCase
 {
@@ -64,6 +65,32 @@ final class StructTest extends TestCase
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
         self::assertNull($s[42]);
         self::assertArrayNotHasKey(42, $s);
+    }
+
+    #[DataProvider('read_keys')]
+    public function test_lookup_normalizes_supported_keys_and_misses_unsupported_keys(mixed $key, bool $present): void
+    {
+        $struct = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), null);
+
+        self::assertSame($present, $struct->contains($key));
+        self::assertSame($present, $struct->offsetExists($key));
+        self::assertSame($present ? 1 : null, $struct->find($key));
+        self::assertSame($present ? 1 : null, $struct[$key]);
+    }
+
+    public static function read_keys(): iterable
+    {
+        yield 'keyword' => [Keyword::create('a'), true];
+        yield 'namespaced keyword' => [Keyword::create('other/a'), true];
+        yield 'string' => ['a', true];
+        yield 'namespaced string' => ['other/a', true];
+        yield 'symbol' => [Symbol::create('a'), true];
+        yield 'namespaced symbol' => [Symbol::create('other/a'), true];
+        yield 'integer' => [1, false];
+        yield 'nil' => [null, false];
+        yield 'boolean' => [false, false];
+        yield 'array' => [[], false];
+        yield 'object' => [new stdClass(), false];
     }
 
     public function test_remove(): void

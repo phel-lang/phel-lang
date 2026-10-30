@@ -18,6 +18,16 @@ final class SymbolTest extends TestCase
         $this->assertSame('test', $s->getFullName());
     }
 
+    public function test_leading_slash_does_not_create_an_empty_namespace(): void
+    {
+        $symbol = Symbol::create('/a');
+        self::assertNull($symbol->getNamespace());
+        self::assertSame('/a', $symbol->getName());
+        self::assertSame('/a', $symbol->getFullName());
+        self::assertNull(Symbol::create('/')->getNamespace());
+        self::assertSame('/', Symbol::create('/')->getName());
+    }
+
     public function test_create_with_ns(): void
     {
         $s = Symbol::create('namespace/test');

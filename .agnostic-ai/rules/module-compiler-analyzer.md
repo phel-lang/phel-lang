@@ -45,6 +45,10 @@ Runs after `ConstantFolder` (in `Domain/Analyzer/TypeAnalyzer/Simplification/`):
 - Body and extra arguments must be fully on the `SpliceableBody` allowlist: literals, local and global reads, collection literals without reader metadata, `php/aget`, `if`/`do`/`let` (not `loop`), nested fns, and calls to PHP operators except `=`/`=&`, a few pure builtins (`max`, `min`, `abs`, ...), keywords, or global Phel fns that are not `^:dynamic`/`^:redef` and whose `__invoke` has no by-ref param (reflected; undefined counts as by-ref). Extra arguments are restricted because the closure captured enclosing locals before they ran. Keep it an allowlist: a denylist kept leaking.
 - `recur` to the fn, rest/multi-arity/named fns, tagged params and any return type (declared or inferred) keep the closure.
 
+## Local binding names
+
+`TypeAnalyzer/SpecialForm/LocalBindingName` keeps function parameters and local shadows in `let`/`loop`, `foreach` and `catch` apart from emitter scratch prefixes (`__truthy`, `__or`, `__phel`). Rebinding preserves parameter metadata. Plain generated numeric names and `this` retain their existing mappings.
+
 ## Type Tags (inference and canonicalization)
 
 `ParamTypeInferrer` and `ReturnTypeInferrer` graft `:tag` meta onto binding symbols. Contract: propagate only analyzer-published types, never fabricate.
