@@ -83,6 +83,8 @@ jobs:
             --do-not-cache-result
 
       - name: Run Infection
+        env:
+          MUTATION_MIN_MSI: ${{ github.event.inputs.min-msi || env.MIN_MSI }}
         run: |
           php -d memory_limit=2G vendor/bin/infection \
             --threads=max \
@@ -90,7 +92,7 @@ jobs:
             --no-interaction \
             --skip-initial-tests \
             --coverage=data/coverage-xml \
-            --min-msi="${{ github.event.inputs.min-msi || env.MIN_MSI }}" \
+            --min-msi="$MUTATION_MIN_MSI" \
             --min-covered-msi="$MIN_COVERED_MSI"
 
       - name: Publish the mutation summary

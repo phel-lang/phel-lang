@@ -45,4 +45,8 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: composer install --no-interaction --no-ansi --no-progress ${{ inputs.composer-args }}
+      env:
+        COMPOSER_ARGS: ${{ inputs.composer-args }}
+      run: |
+        IFS=$' \t\n' read -r -d '' -a composer_arguments < <(printf '%s\0' "$COMPOSER_ARGS")
+        composer install --no-interaction --no-ansi --no-progress "${composer_arguments[@]}"

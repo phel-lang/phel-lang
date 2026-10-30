@@ -70,6 +70,8 @@ jobs:
             --do-not-cache-result
 
       - name: Publish the figure and enforce the floor
+        env:
+          RUN_COVERAGE_FLOOR: ${{ github.event.inputs.coverage-floor || env.COVERAGE_FLOOR }}
         run: |
           php tools/check-coverage.php data/clover.xml \
-            "${{ github.event.inputs.coverage-floor || env.COVERAGE_FLOOR }}"
+            "$RUN_COVERAGE_FLOOR"
