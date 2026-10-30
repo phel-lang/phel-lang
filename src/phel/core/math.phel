@@ -684,19 +684,24 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    (* n (rand))))
 
 (defn rand-int
-  "Returns a random number between 0 and `n`."
+  "Returns a random integer in `[0, n)` for a positive integer `n`, or `0` when `n` is non-positive."
   {:example "(rand-int 100) ; => 42"
    :see-also ["rand" "rand-nth"]}
   [n]
-  (php/random_int 0 n))
+  (if (<= n 0)
+    0
+    (php/random_int 0 (dec n))))
 
 (defn rand-nth
-  "Returns a random item from xs."
+  "Returns a random item from `xs`. Throws for an empty collection and returns `nil` for `nil`."
   {:example "(rand-nth [:a :b :c]) ; => :b"
    :see-also ["rand" "rand-int"]}
   [xs]
   (when-not (nil? xs)
-    (get xs (rand-int (dec (count xs))))))
+    (let [size (count xs)]
+      (if (zero? size)
+        (throw (new InvalidArgumentException "rand-nth expects a non-empty collection"))
+        (get xs (rand-int size))))))
 
 (defn random-sample
   "Returns the items of `coll` for which `(rand)` is less than `prob`, so each item is kept independently with probability `prob` (0 keeps nothing, 1 keeps everything). Lazy. Without a collection, returns a transducer."

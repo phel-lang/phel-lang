@@ -25,6 +25,7 @@ Compiler:
 
 Runtime:
 
+- **BREAKING**: `rand-int` excludes its positive upper bound, so `(rand-int 1)` always returns `0`; it used to include the bound. Non-positive bounds return `0` instead of passing negative bounds to PHP. `rand-nth` reports an empty-collection error instead of a PHP range error. Use `(rand-int (inc n))` for an inclusive upper bound. (#3679)
 - **BREAKING**: Sequence functions consume `[key value]` entries from maps, sorted maps and structs, matching `seq`, `vec` and `into`, instead of consuming values or failing on `rest`. This includes collection conversion, grouping, selection, transformation, concatenation, partitioning, `reduce` with an init, and transducers. Use `(vals m)` where values are required. (#3556 #3570 #3567)
 - **BREAKING**: `compare` and `sort` order lazy seqs, ranges, map entries and queues element-wise, matching vectors and lists; a seq equals a vector with the same elements. Previously even equal seqs compared as `1`. Two maps, sets or transients compare as `0` when equal and throw otherwise, instead of receiving an arbitrary order. Use `sort-by` with a key function, such as `count`, for maps or sets. (#3555)
 - **BREAKING**: `take`, `drop`, `take-last`, `drop-last`, `take-nth` and `split-at` round fractional counts up, so `5/2` means 3; ratio, `BigInt` and `BigDecimal` counts no longer throw. `partition` returns `()` for non-integer counts, including `2.0`, instead of producing chunks. Pass `(int n)` to retain the old count. (#3566)
