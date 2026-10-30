@@ -52,7 +52,7 @@ jobs:
       MIN_MSI: '80'
       MIN_COVERED_MSI: '80'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           # Infection reads the diff to report which mutants a change introduced.
           fetch-depth: 0
@@ -108,7 +108,7 @@ jobs:
 
       - name: Upload the full mutation log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: infection-log
           path: data/infection.log

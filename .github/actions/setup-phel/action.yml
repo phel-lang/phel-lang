@@ -22,7 +22,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: shivammathur/setup-php@v2
+    - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
       with:
         php-version: ${{ inputs.php-version }}
         coverage: ${{ inputs.coverage }}
@@ -35,7 +35,7 @@ runs:
       run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: ${{ steps.composer-cache.outputs.dir }}
         key: ${{ runner.os }}-php${{ inputs.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
