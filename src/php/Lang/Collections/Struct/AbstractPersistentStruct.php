@@ -58,7 +58,9 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
     public function contains($key): bool
     {
-        return in_array($key->getName(), static::ALLOWED_KEYS, true);
+        $key = $this->normalizeOffset($key);
+
+        return $key instanceof Keyword && in_array($key->getName(), static::ALLOWED_KEYS, true);
     }
 
     #[NoDiscard('the result is a new instance, the receiver is unchanged')]
@@ -94,6 +96,11 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
     public function find($key)
     {
+        $key = $this->normalizeOffset($key);
+        if (!$key instanceof Keyword) {
+            return null;
+        }
+
         $stringKey = $this->validateKey($key);
         return $this->{$stringKey};
     }

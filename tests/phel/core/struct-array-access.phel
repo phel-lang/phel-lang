@@ -24,3 +24,36 @@
   (let [p (point 3 4)]
     (is (= [:x :y] (keys p)) "iteration stays keyword-keyed (Phel map contract)")
     (is (= {:x 3 :y 4} (into {} p)) "into a map keeps keyword keys")))
+
+(deftest struct-lookup-normalizes-readable-keys
+  (let [p (point 3 4)]
+    (doseq [key [:x "x" (symbol "x") :other/x "other/x" (symbol "other/x")]]
+      (is (contains? p key))
+      (is (= 3 (get p key)))
+      (is (= 3 (second (find p key))))
+      (is (= 3 (aget p key))))))
+
+(deftest struct-lookup-misses-unsupported-and-missing-keys
+  (let [p (point 3 4)]
+    (doseq [key [:missing "missing" (symbol "missing") 1 nil false []]]
+      (is (false? (contains? p key)))
+      (is (nil? (get p key)))
+      (is (= :absent (get p key :absent)))
+      (is (nil? (find p key))))))
+
+(defstruct lookup-point [foo-bar nullable])
+
+(deftest struct-lookup-keeps-field-munging-and-nil-membership
+  (let [p (lookup-point 7 nil)]
+    (doseq [key [:foo-bar "foo-bar" (symbol "foo-bar") :other/foo-bar "other/foo-bar"]]
+      (is (contains? p key))
+      (is (= 7 (get p key))))
+    (is (contains? p "nullable"))
+    (is (nil? (get p "nullable")))
+    (is (= ["nullable" nil] (vec (find p "nullable"))))))
+
+(deftest struct-and-string-keyed-map-comparison-is-boolean
+  (let [p (point 3 4)
+        m {"x" 3, "y" 4}]
+    (is (false? (= m p)))
+    (is (false? (= p m)))))

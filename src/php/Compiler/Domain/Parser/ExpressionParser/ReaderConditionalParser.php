@@ -85,6 +85,7 @@ final readonly class ReaderConditionalParser
      * Scans the `:phel`/`:default` branch pairs, consumes the closing paren,
      * and returns the selected branch (`:phel`, else `:default`, else null).
      *
+     * @throws UnexpectedParserException
      * @throws UnfinishedParserException
      *
      * @return array{?NodeInterface, SourceLocation, string, string, string}
@@ -103,26 +104,40 @@ final readonly class ReaderConditionalParser
                 break;
             }
 
-            $formStart = 0;
-            $formNode = $this->readNonTriviaExpression($tokenStream, $formStart);
-            $formEnd = $tokenStream->getReadTokenIndex() - 1;
-            if (!$formNode instanceof NodeInterface) {
-                break;
-            }
-
             while ($keywordNode instanceof ReaderConditionalNode) {
                 $keywordNode = $keywordNode->getSelected();
             }
 
-            if ($keywordNode instanceof KeywordNode) {
-                $keywordCode = $keywordNode->getCode();
-                if ($keywordCode === ':phel') {
-                    $phelNode = $formNode;
-                    $phelRange = [$formStart, $formEnd];
-                } elseif ($keywordCode === ':default') {
-                    $defaultNode = $formNode;
-                    $defaultRange = [$formStart, $formEnd];
+            if (!$keywordNode instanceof KeywordNode) {
+                throw UnexpectedParserException::forSnippet(
+                    $tokenStream->getCodeSnippet(),
+                    $openToken,
+                    'Reader conditional feature must be a keyword',
+                );
+            }
+
+            $formStart = 0;
+            $formNode = $this->readNonTriviaExpression($tokenStream, $formStart);
+            $formEnd = $tokenStream->getReadTokenIndex() - 1;
+            if (!$formNode instanceof NodeInterface) {
+                if ($tokenStream->valid() && $tokenStream->current()->getType() === Token::T_CLOSE_PARENTHESIS) {
+                    throw UnexpectedParserException::forSnippet(
+                        $tokenStream->getCodeSnippet(),
+                        $openToken,
+                        'Reader conditional requires an even number of forms',
+                    );
                 }
+
+                break;
+            }
+
+            $keywordCode = $keywordNode->getCode();
+            if ($keywordCode === ':phel') {
+                $phelNode = $formNode;
+                $phelRange = [$formStart, $formEnd];
+            } elseif ($keywordCode === ':default') {
+                $defaultNode = $formNode;
+                $defaultRange = [$formStart, $formEnd];
             }
         }
 

@@ -27,6 +27,7 @@ use Phel\Lang\Ratio;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Lang\UUID;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function is_array;
 use function is_bool;
@@ -40,6 +41,12 @@ use function is_string;
  */
 final class Analyzer implements AnalyzerInterface
 {
+    private const int MAX_MACRO_EXPANSION_DEPTH = 1000;
+
+    private int $macroExpansionDepth = 0;
+
+    private ?TypeInterface $macroExpansionForm = null;
+
     private ?AnalyzeLiteral $literalAnalyzer = null;
 
     private ?AnalyzePersistentList $listAnalyzer = null;
@@ -220,11 +227,28 @@ final class Analyzer implements AnalyzerInterface
         mixed $x,
         NodeEnvironmentInterface $env,
     ): AbstractNode {
-        $this->globalEnvironment->addLevelToAllowPrivateAccess();
-        $result = $this->analyze($x, $env);
-        $this->globalEnvironment->removeLevelToAllowPrivateAccess();
+        if ($this->macroExpansionDepth >= self::MAX_MACRO_EXPANSION_DEPTH) {
+            throw AnalyzerException::withLocation(
+                'Maximum macro expansion depth of ' . self::MAX_MACRO_EXPANSION_DEPTH . ' exceeded',
+                $this->macroExpansionForm ?? Symbol::create('macro'),
+                errorCode: ErrorCode::MACRO_EXPANSION_ERROR,
+            );
+        }
 
-        return $result;
+        if ($this->macroExpansionDepth === 0) {
+            $this->macroExpansionForm = $x instanceof TypeInterface ? $x : null;
+        }
+
+        ++$this->macroExpansionDepth;
+        $this->globalEnvironment->addLevelToAllowPrivateAccess();
+        try {
+            return $this->analyze($x, $env);
+        } finally {
+            $this->globalEnvironment->removeLevelToAllowPrivateAccess();
+            if (--$this->macroExpansionDepth === 0) {
+                $this->macroExpansionForm = null;
+            }
+        }
     }
 
     /**

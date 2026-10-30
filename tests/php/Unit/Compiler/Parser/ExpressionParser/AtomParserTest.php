@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Parser\ExpressionParser;
 
+use Phel\Compiler\Application\Lexer;
+use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\NumberParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
 use Phel\Compiler\Domain\Parser\ExpressionParser\AtomParser;
+use Phel\Compiler\Domain\Parser\ExpressionParserFactory;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInt;
 use Phel\Lang\Keyword;
@@ -648,24 +652,22 @@ final class AtomParserTest extends TestCase
         self::assertSame(511, $node->getValue());
     }
 
-    public function test_invalid_digit_for_base_falls_through_to_symbol(): void
+    public function test_invalid_digit_for_base_is_rejected(): void
     {
+        $this->expectException(NumberParserException::class);
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);
         $end = new SourceLocation('string', 0, 3);
-        $node = $parser->parse(new Token(Token::T_ATOM, '2r2', $start, $end));
-
-        self::assertInstanceOf(SymbolNode::class, $node);
+        $parser->parse(new Token(Token::T_ATOM, '2r2', $start, $end));
     }
 
-    public function test_base_greater_than_36_not_matched(): void
+    public function test_base_greater_than_36_is_rejected(): void
     {
+        $this->expectException(NumberParserException::class);
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);
         $end = new SourceLocation('string', 0, 4);
-        $node = $parser->parse(new Token(Token::T_ATOM, '37r0', $start, $end));
-
-        self::assertInstanceOf(SymbolNode::class, $node);
+        $parser->parse(new Token(Token::T_ATOM, '37r0', $start, $end));
     }
 
     public function test_parse_bigint_literal(): void
@@ -845,6 +847,67 @@ final class AtomParserTest extends TestCase
         $node = $parser->parse(new Token(Token::T_ATOM, 'foo1M', $start, $end));
 
         self::assertInstanceOf(SymbolNode::class, $node);
+    }
+
+    #[DataProvider('malformed_numeric_tokens')]
+    public function test_rejects_malformed_numeric_tokens(string $word): void
+    {
+        $this->expectException(NumberParserException::class);
+        $this->expectExceptionMessage('Invalid number: ' . $word);
+        $parser = new AtomParser(new GlobalEnvironment());
+        $parser->parse(new Token(Token::T_ATOM, $word, new SourceLocation('invalid.phel', 2, 3), new SourceLocation('invalid.phel', 2, 3 + strlen($word))));
+    }
+
+    public function test_invalid_numeric_token_keeps_its_source_location(): void
+    {
+        $parser = new Parser(new ExpressionParserFactory(), new GlobalEnvironment());
+        try {
+            $parser->parseAll(new Lexer()->lexString("\n   1+", 'invalid.phel'));
+            self::fail('Expected an invalid-number error');
+        } catch (UnexpectedParserException $unexpectedParserException) {
+            self::assertSame('Invalid number: 1+', $unexpectedParserException->getMessage());
+            self::assertEquals(new SourceLocation('invalid.phel', 2, 3), $unexpectedParserException->getStartLocation());
+            self::assertEquals(new SourceLocation('invalid.phel', 2, 5), $unexpectedParserException->getEndLocation());
+        }
+    }
+
+    public static function malformed_numeric_tokens(): iterable
+    {
+        foreach (['1+', '1_', '12_', '-1+', '+12_', '1__2', '1e+', '1abc', '0xG', '0b2', '2r2', '37r0'] as $word) {
+            yield $word => [$word];
+        }
+    }
+
+    #[DataProvider('valid_decimal_forms')]
+    public function test_preserves_valid_decimal_forms(string $word, int|float $expected): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $node = $parser->parse(new Token(Token::T_ATOM, $word, new SourceLocation('string', 1, 0), new SourceLocation('string', 1, strlen($word))));
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame($expected, $node->getValue());
+    }
+
+    public static function valid_decimal_forms(): iterable
+    {
+        yield 'grouped integer' => ['1_000', 1000];
+        yield 'negative grouped integer' => ['-1_000', -1000];
+        yield 'positive grouped integer' => ['+1_000', 1000];
+        yield 'trailing decimal point' => ['1.', 1.0];
+        yield 'leading decimal point' => ['.5', 0.5];
+        yield 'signed leading decimal point' => ['-.5', -0.5];
+        yield 'negative exponent' => ['1e-2', 0.01];
+        yield 'positive exponent' => ['1e+2', 100.0];
+        yield 'signed exponent float' => ['+1.5e+2', 150.0];
+    }
+
+    public function test_preserves_arithmetic_operators_and_nonnumeric_sign_prefixes(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        foreach (['+', '-', '/', '+name', '-name', '.member', '/a'] as $word) {
+            $node = $parser->parse(new Token(Token::T_ATOM, $word, new SourceLocation('string', 1, 0), new SourceLocation('string', 1, strlen($word))));
+            self::assertInstanceOf(SymbolNode::class, $node);
+            self::assertSame($word, $node->getValue()->getFullName());
+        }
     }
 
     public function test_parse_symbol(): void
