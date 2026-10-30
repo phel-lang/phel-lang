@@ -233,7 +233,7 @@ $code = (int) $argv[2];
 $command = new \Symfony\Component\Console\Command\Command('exit-code');
 $command->setCode(static fn(): int => $code);
 $application = new \Phel\Console\ConsoleFactory()->createConsoleBootstrap();
-$application->addCommand($command);
+$application->addCommands([$command]);
 $application->run(new \Symfony\Component\Console\Input\ArrayInput(['command' => 'exit-code']));
 PHP;
         $result = Subprocess::run([PHP_BINARY, '-r', $script, dirname(__DIR__, 4), (string) $code]);
