@@ -145,6 +145,48 @@ final class MessageReaderTest extends TestCase
         fclose($server);
     }
 
+    public function test_partial_headers_survive_an_idle_heartbeat(): void
+    {
+        [$server, $client] = $this->socketPair();
+        $reader = new MessageReader();
+        fwrite($client, 'Content-Leng');
+        self::assertSame([], $reader->read($server));
+        fwrite($client, "th: 17\r\n\r\n{\"method\":\"ping\"}");
+        self::assertSame(['method' => 'ping'], $reader->read($server));
+        fclose($client);
+        fclose($server);
+    }
+
+    public function test_partial_bodies_survive_an_idle_heartbeat(): void
+    {
+        [$server, $client] = $this->socketPair();
+        $reader = new MessageReader();
+        fwrite($client, "Content-Length: 17\r\n\r\n{\"method\":");
+        self::assertSame([], $reader->read($server));
+        fwrite($client, '"ping"}');
+        self::assertSame(['method' => 'ping'], $reader->read($server));
+        fclose($client);
+        fclose($server);
+    }
+
+    public function test_partial_frame_at_eof_returns_without_looping(): void
+    {
+        self::assertNull(new MessageReader()->read($this->memoryStreamWith("Content-Length: 17\r\n\r\n{")));
+    }
+
+    public function test_unselectable_input_is_a_transport_failure(): void
+    {
+        stream_wrapper_register('phellspunselectable', UnselectableLspInput::class);
+        $stream = fopen('phellspunselectable://input', 'r');
+        self::assertNotFalse($stream);
+        try {
+            self::assertFalse(new MessageReader()->read($stream));
+        } finally {
+            fclose($stream);
+            stream_wrapper_unregister('phellspunselectable');
+        }
+    }
+
     /**
      * Poll past heartbeats until a framed message arrives.
      *
@@ -191,5 +233,35 @@ final class MessageReaderTest extends TestCase
         }
 
         return $stream;
+    }
+}
+
+final class UnselectableLspInput
+{
+    public mixed $context;
+
+    public function stream_open(): bool
+    {
+        return true;
+    }
+
+    public function stream_eof(): bool
+    {
+        return false;
+    }
+
+    public function stream_read(): string
+    {
+        return '';
+    }
+
+    public function stream_cast(): false
+    {
+        return false;
+    }
+
+    public function stream_stat(): array
+    {
+        return [];
     }
 }
