@@ -10,8 +10,13 @@ use Phel\Compiler\Domain\Cache\CachedReaderResult;
 use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Infrastructure\Cache\FileSystemReaderResultCache;
+use Phel\Lang\Collections\Map\PersistentHashMap;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\VersionFinder;
+use PhelTest\Support\Subprocess;
+
+use function dirname;
 
 /**
  * The reader-result cache must be transparent: replaying cached forms through
@@ -101,6 +106,56 @@ final class ReaderResultCacheByteIdenticalTest extends AbstractCompilerRuntimeTe
 
         self::assertSame($cold, $warm, 'disk-backed warm hit must emit byte-identical PHP');
         self::assertStringContainsString('Symbol::createGenerated("v__', $warm, 'v# must stay a generated symbol');
+    }
+
+    public function test_old_float_key_tries_are_rebuilt_before_macro_expansion(): void
+    {
+        $source = '(println (reader-cache-float-value {0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 1.5 42}))';
+        $version = VersionFinder::LATEST_VERSION;
+        $legacyPath = $this->diskCacheDir . '/read-result/' . md5('2|' . $version . '|O0|' . $source) . '.cache';
+        $legacyWriter = <<<'PHP'
+require $argv[1] . '/vendor/autoload.php';
+$hasher = file_get_contents($argv[1] . '/src/php/Lang/Hasher.php');
+$hasher = str_replace("return crc32(pack('E', \$value));", 'return (int) $value;', $hasher, $replacements);
+if ($replacements !== 1 || class_exists(\Phel\Lang\Hasher::class, false)) {
+    throw new RuntimeException('Cannot prepare the legacy float hasher');
+}
+eval(substr($hasher, 5));
+$factory = new \Phel\Compiler\CompilerFactory();
+$tokens = $factory->createLexer()->lexString($argv[3]);
+$tree = $factory->createParser()->parseNext($tokens);
+$result = $factory->createReader()->read($tree);
+$map = $result->getAst()->get(1)->get(1);
+if (!$map instanceof \Phel\Lang\Collections\Map\PersistentHashMap || count($map) !== 11 || $map->find(1.5) !== 42) {
+    throw new RuntimeException('The legacy fixture must contain a working float-key trie');
+}
+mkdir(dirname($argv[2]), 0755, true);
+file_put_contents($argv[2], gzcompress(serialize([new \Phel\Compiler\Domain\Cache\CachedReaderResult($result, 0)])));
+PHP;
+        $written = Subprocess::run([PHP_BINARY, '-r', $legacyWriter, dirname(__DIR__, 4), $legacyPath, $source]);
+        self::assertSame(0, $written->exitCode, $written->stderr);
+        $legacy = unserialize(gzuncompress(file_get_contents($legacyPath)));
+        $map = $legacy[0]->readerResult->getAst()->get(1)->get(1);
+        self::assertInstanceOf(PersistentHashMap::class, $map);
+        self::assertNull($map->find(1.5), 'The old trie is incompatible with the new float hasher');
+
+        $this->compilerFacade->eval('(defmacro reader-cache-float-value [m] (or (get m 1.5) (throw (RuntimeException. "Cached float key was lost"))))');
+        $cache = new FileSystemReaderResultCache($this->diskCacheDir, $version);
+        $options = new CompileOptions()->setSource('float-reader-cache')->setIsEnabledSourceMaps(false);
+        Symbol::resetGen();
+        $cold = $this->compilerWithCache($cache)->compileString($source, $options)->getCodeWithSourceMap();
+        self::assertStringContainsString('42', $cold);
+        self::assertSame(42, $cache->load($source, 0)[0]->readerResult->getAst()->get(1)->get(1)->find(1.5));
+
+        $freshFiles = array_values(array_diff(glob($this->diskCacheDir . '/read-result/*.cache'), [$legacyPath]));
+        self::assertCount(1, $freshFiles, 'Rebuilding must write the new format without reusing the old blob');
+        touch($freshFiles[0], 1);
+        Symbol::resetGen();
+        $warm = $this->compilerWithCache(new FileSystemReaderResultCache($this->diskCacheDir, $version))
+            ->compileString($source, $options)->getCodeWithSourceMap();
+        self::assertSame($cold, $warm);
+        clearstatcache();
+        self::assertSame(1, filemtime($freshFiles[0]), 'Warm macro expansion must read the new cache without rewriting it');
     }
 
     public function test_source_consumes_reader_phase_gensym(): void
