@@ -96,7 +96,6 @@ Runtime:
 
 Builds and caches:
 
-- Running Phel from a subdirectory resolves configured source and test directories from the project root. A matching subdirectory used to take precedence and could load the wrong namespace. (#3701)
 - Built entry points and exported PHP wrappers reject a different Phel runtime version, including patch and development revisions; rebuild with `phel build` or `phel export` after upgrading. Builds also warn when their version differs from the project's lock file. Mismatches used to fail later on missing internal methods. (#3519, ADR 0020)
 - Same-second source rewrites refresh namespace information and compiled output. Whole-second timestamps used to preserve stale dependencies or ship old code. (#3537 #3564)
 - Namespace, scan and compiled-code caches survive concurrent processes and interrupted writes instead of exposing partial PHP files. A torn cache from an older version is treated as empty. (#3553)
@@ -107,6 +106,7 @@ Builds and caches:
 - Built apps find namespace-relative and classpath-absolute `load` files, including flat-layout projects and phel-sql dependencies. These used to build successfully and then fail with `Cannot locate ... for (load ...)`. (#3528 #3542)
 - Built apps run `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn` instead of failing because the runtime was not bootstrapped. The `http-json-api` template serves `out/index.php` after a build, declares its request namespace and preloads Phel's `build/preload.php`. (#3527)
 - Composer-installed projects no longer warn that every stdlib namespace is defined twice during a build. The same files were being read as both source and vendor directories. (#3549)
+- Running Phel from a subdirectory resolves configured source and test directories from the project root. A matching subdirectory used to take precedence and could load the wrong namespace. (#3701)
 - `.phel/` ignores itself after every command, rather than leaving generated files untracked after commands such as `run` and `build`. (#3537)
 - The `phellang/repl` Docker image installs the release named by its tag and supports `linux/arm64`. It used to install `main`, and prerelease tags incorrectly moved `latest`. (#3536)
 
