@@ -81,6 +81,7 @@ Compiler:
 - Recursive macro expansion stops after 1,000 nested expansions with `PHEL005` at the original call. It used to hang builds, lint and the LSP. (#3719)
 - Type tags for structs, interfaces, exceptions and enums in the same namespace work in `run`, `test` and the REPL. They used to accept values only after a build. (#3654)
 - A malformed PHP member, class or type tag such as `.foo-bar` or `\Foo-Bar` fails with `PHEL007` at its symbol. It used to produce invalid PHP or interpret the dash as subtraction. (#3667)
+- Own namespace definitions take precedence over PHP `:use` aliases in bare values and calls. An imported alias used to hide a same-named `def`. Constructors, static calls, class callables and type tags still use the import. (#3717)
 - PHP class names such as `PDO` no longer produce constant-collision warnings in constructor, static-member or callable positions. The warning still applies to bare value positions. (#3537)
 - Character literals such as `\é` and `\😀` read as whole Unicode characters instead of splitting after the first byte. (#3708)
 - Reader prefixes accept whitespace and comments before their forms, including `' x` and `^ :a x`. They used to fail or read the wrong form. Comments survive formatting, and a missing form reports the prefix instead of an unrelated `Unterminated list` error. (#3713)
