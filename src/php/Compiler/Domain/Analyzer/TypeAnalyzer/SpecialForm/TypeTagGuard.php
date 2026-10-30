@@ -8,6 +8,7 @@ use Closure;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\PhpClassLike;
+use Phel\Compiler\Domain\Analyzer\PhpIdentifier;
 use Phel\Compiler\Domain\Analyzer\SymbolSuggestionProvider;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -134,8 +135,12 @@ final class TypeTagGuard
 
         foreach (preg_split('/[|&]/', $name) ?: [] as $part) {
             $type = ltrim(trim($part, " ()\t"), '?');
+            $at = $tag instanceof Symbol && $tag->getStartLocation() instanceof SourceLocation ? $tag : $owner;
+            if ($type !== '') {
+                PhpIdentifier::assertClassName($at, str_replace('.', '\\', $type));
+            }
+
             if (self::isUnresolvable($type, $analyzer)) {
-                $at = $tag instanceof Symbol && $tag->getStartLocation() instanceof SourceLocation ? $tag : $owner;
                 throw AnalyzerException::withLocation(self::message($type), $at, errorCode: ErrorCode::UNDEFINED_SYMBOL);
             }
         }

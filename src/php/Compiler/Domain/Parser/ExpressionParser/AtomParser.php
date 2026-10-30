@@ -58,7 +58,7 @@ final readonly class AtomParser
      */
     private const string REGEX_RATIO_LITERAL = '/^([+-]?\d+(?:_\d+)*)\/(\d+(?:_\d+)*)$/';
 
-    private const string REGEX_DECIMAL_NUMBER = '/^(?:([+-])?\d+(_\d+)*[\.(_\d+]?|0)$/';
+    private const string REGEX_DECIMAL_NUMBER = '/^[+-]?\d+(?:_\d+)*$/';
 
     public function __construct(private GlobalEnvironmentInterface $globalEnvironment) {}
 
@@ -137,8 +137,12 @@ final readonly class AtomParser
             return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
         }
 
-        if (preg_match(self::REGEX_DECIMAL_NUMBER, $word, $matches)) {
-            return $this->parseDecimalNumber($matches, $word, $token);
+        if (preg_match(self::REGEX_DECIMAL_NUMBER, $word)) {
+            return $this->parseDecimalNumber($word, $token);
+        }
+
+        if (preg_match('/^[+-]?\d/', $word) === 1) {
+            throw new NumberParserException('Invalid number: ' . $word);
         }
 
         return new SymbolNode($word, $token->getStartLocation(), $token->getEndLocation(), Symbol::create($word));
@@ -328,24 +332,10 @@ final readonly class AtomParser
         return ((string) $intValue === $canonical) ? $intValue : BigInt::fromString($canonical);
     }
 
-    /**
-     * @param array<int|string, string> $matches
-     */
-    private function parseDecimalNumber(array $matches, string $word, Token $token): NumberNode
+    private function parseDecimalNumber(string $word, Token $token): NumberNode
     {
         $digits = str_replace('_', '', $word);
-        if (preg_match('/^[+-]?\d+$/', $digits) === 1) {
-            return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $this->parseIntegerWithOverflowFallback($digits));
-        }
-
-        $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
-        $value = (int) str_replace('_', '', $word);
-
-        if ($sign === -1) {
-            $value = -$value;
-        }
-
-        return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
+        return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $this->parseIntegerWithOverflowFallback($digits));
     }
 
     /**

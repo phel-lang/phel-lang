@@ -34,6 +34,11 @@ final class LintFacade extends AbstractFacade
             ->run($paths, $settings);
     }
 
+    public function lintSource(string $source, string $path, RuleSettings $settings): LintResult
+    {
+        return $this->getFactory()->createLintRunner()->runSource($source, $path, $settings);
+    }
+
     /**
      * @throws LintConfigException when $configPath exists but is unreadable or malformed
      */

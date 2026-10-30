@@ -16,6 +16,7 @@ use Phel\Shared\PhpAttributeRenderer;
 use function assert;
 use function count;
 use function implode;
+use function var_export;
 
 /**
  * @internal
@@ -122,7 +123,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
 
         $pairs = [];
         foreach ($node->getParams() as $param) {
-            $pairs[] = "'" . $param->getName() . "' => \$this->" . $this->outputEmitter->mungeEncode($param->getName());
+            $pairs[] = var_export($param->getName(), true) . ' => $this->' . $this->outputEmitter->mungeEncode($param->getName());
         }
 
         $this->outputEmitter->emitLine();
@@ -159,7 +160,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('protected const array ALLOWED_KEYS = [', $node->getStartSourceLocation());
 
         foreach ($params as $i => $param) {
-            $this->outputEmitter->emitStr("'" . $param->getName() . "'");
+            $this->outputEmitter->emitStr(var_export($param->getName(), true));
             if ($i < $paramCount - 1) {
                 $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
             }
