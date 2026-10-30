@@ -1,5 +1,5 @@
 (ns phel-test.core.infinite-seqs
-  (:require phel.test :refer [deftest is thrown-with-msg?]))
+  (:require phel.test :refer [deftest is thrown? thrown-with-msg?]))
 
 (deftest test-repeat-infinite
   (is (= [:a :a :a] (take 3 (repeat :a)))
@@ -438,6 +438,11 @@
 (deftest test-cycle-empty-collection
   (is (= [] (take 5 (cycle [])))
       "cycle with empty collection should return empty"))
+
+(deftest test-cycle-rejects-non-sequence-input-before-realization
+  (is (thrown? Throwable (cycle :k)))
+  (is (thrown? Throwable (cycle 42)))
+  (is (thrown? Throwable (cycle 3.14))))
 
 (deftest test-cycle-with-doall
   (is (= [1 2 1 2 1] (doall (take 5 (cycle [1 2]))))
@@ -1095,6 +1100,16 @@
     (is (= [:head :tail] @calls))
     (is (= [1 2 1 2 1] (vec (take 5 values))))
     (is (= [:head :tail] @calls))))
+
+(deftest test-cycle-does-not-split-a-string-before-realization
+  (let [source (php/str_repeat "x" 262144)]
+    (php/gc_collect_cycles)
+    (let [before    (php/memory_get_usage)
+          values    (cycle source)
+          allocated (- (php/memory_get_usage) before)]
+      (is (< allocated 1048576)
+          "an unforced cycle must not allocate a character array for its string")
+      (is (not (realized? values))))))
 
 (deftest test-cycle-reuses-a-one-shot-source
   (let [source ((fn [] (php/yield 1) (php/yield 2)))]

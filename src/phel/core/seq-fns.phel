@@ -1423,9 +1423,10 @@ With one argument returns an infinite lazy sequence of calls to f."
   {:example "(take 7 (cycle [1 2 3])) ; => (1 2 3 1 2 3 1)"
    :see-also ["iterate" "repeat"]}
   [coll]
-  (lazy-seq
-    (let [s (seq coll)]
-      (when s (cycle-cells s s)))))
+  (let [source (if (php/is_string coll) coll (Seq/toIterable coll))]
+    (lazy-seq
+      (let [s (seq source)]
+        (when s (cycle-cells s s))))))
 
 (defn concat
   "Concatenates multiple collections into a lazy sequence."
