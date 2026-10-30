@@ -63,11 +63,13 @@ jobs:
       - name: Run phel mutate
         env:
           XDEBUG_MODE: coverage
+          MUTATION_PATHS: ${{ github.event.inputs.paths || 'src/phel/core' }}
+          MUTATION_MIN_MSI: ${{ github.event.inputs.min-msi || env.MIN_MSI }}
         run: |
           mkdir -p data
-          ./bin/phel mutate ${{ github.event.inputs.paths || 'src/phel/core' }} \
+          ./bin/phel mutate "$MUTATION_PATHS" \
             --parallel=auto \
-            --min-msi="${{ github.event.inputs.min-msi || env.MIN_MSI }}" \
+            --min-msi="$MUTATION_MIN_MSI" \
             --min-covered-msi="$MIN_COVERED_MSI" \
             --reporter=json \
             -o data/mutation-phel.json | tee data/mutation-phel.log

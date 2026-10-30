@@ -2240,7 +2240,7 @@ final class Phel\Shared\Printer\TypePrinter\NullPrinter implements Phel\Shared\P
   public function print(mixed $form): string
 
 final class Phel\Shared\Printer\TypePrinter\NumberPrinter implements Phel\Shared\Printer\TypePrinter\TypePrinterInterface
-  public function __construct(bool $withColor = false)
+  public function __construct(bool $withColor = false, bool $readable = false)
   public function print(mixed $form): string
 
 final class Phel\Shared\Printer\TypePrinter\ObjectPrinter implements Phel\Shared\Printer\TypePrinter\TypePrinterInterface

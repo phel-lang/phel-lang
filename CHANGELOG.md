@@ -25,6 +25,7 @@ Compiler:
 
 Runtime:
 
+- **BREAKING**: `rand-int` excludes its positive upper bound, so `(rand-int 1)` always returns `0`; it used to include the bound. Non-positive bounds return `0` instead of passing negative bounds to PHP. `rand-nth` reports an empty-collection error instead of a PHP range error. Use `(rand-int (inc n))` for an inclusive upper bound. (#3679)
 - **BREAKING**: Sequence functions consume `[key value]` entries from maps, sorted maps and structs, matching `seq`, `vec` and `into`, instead of consuming values or failing on `rest`. This includes collection conversion, grouping, selection, transformation, concatenation, partitioning, `reduce` with an init, and transducers. Use `(vals m)` where values are required. (#3556 #3570 #3567)
 - **BREAKING**: `compare` and `sort` order lazy seqs, ranges, map entries and queues element-wise, matching vectors and lists; a seq equals a vector with the same elements. Previously even equal seqs compared as `1`. Two maps, sets or transients compare as `0` when equal and throw otherwise, instead of receiving an arbitrary order. Use `sort-by` with a key function, such as `count`, for maps or sets. (#3555)
 - **BREAKING**: `take`, `drop`, `take-last`, `drop-last`, `take-nth` and `split-at` round fractional counts up, so `5/2` means 3; ratio, `BigInt` and `BigDecimal` counts no longer throw. `partition` returns `()` for non-integer counts, including `2.0`, instead of producing chunks. Pass `(int n)` to retain the old count. (#3566)
@@ -32,7 +33,7 @@ Runtime:
 
 Tooling:
 
-- **BREAKING**: Invalid command invocations exit 2, report the problem on stderr and leave stdout empty, including `phel explain --format=json` with an unknown code. This covers unknown commands, options or values; missing paths, config or ref files; invalid numeric options or `PHEL_OPTIMIZATION_LEVEL`; and `--changed` outside Git. These previously exited inconsistently, polluted stdout, ignored paths or coerced invalid numbers to zero. Treat exit 1 as a command that ran and found an issue, and exit 2 as an invocation to correct. (#3525)
+- **BREAKING**: Invalid command invocations exit 2, report the problem on stderr and leave stdout empty, including `phel explain --format=json` with an unknown code. This covers unknown commands, options or values; missing paths, config or ref files; `--changed` refs starting with `-`; invalid numeric options or `PHEL_OPTIMIZATION_LEVEL`; and `--changed` outside Git. These previously exited inconsistently, polluted stdout, ignored paths or coerced invalid numbers to zero. Treat exit 1 as a command that ran and found an issue, and exit 2 as an invocation to correct. (#3525 #3691)
 - **BREAKING**: Environment switches accept case-insensitive `1`, `true`, `yes`, `on` and `0`, `false`, `no`, `off`; empty means unset. False values no longer enable `PHEL_WARN_DEPRECATIONS`, `PHEL_NO_OPCACHE_REEXEC` or `PHEL_OPCACHE_REEXEC`. Other values, or `PHEL_TEST_WORKERS` values that are not whole numbers of at least 1, exit 2 on stderr. Use the values documented in `docs/cli-reference.md`. (#3525)
 - **BREAKING**: Lint in every format, analyze, `api-daemon` `analyzeSource`, `Phel\Shared\Api\Diagnostic`, balance, mutate JSON and deprecation notices use 1-based columns. Consumers must remove their `+ 1`; LSP positions remain 0-based and its diagnostic ranges are corrected. Analyze `uri` values are absolute paths, while lint GitHub `file=` paths are relative to the working directory. (#3525)
 - **BREAKING**: Lint checks keyword, vector, map, set and fn literal call arity as `phel/arity-mismatch`; multi-arity messages show every accepted count. Vectors, maps and sets take only the key and still ignore an extra default, so remove extra arguments or use `(get m k default)`. The new `phel/compile-error` rule reports every analyzer failure, rather than only `PHEL001`, `PHEL002` and `PHEL013`, with its code in JSON `errorCode` and without duplicating other rules. Files that previously passed may fail; disable the latter rule with `{:rules {:phel/compile-error :off}}` if needed. (#3524 #3621)
@@ -85,11 +86,13 @@ Compiler:
 
 Runtime:
 
+- Same-origin HTTP redirects keep URL credentials. `phel.http-client` accepts `:max-body-bytes` to reject oversized response bodies; the default remains unlimited. It used to drop credentials on redirects and buffer bodies without a limit. (#3688)
 - `pop` and `pop!` preserve vectors at trie boundaries, including after appending or converting a transient to persistent. They used to crash, retain removed values or lose live ones. (#3672 #3673)
 - Structs and records compare unequal to plain maps in both argument orders and stay distinct as map keys and set members. String and symbol lookup keys work consistently with array access; unsupported keys return false or nil. Equality used to depend on argument order, and lookup could raise PHP errors. (#3674 #3675)
 - `iterate` returns its seed without calling the step function; `repeatedly` and `cycle` also realize values only on demand. Reading a head used to prefetch later values and trigger extra effects. (#3678)
 - `range` accepts ratio, `BigInt` and `BigDecimal` bounds and steps, including through `repeat`, `repeatedly`, `dotimes` and `for :range`. These used to fail with a `Seq::range()` type error. (#3557)
 - `pr-str` and `str` preserve exact finite floats, including `1.0000000000000002` and `(/ 1.0 3)`, instead of losing digits to PHP's display precision. (#3707)
+- `pr-str` prints `##NaN`, `##Inf` and `##-Inf` so special numbers read back correctly. It escapes `0x1F` and `0x7F`, which used to appear as raw bytes. PHP resources, including values inside collections, print as `#<PHP Resource id #N>` instead of throwing in readable mode. (#3712)
 - `pr-str` and REPL output render cyclic atoms as `#<cycle>`, including cycles through collections. Printing them used to exhaust the process. (#3705)
 - `(symbol "/a")` keeps its full name without a namespace instead of becoming `a` with an empty namespace. (#3524 #3710)
 - `with-meta` and `vary-meta` accept fn literals, preserving their metadata and callable behavior instead of failing on a missing method. (#3537)
@@ -102,6 +105,7 @@ Builds and caches:
 - Built entry points and exported PHP wrappers reject a different Phel runtime version, including patch and development revisions; rebuild with `phel build` or `phel export` after upgrading. Builds also warn when their version differs from the project's lock file. Mismatches used to fail later on missing internal methods. (#3519, ADR 0020)
 - Same-second source rewrites refresh namespace information and compiled output. Whole-second timestamps used to preserve stale dependencies or ship old code. (#3537 #3564)
 - Namespace, scan and compiled-code caches survive concurrent processes and interrupted writes instead of exposing partial PHP files. A torn cache from an older version is treated as empty. (#3553)
+- With `enable-intermediate-cache` enabled, upgrading a development compiler rebuilds reader results for unchanged source. It used to reuse old results and skip parser fixes, so invalid input such as `1+` could still compile after upgrading. (#3758)
 - Macro edits invalidate every transitive dependent namespace, including after parallel compilation. Distant dependents used to keep old expansions, and concurrent cache saves could lose dependencies. (#3698 #3700)
 - A `.phel` file without `ns` no longer disables the namespace index and forces every source to be reread on each `run` or `test`. It is checked again after it changes, so adding `ns` is still detected; this removes the roughly 2x slowdown seen in this repository. (#3629)
 - Generated PHP uses an owner-only, per-user `<system temp>/phel-<uid>/tmp` directory instead of shared `/tmp/phel/tmp` permissions. Phel and `doctor` tighten existing owned directories to 0700 and refuse directories owned by someone else or replaceable through a parent. Other local users used to be able to read generated PHP. (#3532)
@@ -135,9 +139,11 @@ Analysis, diagnostics and docs:
 Editors and servers:
 
 - The LSP applies CRLF and Unicode edits at the correct positions and publishes diagnostics for the latest unsaved buffer after typing stops. It used to shift edits, split characters, skip the final edit or lint saved text; closing a document now cancels queued diagnostics. (#3683 #3685)
+- The LSP resolves Windows file URIs with an encoded drive marker, such as `file:///C%3A/a.phel`, or a `localhost` host to the local drive path. They used to keep an extra leading slash, so the editor could not locate the file. Uppercase `FILE://` uses the same conversion. (#3686)
 - The LSP substitutes invalid UTF-8 in responses and turns other encoding failures into protocol errors instead of stopping the server. (#3684)
 - nREPL bounds pending input and nesting, rejects malformed messages and sends complete responses to slow clients without blocking other connections. These used to stall connections, exhaust memory or truncate replies. SIGTERM and Ctrl+C stop the server cleanly instead of exiting 1; binding outside loopback warns that nREPL has no authentication. (#3681 #3682 #3575 #3532)
 - `phel format` retains all reader-conditional branches, including splicing and unmatched forms, plus whitespace and comments between tagged literals and values. It used to delete branches or produce unreadable tokens; a second formatting pass now succeeds. Malformed conditionals such as `#?(:phel)` and `#?(1 2)` report a located parser error. (#3669 #3670 #3715)
+- `phel format` aligns Unicode keys and indents forms after Unicode names by character columns. It used to count UTF-8 bytes and misalign names such as `é` and `日本語`. (#3671)
 
 PHP API:
 

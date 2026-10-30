@@ -39,6 +39,20 @@ final class PrinterTest extends TestCase
         );
     }
 
+    public function test_a_resource_nested_in_a_readable_map_has_an_opaque_marker(): void
+    {
+        $resource = fopen('php://memory', 'r');
+        self::assertIsResource($resource);
+        try {
+            $value = \Phel::map(\Phel::keyword('h'), $resource);
+            $expected = '{:h #<PHP Resource id #' . get_resource_id($resource) . '>}';
+            self::assertSame($expected, Printer::readable()->print($value));
+            self::assertSame($expected, Printer::nonReadable()->print($value));
+        } finally {
+            fclose($resource);
+        }
+    }
+
     public function test_print_escaped_string_chars(): void
     {
         self::assertSame(

@@ -1,0 +1,21 @@
+(ns phel-test.core.random-bounds
+  (:require phel.test :refer [deftest is]))
+
+(deftest test-rand-int-unit-bound
+  (is (every? zero? (repeatedly 64 #(rand-int 1)))))
+
+(deftest test-rand-int-non-positive-bounds
+  (is (= 0 (rand-int 0)))
+  (is (= 0 (rand-int -5))))
+
+(deftest test-rand-nth-singleton-and-membership
+  (is (= :only (rand-nth [:only])))
+  (is (every? #{:a :b :c} (repeatedly 64 #(rand-nth [:a :b :c])))))
+
+(deftest test-rand-nth-rejects-empty-collections
+  (is (= "rand-nth expects a non-empty collection"
+         (try
+           (rand-nth [])
+           (catch InvalidArgumentException e (.getMessage e)))))
+  (is (thrown? InvalidArgumentException (rand-nth '())))
+  (is (thrown? InvalidArgumentException (rand-nth ""))))

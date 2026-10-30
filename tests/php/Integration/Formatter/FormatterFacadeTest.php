@@ -59,6 +59,36 @@ final class FormatterFacadeTest extends TestCase
         self::assertSame($formatted, $formatter->format($formatted));
     }
 
+    public static function unicode_columns(): iterable
+    {
+        yield 'accented binding' => [
+            "(let [é 1\nbbbb 2] é)\n",
+            "(let [é    1\n      bbbb 2] é)\n",
+        ];
+        yield 'long accented binding' => [
+            "(let [ñandú 1\nbb 2]\n(+ ñandú bb))\n",
+            "(let [ñandú 1\n      bb    2]\n  (+ ñandú bb))\n",
+        ];
+        yield 'CJK declaration' => [
+            "(def 日本語 {:a 1\n:b 2})\n",
+            "(def 日本語 {:a 1\n          :b 2})\n",
+        ];
+        yield 'supplementary nested call' => [
+            "(é (日本語😀 x\ny))\n",
+            "(é (日本語😀 x\n         y))\n",
+        ];
+    }
+
+    #[DataProvider('unicode_columns')]
+    public function test_unicode_columns_format_to_literal_output_and_stay_stable(string $source, string $expected): void
+    {
+        $formatter = $this->formatterFactory->createFormatter();
+        $formatted = $formatter->format($source);
+
+        self::assertSame($expected, $formatted);
+        self::assertSame($formatted, $formatter->format($formatted));
+    }
+
     #[DataProvider('providerIndent')]
     #[DataProvider('providerReformatted')]
     #[DataProvider('providerRemoveTrailingWhitespaceRule')]

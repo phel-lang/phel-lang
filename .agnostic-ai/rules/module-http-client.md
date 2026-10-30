@@ -12,7 +12,7 @@ Outbound HTTP for `phel.http-client` via PHP's built-in stream context (no cURL/
 
 | Class::method | Behavior |
 |---|---|
-| `StreamTransport::send(method, url, headers, ?body, options): array` | HTTP request via stream context. Returns `{status, headers, body, version, reason}`. Throws `InvalidArgumentException` for a URL or redirect target that is not http or https, `RuntimeException` on transport failure or more than 20 redirects. |
+| `StreamTransport::send(method, url, headers, ?body, options): array` | HTTP request via stream context. Returns `{status, headers, body, version, reason}`. Throws `InvalidArgumentException` for a URL or redirect target that is not http or https, `RuntimeException` on transport failure, a body exceeding `max_body_bytes` or more than 20 redirects. |
 | `ResponseParser::parse(rawHeaders): array` | Parses PHP `$http_response_header` into `{status, version, reason, headers}`. Internal helper of `StreamTransport`; not called from Phel. |
 
 ### `send` options (all keys optional)
@@ -22,6 +22,7 @@ Outbound HTTP for `phel.http-client` via PHP's built-in stream context (no cURL/
 | `timeout` | `30.0` | Coerced via `ScalarCoercion::toFloat` (numeric strings accepted) |
 | `follow_redirects` | `true` | Followed by `send`, not the stream wrapper: a redirect to another origin keeps only `accept`, `accept-encoding`, `accept-language`, `user-agent` and `content-type`; a 303, or a 301/302 after a POST, continues as a GET without the body |
 | `verify_ssl` | `true` | Sets `verify_peer` + `verify_peer_name` |
+| `max_body_bytes` | `null` (unlimited) | Native non-negative integer or null; rejects an oversized body before buffering it. Applies separately to every response, including redirects. Phel option: `:max-body-bytes`. |
 
 ## Dependencies
 
@@ -29,7 +30,7 @@ Outbound HTTP for `phel.http-client` via PHP's built-in stream context (no cURL/
 
 ## Structure
 
-- `StreamTransport.php`: public interop entry; builds stream context, calls `file_get_contents`.
+- `StreamTransport.php`: public interop entry; builds stream context, opens and reads the response stream with an optional body limit.
 - `ResponseParser.php`: header parsing.
 
 ## Key Constraints
