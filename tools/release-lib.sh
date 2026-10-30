@@ -580,17 +580,16 @@ $contributors
         title="$version - $release_name"
     fi
 
-    # Tag uses v prefix, title does not
-    local gh_cmd="gh release create v$version --repo $REPO_NAME --title \"$title\" --notes-file -"
+    local -a gh_args=(release create "v$version" --repo "$REPO_NAME" --title "$title" --notes-file -)
     if is_prerelease "$version"; then
-        gh_cmd="$gh_cmd --prerelease"
+        gh_args+=(--prerelease)
     fi
 
     if [[ "$skip_phar" -eq 0 ]] && [[ -f "$phar_output" ]]; then
-        gh_cmd="$gh_cmd \"$phar_output\""
+        gh_args+=("$phar_output")
     fi
 
-    if echo "$release_notes" | eval "$gh_cmd"; then
+    if printf '%s\n' "$release_notes" | gh "${gh_args[@]}"; then
         log_ok "Created GitHub release: $title"
         log "Release URL: https://github.com/$REPO_NAME/releases/tag/v$version"
     else
