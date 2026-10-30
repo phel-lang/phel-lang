@@ -48,6 +48,10 @@ Lexer (→ `TokenStream`) → Parser (→ `FileNode`) → Reader (→ `ReaderRes
 
 An unclosed `"` never fails to lex: the atom rule swallows it (`Balance` relies on that, see `.agnostic-ai/rules/module-balance.md`). `Parser::parseAtomNode` raises `UNTERMINATED_STRING` on the leading quote.
 
+### Prefix forms
+
+`Domain/Parser/ExpressionParser/PrefixFormReader` requires one semantic form after a quote-like or metadata prefix, retaining intervening trivia and reporting missing forms at the prefix. Shared `QuoteNode` and `MetaNode` preserve prefix gaps in their source code without changing semantic child ordering; cloning and child replacement must retain those gaps for the formatter.
+
 ### Reader-result cache
 
 Opt-in, off by default (`CompilerConfig::isIntermediateCacheEnabled()`). Wired only into `createCodeCompilerForCache` (build path), never the REPL.

@@ -82,6 +82,7 @@ Compiler:
 - A malformed PHP member, class or type tag such as `.foo-bar` or `\Foo-Bar` fails with `PHEL007` at its symbol. It used to produce invalid PHP or interpret the dash as subtraction. (#3667)
 - PHP class names such as `PDO` no longer produce constant-collision warnings in constructor, static-member or callable positions. The warning still applies to bare value positions. (#3537)
 - Character literals such as `\é` and `\😀` read as whole Unicode characters instead of splitting after the first byte. (#3708)
+- Reader prefixes accept whitespace and comments before their forms, including `' x` and `^ :a x`. They used to fail or read the wrong form. Comments survive formatting, and a missing form reports the prefix instead of an unrelated `Unterminated list` error. (#3713)
 
 Runtime:
 
