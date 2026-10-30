@@ -67,6 +67,7 @@ PHP API:
 
 Compiler:
 
+- Namespace declarations reject qualified names such as `(ns a/b)` with `Invalid namespace`. They used to silently declare `b`. Dot and legacy backslash namespace separators still work. (#3668)
 - Strings with invalid UTF-8 compile as literal data. A quote, backslash or dollar sign after an invalid byte used to turn string contents into executable PHP. (#3664)
 - Float literals retain their exact value, and integers outside the native range read as `BigInt` in decimal, hexadecimal, binary, octal and radix notation. Arithmetic keeps using `BigInt` after overflow instead of failing on the next operation. These paths used to lose precision or fail, and large non-decimal literals could warn on PHP 8.6. (#3522 #3665 #3676 #3706)
 - Duplicate arities in functions, macros, protocol methods and `extend-type` fail with `PHEL007`; duplicate interface methods or parameters fail with `PHEL009`. Struct, record and type fields cannot repeat, share a PHP property name or use `hasher`, `equalizer` or `meta`; these fail with `PHEL007`, as do parameter tags `^void` and `^never`. These declarations used to cause PHP errors. (#3534)
