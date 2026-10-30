@@ -1128,6 +1128,19 @@
           "an unforced cycle must not allocate a character array for its string")
       (is (not (realized? values))))))
 
+(deftest test-first-of-a-nested-lazy-cons-does-not-force-its-tail
+  (let [calls  (atom 0)
+        values (lazy-seq
+                 (do (swap! calls inc)
+                     (cons 1 (lazy-seq (do (swap! calls inc) nil)))))]
+    (is (= 0 @calls))
+    (is (= 1 (first values)))
+    (is (= 1 @calls))
+    (is (= 1 (first values)))
+    (is (= 1 @calls))
+    (is (nil? (seq (rest values))))
+    (is (= 2 @calls))))
+
 (deftest test-cycle-reuses-a-one-shot-source
   (let [source ((fn [] (php/yield 1) (php/yield 2)))]
     (is (= [1 2 1 2 1] (vec (take 5 (cycle source)))))))
