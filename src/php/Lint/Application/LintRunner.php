@@ -76,47 +76,7 @@ final readonly class LintRunner
                 throw LintSourceException::cannotRead($file);
             }
 
-            $read = $this->sourceReader->read($source, $file);
-            $semantic = $this->apiFacade->analyzeSource($source, $file);
-
-            $analysis = new FileAnalysis(
-                uri: $file,
-                namespace: $read->namespace,
-                source: $source,
-                forms: $read->forms,
-                projectIndex: $projectIndex,
-                semanticDiagnostics: $semantic,
-            );
-
-            $ruleDiagnostics = $this->pipeline->run($analysis, $settings);
-
-            // A file that stopped reading was never fully seen, so no rule can
-            // have an opinion about the part that is missing. The analyzer
-            // already worded why it stopped, with a code and a location, and
-            // that is the one thing worth saying about the file. Without it
-            // the run reports the file as clean and exits 0 (#3292).
-            if ($read->failed) {
-                $passedThrough = $semantic;
-            } else {
-                // Like a syntax error, a superseded form stops `phel run`, so
-                // it is reported under the analyzer's code, with no rule to
-                // switch it off (#3456). An `ns` form the analyzer rejects is
-                // kept the same way, unless a dedicated rule reported it (#3457).
-                $superseded = $this->supersededForms($semantic);
-                $passedThrough = [
-                    ...$superseded,
-                    ...$this->nsFormErrors(
-                        $read->forms,
-                        $semantic,
-                        [...$superseded, ...$this->withoutCompileErrors($ruleDiagnostics)],
-                    ),
-                ];
-            }
-
-            $fileDiagnostics = [
-                ...$passedThrough,
-                ...$this->withoutCoveredCompileErrors($ruleDiagnostics, $passedThrough),
-            ];
+            $fileDiagnostics = $this->analyzeSource($source, $file, $settings, $projectIndex);
 
             // A rule crash is a fact about the linter, not about the file, and
             // fixing it changes neither the file hash nor the rule fingerprint.
@@ -134,6 +94,59 @@ final readonly class LintRunner
         $this->cache?->flush();
 
         return new LintResult($allDiagnostics);
+    }
+
+    public function runSource(string $source, string $path, RuleSettings $settings): LintResult
+    {
+        return new LintResult($this->analyzeSource($source, $path, $settings, new ProjectIndex([], [])));
+    }
+
+    /**
+     * @return list<Diagnostic>
+     */
+    private function analyzeSource(string $source, string $file, RuleSettings $settings, ProjectIndex $projectIndex): array
+    {
+        $read = $this->sourceReader->read($source, $file);
+        $semantic = $this->apiFacade->analyzeSource($source, $file);
+
+        $analysis = new FileAnalysis(
+            uri: $file,
+            namespace: $read->namespace,
+            source: $source,
+            forms: $read->forms,
+            projectIndex: $projectIndex,
+            semanticDiagnostics: $semantic,
+        );
+
+        $ruleDiagnostics = $this->pipeline->run($analysis, $settings);
+
+        // A file that stopped reading was never fully seen, so no rule can
+        // have an opinion about the part that is missing. The analyzer
+        // already worded why it stopped, with a code and a location, and
+        // that is the one thing worth saying about the file. Without it
+        // the run reports the file as clean and exits 0 (#3292).
+        if ($read->failed) {
+            $passedThrough = $semantic;
+        } else {
+            // Like a syntax error, a superseded form stops `phel run`, so
+            // it is reported under the analyzer's code, with no rule to
+            // switch it off (#3456). An `ns` form the analyzer rejects is
+            // kept the same way, unless a dedicated rule reported it (#3457).
+            $superseded = $this->supersededForms($semantic);
+            $passedThrough = [
+                ...$superseded,
+                ...$this->nsFormErrors(
+                    $read->forms,
+                    $semantic,
+                    [...$superseded, ...$this->withoutCompileErrors($ruleDiagnostics)],
+                ),
+            ];
+        }
+
+        return [
+            ...$passedThrough,
+            ...$this->withoutCoveredCompileErrors($ruleDiagnostics, $passedThrough),
+        ];
     }
 
     /**

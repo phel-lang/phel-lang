@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Rpc;
 
+use RuntimeException;
+
 use function fflush;
 use function fwrite;
 use function json_encode;
@@ -25,9 +27,10 @@ final class MessageWriter
      */
     public function write($stream, array $message): void
     {
-        $json = json_encode($message, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $json = json_encode($message, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
         $frame = sprintf("Content-Length: %d\r\n\r\n%s", strlen($json), $json);
-        fwrite($stream, $frame);
-        fflush($stream);
+        if (@fwrite($stream, $frame) !== strlen($frame) || !@fflush($stream)) {
+            throw new RuntimeException('Could not write LSP response');
+        }
     }
 }

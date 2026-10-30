@@ -1341,20 +1341,22 @@ With one argument returns an infinite lazy sequence of x."
   ([n x] (for [_ :range [n]] x)))
 
 (defn repeatedly
-  "Returns a vector of length n with values produced by repeatedly calling f.
+  "Returns a lazy sequence of n values produced by repeatedly calling f.
 
 With one argument returns an infinite lazy sequence of calls to f."
   {:example "(repeatedly 3 rand) ; => (0.234 0.892 0.456) (random values)"
    :see-also ["repeat" "iterate"]}
-  ;; Fixed arities: the rest argument was allocated and counted only to be
-  ;; unpacked with `first` and `second` again (#2973, #3021).
   ([f]
-   (LazySeq/fromGenerator (new Hasher) (new Equalizer) (Seq/repeatedly f)))
-  ([n f]
    (new Phel.Lang.Collections.LazySeq.LazySeq
         (new Hasher)
         (new Equalizer)
-        (fn [] (for [_ :range [n]] (f))))))
+        (fn [] (cons (f) (repeatedly f)))))
+  ([n f]
+   ;; Math helpers load after this file.
+   (new Phel.Lang.Collections.LazySeq.LazySeq
+        (new Hasher)
+        (new Equalizer)
+        (fn [] (when (> n 0) (cons (f) (repeatedly (Phel.Lang.NumericOperations/subtract n 1) f)))))))
 
 (defmacro lazy-seq
   "Creates a lazy sequence that evaluates the body only when accessed."
@@ -1376,7 +1378,7 @@ With one argument returns an infinite lazy sequence of calls to f."
   {:example "(take 5 (iterate inc 0)) ; => (0 1 2 3 4)"
    :see-also ["repeatedly" "cycle"]}
   [f x]
-  (lazy-seq-from-generator (Seq/iterate f x)))
+  (cons x (lazy-seq (iterate f (f x)))))
 
 (defn reductions
   "Returns a lazy sequence of the intermediate values of the reduction (as per reduce) of coll by f, starting with init when supplied."
@@ -1410,14 +1412,21 @@ With one argument returns an infinite lazy sequence of calls to f."
   [traversable]
   (LazySeq/fromTraversable (new Hasher) (new Equalizer) traversable))
 
+(defn- cycle-cells [original remaining]
+  (lazy-seq
+    (let [s (or (seq remaining) (seq original))]
+      (when s
+        (cons (first s) (lazy-seq (cycle-cells original (rest s))))))))
+
 (defn cycle
   "Returns an infinite lazy sequence that cycles through the elements of collection. Maps are iterated as `[key value]` pairs."
   {:example "(take 7 (cycle [1 2 3])) ; => (1 2 3 1 2 3 1)"
    :see-also ["iterate" "repeat"]}
   [coll]
-  (if (or (php/=== nil coll) (empty? coll))
-    []
-    (lazy-seq-from-generator (Seq/cycle (or (seq coll) coll)))))
+  (let [source (if (php/is_string coll) coll (Seq/toIterable coll))]
+    (lazy-seq
+      (let [s (seq source)]
+        (when s (cycle-cells s s))))))
 
 (defn concat
   "Concatenates multiple collections into a lazy sequence."
