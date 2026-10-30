@@ -21,8 +21,9 @@ final class MacroExpansionLimitTest extends TestCase
         $source = $directory . '/recursive.phel';
         file_put_contents($source, "(ns audit.rec)\n(defmacro m [] (quote (m)))\n(println \"before\")\n(m)\n");
         try {
+            // Cold stdlib compilation shares this watchdog with macro expansion.
             $result = Subprocess::run(
-                [PHP_BINARY, '-d', 'max_execution_time=5', '-d', 'fatal_error_backtraces=0', '-d', 'memory_limit=128M', dirname(__DIR__, 4) . '/bin/phel', 'run', $source],
+                [PHP_BINARY, '-d', 'max_execution_time=30', '-d', 'fatal_error_backtraces=0', '-d', 'memory_limit=128M', dirname(__DIR__, 4) . '/bin/phel', 'run', $source],
                 env: [...getenv(), 'PHEL_CACHE_DIR' => $directory . '/cache', 'PHEL_NO_OPCACHE_REEXEC' => '1'],
             );
             $output = substr($result->stdout . $result->stderr, 0, 4096);

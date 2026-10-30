@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\PhpClassLike;
+use Phel\Compiler\Domain\Analyzer\PhpIdentifier;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
@@ -67,6 +68,7 @@ final readonly class SymbolResolver
         }
 
         if (str_starts_with($strName, '\\')) {
+            PhpIdentifier::assertClassName($name, $strName);
             return new PhpClassNameNode($env, $name, $name->getStartLocation());
         }
 
