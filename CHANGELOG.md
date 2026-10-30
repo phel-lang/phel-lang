@@ -67,7 +67,7 @@ PHP API:
 
 Compiler:
 
-- With `enable-intermediate-cache` enabled, upgrading a development compiler rebuilds reader results for unchanged source. It used to reuse old results and skip parser fixes, so invalid input such as `1+` could still compile after upgrading. (#3758)
+- Namespace declarations reject qualified names such as `(ns a/b)` with `Invalid namespace`. They used to silently declare `b`. Dot and legacy backslash namespace separators still work. (#3668)
 - Strings with invalid UTF-8 compile as literal data. A quote, backslash or dollar sign after an invalid byte used to turn string contents into executable PHP. (#3664)
 - Float literals retain their exact value, and integers outside the native range read as `BigInt` in decimal, hexadecimal, binary, octal and radix notation. Arithmetic keeps using `BigInt` after overflow instead of failing on the next operation. These paths used to lose precision or fail, and large non-decimal literals could warn on PHP 8.6. (#3522 #3665 #3676 #3706)
 - Duplicate arities in functions, macros, protocol methods and `extend-type` fail with `PHEL007`; duplicate interface methods or parameters fail with `PHEL009`. Struct, record and type fields cannot repeat, share a PHP property name or use `hasher`, `equalizer` or `meta`; these fail with `PHEL007`, as do parameter tags `^void` and `^never`. These declarations used to cause PHP errors. (#3534)
@@ -100,6 +100,7 @@ Builds and caches:
 - Built entry points and exported PHP wrappers reject a different Phel runtime version, including patch and development revisions; rebuild with `phel build` or `phel export` after upgrading. Builds also warn when their version differs from the project's lock file. Mismatches used to fail later on missing internal methods. (#3519, ADR 0020)
 - Same-second source rewrites refresh namespace information and compiled output. Whole-second timestamps used to preserve stale dependencies or ship old code. (#3537 #3564)
 - Namespace, scan and compiled-code caches survive concurrent processes and interrupted writes instead of exposing partial PHP files. A torn cache from an older version is treated as empty. (#3553)
+- With `enable-intermediate-cache` enabled, upgrading a development compiler rebuilds reader results for unchanged source. It used to reuse old results and skip parser fixes, so invalid input such as `1+` could still compile after upgrading. (#3758)
 - Macro edits invalidate every transitive dependent namespace, including after parallel compilation. Distant dependents used to keep old expansions, and concurrent cache saves could lose dependencies. (#3698 #3700)
 - A `.phel` file without `ns` no longer disables the namespace index and forces every source to be reread on each `run` or `test`. It is checked again after it changes, so adding `ns` is still detected; this removes the roughly 2x slowdown seen in this repository. (#3629)
 - Generated PHP uses an owner-only, per-user `<system temp>/phel-<uid>/tmp` directory instead of shared `/tmp/phel/tmp` permissions. Phel and `doctor` tighten existing owned directories to 0700 and refuse directories owned by someone else or replaceable through a parent. Other local users used to be able to read generated PHP. (#3532)
