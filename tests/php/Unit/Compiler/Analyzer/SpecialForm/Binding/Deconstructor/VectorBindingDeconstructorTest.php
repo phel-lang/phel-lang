@@ -9,11 +9,15 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValida
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\VectorBindingDeconstructor;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReturnTypeInferrer;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding\SequentialBindingForms;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+
+use function count;
 
 final class VectorBindingDeconstructorTest extends TestCase
 {
@@ -49,6 +53,63 @@ final class VectorBindingDeconstructorTest extends TestCase
                 $value,
             ],
         ], $bindings);
+    }
+
+    public function test_as_binds_the_original_source(): void
+    {
+        $all = Symbol::create('all');
+        $bindings = [];
+        $this->deconstructor->deconstruct(
+            $bindings,
+            Phel::vector([Symbol::create('a'), Keyword::create('as'), $all]),
+            Symbol::create('source'),
+        );
+
+        self::assertEquals([$all, $bindings[0][0]], $bindings[count($bindings) - 1]);
+    }
+
+    public function test_as_after_rest_binds_the_original_source(): void
+    {
+        $all = Symbol::create('all');
+        $bindings = [];
+        $this->deconstructor->deconstruct(
+            $bindings,
+            Phel::vector([Symbol::create('a'), Symbol::create('&'), Symbol::create('rest'), Keyword::create('as'), $all]),
+            Symbol::create('source'),
+        );
+
+        self::assertEquals([$all, $bindings[0][0]], $bindings[count($bindings) - 1]);
+    }
+
+    public function test_bare_as_requires_a_binding_form(): void
+    {
+        $this->expectException(AbstractLocatedException::class);
+        $this->expectExceptionMessage(':as requires a binding form');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct(
+            $bindings,
+            Phel::vector([Symbol::create('a'), Keyword::create('as')]),
+            Symbol::create('source'),
+        );
+    }
+
+    #[DataProvider('trailingAsForms')]
+    public function test_as_rejects_trailing_forms(PersistentVectorInterface $pattern): void
+    {
+        $this->expectException(AbstractLocatedException::class);
+        $this->expectExceptionMessage('No binding forms may follow :as');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $pattern, Symbol::create('source'));
+    }
+
+    public static function trailingAsForms(): iterable
+    {
+        yield 'position' => [Phel::vector([Symbol::create('a'), Keyword::create('as'), Symbol::create('all'), Symbol::create('extra')])];
+        yield 'rest' => [Phel::vector([Symbol::create('&'), Symbol::create('tail'), Keyword::create('as'), Symbol::create('all'), Symbol::create('extra')])];
+        yield 'duplicate' => [Phel::vector([Keyword::create('as'), Symbol::create('all'), Keyword::create('as'), Symbol::create('again')])];
+        yield 'rest after as' => [Phel::vector([Keyword::create('as'), Symbol::create('all'), Symbol::create('&'), Symbol::create('tail')])];
     }
 
     public function test_vector_with_one_symbol(): void
