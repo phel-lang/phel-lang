@@ -56,6 +56,10 @@ final class InvocationErrorExitCodeTest extends TestCase
         yield 'unknown command' => [['nope-cmd'], 'nope-cmd'];
         yield 'unknown option' => [['lint', '--nope', 'ok.phel'], '--nope'];
         yield 'too many arguments' => [['explain', 'PHEL001', 'extra'], 'Too many arguments'];
+        yield 'eval, missing expression' => [['eval'], 'Missing expression'];
+        yield 'eval, empty expression' => [['eval', ''], 'Missing expression'];
+        yield 'eval, whitespace expression' => [['eval', " \n\t"], 'Missing expression'];
+        yield 'eval, empty stdin' => [['eval', '-'], 'Missing expression'];
         yield 'explain, unknown --format' => [['explain', '--format=xml', 'PHEL001'], 'xml'];
         yield 'explain, unknown code' => [['explain', 'NOPE'], 'NOPE'];
         yield 'explain --format=json, unknown code' => [['explain', '--format=json', 'NOPE'], 'NOPE'];
@@ -203,6 +207,40 @@ final class InvocationErrorExitCodeTest extends TestCase
 
         self::assertStringContainsString('Path not found: missing.phel', $result->stderr);
         self::assertStringNotContainsString('missing.phel', $result->stdout);
+    }
+
+    /**
+     * @return iterable<string, array{int, int}>
+     */
+    public static function provideCommandExitCodes(): iterable
+    {
+        yield 'success' => [0, 0];
+        yield 'invalid invocation' => [2, 2];
+        yield 'maximum' => [255, 255];
+        yield 'would wrap to success' => [256, 255];
+        yield 'another multiple of 256' => [512, 255];
+        yield 'negative' => [-1, 255];
+        yield 'negative would wrap to success' => [-256, 255];
+    }
+
+    #[DataProvider('provideCommandExitCodes')]
+    public function test_command_exit_codes_stay_in_the_shell_range(int $code, int $expected): void
+    {
+        $script = <<<'PHP'
+require $argv[1] . '/vendor/autoload.php';
+Phel::bootstrap($argv[1]);
+$code = (int) $argv[2];
+$command = new \Symfony\Component\Console\Command\Command('exit-code');
+$command->setCode(static fn(): int => $code);
+$application = new \Phel\Console\ConsoleFactory()->createConsoleBootstrap();
+$application->addCommand($command);
+$application->run(new \Symfony\Component\Console\Input\ArrayInput(['command' => 'exit-code']));
+PHP;
+        $result = Subprocess::run([PHP_BINARY, '-r', $script, dirname(__DIR__, 4), (string) $code]);
+
+        self::assertSame($expected, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertSame('', $result->stdout);
+        self::assertSame('', $result->stderr);
     }
 
     private function writeTestRegisteringAReporter(): void

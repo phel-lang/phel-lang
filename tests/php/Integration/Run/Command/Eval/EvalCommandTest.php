@@ -71,14 +71,39 @@ final class EvalCommandTest extends AbstractTestCommand
         self::assertSame(0, $exitCode);
     }
 
-    public function test_eval_empty_expression(): void
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function emptyExpressionProvider(): iterable
     {
+        yield 'empty' => [''];
+        yield 'whitespace' => [" \n\t"];
+    }
+
+    #[DataProvider('emptyExpressionProvider')]
+    public function test_eval_rejects_an_empty_expression(string $expression): void
+    {
+        $this->expectOutputRegex('/Missing expression/');
+
         $exitCode = $this->createEvalCommand()->run(
-            $this->stubInput(''),
+            $this->stubInput($expression),
             $this->stubOutput(),
         );
 
-        self::assertSame(0, $exitCode);
+        self::assertSame(2, $exitCode);
+    }
+
+    #[DataProvider('emptyExpressionProvider')]
+    public function test_eval_rejects_empty_stdin(string $expression): void
+    {
+        $this->expectOutputRegex('/Missing expression/');
+
+        $exitCode = new EvalCommand($this->stdinReader($expression))->run(
+            $this->stubInput('-'),
+            $this->stubOutput(),
+        );
+
+        self::assertSame(2, $exitCode);
     }
 
     public function test_eval_failure_unbalanced_parentheses(): void

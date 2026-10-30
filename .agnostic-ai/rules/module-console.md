@@ -47,7 +47,7 @@ That makes Console the graph's sink: it depends on nearly everything and **nothi
 ## Key Constraints
 
 - Default command is `repl` (`setDefaultCommand('repl')` when no command given).
-- `ConsoleBootstrap::run()` does NOT return: runs with auto-exit disabled, then `FilesystemFacade::clearAll()`, then `exit($exitCode)`. Code after the call site is unreachable.
+- `ConsoleBootstrap::run()` does NOT return: runs with auto-exit disabled, then `FilesystemFacade::clearAll()`, then exits. Codes in `0..255` are preserved; every out-of-range code becomes 255 so a failure cannot wrap to success. Code after the call site is unreachable.
 - `ConsoleBootstrap::doRun()` checks `PHEL_OPTIMIZATION_LEVEL` before any command runs: a bad value exits 2 with one line on stderr instead of a stack trace mid-compile (#3525).
 - Bare top-level `--help`/`-h` (no command) is rewritten to the `list` command so it shows all commands, not repl help.
 - An unknown command, an unknown option or a missing or extra argument exits 2 (Symfony's own code is 1): `ConsoleBootstrap::doRun()` catches `CommandNotFoundException`, and `doRunCommand()` binds and validates the input before the command runs. Symfony's rendering, "Did you mean" included, goes to stderr (#3525).
