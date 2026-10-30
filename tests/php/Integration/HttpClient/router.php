@@ -20,6 +20,24 @@ if ($path === '/loop') {
     return true;
 }
 
+if ($path === '/bytes') {
+    http_response_code((int) ($_GET['status'] ?? 200));
+    header('Content-Type: application/octet-stream');
+    echo str_repeat('x', (int) ($_GET['size'] ?? 0));
+
+    return true;
+}
+
+if ($path === '/pause') {
+    header('Content-Length: 2');
+    echo 'x';
+    flush();
+    usleep(200000);
+    echo 'y';
+
+    return true;
+}
+
 $headers = [];
 foreach (getallheaders() as $name => $value) {
     $headers[strtolower($name)] = $value;
