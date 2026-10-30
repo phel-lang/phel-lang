@@ -11,6 +11,7 @@ scope: src/php/Lint
 | Method | Returns |
 |--------|---------|
 | `lint(list<string> $paths, RuleSettings $settings, ?LintCache $cache)` | `LintResult`; throws `LintSourceException` on an unreadable file or directory |
+| `lintSource(string $source, string $path, RuleSettings $settings)` | `LintResult` for supplied buffer text, including a path that does not exist |
 | `loadSettings(string $configPath, RuleSettings $defaults)` | `RuleSettings` |
 | `defaultSettings()` | `RuleSettings` |
 | `formatters()` | `FormatterRegistry` |
@@ -135,6 +136,7 @@ Warns on a static call `(Foo/bar ...)` whose class cannot be autoloaded, after r
 
 - Never rewrites source; the Formatter module owns whitespace/indent
 - Semantic diagnostics (`unresolved-symbol`, `arity-mismatch`) come from `ApiFacadeInterface::analyzeSource`, shared via `FileAnalysis::$semanticDiagnostics`, so the analyzer runs once per file
+- `LintRunner::runSource()` uses the same reader, analysis and rule pipeline for supplied text, preserving path-based settings without collecting or reading source files, indexing the workspace, or using the lint disk cache. Dependency preparation may still inspect saved-path context.
 - Open/closed: `LintFactory::createRules()` and `FormatterRegistry` are the ONLY edit points for new rules/formatters
 - A repeated key in a map or set literal is the reader's `PHEL203`; no lint rule repeats it. `LintRuleCodes::DUPLICATE_KEY` stays as a deprecated constant because the class is public API
 - Cache (default on, `.phel/lint-cache/index.json`): keyed by MD5(file hash) + `LintCacheFingerprint` (Phel release + all rule codes + severities + exclude patterns); so upgrading Phel or editing rules or `phel-lint.phel` invalidates it
