@@ -10,6 +10,7 @@ use Phel\Shared\Parser\Node\Token;
 
 use function chr;
 use function sprintf;
+use function strlen;
 
 /**
  * @internal
@@ -18,18 +19,21 @@ final class StringParser
 {
     private const string ESCAPE_SEQUENCE_PATTERN = '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4}))~';
 
+    private const string SURROGATE_ESCAPE_SEQUENCE_PATTERN = '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4})(?:\\\\u([dD][c-fC-F][0-9a-fA-F]{2}))?)~';
+
     /**
      * The widest value chr() accepts. Above it PHP 8.5 deprecates the call and
      * silently constrains the value with % 256, which changes the character.
      */
     private const int MAX_BYTE = 0xFF;
 
-    /** The widest codepoint UTF-8 encodes in four bytes. */
-    private const int MAX_CODEPOINT = 0x1FFFFF;
+    private const int MAX_CODEPOINT = 0x10FFFF;
 
     private const int BRACED_UNICODE_ESCAPE_MATCH = 2;
 
     private const int FIXED_UNICODE_ESCAPE_MATCH = 3;
+
+    private const int LOW_SURROGATE_ESCAPE_MATCH = 4;
 
     private const array STRING_REPLACEMENTS = [
         '\\' => '\\',
@@ -57,10 +61,15 @@ final class StringParser
 
     private function parseEscapedString(string $str): string
     {
+        $str = str_replace('\\"', '"', $str);
+        $pattern = str_contains($str, '\\uD') || str_contains($str, '\\ud')
+            ? self::SURROGATE_ESCAPE_SEQUENCE_PATTERN
+            : self::ESCAPE_SEQUENCE_PATTERN;
+
         $result = preg_replace_callback(
-            self::ESCAPE_SEQUENCE_PATTERN,
+            $pattern,
             $this->replaceEscapeSequence(...),
-            str_replace('\\"', '"', $str),
+            $str,
         );
 
         if ($result === null) {
@@ -115,20 +124,28 @@ final class StringParser
             $hexCodepoint = $matches[self::FIXED_UNICODE_ESCAPE_MATCH] ?? '';
         }
 
-        return $this->codePointToUtf8((int) hexdec($hexCodepoint));
+        $significantDigits = ltrim($hexCodepoint, '0');
+        if (strlen($significantDigits) > 6) {
+            throw new StringParserException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
+        }
+
+        $codepoint = (int) hexdec($significantDigits === '' ? '0' : $significantDigits);
+        $lowSurrogate = $matches[self::LOW_SURROGATE_ESCAPE_MATCH] ?? '';
+        if ($lowSurrogate !== '') {
+            if ($codepoint < 0xD800 || $codepoint > 0xDBFF) {
+                throw new StringParserException('Invalid UTF-8 codepoint escape sequence: Unexpected low surrogate');
+            }
+
+            $codepoint = 0x10000 + (($codepoint - 0xD800) << 10) + ((int) hexdec($lowSurrogate) - 0xDC00);
+        }
+
+        return $this->codePointToUtf8($codepoint);
     }
 
-    /**
-     * Checking the whole domain up front, rather than falling through to a
-     * throw, is what lets each branch below stay provably inside chr()'s
-     * byte range.
-     *
-     * @throws StringParserException
-     */
     private function codePointToUtf8(int $num): string
     {
-        if ($num < 0 || $num > self::MAX_CODEPOINT) {
-            throw new StringParserException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
+        if ($num < 0 || $num > self::MAX_CODEPOINT || ($num >= 0xD800 && $num <= 0xDFFF)) {
+            throw new StringParserException('Invalid UTF-8 codepoint escape sequence: Not a Unicode scalar');
         }
 
         if ($num <= 0x7F) {

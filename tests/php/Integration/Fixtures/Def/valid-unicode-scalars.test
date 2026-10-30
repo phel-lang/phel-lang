@@ -1,0 +1,9 @@
+--PHEL--
+(def scalars ["\u{0}" "\uD7FF" "\uE000" "\u{10FFFF}" \uD7FF \uE000 "\uD83D\uDE00"])
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "scalars",
+  \Phel::vector(["\x00", "퟿", "", "􏿿", "퟿", "", "😀"]),
+  static fn() => \Phel::locationMeta(\Phel::location("Def/valid-unicode-scalars.test", 1, 0), \Phel::location("Def/valid-unicode-scalars.test", 1, 83))
+);

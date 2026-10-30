@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Parser\ExpressionParser\CharParser;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\Parser\Node\StringNode;
 use Phel\Shared\Parser\Node\Token;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function strlen;
@@ -152,6 +153,32 @@ final class CharParserTest extends TestCase
         $this->expectException(StringParserException::class);
 
         $this->parse('\\o777');
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function surrogate_escapes(): iterable
+    {
+        foreach (['\uD800', '\uDBFF', '\uDC00', '\uDFFF'] as $escape) {
+            yield $escape => [$escape];
+        }
+    }
+
+    #[DataProvider('surrogate_escapes')]
+    public function test_surrogate_character_escape_is_rejected(string $escape): void
+    {
+        $this->expectException(StringParserException::class);
+        $this->expectExceptionMessage('Invalid UTF-8 codepoint escape sequence');
+
+        $this->parse($escape);
+    }
+
+    public function test_unicode_scalar_boundaries_are_preserved(): void
+    {
+        self::assertSame("\u{D7FF}", $this->parse('\uD7FF')->getValue());
+        self::assertSame("\u{E000}", $this->parse('\uE000')->getValue());
+        self::assertSame("\u{FFFF}", $this->parse('\uFFFF')->getValue());
     }
 
     private function parse(string $raw): StringNode
