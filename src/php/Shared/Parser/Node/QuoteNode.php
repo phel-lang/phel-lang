@@ -9,14 +9,21 @@ use RuntimeException;
 
 final class QuoteNode implements InnerNodeInterface
 {
+    // Older serialized nodes have no trivia field and need this property default.
+    private string $trivia = '';
+
     public function __construct(
         private readonly int $tokenType,
         private readonly SourceLocation $startLocation,
         private readonly SourceLocation $endLocation,
         private NodeInterface $expression,
         private readonly ?string $codePrefix = null,
-        private readonly string $trivia = '',
-    ) {}
+        string $trivia = '',
+    ) {
+        if ($trivia !== '') {
+            $this->trivia = $trivia;
+        }
+    }
 
     /**
      * @return list<NodeInterface>
