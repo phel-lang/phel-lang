@@ -7,6 +7,7 @@ namespace Phel\Command\Application;
 use Phel\Command\Domain\CodeDirectories;
 use Phel\Command\Domain\Finder\DirectoryFinderInterface;
 use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
+use Phel\Shared\PhelProjectDirectory;
 
 /**
  * @internal
@@ -81,13 +82,9 @@ final readonly class DirectoryFinder implements DirectoryFinderInterface
                 return $dir;
             }
 
-            $real = realpath($dir);
-            if ($real !== false) {
-                return $real;
-            }
-
-            // Relative to root dir (which may itself be a PHAR path)
-            $joined = $this->applicationRootDir . '/' . $dir;
+            $joined = PhelProjectDirectory::isAbsolutePath($dir)
+                ? $dir
+                : $this->applicationRootDir . '/' . $dir;
             $resolved = realpath($joined);
             return $resolved !== false ? $resolved : $joined;
         }, $relativeDirectories);
