@@ -64,7 +64,8 @@ final class LspFactory extends AbstractFactory
         $writer = $this->createMessageWriter();
         $sink = new StreamNotificationSink($writer, $responses, $output);
         $session = new Session($this->createDocumentStore(), $sink);
-        $dispatcher = $this->createDispatcher($responses);
+        $publisher = $this->createDiagnosticPublisher();
+        $dispatcher = $this->createDispatcher($responses, $publisher);
 
         return new LspServer(
             $this->createMessageReader(),
@@ -72,14 +73,15 @@ final class LspFactory extends AbstractFactory
             $dispatcher,
             $responses,
             $session,
+            $publisher,
         );
     }
 
-    public function createDispatcher(?ResponseBuilder $responses = null): RequestDispatcher
+    public function createDispatcher(?ResponseBuilder $responses = null, ?DiagnosticPublisher $publisher = null): RequestDispatcher
     {
         $dispatcher = new RequestDispatcher($responses ?? $this->createResponseBuilder());
 
-        $publisher = $this->createDiagnosticPublisher();
+        $publisher ??= $this->createDiagnosticPublisher();
         $positions = $this->createPositionConverter();
         $uris = $this->createUriConverter();
         $locations = $this->createLocationConverter();
@@ -95,7 +97,7 @@ final class LspFactory extends AbstractFactory
 
         $dispatcher->register(new DidOpenHandler($publisher, $params));
         $dispatcher->register(new DidChangeHandler($publisher, $params, $this->createContentChangeApplier()));
-        $dispatcher->register(new DidCloseHandler($params));
+        $dispatcher->register(new DidCloseHandler($params, $publisher));
         $dispatcher->register(new DidSaveHandler($publisher, $this->getApiFacade(), $uris, $params));
 
         $dispatcher->register(new HoverHandler($this->getApiFacade(), $params, $symbols));
