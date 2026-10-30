@@ -7,6 +7,42 @@
   (is (= 10 (let [[a [c d] b] [1 (list 4 3) 2]] (+ a b c d))) "nested")
   (is (= 4 (let [[a _ b] [1 2 3]] (+ a b))) "ignore value"))
 
+(deftest destructure-vector-as
+  (is (= [1 2] (let [[a :as all] [1 2]] all)) ":as binds the whole vector")
+  (is (= [1 [2 3] [1 2 3]] (let [[a & tail :as all] [1 2 3]] [a tail all]))
+      ":as may follow a rest binding")
+  (is (= [1 2 3 4 [3 4] [1 2 3 4]]
+         (let [[a b & [c d :as cd] :as all] [1 2 3 4]] [a b c d cd all]))
+      "nested tail patterns keep their own source")
+  (is (= '(1 2) (let [[a :as all] '(1 2)] all)) ":as preserves a list")
+  (is (nil? (let [[:as all] nil] all)) ":as alone binds nil")
+  (is (= [1 2] ((fn [[a :as all]] all) [1 2])) ":as works in function parameters"))
+
+(deftest destructure-vector-as-reuses-the-source
+  (let [calls       (atom 0)
+        source      [1 2]
+        [a :as all] (do (swap! calls inc) source)]
+    (is (= 1 @calls) "the source expression runs once")
+    (is (identical? source all) ":as keeps the source object"))
+  (let [make-source (fn [counter]
+                      (iterator-seq ((fn []
+                                       (swap! counter inc)
+                                       (php/yield 1)
+                                       (swap! counter inc)
+                                       (php/yield 2)
+                                       (swap! counter inc)
+                                       (php/yield 3)))))
+        walked      (atom 0)
+        baseline    (make-source walked)
+        _           (first baseline)
+        _           (next baseline)
+        realized    (atom 0)
+        source      (make-source realized)
+        [a :as all] source]
+    (is (= 1 a) "a one-shot source still supplies the first position")
+    (is (identical? source all) ":as keeps the lazy source over the generator")
+    (is (= @walked @realized) ":as does not advance beyond the ordinary first/next walk")))
+
 (deftest destructure-hash-map
   (is (= 3 (let [{:a a :b b} {:a 1 :b 2}] (+ a b))) "destructure hash map")
   (is (= 6 (let [{:a [a1 a2] :b b} {:a [1 3] :b 2}] (+ a1 a2 b))) "nested destructure hash map")
