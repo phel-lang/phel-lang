@@ -152,7 +152,7 @@ final class AnalyzePersistentListTest extends TestCase
     public function test_symbol_with_name_php_object_call(): void
     {
         $list = Phel::list([
-            Symbol::create(Symbol::NAME_PHP_OBJECT_CALL), '', Symbol::create(''),
+            Symbol::create(Symbol::NAME_PHP_OBJECT_CALL), '', Symbol::create('foo_bar'),
         ]);
         self::assertInstanceOf(
             PhpObjectCallNode::class,
@@ -198,7 +198,7 @@ final class AnalyzePersistentListTest extends TestCase
     public function test_symbol_with_name_php_object_static_call(): void
     {
         $list = Phel::list([
-            Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL), '', Symbol::create(''),
+            Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL), '', Symbol::create('foo_bar'),
         ]);
         self::assertInstanceOf(
             PhpObjectCallNode::class,
@@ -365,7 +365,7 @@ final class AnalyzePersistentListTest extends TestCase
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
-            Symbol::create(''),
+            Symbol::create('Example'),
             Phel::vector([]),
         ]);
         self::assertInstanceOf(DefStructNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
