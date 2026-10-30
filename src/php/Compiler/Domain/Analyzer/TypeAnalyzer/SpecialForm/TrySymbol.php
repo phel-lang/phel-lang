@@ -227,7 +227,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         $resolvedType = $this->resolveCatchType($type, $env, $catch);
         // A fresh PHP name, as `let` gives its locals, so the caught value
         // never overwrites a param or local that munges to the same name.
-        $shadow = Symbol::gen($name->getName() . '_')->copyLocationFrom($name);
+        $shadow = LocalBindingName::shadow($name);
         $catchBody = $this->analyzeCatchBody($catch, $name, $shadow, $env, $catchContext);
 
         return new CatchNode(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Nrepl\Domain\Transport;
 
+use Fiber;
 use Phel\Nrepl\Domain\Bencode\BencodeEncoder;
 use Phel\Nrepl\Domain\Bencode\BencodeException;
 use Phel\Nrepl\Domain\Bencode\BencodeStreamDecoder;
@@ -13,6 +14,7 @@ use function feof;
 use function fread;
 use function fwrite;
 use function is_resource;
+use function stream_select;
 use function stream_set_blocking;
 use function strlen;
 use function substr;
@@ -79,6 +81,9 @@ final class ClientConnection
         }
     }
 
+    /**
+     * @phpstan-impure
+     */
     public function isClosed(): bool
     {
         if (!is_resource($this->stream)) {
@@ -93,7 +98,7 @@ final class ClientConnection
      */
     public function send(array $payload): void
     {
-        if (!is_resource($this->stream)) {
+        if ($this->isClosed()) {
             return;
         }
 
@@ -101,9 +106,32 @@ final class ClientConnection
         $total = strlen($encoded);
         $written = 0;
         while ($written < $total) {
-            $bytes = @fwrite($this->stream, substr($encoded, $written));
-            if ($bytes === false || $bytes === 0) {
+            $stream = $this->stream;
+            if (!is_resource($stream)) {
+                $this->close();
                 return;
+            }
+
+            $bytes = @fwrite($stream, substr($encoded, $written));
+            if ($bytes === false || $this->isClosed()) {
+                $this->close();
+                return;
+            }
+
+            if ($bytes === 0) {
+                if (Fiber::getCurrent() instanceof Fiber) {
+                    Fiber::suspend();
+                } else {
+                    $read = [];
+                    $write = [$stream];
+                    $except = [];
+                    if (@stream_select($read, $write, $except, null) === false) {
+                        $this->close();
+                        return;
+                    }
+                }
+
+                continue;
             }
 
             $written += $bytes;
