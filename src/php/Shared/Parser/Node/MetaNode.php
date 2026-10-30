@@ -11,6 +11,9 @@ use function assert;
 
 final class MetaNode implements InnerNodeInterface
 {
+    // Older serialized nodes have no trivia field and need this property default.
+    private string $trivia = '';
+
     /**
      * @param list<NodeInterface> $children
      */
@@ -19,7 +22,12 @@ final class MetaNode implements InnerNodeInterface
         private readonly SourceLocation $startLocation,
         private readonly SourceLocation $endLocation,
         private array $children,
-    ) {}
+        string $trivia = '',
+    ) {
+        if ($trivia !== '') {
+            $this->trivia = $trivia;
+        }
+    }
 
     /**
      * @return list<NodeInterface>
@@ -47,7 +55,7 @@ final class MetaNode implements InnerNodeInterface
             $code .= $child->getCode();
         }
 
-        return $this->getCodePrefix() . $this->meta->getCode() . $code;
+        return $this->getCodePrefix() . $this->trivia . $this->meta->getCode() . $code;
     }
 
     public function getCodePrefix(): string

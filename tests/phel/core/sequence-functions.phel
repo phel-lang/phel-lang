@@ -566,7 +566,7 @@
   (is (= :foo (merge :foo)) "merge with one argument returns it unchanged"))
 
 (deftest test-merge-with-zero-args
-  (is (= {} (merge-with identity))))
+  (is (nil? (merge-with identity))))
 
 (deftest test-merge-with-one-args
   (is (= {:a 1} (merge-with identity {:a 1}))))

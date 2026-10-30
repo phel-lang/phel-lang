@@ -44,20 +44,9 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
         exit(2);
     }
 
-    PhelProjectDirectory::ensure($appRootDir);
     $fileCacheDir = PhelProjectDirectory::opcachePath($appRootDir);
-    if (!is_dir($fileCacheDir) && !@mkdir($fileCacheDir, 0o755, true) && !is_dir($fileCacheDir)) {
-        return;
-    }
-
-    // A pre-existing but read-only dir (e.g. warmed at build, deployed
-    // read-only) would make PHP abort at startup with "opcache.file_cache
-    // must be a full path of an accessible directory" once passed via -d.
-    if (!is_writable($fileCacheDir)) {
-        return;
-    }
-
     $invocation = array_values(array_map('strval', (array) ($_SERVER['argv'] ?? [])));
+    $compilesNothing = OpcacheReexec::compilesNothing($invocation);
     $decision = OpcacheReexec::decide(
         opcacheLoaded: extension_loaded('Zend OPcache'),
         fileCacheConfigured: (string) ini_get('opcache.file_cache') !== '',
@@ -65,11 +54,15 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
         pcntlAvailable: function_exists('pcntl_exec'),
         fileCacheDir: $fileCacheDir,
         reexecAlreadyDone: getenv(OpcacheReexec::REEXEC_DONE_ENV) !== false,
-        compilesNothing: OpcacheReexec::compilesNothing($invocation),
+        compilesNothing: $compilesNothing,
         isMacOs: PHP_OS_FAMILY === 'Darwin',
         optedIn: $optedIn,
         loadsManyFiles: OpcacheReexec::loadsManyFiles($invocation),
     );
+
+    if (!$compilesNothing) {
+        PhelProjectDirectory::ensure($appRootDir);
+    }
 
     if (!$decision->shouldReexec) {
         return;
@@ -81,6 +74,15 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
     }
 
     $scriptArgv = array_values(array_map('strval', $argv));
+
+    if (!is_dir($fileCacheDir) && !@mkdir($fileCacheDir, 0o755, true) && !is_dir($fileCacheDir)) {
+        return;
+    }
+
+    // A pre-existing but read-only directory cannot be passed to OPcache.
+    if (!is_writable($fileCacheDir)) {
+        return;
+    }
 
     // PHP hides the interpreter's own flags from $_SERVER['argv'], so ask the OS
     // for the real command line and carry the user's `-d`/`-n`/`-c` across the

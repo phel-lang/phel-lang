@@ -36,7 +36,7 @@ final readonly class CacheIndexFile
     // #2729 cross-fn `:tag` inference) leaves stale compiled files that a same-version cache would
     // keep serving. Bumping here rejects the whole index once, forcing a cold recompile.
     // Decoupled from the Phel version for cache stability across minor releases.
-    private const string INDEX_FORMAT_VERSION = '1.9';
+    private const string INDEX_FORMAT_VERSION = '1.10';
 
     public function __construct(
         private CacheDirectory $directory,
@@ -141,22 +141,11 @@ final readonly class CacheIndexFile
      */
     private function parseIndexContent(string $content): array
     {
-        $tempFile = @tempnam(sys_get_temp_dir(), 'phel_cache_merge_');
-        if ($tempFile === false) {
-            return [];
-        }
-
         try {
-            if (file_put_contents($tempFile, $content) === false) {
-                return [];
-            }
-
-            /** @psalm-suppress UnresolvableInclude */
-            $data = @include $tempFile;
+            // Use the locked byte snapshot, without consulting OPcache or rereading a replaced path.
+            $data = @eval('?>' . $content);
         } catch (ParseError) {
             return [];
-        } finally {
-            @unlink($tempFile);
         }
 
         return $this->normalize($data);

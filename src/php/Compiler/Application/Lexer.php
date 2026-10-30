@@ -37,7 +37,7 @@ final class Lexer implements LexerInterface
         "([ \t]+)", // Whitespace (index: 2)
         "(\r?\n)", // Newline (index: 3)
         '(#_)', // Inline comment (index: 4)
-        "(;[^\n]*\n?)", // Comment (index: 5)
+        "(;[^\n]*\n?|\\#![^\r\n]*)", // Comment (index: 5)
         '(#\{)', // open hash brace (index: 6)
         '(~@)', // unquote-splicing (index: 7)
         "(\()", // open parenthesis (index: 8)

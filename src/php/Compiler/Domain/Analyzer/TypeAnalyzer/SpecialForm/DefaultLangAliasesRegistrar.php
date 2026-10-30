@@ -96,7 +96,7 @@ final class DefaultLangAliasesRegistrar
         if (self::$cachedPairs === null) {
             $pairs = [];
             foreach (self::DEFAULT_USE_ALIASES as $shortName => $fqn) {
-                $pairs[] = [Symbol::create($shortName), Symbol::create('\\' . $fqn)];
+                $pairs[] = [Symbol::create($shortName), UseAliasOrigin::markDefault(Symbol::create('\\' . $fqn))];
             }
 
             self::$cachedPairs = $pairs;

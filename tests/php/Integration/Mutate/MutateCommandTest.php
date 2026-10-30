@@ -168,6 +168,22 @@ final class MutateCommandTest extends TestCase
         self::assertMatchesRegularExpression('/Killed: [1-9]/', $output);
     }
 
+    public function test_a_passing_chatty_worker_gets_a_real_mutant_verdict(): void
+    {
+        $this->writeSource("(ns app.calc)\n\n(defn keep-value [x] x)\n");
+        $this->writeTests(
+            "(ns app.calc-test\n  (:require phel.test :refer [deftest is])\n  (:require app.calc :as calc))\n\n"
+            . "(deftest chatty-test\n  (php/fwrite php/STDERR (php/str_repeat \"x\" 131072))\n  (calc/keep-value 1)\n  (is true))\n",
+        );
+
+        [$exitCode, $output] = $this->runPhelMutate(['--only=return-nil', '--timeout-factor=1', '--format=json', '-o', $this->projectDir . '/chatty.json']);
+
+        self::assertSame(0, $exitCode, $output);
+        $report = json_decode((string) file_get_contents($this->projectDir . '/chatty.json'), true, 512, JSON_THROW_ON_ERROR);
+        self::assertCount(1, $report['mutants']);
+        self::assertSame('survived', $report['mutants'][0]['verdict'], $output);
+    }
+
     public function test_the_min_msi_gate_fails_the_run(): void
     {
         $this->writeSource("(ns app.calc)\n\n(defn add [a b]\n  (+ a b))\n");
@@ -311,6 +327,20 @@ final class MutateCommandTest extends TestCase
             self::assertIsArray($mutant);
             self::assertSame('twice', $mutant['definition'], 'only the changed file is mutated');
         }
+    }
+
+    public function test_changed_rejects_an_option_ref_without_creating_a_file(): void
+    {
+        $this->git('init -q');
+        $this->git('add -A');
+        $this->git('commit -q -m init');
+        $injectedOutput = $this->projectDir . '/injected.diff';
+
+        [$exitCode, $output] = $this->runPhelMutate(['--changed=--output=' . $injectedOutput]);
+
+        self::assertFileDoesNotExist($injectedOutput);
+        self::assertSame(2, $exitCode, $output);
+        self::assertStringContainsString('invalid ref', $output);
     }
 
     public function test_the_optimization_level_in_the_config_does_not_change_the_verdicts(): void

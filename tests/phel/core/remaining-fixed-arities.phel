@@ -58,12 +58,18 @@
     (is (= ["a" "abc"] (swap-vals! a str "b" "c")) "arguments keep their order")))
 
 (deftest test-merge-with-arities
-  (is (= {} (merge-with +)) "no maps")
+  (is (nil? (merge-with +)) "no maps")
   (is (= {:a 1} (merge-with + {:a 1})) "one map")
   (is (= {:a 11, :b 2} (merge-with + {:a 1, :b 2} {:a 10})) "two maps")
   (is (= {:a 111, :b 2} (merge-with + {:a 1, :b 2} {:a 10} {:a 100})) "three maps")
   (is (= {:a 1111} (merge-with + {:a 1} {:a 10} {:a 100} {:a 1000})) "four maps")
-  (is (= {:a 1, :b 2} (merge-with + {:a 1} {:b 2})) "disjoint keys are not combined"))
+  (is (= {:a 1, :b 2} (merge-with + {:a 1} {:b 2})) "disjoint keys are not combined")
+  (is (nil? (merge-with + nil)) "one nil map remains nil")
+  (let [m (with-meta {:a 1} {:tag :original})]
+    (is (identical? m (merge-with + m)) "one map keeps its identity and metadata"))
+  (is (= (php-associative-array "a" 3)
+         (merge-with + (php-associative-array "a" 1) (php-associative-array "a" 2)))
+      "PHP arrays keep their merge path"))
 
 (deftest test-deep-merge-arities
   (is (= {} (deep-merge)) "no arguments")

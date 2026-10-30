@@ -19,9 +19,9 @@ jobs:
     name: Validate composer configuration
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: 8.5
           coverage: none
@@ -34,7 +34,7 @@ jobs:
     name: Coding Guidelines
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: ./.github/actions/setup-phel
 
       - name: Run friendsofphp/php-cs-fixer
@@ -47,7 +47,7 @@ jobs:
     name: Lint the Phel standard library
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: ./.github/actions/setup-phel
 
       # Phel's own stdlib must pass Phel's own linter. Exits non-zero only on
@@ -64,7 +64,7 @@ jobs:
     name: Type Checker
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: ./.github/actions/setup-phel
 
       - name: Run Psalm on internal code

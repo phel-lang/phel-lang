@@ -11,17 +11,12 @@ final class ResourcePrinterTest extends TestCase
 {
     public function test_print(): void
     {
-        self::assertMatchesRegularExpression(
-            '<PHP Resource id #Resource id #\d+>',
-            new ResourcePrinter()->print($this->getResource()),
-        );
-    }
-
-    /**
-     * @return resource
-     */
-    private function getResource()
-    {
-        return tmpfile();
+        $resource = tmpfile();
+        self::assertIsResource($resource);
+        try {
+            self::assertSame('#<PHP Resource id #' . get_resource_id($resource) . '>', new ResourcePrinter()->print($resource));
+        } finally {
+            fclose($resource);
+        }
     }
 }

@@ -157,11 +157,11 @@ final readonly class Printer implements PrinterInterface
 
         return match (true) {
             $printerName === 'string' => new StringPrinter($this->readable, $this->withColor),
-            $printerName === 'integer' || $printerName === 'double' => new NumberPrinter($this->withColor),
+            $printerName === 'integer' || $printerName === 'double' => new NumberPrinter(withColor: $this->withColor, readable: $this->readable),
             $printerName === 'boolean' => new BooleanPrinter($this->withColor),
             $printerName === 'NULL' => new NullPrinter($this->withColor),
             $printerName === 'array' => new ArrayPrinter($this, $this->withColor),
-            $printerName === 'resource' && !$this->readable => new ResourcePrinter(),
+            $printerName === 'resource' => new ResourcePrinter(),
             !$this->readable => new ObjectPrinter(),
             default => throw new RuntimeException('Printer cannot print this type: ' . $printerName),
         };

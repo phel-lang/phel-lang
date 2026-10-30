@@ -70,6 +70,10 @@ final readonly class ArgvInputSanitizer
         $i = 2;
 
         while ($i < $argc) {
+            if ($argv[$i] === '--') {
+                return [...$result, ...array_slice($argv, $i)];
+            }
+
             if (WarnDeprecationsFlag::matches($argv[$i])) {
                 $result[] = $argv[$i];
                 ++$i;

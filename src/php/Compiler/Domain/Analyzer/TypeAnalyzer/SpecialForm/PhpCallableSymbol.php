@@ -126,7 +126,7 @@ final readonly class PhpCallableSymbol implements SpecialFormAnalyzerInterface
         $resolved = $this->analyzer->resolve($target, $exprEnv);
 
         // A callable target names a class by position; see BareHostClass (#3064).
-        $bareClass = BareHostClass::reread($target, $resolved, $exprEnv);
+        $bareClass = BareHostClass::reread($target, $resolved, $exprEnv, $this->analyzer);
         if ($bareClass instanceof PhpClassNameNode) {
             return $bareClass;
         }

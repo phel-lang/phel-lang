@@ -71,6 +71,10 @@ final class GitChangedFiles
      */
     private function diffAgainst(string $root, string $ref): array
     {
+        if (str_starts_with($ref, '-')) {
+            throw new GitUnavailableException(sprintf('--changed: invalid ref "%s"; refs must not start with "-".', $ref));
+        }
+
         [$status, $changed] = $this->git($root, 'diff --name-only ' . escapeshellarg($ref) . ' --');
         if ($status !== 0) {
             throw new GitUnavailableException(sprintf('git does not know the ref "%s".', $ref));

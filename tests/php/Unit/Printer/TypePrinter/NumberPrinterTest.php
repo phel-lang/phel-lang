@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
 use Phel\Compiler\CompilerFactory;
+use Phel\Shared\Printer\Printer;
 use Phel\Shared\Printer\TypePrinter\NumberPrinter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -16,6 +17,35 @@ use function ini_get;
 
 final class NumberPrinterTest extends TestCase
 {
+    public static function non_finite_numbers(): iterable
+    {
+        yield 'nan' => [NAN, '##NaN'];
+        yield 'positive infinity' => [INF, '##Inf'];
+        yield 'negative infinity' => [-INF, '##-Inf'];
+    }
+
+    #[DataProvider('non_finite_numbers')]
+    public function test_readable_special_numbers_round_trip(float $value, string $literal): void
+    {
+        $printed = Printer::readable()->print($value);
+        self::assertSame($literal, $printed);
+        self::assertSame("\033[0;92m" . $literal . "\033[0m", Printer::readableWithColor()->print($value));
+        $compiler = new CompilerFactory();
+        $node = $compiler->createParser()->parseNext($compiler->createLexer()->lexString($printed));
+        self::assertNotNull($node);
+        $read = $compiler->createReader()->read($node)->getAst();
+        if (is_nan($value)) {
+            self::assertNan($read);
+        } else {
+            self::assertSame($value, $read);
+        }
+    }
+
+    public function test_existing_color_constructor_keeps_display_spelling(): void
+    {
+        self::assertSame("\033[0;92mInfinity\033[0m", new NumberPrinter(true)->print(INF));
+    }
+
     #[DataProvider('printerDataProvider')]
     public function test_print(string $expected, float|int $number): void
     {
