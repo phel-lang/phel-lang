@@ -13,6 +13,8 @@ use Phel\Shared\Parser\Node\Token;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+use function strlen;
+
 final class LexerTest extends TestCase
 {
     private CompilerFactory $compilerFactory;
@@ -75,6 +77,42 @@ final class LexerTest extends TestCase
             ],
             $this->lex(';'),
         );
+    }
+
+    #[DataProvider('shebangLineEndings')]
+    public function test_shebang_is_a_comment_without_consuming_the_line_ending(string $newline): void
+    {
+        $shebang = '#!/usr/bin/env phel';
+        $length = strlen($shebang);
+        $expected = [new Token(Token::T_COMMENT, $shebang, new SourceLocation('string', 1, 0), new SourceLocation('string', 1, $length))];
+        $source = $shebang;
+        if ($newline === '') {
+            $expected[] = new Token(Token::T_EOF, '', new SourceLocation('string', 1, $length), new SourceLocation('string', 1, $length));
+        } else {
+            $source .= $newline . '42';
+            $expected[] = new Token(Token::T_NEWLINE, $newline, new SourceLocation('string', 1, $length), new SourceLocation('string', 2, 0));
+            $expected[] = new Token(Token::T_ATOM, '42', new SourceLocation('string', 2, 0), new SourceLocation('string', 2, 2));
+            $expected[] = new Token(Token::T_EOF, '', new SourceLocation('string', 2, 2), new SourceLocation('string', 2, 2));
+        }
+
+        self::assertEquals($expected, $this->lex($source));
+    }
+
+    public static function shebangLineEndings(): iterable
+    {
+        yield 'LF' => ["\n"];
+        yield 'CRLF' => ["\r\n"];
+        yield 'no final newline' => [''];
+    }
+
+    public function test_shebang_text_inside_a_string_remains_a_string(): void
+    {
+        $source = '"#!/usr/bin/env phel"';
+        $tokens = $this->lex($source);
+
+        self::assertSame(Token::T_STRING, $tokens[0]->getType());
+        self::assertSame($source, $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
     }
 
     public function test_read_semicolon_comment_without_new_line(): void

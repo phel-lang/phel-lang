@@ -236,6 +236,7 @@ final readonly class PublicApiSurface
             OptimizationLevel::class . '::pin',
             PhelProjectDirectory::class . '::cacheDirOverride',
             PhelProjectDirectory::class . '::dirOverride',
+            PhelProjectDirectory::class . '::isAbsolutePath',
             NoColor::class . '::followOutput',
             ExistingPaths::class . '::reportMissing',
             CpuCountDetector::class . '::fromEnv',

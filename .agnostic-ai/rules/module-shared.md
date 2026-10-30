@@ -36,7 +36,7 @@ It exists only over `use` statements (no load or build-order effect). Shared onl
 
 ### Internal surface (ADR 0021)
 
-The Api and Run contracts are internal tooling; other facade contracts keep the public embedding policy. Internal Shared classes: `Performance/*`, `SourceMap/SupersededSourceMaps`, `Lint/LintRuleExplainerInterface`, `InvocationError`, `StandardError`, `EnvVar`, `Exceptions/SourceMappedErrorHandler`. Internal methods on public classes: `OptimizationLevel::pin`, `NoColor::followOutput`, `ExistingPaths::reportMissing`, `CpuCountDetector::fromEnv`, `ClassNotFoundHint::javaClassHint`, `FrameworkNamespaces::{clojureTarget,isPhel}`.
+The Api and Run contracts are internal tooling; other facade contracts keep the public embedding policy. Internal Shared classes: `Performance/*`, `SourceMap/SupersededSourceMaps`, `Lint/LintRuleExplainerInterface`, `InvocationError`, `StandardError`, `EnvVar`, `Exceptions/SourceMappedErrorHandler`. Internal methods on public classes: `PhelProjectDirectory::{cacheDirOverride,dirOverride,isAbsolutePath}`, `OptimizationLevel::pin`, `NoColor::followOutput`, `ExistingPaths::reportMissing`, `CpuCountDetector::fromEnv`, `ClassNotFoundHint::javaClassHint`, `FrameworkNamespaces::{clojureTarget,isPhel}`.
 
 ## Constants
 

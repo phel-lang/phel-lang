@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Application;
 
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\UseAliasOrigin;
 use Phel\Lang\Symbol;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
@@ -38,10 +39,20 @@ final readonly class NamespaceEnvironmentSerializer
             $symbols,
         );
 
+        $useAliases = [];
+        foreach ($this->globalEnvironment->getUseAliases($namespace) as $alias => $target) {
+            $item = ['ns' => $target->getNamespace(), 'name' => $target->getName()];
+            if (UseAliasOrigin::isDefault($target)) {
+                $item['default_alias'] = true;
+            }
+
+            $useAliases[$alias] = $item;
+        }
+
         return [
             'refers' => $toArray($this->globalEnvironment->getRefers($namespace)),
             'require_aliases' => $toArray($this->globalEnvironment->getRequireAliases($namespace)),
-            'use_aliases' => $toArray($this->globalEnvironment->getUseAliases($namespace)),
+            'use_aliases' => $useAliases,
         ];
     }
 
@@ -70,10 +81,15 @@ final readonly class NamespaceEnvironmentSerializer
         }
 
         foreach ($envData['use_aliases'] as $key => $item) {
+            $target = Symbol::createForNamespace($item['ns'], $item['name']);
+            if (($item['default_alias'] ?? false) === true) {
+                $target = UseAliasOrigin::markDefault($target);
+            }
+
             $this->globalEnvironment->addUseAlias(
                 $namespace,
                 Symbol::createForNamespace(null, $key),
-                Symbol::createForNamespace($item['ns'], $item['name']),
+                $target,
             );
         }
     }

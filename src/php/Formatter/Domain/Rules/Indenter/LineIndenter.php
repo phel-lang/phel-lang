@@ -7,7 +7,7 @@ namespace Phel\Formatter\Domain\Rules\Indenter;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Shared\Parser\Node\InnerNodeInterface;
 
-use function strlen;
+use function mb_strlen;
 
 /**
  * Computes the left margin (indentation width) of a location by reconstructing
@@ -19,7 +19,7 @@ final readonly class LineIndenter implements IndenterInterface
 {
     public function getMargin(ParseTreeZipper $loc, int $indentWidth): int
     {
-        return strlen($this->lastLineInString($this->priorLineString($loc)));
+        return mb_strlen($this->lastLineInString($this->priorLineString($loc)), 'UTF-8');
     }
 
     /**

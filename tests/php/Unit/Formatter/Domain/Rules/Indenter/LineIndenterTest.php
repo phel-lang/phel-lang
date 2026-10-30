@@ -9,6 +9,19 @@ use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 
 final class LineIndenterTest extends IndenterTestCase
 {
+    public function test_unicode_columns_include_nested_prefixes_and_count_a_tab_once(): void
+    {
+        $nested = $this->listNode([
+            $this->symbol('日本語😀'),
+            $this->whitespace("\t"),
+            $this->symbol('bar'),
+        ]);
+        $list = $this->listNode([$this->symbol('é'), $this->whitespace(' '), $nested]);
+        $loc = ParseTreeZipper::createRoot($list)->down()->right()->right()->down()->right()->right();
+
+        self::assertSame(9, new LineIndenter()->getMargin($loc, 2));
+    }
+
     public function test_it_measures_the_prior_line_length_within_a_list(): void
     {
         // (foo bar) — positioned at `bar`, the prior line is "(foo " (5 chars).

@@ -21,9 +21,9 @@ final readonly class QuoteParser
         $startLocation = $token->getStartLocation();
         $codePrefix = $token->getCode();
         $tokenStream->next();
-        $expression = $this->parser->readExpression($tokenStream);
+        [$expression, , $trivia] = PrefixFormReader::read($this->parser, $tokenStream, $token);
         $endLocation = $tokenStream->current()->getEndLocation();
 
-        return new QuoteNode($tokenType, $startLocation, $endLocation, $expression, $codePrefix);
+        return new QuoteNode($tokenType, $startLocation, $endLocation, $expression, $codePrefix, $trivia);
     }
 }
