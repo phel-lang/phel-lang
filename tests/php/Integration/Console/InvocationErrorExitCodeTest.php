@@ -115,6 +115,7 @@ final class InvocationErrorExitCodeTest extends TestCase
         $result = Subprocess::run(
             [PHP_BINARY, dirname(__DIR__, 4) . '/bin/phel', ...$args],
             $this->dir,
+            stdin: '',
         );
 
         self::assertSame(2, $result->exitCode, $result->stderr . $result->stdout);
