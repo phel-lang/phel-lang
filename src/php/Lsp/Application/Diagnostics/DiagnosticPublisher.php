@@ -4,66 +4,77 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Diagnostics;
 
+use Closure;
 use Phel\Lint\LintFacade;
 use Phel\Lsp\Application\Convert\DiagnosticConverter;
+use Phel\Lsp\Application\Convert\UriConverter;
 use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Domain\NotificationSink;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Throwable;
 
-use function microtime;
-
 /**
- * Runs Api semantic analysis + Lint rules on a document and pushes
- * `textDocument/publishDiagnostics` through the notification sink.
- *
- * Debouncing is cooperative: callers check `shouldPublish` before invoking
- * `publish`. The default window is 200ms.
- *
  * @internal
  */
 final class DiagnosticPublisher
 {
-    /** @var array<string, float> */
-    private array $lastRunAt = [];
+    /** @var array<string, array{document: Document, sink: NotificationSink, dueAt: float}> */
+    private array $pending = [];
+
+    /** @var Closure(): float */
+    private readonly Closure $clock;
 
     public function __construct(
         private readonly ApiFacadeInterface $apiFacade,
         private readonly LintFacade $lintFacade,
         private readonly DiagnosticConverter $converter,
         private readonly int $debounceMs,
-    ) {}
+        ?Closure $clock = null,
+        private readonly UriConverter $uris = new UriConverter(),
+    ) {
+        $this->clock = $clock ?? static fn(): float => hrtime(true) / 1_000_000;
+    }
 
-    public function shouldPublish(string $uri): bool
+    public function schedule(Document $document, NotificationSink $sink): void
     {
-        $last = $this->lastRunAt[$uri] ?? 0.0;
-        $nowMs = microtime(true) * 1000.0;
+        $this->pending[$document->uri] = [
+            'document' => $document,
+            'sink' => $sink,
+            'dueAt' => ($this->clock)() + (float) $this->debounceMs,
+        ];
+    }
 
-        return ($nowMs - $last) >= $this->debounceMs;
+    public function publishDue(): void
+    {
+        $now = ($this->clock)();
+        foreach ($this->pending as $pending) {
+            if ($pending['dueAt'] <= $now) {
+                $this->publish($pending['document'], $pending['sink']);
+            }
+        }
+    }
+
+    public function cancel(string $uri): void
+    {
+        unset($this->pending[$uri]);
     }
 
     public function publish(Document $document, NotificationSink $sink): void
     {
-        $this->lastRunAt[$document->uri] = microtime(true) * 1000.0;
-
+        $this->cancel($document->uri);
         $diagnostics = $this->apiFacade->analyzeSource($document->text, $document->uri);
-
         foreach ($this->lintDiagnostics($document) as $diagnostic) {
             $diagnostics[] = $diagnostic;
         }
 
         $params = $this->converter->toPublishParams($document->uri, $diagnostics);
+        $params['version'] = $document->version;
         $sink->notify('textDocument/publishDiagnostics', $params);
     }
 
-    /**
-     * Force a publish (skipping debounce), used on didSave when the editor
-     * expects an immediate refresh.
-     */
     public function publishNow(Document $document, NotificationSink $sink): void
     {
-        $this->lastRunAt[$document->uri] = 0.0;
         $this->publish($document, $sink);
     }
 
@@ -74,12 +85,9 @@ final class DiagnosticPublisher
     {
         try {
             $settings = $this->lintFacade->defaultSettings();
-            $result = $this->lintFacade->lint([$document->uri], $settings);
 
-            return $result->diagnostics;
+            return $this->lintFacade->lintSource($document->text, $this->uris->toFilePath($document->uri), $settings)->diagnostics;
         } catch (Throwable) {
-            // Lint on a single in-memory path may fail when the buffer isn't on disk;
-            // we only use Lint as a best-effort augmentation.
             return [];
         }
     }
