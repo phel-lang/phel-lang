@@ -126,7 +126,7 @@ Commands and test output:
 - Machine output stays parseable: TAP and stdout JUnit timing, mutation JSON progress, and `index -o` persistence notices go to stderr. Loaded-namespace output also goes there for analyze, lint, JSON doc/profile/mutate and api-daemon; daemon startup failures report their reason there. This text used to pollute machine output. (#3525)
 - Parallel JUnit runs produce the same XML document as serial runs, on stdout or in the `-o` file with progress and summary on stderr, instead of a summary or workers overwriting the file. TAP remains serial, with its verbose `Ignoring --parallel` notice on stderr. Test-body output and test-file compile errors go to stderr for TAP and stdout JUnit; `output?` and `with-out-str` still capture output inside tests. (#3627 #3642)
 - An exception outside `is` counts as a test error, and later tests and the summary still run. It used to abort serial runs or lose a parallel namespace without counting an error. (#3537)
-- Mutation workers handle project startup output and PHP notices without corrupting response frames or hanging. Their stdout carries answers only; stray text fails the run with that text. (#3526)
+- Mutation workers handle project startup output and PHP notices without corrupting response frames or hanging. Their stdout carries answers only; stray text fails the run with that text. Tests writing more than a pipe buffer to stderr keep their real verdict instead of blocking and counting as timeouts. (#3526 #3696)
 
 Analysis, diagnostics and docs:
 
