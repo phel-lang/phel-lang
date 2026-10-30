@@ -60,6 +60,7 @@ Opt-in, off by default (`CompilerConfig::isIntermediateCacheEnabled()`). Wired o
 ## Key Constraints
 
 - Never bypass a phase; each consumes only the previous phase's output.
+- `Application/Analyzer::analyzeMacro` owns the shared 1,000-level expansion limit and original call location; per-form `InvokeSymbol` instances must share that analyzer. Expansion depth and private-access state unwind in `finally`, including failed expansion.
 - Analyzer nodes carry `NodeEnvironment` with correct context.
 - Emitter handles every node type; missing cases throw, never skip.
 - Special forms are registered centrally; no ad-hoc handling in the analyzer loop.

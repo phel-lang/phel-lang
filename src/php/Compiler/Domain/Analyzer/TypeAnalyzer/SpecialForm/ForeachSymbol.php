@@ -192,7 +192,7 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
      */
     private function shadow(Symbol $local): Symbol
     {
-        return Symbol::gen($local->getName() . '_')->copyLocationFrom($local);
+        return LocalBindingName::shadow($local);
     }
 
     private function canonicalizeTag(mixed $binding): mixed
