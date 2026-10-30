@@ -138,6 +138,7 @@ Analysis, diagnostics and docs:
 Editors and servers:
 
 - The LSP applies CRLF and Unicode edits at the correct positions and publishes diagnostics for the latest unsaved buffer after typing stops. It used to shift edits, split characters, skip the final edit or lint saved text; closing a document now cancels queued diagnostics. (#3683 #3685)
+- The LSP resolves Windows file URIs with an encoded drive marker, such as `file:///C%3A/a.phel`, or a `localhost` host to the local drive path. They used to keep an extra leading slash, so the editor could not locate the file. Uppercase `FILE://` uses the same conversion. (#3686)
 - The LSP substitutes invalid UTF-8 in responses and turns other encoding failures into protocol errors instead of stopping the server. (#3684)
 - nREPL bounds pending input and nesting, rejects malformed messages and sends complete responses to slow clients without blocking other connections. These used to stall connections, exhaust memory or truncate replies. SIGTERM and Ctrl+C stop the server cleanly instead of exiting 1; binding outside loopback warns that nREPL has no authentication. (#3681 #3682 #3575 #3532)
 - `phel format` retains all reader-conditional branches, including splicing and unmatched forms, plus whitespace and comments between tagged literals and values. It used to delete branches or produce unreadable tokens; a second formatting pass now succeeds. Malformed conditionals such as `#?(:phel)` and `#?(1 2)` report a located parser error. (#3669 #3670 #3715)
