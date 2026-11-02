@@ -33,7 +33,7 @@ jobs:
           version="v0.91.0"
           curl -sSfL -o agnostic-ai.tar.gz \
             "https://github.com/Chemaclass/agnostic-ai/releases/download/${version}/agnostic-ai_linux_amd64.tar.gz"
-          echo "bdf1364dbd80602dbf11fcd451429a425c22429e0a0579dbfe1a41e0cd3567da  agnostic-ai.tar.gz" | sha256sum -c -
+          echo "34f91deaf09a0f274418b25a789cd325b8d692bd93f8fd4a141415d74e51ab84  agnostic-ai.tar.gz" | sha256sum -c -
           tar -xzf agnostic-ai.tar.gz agnostic-ai
           sudo mv agnostic-ai /usr/local/bin/
           agnostic-ai --version
