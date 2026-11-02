@@ -1,12 +1,12 @@
 ---
 name: module-profile
-description: 'Profile module: Instrumentation profiler for `phel profile`.'
+description: 'Load when editing src/php/Profile: the instrumentation profiler behind `phel profile`.'
 scope: src/php/Profile
 ---
 
 # Profile Module
 
-Instrumentation profiler for `phel profile`. Reports per-fn call counts, self/total/avg/max timings, and compile-time phase costs.
+Instrumentation profiler for `phel profile`. Reports per-fn call counts, self/total/avg/max timings and compile-time phase costs.
 
 ## Internal tooling API (Facade)
 
@@ -14,11 +14,11 @@ Instrumentation profiler for `phel profile`. Reports per-fn call counts, self/to
 
 | Method | Notes |
 |--------|-------|
-| `startSession(): ProfilerSession` | Install the returned session through `Registry::setProfilerHook()` for the run, then call its `stop()` to collect the `ProfileReport`. |
+| `startSession(): ProfilerSession` | Install the session through `Registry::setProfilerHook()` for the run, then call its `stop()` to collect the `ProfileReport`. |
 | `renderTable(ProfileReport $report, int $top, SortOrder $sort, bool $includeCompilePhases): string` | ASCII table; `$top` truncates rows. |
-| `renderJson(ProfileReport $report): string` | Serialize report to JSON. |
+| `renderJson(ProfileReport $report): string` | Report as JSON. |
 
-The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
+Internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies
 
@@ -27,15 +27,15 @@ The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 
 | `RunFacadeInterface::class` → `RunFacade` | `runFile`, `runNamespace`, `autoDetectEntryPoint`, `writeLocatedException`, `writeStackTrace` |
 | `Phel\Shared\Munge` (direct) | `canonicalNs` for namespace targets |
 | `Phel\Lang` (types) | `AbstractFn`, `ProfilerHookInterface`, `Registry` |
-| `Phel\Phel` (composition root, direct) | `ProfileCommand` calls `setupRuntimeArgs()` before running the profiled entry point, exactly as `RunCommand` does |
+| `Phel\Phel` (composition root, direct) | `ProfileCommand` calls `setupRuntimeArgs()` before the profiled entry point, as `RunCommand` does |
 
-`Phel\Phel` is the only import that reaches *out* of the module graph into the composition root. It is not a cycle (the root never imports Profile), so `ModuleDependencyCycleTest` cannot see it; `CompositionRootBoundaryTest` pins it instead, along with the fact that `setupRuntimeArgs()` is the single root method used.
+`Phel\Phel` is the only import reaching *out* of the module graph into the composition root. It is not a cycle (the root never imports Profile), so `ModuleDependencyCycleTest` cannot see it; `CompositionRootBoundaryTest` pins it, and pins `setupRuntimeArgs()` as the single root method used.
 
 ## How the hook works
 
-- `Registry` carries a private profiler hook (default null), accessed through `getProfilerHook()` / `setProfilerHook()`. When set, `Registry::addDefinition` calls `$profilerHook->wrapFn($value)` on each `AbstractFn` before storing; non-`AbstractFn` values pass through.
-- `ProfilerSession implements ProfilerHookInterface`; its `wrapFn` returns a `ProfilingFn` proxy (idempotent: an already-wrapped fn is returned as-is, never double-wrapped).
-- `GlobalVarEmitter` already routes global-fn calls through `\Phel::getDefinition(...)`, so the wrapped proxy is hit with no emitter changes. Off-state cost: one null-check per `addDefinition`; zero call-site overhead when disabled.
+- `Registry` carries a private profiler hook (default null) via `getProfilerHook()` / `setProfilerHook()`. When set, `Registry::addDefinition` calls `$profilerHook->wrapFn($value)` on each `AbstractFn` before storing; other values pass through.
+- `ProfilerSession implements ProfilerHookInterface`; `wrapFn` returns a `ProfilingFn` proxy (idempotent: an already-wrapped fn is returned as-is).
+- `GlobalVarEmitter` already routes global-fn calls through `\Phel::getDefinition(...)`, so the proxy is hit with no emitter changes. Off-state cost: one null-check per `addDefinition`; no call-site overhead.
 
 ## Structure
 
@@ -50,9 +50,9 @@ The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 
 
 ## Key Constraints
 
-- `ProfilingFn extends AbstractFn` so downstream `instanceof` checks succeed; `ProfilerSession::wrapFn()` attaches the inner fn's metadata to the new proxy through copying `withMeta()` before returning it.
-- Fn name comes from the inner fn's `BOUND_TO` class constant (via reflection); falls back to `<anonymous>`.
-- Self-recursive calls are emitted as `$this(...)`, not a registry lookup, so they bypass the proxy and stay untimed: outer entry counted, recursion depth not. This is a compiler emit detail (commit bee78ffe), not a constraint of `ProfilingFn`.
-- Self time: `ProfilerSession` maintains a per-call stack and subtracts each child's inclusive time from its parent's self-time. Unmatched `exit()` on an empty stack is silently ignored.
+- `ProfilingFn extends AbstractFn` so downstream `instanceof` checks pass; `ProfilerSession::wrapFn()` copies the inner fn's metadata onto the proxy with `withMeta()`.
+- Fn name comes from the inner fn's `BOUND_TO` class constant (reflection); falls back to `<anonymous>`.
+- Self-recursive calls are emitted as `$this(...)`, not a registry lookup, so they bypass the proxy and stay untimed: outer entry counted, recursion depth not. This is a compiler emit detail (commit bee78ffe), not a `ProfilingFn` constraint.
+- Self time: `ProfilerSession` keeps a per-call stack and subtracts each child's inclusive time from its parent's self-time. Unmatched `exit()` on an empty stack is ignored.
 - The hook is global and not reentrant; never run a profiled script inside another profiling context.
 - `ProfileCommand` installs the hook before the run and clears it (`Registry::setProfilerHook(null)`) in a `finally` block.

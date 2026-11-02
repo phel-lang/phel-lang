@@ -1,6 +1,6 @@
 ---
 name: module-console
-description: 'Console module: CLI entry point.'
+description: 'Load when editing src/php/Console: the CLI entry point and lazy command registration.'
 scope: src/php/Console
 ---
 
@@ -22,9 +22,9 @@ CLI entry point: bootstraps Symfony Console, lazily registers every module's com
 | `FilesystemFacadeInterface::class` | Filesystem | `clearAll()` cleanup after each run |
 | `CompilerFacadeInterface::class` | Compiler | `enableDeprecationWarnings()` when `--warn-deprecations` was passed (#3048) |
 
-`FilesystemFacadeInterface::class` is the only injected facade dependency, but it is not the only edge. As the CLI entry point, `ConsoleFactory` also imports the command classes of twelve modules (Api, Balance, Build, Formatter, Interop, Lint, Lsp, Mutate, Nrepl, Profile, Run, Watch) to register them with Symfony Console.
+`FilesystemFacadeInterface::class` is the only injected facade, but not the only edge: `ConsoleFactory` also imports the command classes of twelve modules (Api, Balance, Build, Formatter, Interop, Lint, Lsp, Mutate, Nrepl, Profile, Run, Watch) to register them.
 
-That makes Console the graph's sink: it depends on nearly everything and **nothing depends on it**. Keep it that way. A module importing `Phel\Console` would turn the widest fan-in in the codebase into a cycle, which is why `ConsoleFacadeInterface` exists in `Shared/Facade` for the rare case a module needs to describe console behaviour.
+Console is the graph's sink: it depends on nearly everything and **nothing depends on it**. Keep it so. A module importing `Phel\Console` would make a cycle; `ConsoleFacadeInterface` in `Shared/Facade` exists for the rare module that must describe console behaviour.
 
 ## Structure
 
@@ -39,16 +39,16 @@ That makes Console the graph's sink: it depends on nearly everything and **nothi
 
 ## CLI Commands (lazy)
 
-- Sibling Command classes (in other modules) are NOT injected via Facade; each per-module `*Commands.php` provider wraps them as Symfony `LazyCommand`s.
-- Command providers: Run, Interop, Formatter, Api, Build, Framework (debug), Nrepl, Lint, Balance, Mutate, Profile, Lsp, Watch (order set by `ConsoleProvider::commandProviders()`); command order follows that list.
-- `LazyCommand` wrappers carry name/aliases/description/hidden up front, so `list`/`help`/alias resolution work without constructing every command; only the dispatched one is built per invocation.
+- Other modules' Command classes are NOT injected via Facade; each `*Commands.php` provider wraps them as Symfony `LazyCommand`s.
+- Command providers: Run, Interop, Formatter, Api, Build, Framework (debug), Nrepl, Lint, Balance, Mutate, Profile, Lsp, Watch (order set by `ConsoleProvider::commandProviders()`).
+- `LazyCommand` wrappers carry name/aliases/description/hidden up front, so `list`/`help`/alias resolution work without constructing every command; only the dispatched one is built.
 - `ConsoleProvider::LAZY_COMMANDS` aggregates all providers' commands; `ConsoleFactory::createCommandLoader()` feeds them to `LazyCommandLoader`.
 
 ## Key Constraints
 
 - Default command is `repl` (`setDefaultCommand('repl')` when no command given).
-- `ConsoleBootstrap::run()` does NOT return: runs with auto-exit disabled, then `FilesystemFacade::clearAll()`, then exits. Codes in `0..255` are preserved; every out-of-range code becomes 255 so a failure cannot wrap to success. Code after the call site is unreachable.
-- `ConsoleBootstrap::doRun()` checks `PHEL_OPTIMIZATION_LEVEL` before any command runs: a bad value exits 2 with one line on stderr instead of a stack trace mid-compile (#3525).
-- Bare top-level `--help`/`-h` (no command) is rewritten to the `list` command so it shows all commands, not repl help.
-- An unknown command, an unknown option or a missing or extra argument exits 2 (Symfony's own code is 1): `ConsoleBootstrap::doRun()` catches `CommandNotFoundException`, and `doRunCommand()` binds and validates the input before the command runs. Symfony's rendering, "Did you mean" included, goes to stderr (#3525).
-- Lazy metadata is drift-guarded by `tests/php/Integration/Console/LazyCommandMetadataTest.php`: builds each command and asserts the wrapper matches `configure()`. Keep wrapper metadata in `*Commands.php` in sync with each command's `configure()`.
+- `ConsoleBootstrap::run()` does NOT return: runs with auto-exit disabled, then `FilesystemFacade::clearAll()`, then exits. Codes `0..255` are kept; any out-of-range code becomes 255 so a failure cannot wrap to success. Code after the call site is unreachable.
+- `ConsoleBootstrap::doRun()` checks `PHEL_OPTIMIZATION_LEVEL` before any command: a bad value exits 2 with one stderr line, not a stack trace mid-compile (#3525).
+- Bare top-level `--help`/`-h` (no command) is rewritten to `list`, so it shows all commands, not repl help.
+- An unknown command, an unknown option or a missing or extra argument exits 2 (Symfony's own code is 1): `ConsoleBootstrap::doRun()` catches `CommandNotFoundException`, and `doRunCommand()` binds and validates input before the command runs. Symfony's rendering, "Did you mean" included, goes to stderr (#3525).
+- `tests/php/Integration/Console/LazyCommandMetadataTest.php` guards drift: it builds each command and asserts the wrapper matches `configure()`. Keep wrapper metadata in `*Commands.php` in sync with each command's `configure()`.

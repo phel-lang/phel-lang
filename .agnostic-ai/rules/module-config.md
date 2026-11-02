@@ -1,12 +1,12 @@
 ---
 name: module-config
-description: 'Config module: Pure data/model layer defining configuration structure for Phel projects.'
+description: 'Load when editing src/php/Config: the PhelConfig data model for phel-config.php.'
 scope: src/php/Config
 ---
 
 # Config Module
 
-Pure data/model layer defining configuration structure for Phel projects. Leaf module, **no Gacela pattern**: these classes are consumed directly by other modules' `*Config` classes via Gacela's `AbstractConfig`.
+Pure data/model layer defining configuration structure for Phel projects. Leaf module, **no Gacela pattern**: other modules' `*Config` classes consume these directly via Gacela's `AbstractConfig`.
 
 ## Structure
 
@@ -18,16 +18,16 @@ Pure data/model layer defining configuration structure for Phel projects. Leaf m
 | `ProjectLayout.php` | Backed enum: `Flat` / `Nested` / `Root` |
 | `PhelConfigValidator.php` | Validates src/test/vendor dirs; backs `PhelConfig::validate()` |
 | `ConfigLoadException.php` | `wrapIfConfigError()` rethrows errors originating from `phel-config.php` |
-| `StrictPhpConfigReader.php` | Gacela `ConfigReaderInterface` that rejects a `null`-returning `phel-config.php` instead of silently coercing to `[]`; wired in `Phel::configFn()` |
+| `StrictPhpConfigReader.php` | Gacela `ConfigReaderInterface` that rejects a `null`-returning `phel-config.php` instead of coercing to `[]`; wired in `Phel::configFn()` |
 
 ## PhelConfig API
 
 - `forProject(ProjectLayout = Flat, string $mainNamespace = '')`: convenience constructor; sets layout, optionally main phel namespace.
 - `with*()` setters: directory, layout, build, export, cache, flag mutations. Each returns a NEW instance.
-- `withOptimizationLevel(int)`: key `optimization-level`, clamped `>= 0`; consumed by Build/Run (REPL/nREPL ignore it).
-- `withPhelDir(string)`: state directory (`.phel/` default); honors `PHEL_DIR` env var as override.
-- `withAppModulePaths(list<string>)`: key `app-module-paths`; scopes Gacela's module discovery, which otherwise `class_exists()`-walks the whole project root and fatals on any file that cannot load standalone (e.g. under `tests/`). Default `[]` keeps Gacela's whole-root walk. Read by `Phel::bootstrap()` *before* the merged config exists, so it is parsed straight from `phel-config.php`, not via `AbstractConfig::get()`.
-- `validate(): list<string>`: empty list if valid.
+- `withOptimizationLevel(int)`: key `optimization-level`, clamped `>= 0`; used by Build/Run (REPL/nREPL ignore it).
+- `withPhelDir(string)`: state directory (`.phel/` default); `PHEL_DIR` env var overrides.
+- `withAppModulePaths(list<string>)`: key `app-module-paths`; scopes Gacela's module discovery, which otherwise `class_exists()`-walks the whole project root and fatals on any file that cannot load standalone (e.g. under `tests/`). Default `[]` keeps the whole-root walk. `Phel::bootstrap()` reads it *before* the merged config exists, so it is parsed straight from `phel-config.php`, not via `AbstractConfig::get()`.
+- `validate(): list<string>`: empty if valid.
 - `jsonSerialize(): array`.
 
 PhelBuildConfig: `withMainPhelNamespace` / `withMainPhpPath` / `withDestDir`.
@@ -46,6 +46,6 @@ PhelExportConfig: `withFromDirectories` / `withNamespacePrefix` / `withTargetDir
 ## Key Constraints
 
 - Config constants (e.g. `PhelConfig::SRC_DIRS = 'src-dirs'`) are Gacela config keys; never rename.
-- `jsonSerialize()` wire keys/casing (all three classes) are Gacela's `AbstractConfig::get()` contract; never change.
+- `jsonSerialize()` wire keys and casing (all three classes) are Gacela's `AbstractConfig::get()` contract; never change.
 - `with*()` returns a new instance; callers MUST capture: `$config = $config->withX(...)`.
-- **Removed (breaking, deprecated since 0.37):** `setX()` setters, `useLayout()`/`useNestedLayout()`/`useFlatLayout()` aliases, and the `PhelConfigDeprecations` trait. Use `with*()` instead.
+- **Removed (breaking, deprecated since 0.37):** `setX()` setters, `useLayout()`/`useNestedLayout()`/`useFlatLayout()` aliases and the `PhelConfigDeprecations` trait. Use `with*()`.

@@ -1,12 +1,12 @@
 ---
 name: module-lsp
-description: 'Lsp module: Language Server Protocol v3.17 over stdio (JSON-RPC 2.0, `Content-Length` framing).'
+description: 'Load when editing src/php/Lsp: the Language Server Protocol v3.17 server over stdio.'
 scope: src/php/Lsp
 ---
 
 # Lsp Module
 
-Language Server Protocol v3.17 over stdio (JSON-RPC 2.0, `Content-Length` framing). Thin transport on top of Api, Lint, Formatter, and Run facades.
+LSP v3.17 over stdio (JSON-RPC 2.0, `Content-Length` framing). Thin transport on top of Api, Lint, Formatter and Run facades.
 
 ## Internal tooling API (Facade)
 
@@ -14,9 +14,9 @@ Language Server Protocol v3.17 over stdio (JSON-RPC 2.0, `Content-Length` framin
 |--------|---------|---------|
 | `createServer($output)` | `LspServer` | Bind the notification stream; caller owns the loop via `LspServer::serve($input, $output)` |
 
-The facade is production surface only. `LspFactory::createDispatcher()` stays internal wiring for `createServer()`; tests build a `RequestDispatcher` directly (see `tests/php/Unit/Lsp/Application/Rpc/RequestDispatcherTest.php`) rather than going through the facade.
+Production surface only. `LspFactory::createDispatcher()` stays internal wiring; tests build a `RequestDispatcher` directly (`tests/php/Unit/Lsp/Application/Rpc/RequestDispatcherTest.php`).
 
-The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
+Internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies
 
@@ -27,7 +27,7 @@ The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 
 | Formatter | `FormatterFacadeInterface` | String formatting (`formatString`) |
 | Run | `RunFacadeInterface` | Phel namespace loading |
 
-`LintFacade` is the last concrete binding left in the codebase. Lint has no Shared contract (`.agnostic-ai/rules/module-map.md` lists it under "No interface, extend `AbstractFacade`"), and giving it one is not a signature change: its methods trade in `RuleSettings`, `LintCache` and `LintResult`, so the contract only becomes leaf-safe once those move too. `SatelliteFactoryFacadeInjectionTest` pins it and fails if a *second* concrete binding appears.
+`LintFacade` is the last concrete binding in the codebase. Lint has no Shared contract (`.agnostic-ai/rules/module-map.md`), and its methods trade in `RuleSettings`, `LintCache` and `LintResult`, so a contract is only leaf-safe once those move too. `SatelliteFactoryFacadeInjectionTest` pins it and fails on a *second* concrete binding.
 
 ## Supported LSP Methods
 
@@ -46,19 +46,19 @@ The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 
 | `Application/Document/` | `DocumentStore`, `Document`, `ContentChangeApplier` |
 | `Application/Diagnostics/` | `DiagnosticPublisher` (debounce + publish) |
 | `Application/Session/` | `Session` (shutdown state, notification sink, doc store) |
-| `Application/HandlerInterface` | Contract every handler implements; sits in `Application` because `handle()` takes `Application\Session\Session` |
+| `Application/HandlerInterface` | Handler contract; in `Application` because `handle()` takes `Application\Session\Session` |
 | `Domain/` | `NotificationSink` |
 | `Infrastructure/Command/` | `LspCommand` (`phel lsp`) |
 
 ## Key Constraints
 
-- Framing is strict `Content-Length: <n>\r\n\r\n<body>` (LSP spec), not newline-delimited or bencode.
+- Framing is strict `Content-Length: <n>\r\n\r\n<body>`, not newline-delimited or bencode.
 - New LSP method: add a `HandlerInterface` subclass in `Application/Handler/`, register it in `LspFactory::createDispatcher()`.
-- Handlers never touch transport directly; return via `RequestDispatcher` or push via `Session::sink()`.
+- Handlers never touch transport; return via `RequestDispatcher` or push via `Session::sink()`.
 - `DocumentStore` is authoritative for open-file content.
 - Server and handlers share one `DiagnosticPublisher`: edits replace the queued document per URI and reset its 200 ms deadline; the server calls `publishDue()` between reads. Open/save publish immediately and cancel pending work; close cancels before clearing diagnostics. Notifications include the document version.
-- `MessageReader` retains partial headers and bodies across bounded readiness waits, preserving idle wakeups for queued diagnostics. It drains buffered frames before EOF and reports unsupported readiness as a transport failure. Lint diagnostics use the document buffer through `LintFacade::lintSource()`, never saved source text or the lint result cache.
-- Converters in `Application/Convert/` must stay pure (no Facade state) so they remain unit-testable.
-- `Diagnostic`, `Location` and `Definition` arrive 1-based; `PositionConverter` is the only place that turns them into 0-based LSP positions. `DiagnosticRangeLspTest` pins that the shift happens once.
-- PHP interop (completion/hover/signatureHelp) resolves through the Api facade (`phpInteropHoverAt`, `phpInteropSignatureAt`, `completeAtPoint`). `CompletionHandler`/`HoverHandler`/`SignatureHelpHandler` try interop first, then fall back to Phel symbols; signature help reads the symbol's documented arities via `phelSignatureAt`.
-- Variable completions (PHP superglobals, `php/$_SERVER`) are the one kind that ships an explicit `textEdit`: a client's own word range stops at the `$` sigil, so a plain `insertText` would produce `php/$$_SERVER`. `CompletionHandler` measures the `$...` token, `CompletionConverter` attaches the edit to variable items only. The handler deliberately does *not* re-check for the surrounding `php/`; that grammar lives in the Api's `PhpInteropContextResolver` and must not be forked here.
+- `MessageReader` retains partial headers and bodies across bounded readiness waits, keeping idle wakeups for queued diagnostics. It drains buffered frames before EOF and reports unsupported readiness as a transport failure. Lint diagnostics use the document buffer through `LintFacade::lintSource()`, never saved source or the lint result cache.
+- Converters in `Application/Convert/` stay pure (no Facade state) to stay unit-testable.
+- `Diagnostic`, `Location` and `Definition` arrive 1-based; `PositionConverter` is the only place that makes them 0-based LSP positions. `DiagnosticRangeLspTest` pins that the shift happens once.
+- PHP interop (completion/hover/signatureHelp) resolves through the Api facade (`phpInteropHoverAt`, `phpInteropSignatureAt`, `completeAtPoint`). `CompletionHandler`/`HoverHandler`/`SignatureHelpHandler` try interop first, then Phel symbols; signature help reads documented arities via `phelSignatureAt`.
+- Variable completions (PHP superglobals, `php/$_SERVER`) are the only kind with an explicit `textEdit`: a client's word range stops at the `$` sigil, so plain `insertText` would give `php/$$_SERVER`. `CompletionHandler` measures the `$...` token; `CompletionConverter` attaches the edit to variable items only. The handler does *not* re-check the surrounding `php/`; that grammar lives in the Api's `PhpInteropContextResolver`, do not fork it here.

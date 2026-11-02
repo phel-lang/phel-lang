@@ -1,6 +1,6 @@
 ---
 name: module-fiber
-description: 'Fiber module: Cooperative async primitives (promises, futures, single-threaded scheduler) backing `phel.core`''s `promise`/`deliver` and `future-call`/`future-fiber`.'
+description: 'Load when editing src/php/Fiber: promises, futures and the cooperative scheduler behind `phel.core` promise/future.'
 scope: src/php/Fiber
 ---
 
@@ -17,28 +17,28 @@ Cooperative async primitives (promises, futures, single-threaded scheduler) back
 | `await(Awaitable, ?int $timeoutMs = null)` | `mixed` | `null` timeout → unbounded `Scheduler::await`; with timeout → `derefWithTimeout(ms, null)`, returns `null` on timeout |
 | `scheduler()` | `Scheduler` | process-wide singleton |
 
-The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
+Internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies
 
-- None beyond the `Lang` leaf (`FnInterface`, in `Domain/Promise.php`). The module has no Provider and no cross-module facades.
+- Only the `Lang` leaf (`FnInterface`, in `Domain/Promise.php`). No Provider, no cross-module facades.
 - `FiberConfig::defaultSleepMicroseconds()` = 500µs (top-level busy-poll sleep when awaiting outside a Fiber).
 
 ## Structure
 
 | Path | Purpose |
 |------|---------|
-| `Domain/Awaitable.php` | contract: `isRealized()`, `deref()`, `derefWithTimeout(int, mixed)`, implemented by Promise + Future |
+| `Domain/Awaitable.php` | contract: `isRealized()`, `deref()`, `derefWithTimeout(int, mixed)`; implemented by Promise + Future |
 | `Domain/Promise.php` | single-delivery; implements `Awaitable` + `Phel\Lang\FnInterface` (callable) |
 | `Domain/Future.php` | runs a callable in a `Fiber`; cooperative cancel |
 | `Domain/Scheduler.php` | FIFO ready-queue, singleton via `instance()`/`setInstance()` |
 
 ## Key Constraints
 
-- Scheduler is single-threaded, cooperative, no preemption: CPU-bound work blocks until a fiber yields.
+- Scheduler is single-threaded and cooperative, no preemption: CPU-bound work blocks until a fiber yields.
 - `await()` inside a Fiber yields via `Fiber::suspend()` until realized; outside a Fiber it drains the ready queue, sleeping between ticks.
 - Scheduler is a process-wide singleton (`Scheduler::instance()`). Tests MUST call `Scheduler::setInstance(null)` in tearDown or inject an isolated instance.
 - `Promise::deliver()` is idempotent: first call returns `true`, later calls `false`.
-- `Promise::deref()` returns the delivered value verbatim even if it is a Throwable; `Future::deref()` rethrows the exception its body threw (captured during execution).
+- `Promise::deref()` returns the delivered value verbatim even if it is a Throwable; `Future::deref()` rethrows the exception its body threw.
 - `derefWithTimeout(0, fallback)` returns `fallback` immediately (Clojure semantics).
-- Future cancellation is cooperative: `cancel()` sets the flag; the body checks `isCancelled()` for early exit.
+- Future cancellation is cooperative: `cancel()` sets the flag; the body checks `isCancelled()` to exit early.

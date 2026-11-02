@@ -1,6 +1,6 @@
 ---
 name: module-filesystem
-description: 'Filesystem module: Temp dir management and compiled-artifact cleanup tracking.'
+description: 'Load when editing src/php/Filesystem: temp dir management and compiled-file cleanup tracking.'
 scope: src/php/Filesystem
 ---
 
@@ -19,7 +19,7 @@ Temp dir management and compiled-artifact cleanup tracking.
 
 ## Dependencies
 
-No facades (no Provider). The one module import is **Config**: `FilesystemConfig` reads `PhelConfig::KEEP_GENERATED_TEMP_FILES` (bool, default false) and `PhelConfig::TEMP_DIR` (string, default `PhelConfig::defaultTempDir()`, which an array config without the key also gets).
+No facades (no Provider). One module import, **Config**: `FilesystemConfig` reads `PhelConfig::KEEP_GENERATED_TEMP_FILES` (bool, default false) and `PhelConfig::TEMP_DIR` (string, default `PhelConfig::defaultTempDir()`, which an array config without the key also gets).
 
 ## Structure
 
@@ -34,7 +34,7 @@ No facades (no Provider). The one module import is **Config**: `FilesystemConfig
 
 ## Key Constraints
 
-- Strategy chosen by `FilesystemFactory::createFilesystem()`: `KEEP_GENERATED_TEMP_FILES=true` → `NullFilesystem` (addFile/clearAll are no-ops, files kept for debug); else `RealFilesystem`.
-- `RealFilesystem::$files` is a **static** array, shared across all instances; `addFile`/`clearAll` mutate global process state regardless of instance. `RealFilesystem::reset()` exists to isolate tests.
-- `TempDirFinder::getOrCreateTempDir()` caches the path on the instance after first success; idempotent creation tolerates concurrent mkdir; resets umask to 0 around `mkdir(0777)`; on a non-writable dir retries `chmod 0777` once, then throws `FileException`.
+- `FilesystemFactory::createFilesystem()` picks the strategy: `KEEP_GENERATED_TEMP_FILES=true` → `NullFilesystem` (addFile/clearAll no-ops, files kept for debug); else `RealFilesystem`.
+- `RealFilesystem::$files` is a **static** array shared across all instances; `addFile`/`clearAll` mutate global process state. `RealFilesystem::reset()` isolates tests.
+- `TempDirFinder::getOrCreateTempDir()` caches the path on the instance after first success; creation is idempotent and tolerates concurrent mkdir; resets umask to 0 around `mkdir(0777)`; on a non-writable dir retries `chmod 0777` once, then throws `FileException`.
 - `TempDirHealthCheck` duplicates the finder's create-if-missing logic on purpose so a probe never caches a path on a finder instance.

@@ -1,6 +1,6 @@
 ---
 name: module-watch
-description: 'Watch module: Hot-reload file watcher.'
+description: 'Load when editing src/php/Watch: the hot-reload file watcher behind `phel watch`.'
 scope: src/php/Watch
 ---
 
@@ -15,11 +15,11 @@ Hot-reload file watcher: detects `.phel` changes and re-evaluates affected names
 | `watch(array $paths, array $options = []): void` | Blocking watch loop. Options: `backend` (auto\|inotify\|fswatch\|polling), `poll` (ms), `debounce` (ms), `publisher` (`?ReloadEventPublisherInterface`) |
 | `createFileWatcher(?string $preferred, ?int $pollMs, ?int $debounceMs)` | Build a single watcher for the preferred backend |
 
-The facade is production surface only. `WatchFactory::createFileWatcherBuilder()`, `createReloadOrchestrator()` and `createNamespaceResolver()` stay internal wiring; tests build those collaborators directly (`FileWatcherBuilderTest`, `ReloadOrchestratorTest`, `NamespaceResolverTest`) rather than going through the facade.
+Production surface only. `WatchFactory::createFileWatcherBuilder()`, `createReloadOrchestrator()` and `createNamespaceResolver()` stay internal wiring; tests build those collaborators directly (`FileWatcherBuilderTest`, `ReloadOrchestratorTest`, `NamespaceResolverTest`).
 
 CLI: `./bin/phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]` (`Infrastructure/Command/WatchCommand`).
 
-The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
+Internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 ## Dependencies (WatchProvider)
 
@@ -30,7 +30,7 @@ The facade is internal CLI plumbing, outside the public PHP semver surface (ADR 
 | Api | `ApiFacadeInterface` | `indexProject`; incremental re-index for tooling |
 | Command | `CommandFacadeInterface` | source-directory defaults |
 
-All four getters return the Shared contract, never a concrete facade, and `SatelliteFactoryFacadeInjectionTest` pins the return types.
+All four getters return the Shared contract, never a concrete facade; `SatelliteFactoryFacadeInjectionTest` pins the return types.
 
 ## Structure
 
@@ -39,7 +39,7 @@ All four getters return the Shared contract, never a concrete facade, and `Satel
 | `Application/ReloadOrchestrator.php` | Reload side-effect pipeline (see constraints) |
 | `Application/NamespaceResolver.php` | Regex `ns`/`in-ns` extractor, not the parser |
 | `Application/Watcher/{Inotify,Fswatch,Polling}Watcher.php` | Backend strategies (`FileWatcherInterface`) |
-| `Application/Watcher/EventDebouncer.php` | Coalesces events within debounce window |
+| `Application/Watcher/EventDebouncer.php` | Coalesces events within the debounce window |
 | `Application/Watcher/FileWatcherBuilder.php` | Backend selection (auto-probe) |
 | `Application/{ApiProjectReindexer,MtimeFileSystemScanner,SystemClock,NullReloadEventPublisher}.php` | Adapters |
 | `Application/WatchRunner.php` | Wires watcher → orchestrator |
@@ -48,7 +48,7 @@ All four getters return the Shared contract, never a concrete facade, and `Satel
 ## Key Constraints
 
 - Backends are strategies. Only `PollingWatcher` runs in CI; `InotifyWatcher`/`FswatchWatcher` are runtime-probed but not unit-tested (need external binaries).
-- Debounce coalesces rapid changes so an editor double-save triggers a single reload.
-- `ReloadOrchestrator.handleChanges` order: resolve namespaces → reload in dep order → run `(phel.watch/run-on-reload-hooks <ns>)` per ns → re-index → publish event. Reload, hooks, and reindex are best-effort (catch `Throwable`) so one broken file never kills the loop. Deleted files are skipped.
+- Debounce coalesces rapid changes so an editor double-save triggers one reload.
+- `ReloadOrchestrator.handleChanges` order: resolve namespaces → reload in dep order → run `(phel.watch/run-on-reload-hooks <ns>)` per ns → re-index → publish event. Reload, hooks and reindex are best-effort (catch `Throwable`) so one broken file never kills the loop. Deleted files are skipped.
 - `NullReloadEventPublisher` is the default; inject an nREPL-aware publisher for nREPL contexts.
-- `NamespaceResolver` uses a regex on the first `ns`/`in-ns` form (runs on every change: speed over full parse); not the compiler reader.
+- `NamespaceResolver` uses a regex on the first `ns`/`in-ns` form (runs on every change: speed over full parse), not the compiler reader.

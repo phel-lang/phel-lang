@@ -1,6 +1,6 @@
 ---
 name: module-lang
-description: 'Lang module: runtime types, persistent collections and language primitives.'
+description: 'Load when changing Lang: runtime types, persistent collections, transients, registry or language primitives.'
 scope: src/php/Lang
 ---
 
@@ -33,7 +33,7 @@ Runtime types, persistent collections, language primitives. A leaf module with n
 - `Delay`: runs its thunk once on `deref()` and caches.
 - `Collections/LazySeq/LazySeq`: caches the raw thunk result (`$realized` is `mixed`). Private `realizeSeq()` is the single narrowing point; it throws `Collections\Exceptions\NotASeqException` for a non-seq body like `(lazy-seq 5)`. A `nil` body is the empty seq.
 - `Volatile` (transducer state, no watches/validators), `Reduced` (early termination), `Future` (Amphp adapter for deref/realized?).
-- `Eduction`: re-runs its chain on every consumption, so it has no size. `empty?`/`first` pull one element (`Seq::isEmpty`, `Seq::first`); `count` refuses with an actionable message rather than draining it.
+- `Eduction`: re-runs its chain on every consumption, so it has no size. `empty?`/`first` pull one element (`Seq::isEmpty`, `Seq::first`); `count` refuses with an actionable message.
 
 ## Numeric and Other Utilities
 
@@ -51,8 +51,8 @@ Runtime types, persistent collections, language primitives. A leaf module with n
 | `Seq` | Sequence ops, mostly delegating to `Generators/`, plus the single-pull probes `isEmpty()`/`first()` for a source with no size or indexed access |
 | `TagRegistry` | Reader tag dispatch (`TagHandlers/`: `#inst`, `#uuid`, regex) |
 | `PhelType` | `nameOf(mixed)`, PHP mirror of `phel.core/type`. PHP code naming a type for a user reads it here, never `get_debug_type()` (names the implementation; a map's name changes at eight entries). Branch order matches `predicates.phel`; `tests/phel/core/phel-type-parity.phel` pins them (#3290) |
-| `GetIn` | `path(ds, keys, notFound)`, compiled literal-path `get-in` (#3320), answering exactly as `phel.core/get-in`: maps and vectors inline, other `coll?`/array/string levels via registry `phel.core/get`, a transient or scalar level gives `notFound` |
-| `AssocIn` | `path(ds, keys, v)`, `update(ds, keys, f, ...args)`: compiled literal-path `assoc-in`/`update-in` (#3328). Runtime's `get` down, `assoc` up order; a missing or nil level becomes `{}`. Maps and `int`-indexed vectors inline, other levels via registry `phel.core/get`/`assoc`, so it answers or throws as the runtime does |
+| `GetIn` | `path(ds, keys, notFound)`, compiled literal-path `get-in` (#3320), answering as `phel.core/get-in`: maps and vectors inline, other `coll?`/array/string levels via registry `phel.core/get`, a transient or scalar level gives `notFound` |
+| `AssocIn` | `path(ds, keys, v)`, `update(ds, keys, f, ...args)`: compiled literal-path `assoc-in`/`update-in` (#3328). Runtime's `get` down, `assoc` up order; a missing or nil level becomes `{}`. Maps and `int`-indexed vectors inline, other levels via registry `phel.core/get`/`assoc` |
 | `Destructure` | `nthNext(v, n)`, the `& r` tail of `[a b & r]` with two or more positions before `&` (#3356). Exactly `n` `cdr()` calls, so the tail keeps its `SubVector`, metadata and `nil`-when-exhausted |
 | `LoadClasspath` | `(load ...)` classpath, kept in `Registry` under `phel.core/*load-classpath*` (hence here, not Compiler) |
 | `\Phel` (`src/Phel.php`, NOT Lang) | Root facade proxying statics to `Registry`; Api/Interop use it (`getNamespaces`, `getDefinition`, `getDefinitionMetaData`). Lang must NOT call it (leaf to root cycle); use `Registry`/`TypeFactory` |
@@ -69,18 +69,18 @@ Do NOT rename these; generated PHP and cached artifacts call their FQNs: `Regist
 
 Subdirs: `Map/` (`PersistentArrayMap`, `PersistentHashMap`, `MapEntry`), `SortedMap/`, `Vector/`, `LinkedList/`, `Queue/` (`PersistentQueue`, two-stack banker's queue, O(1) amortized, printed `<-(...)-<`), `HashSet/`, `SortedSet/`, `LazySeq/`, `Struct/` (`AbstractPersistentStruct`), `Generators/`.
 
-- `ValueIdentity::isSame()` is the unchanged-value test behind keyed writes that return the receiver (map `put`, vector `update`, struct `put`). Identity with signed zero counted as a change, never `=`: an equal but distinguishable value (`-0.0`, a `BigInt`, a vector with other metadata) must still be written (#3321). A PHP array is never "same": `===` walks arrays, throws on recursive ones and misses references. An inline `===` before the call (`PersistentVector` keeps one for speed) must check `is_array` first.
+- `ValueIdentity::isSame()` is the unchanged-value test behind keyed writes that return the receiver (map `put`, vector `update`, struct `put`). It is identity with signed zero counted as a change, never `=`: an equal but distinguishable value (`-0.0`, a `BigInt`, a vector with other metadata) must still be written (#3321). A PHP array is never "same": `===` walks arrays, throws on recursive ones and misses references. An inline `===` before the call (`PersistentVector` keeps one) must check `is_array` first.
 - `MapEntry` equals a 2-element vector both ways; `first()` = key, `cdr()` = 1-vector of the value.
 - `TransientStateTrait` (`persistent()` invalidates; mutators call `ensureTransientActive()`) sits on the object Phel code holds:
   - `TransientVector` uses it; `PersistentVector::asTransient()` returns it unwrapped.
-  - `TransientMapWrapper` uses it; every `PersistentMap*::asTransient()` returns one. `TransientHashMap`/`TransientArrayMap` deliberately do **not**: user code never reaches them, and `TransientArrayMap::put()` must hand its contents to a fresh `TransientHashMap` on overflow. `TransientSortedMap` also uses it, redundantly but harmlessly.
+  - `TransientMapWrapper` uses it; every `PersistentMap*::asTransient()` returns one. `TransientHashMap`/`TransientArrayMap` do **not**: user code never reaches them, and `TransientArrayMap::put()` must hand its contents to a fresh `TransientHashMap` on overflow. `TransientSortedMap` also uses it, redundantly.
   - `TransientHashSet`/`TransientSortedSet` inherit the guard from their `TransientMapWrapper`.
 
-  Reuse after `persistent!` throws for all six flavours (`tests/phel/core/transient-safety.phel`). Do not add the trait to the inner map classes.
+  Reuse after `persistent!` throws for all six flavours (`tests/phel/core/transient-safety.phel`). Never add the trait to the inner map classes.
 - A transient keeps its source collection's metadata and returns it on `persistent()` (`TransientMetaRoundTripTest`); `TransientArrayMap` copies it into the `TransientHashMap` it promotes to. Transients built from scratch (`TransientVector::empty`, `PersistentHashMap::fromArray`) have none. Map `merge`, vector/set `concat` and the compiler's `assoc`/`conj` chain specialisation rely on this.
 - Every transient is callable like its persistent counterpart (`__invoke` on the concrete class, not the interface).
-- Sets share bases: `HashSet\AbstractTransientSet` (a facade over a transient map keyed by member; subclasses add only `__toString()`, `persistent()`) and `HashSet\AbstractPersistentSet` (map-delegating half; subclasses own `withMeta`, `add`, `remove`, `asTransient`, plus `getEffectiveComparator` when sorted).
-- `merge()` strategy is chosen by trait, never by `instanceof` in the base. `AbstractPersistentMap::merge()` folds with `put()` (returns `$this` on empty `$other`) for `PersistentSortedMap` and `AbstractPersistentStruct`; `PersistentHashMap`/`PersistentArrayMap` use `Map\TransientMergeStrategyTrait` (bulk build, always a fresh instance). Both keep the receiver's meta (`PersistentMapMergeTest`).
+- Sets share bases: `HashSet\AbstractTransientSet` (facade over a transient map keyed by member; subclasses add only `__toString()`, `persistent()`) and `HashSet\AbstractPersistentSet` (map-delegating half; subclasses own `withMeta`, `add`, `remove`, `asTransient`, plus `getEffectiveComparator` when sorted).
+- Choose the `merge()` strategy by trait, never by `instanceof` in the base. `AbstractPersistentMap::merge()` folds with `put()` (returns `$this` on empty `$other`) for `PersistentSortedMap` and `AbstractPersistentStruct`; `PersistentHashMap`/`PersistentArrayMap` use `Map\TransientMergeStrategyTrait` (bulk build, always a fresh instance). Both keep the receiver's meta (`PersistentMapMergeTest`).
 
 ## Key Constraints
 
@@ -88,5 +88,5 @@ Subdirs: `Map/` (`PersistentArrayMap`, `PersistentHashMap`, `MapEntry`), `Sorted
 - `Registry`, `TypeFactory`, `PhelVarStateRegistry` are singletons; use `getInstance()`.
 - `Registry` keys are dot-separated: `phel.core`, `my-app.lib` (after `-` to `_` munge). The compiler feeds them through `Munge::encodeRegistryKey`.
 - `Symbol::getFullName` returns dot form; a namespace that is a PHP class FQN (leading `\`) keeps the backslash for static-method shorthand.
-- Source locations travel via `SourceLocationInterface` for error reporting.
+- Source locations travel via `SourceLocationInterface`.
 - `MetaInterface::withMeta()` always returns a copy; every implementation carries `#[NoDiscard]`.

@@ -1,12 +1,12 @@
 ---
 name: module-shared-sourcemap
-description: 'Shared SourceMap: codec, consumer and file naming for compiled source maps.'
+description: 'Load when editing src/php/Shared/SourceMap: codec, consumer and file naming for compiled source maps.'
 scope: src/php/Shared/SourceMap
 ---
 
 # Shared SourceMap
 
-Part of the Shared module; read `.agnostic-ai/rules/module-shared.md` for its leaf constraints.
+Part of the Shared module; `.agnostic-ai/rules/module-shared.md` has its leaf constraints.
 
 | Class | Purpose / producer → consumer |
 |-------|-------------------------------|

@@ -1,15 +1,15 @@
 ---
 name: module-shared-exceptions
-description: 'Shared Exceptions: located errors, error codes and hints.'
+description: 'Load when editing src/php/Shared/Exceptions: located errors, error codes and hints.'
 scope: src/php/Shared/Exceptions
 ---
 
 # Shared Exceptions
 
-Part of the Shared module; read `.agnostic-ai/rules/module-shared.md` for its leaf constraints.
+Part of the Shared module; `.agnostic-ai/rules/module-shared.md` has its leaf constraints.
 
 - `CompilerException`: wraps `AbstractLocatedException` with `CodeSnippet`. `FileException` (file/dir ops); `CompiledCodeIsMalformedException` (PHP `eval()` parse errors).
-- `AbstractLocatedException`: base for located errors; carries `SourceLocation` + `ErrorCode`, an optional pre-formatted `relatedLocationNote` that `TextExceptionPrinter` renders under the snippet (`first defined at foo.phel:2`), and `getSuggestions()`: the "did you mean" names (set by `AnalyzerException::cannotResolveSymbol`) so tools need not parse the message.
+- `AbstractLocatedException`: base for located errors; carries `SourceLocation` + `ErrorCode`, an optional pre-formatted `relatedLocationNote` that `TextExceptionPrinter` renders under the snippet (`first defined at foo.phel:2`), and `getSuggestions()`: the "did you mean" names (set by `AnalyzerException::cannotResolveSymbol`), so tools need not parse the message.
 - `ErrorCode`: enum, five ranges (PHEL0xx analyzer, 1xx parser, 2xx reader, 3xx lexer, 4xx runtime). A case with no production caller fails `ErrorCodeInventoryTest`.
 - `SourceMappedErrorHandler` (`@internal`): installed by `bin/phel` through `CommandFacade::reportWarningsAtPhelSource()`. Prints a PHP warning, notice or deprecation from compiled code at the `.phel` file and line its mapper returns; hands unmapped ones back to PHP. Lives here so the compiler's `ErrorNotice` can tell it from a userland handler.
 - `RuntimeErrorCodeResolver`: maps an uncaught PHP throwable to its PHEL4xx code, unwrapping one `getPrevious()` level. Only engine classes are recognised; a user's `ex-info` stays uncoded.
