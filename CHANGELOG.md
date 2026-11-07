@@ -33,10 +33,10 @@ Runtime:
 
 Tooling:
 
-- **BREAKING**: Invalid invocations exit 2 with the error on stderr and nothing on stdout: an unknown command or option, a missing path, `--changed` with a ref starting with `-`, or a non-numeric `PHEL_OPTIMIZATION_LEVEL`, among others. They used to exit inconsistently, write to stdout, ignore paths or read invalid numbers as zero. Treat exit 1 as a command that ran and found an issue, and exit 2 as an invocation to correct; `docs/cli-reference.md` lists the exit codes. (#3525 #3691)
+- **BREAKING**: Invalid invocations exit 2 with the error on stderr and nothing on stdout: an unknown command or option, a missing path, `--changed` with a ref starting with `-`, or a `PHEL_OPTIMIZATION_LEVEL` that is not a whole number, among others. They used to exit inconsistently, write to stdout, ignore paths or read invalid numbers as zero. Treat exit 1 as a command that ran and found an issue, and exit 2 as an invocation to correct; `docs/cli-reference.md` lists the exit codes. (#3525 #3691)
 - **BREAKING**: Environment switches accept case-insensitive `1`, `true`, `yes`, `on` and `0`, `false`, `no`, `off`; empty means unset. False values no longer enable `PHEL_WARN_DEPRECATIONS`, `PHEL_NO_OPCACHE_REEXEC` or `PHEL_OPCACHE_REEXEC`. Other values, or `PHEL_TEST_WORKERS` values below 1 or not whole numbers, exit 2 on stderr. Use the values in `docs/cli-reference.md`. (#3525)
 - **BREAKING**: Lint in every format, analyze, `api-daemon` `analyzeSource`, `Phel\Shared\Api\Diagnostic`, balance, mutate JSON and deprecation notices use 1-based columns. Consumers must remove their `+ 1`; LSP positions remain 0-based and its diagnostic ranges are corrected. Analyze `uri` values are absolute paths, while lint GitHub `file=` paths are relative to the working directory. (#3525)
-- **BREAKING**: Lint reports wrong-arity calls to keyword, vector, map, set and fn literals as `phel/arity-mismatch`. A vector, map or set takes only the key; use `(get m k default)` for a default. The new `phel/compile-error` rule reports every analyzer error, with its code in the JSON `errorCode` field, so a file that does not compile no longer passes lint. Turn it off with `{:rules {:phel/compile-error :off}}`. (#3524 #3621)
+- **BREAKING**: Lint reports wrong-arity calls to keyword, vector, map, set and fn literals as `phel/arity-mismatch`. A vector, map or set takes only the key and ignores an extra default at runtime; use `(get m k default)` instead. The new `phel/compile-error` rule reports every analyzer error, with its code in the JSON `errorCode` field, so a file that does not compile no longer passes lint. Turn it off with `{:rules {:phel/compile-error :off}}`. (#3524 #3621)
 
 PHP API:
 
@@ -66,12 +66,12 @@ PHP API:
 
 ### Removed
 
+- **BREAKING (PHP API)**: The unused `DynamicScope::$anyActive` property is removed, with no replacement. (#3521)
 - The `phel/duplicate-key` lint rule, since the reader rejects duplicate keys with `PHEL203`. A config that still sets it is ignored, and `LintRuleCodes::DUPLICATE_KEY` stays as a deprecated constant. (#3607)
-- **PHP API**: the unused `DynamicScope::$anyActive` property. (#3521)
 
 ### Performance
 
-- A warm `phel run` or `phel test` reuses the namespace scan cache without walking the source directories, halving the warm scan. Added, removed and edited sources still invalidate it. (#3699)
+- A warm `phel run` or `phel test` reuses the namespace scan cache without walking the source directories again. Added, removed and edited sources still invalidate it. (#3699)
 - A `.phel` file without `ns` no longer makes every `run` or `test` reread all sources, which made them about 2x slower. Adding `ns` to that file later is still detected. (#3629)
 
 ### Fixed
