@@ -85,6 +85,21 @@ final class BalanceCommandTest extends TestCase
         self::assertSame("(defn f [x]\n  (str x))\n", file_get_contents($path));
     }
 
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_refuses_to_repair_metadata_without_a_target(): void
+    {
+        $this->bootstrap();
+        $source = '(list ^:foo';
+        $path = $this->writeFile('dangling-meta.phel', $source);
+
+        $tester = new CommandTester(new BalanceCommand());
+        $exit = $tester->execute(['paths' => [$path], '--fix' => true]);
+
+        self::assertSame(1, $exit);
+        self::assertSame($source, file_get_contents($path));
+    }
+
     /**
      * The lexer reads the `)` the author meant as string content as a real
      * closer, so the imbalance is a phantom and appending to it writes a
@@ -143,7 +158,7 @@ final class BalanceCommandTest extends TestCase
         $exit = $tester->execute(['paths' => [$path], '--fix' => true]);
 
         self::assertSame(1, $exit);
-        self::assertStringContainsString('reads the next form', $tester->getDisplay());
+        self::assertStringContainsString('still reads a following form', $tester->getDisplay());
         self::assertSame($source, file_get_contents($path));
     }
 
