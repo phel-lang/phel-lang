@@ -1,0 +1,33 @@
+(ns phel-test.core.lazy-seq-meta-copies
+  (:require phel.test :refer [deftest is]))
+
+(deftest test-meta-copy-of-generator-seq-keeps-values
+  (let [xs (concat [1 2] [3])
+        ys (with-meta xs {:a 1})]
+    (is (= [1 2 3] (vec xs)) "original realized first")
+    (is (= [1 2 3] (vec ys)))))
+
+(deftest test-meta-copy-realized-first-keeps-original
+  (let [xs (concat [1 2] [3])
+        ys (with-meta xs {:a 1})]
+    (is (= [1 2 3] (vec ys)) "copy realized first")
+    (is (= [1 2 3] (vec xs)))))
+
+(deftest test-meta-copy-runs-thunk-once
+  (let [c (atom 0)
+        xs (lazy-seq (swap! c inc) [1 2])
+        ys (with-meta xs {:a 1})
+        zs (vary-meta ys assoc :b 2)]
+    (is (= [1 1 1] [(first zs) (first xs) (first ys)]))
+    (is (= 1 @c))
+    (is (nil? (meta xs)))
+    (is (= {:a 1} (meta ys)))
+    (is (= {:a 1 :b 2} (meta zs)))))
+
+(deftest test-seq-realized-through-a-wrapper-keeps-values
+  (let [xs (lazy-seq [1 2])
+        ys (with-meta xs {:m 1})
+        zs (lazy-seq xs)]
+    (is (= [1 2] (vec zs)))
+    (is (= [1 2] (vec xs)) "the wrapped seq keeps its values")
+    (is (= [1 2] (vec ys)) "so does its metadata copy")))
