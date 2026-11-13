@@ -67,7 +67,9 @@ final class ProfilerSession implements ProfilerHookInterface
      */
     public function enter(string $name): void
     {
-        $this->currentStack()->frames[] = [$name, (int) hrtime(true), 0];
+        $fiber = Fiber::getCurrent();
+        $stack = $fiber instanceof Fiber ? $this->fiberStack($fiber) : $this->mainStack;
+        $stack->frames[] = [$name, (int) hrtime(true), 0];
     }
 
     /**
@@ -77,7 +79,8 @@ final class ProfilerSession implements ProfilerHookInterface
      */
     public function exit(): void
     {
-        $stack = $this->currentStack();
+        $fiber = Fiber::getCurrent();
+        $stack = $fiber instanceof Fiber ? $this->fiberStack($fiber) : $this->mainStack;
         $frame = array_pop($stack->frames);
         if ($frame === null) {
             return;
@@ -119,13 +122,11 @@ final class ProfilerSession implements ProfilerHookInterface
         );
     }
 
-    private function currentStack(): CallStack
+    /**
+     * @param Fiber<mixed, mixed, mixed, mixed> $fiber
+     */
+    private function fiberStack(Fiber $fiber): CallStack
     {
-        $fiber = Fiber::getCurrent();
-        if (!$fiber instanceof Fiber) {
-            return $this->mainStack;
-        }
-
         $stack = $this->fiberStacks[$fiber] ?? null;
         if (!$stack instanceof CallStack) {
             $stack = new CallStack();
