@@ -35,6 +35,24 @@ final class PollingWatcherTest extends TestCase
         self::assertSame(WatchEvent::KIND_MODIFIED, $flat[0]->kind);
     }
 
+    public function test_it_detects_a_same_size_edit_within_one_second(): void
+    {
+        $scanner = new FakeScanner([
+            ['/a.phel' => ['mtime' => 1, 'size' => 4, 'hash' => 'aaaa']],
+            ['/a.phel' => ['mtime' => 1, 'size' => 4, 'hash' => 'bbbb']],
+            ['/a.phel' => ['mtime' => 1, 'size' => 4, 'hash' => 'bbbb']],
+        ]);
+        $watcher = new PollingWatcher($scanner, new FakeClock(), pollIntervalMs: 10, debounceMs: 0, maxIterations: 2);
+
+        $events = [];
+        $watcher->watch(['/a.phel'], static function (array $batch) use (&$events): void {
+            array_push($events, ...$batch);
+        });
+
+        self::assertCount(1, $events);
+        self::assertSame(WatchEvent::KIND_MODIFIED, $events[0]->kind);
+    }
+
     public function test_it_detects_created_and_deleted_files(): void
     {
         $scanner = new FakeScanner([
@@ -106,7 +124,7 @@ final class FakeScanner implements FileSystemScannerInterface
     private int $index = 0;
 
     /**
-     * @param list<array<string, array{mtime:int, size:int}>> $snapshots
+     * @param list<array<string, array{mtime:int, size:int, hash?:string}>> $snapshots
      */
     public function __construct(private array $snapshots) {}
 

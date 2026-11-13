@@ -58,7 +58,7 @@ Repair only **appends** missing closers, innermost first. These cases are report
   - an opener at **any column** followed by a definition head (`ns`, `def`, `defn`, `defmacro`, `deftest`, ...), since mid-edit files are unformatted. An ordinary indented call is not marked: the unclosed level is still collecting it.
 
   The message names the line the closer belongs before.
-- **A trailing reader prefix.** `'`, `` ` ``, `~`, `~@`, `^`, `@`, `#'`, `#_` and tagged literals read the next form, so an appended closer becomes it (`#_)` does not parse). Also a lone trailing `\`: an appended `)` becomes its character, `\)` closes nothing, and the run would report a repair.
+- **A reader prefix still short of a form.** `'`, `` ` ``, `~`, `~@`, `@`, `#'`, `#_` and tagged literals read one form, `^` reads two (metadata and target), so an appended closer would become the missing one (`(list ^:foo)` does not parse). The scanner counts owed forms per level and replays the appended closers. A finished `#_` and a closed `#?(` (which may read as nothing) give no form to the prefix before them. Also a lone trailing `\`: an appended `)` becomes its character, `\)` closes nothing, and the run would report a repair.
 
 ## Where the closers land
 

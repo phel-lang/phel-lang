@@ -181,7 +181,7 @@ problem on stderr and leaves stdout empty. The rule and what it covers:
 | `mutate` | the score is below `--min-msi` or `--min-covered-msi`, the suite fails without mutants, or a worker could not load | a path or `--tests` path is missing, a bad option value, `--changed` outside a git repository |
 | `run` | the program threw | no entry point, a path or namespace that is not there |
 | `ns` | | a namespace that is not there |
-| `profile` | the program threw | a path or namespace that is not there, an unknown `--format` or `--sort`, a bad `--top` value |
+| `profile` | the program threw, or the `-o` file could not be written | a path or namespace that is not there, an unknown `--format` or `--sort`, a bad `--top` value |
 | `build` | a namespace does not compile | a bad `-O` value |
 | `index` | the `-o` file could not be written | a directory is missing |
 | `config` | | an unknown `--format` |
