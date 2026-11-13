@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Profile;
 
+use Fiber;
 use Phel;
 use Phel\Lang\AbstractFn;
 use Phel\Lang\Keyword;
@@ -59,6 +60,54 @@ final class ProfilerSessionTest extends TestCase
 
         self::assertSame(5, $stats['user/loop']['calls']);
         self::assertGreaterThan(0, $stats['user/loop']['maxNs']);
+    }
+
+    public function test_interleaved_fibers_keep_their_own_call_stacks(): void
+    {
+        $session = new ProfilerSession();
+        $fiberA = new Fiber(static function () use ($session): void {
+            $session->enter('audit/a');
+            Fiber::suspend();
+            $session->exit();
+        });
+        $fiberB = new Fiber(static function () use ($session): void {
+            $session->enter('audit/b');
+            Fiber::suspend();
+            $session->exit();
+        });
+
+        $fiberA->start();
+        $fiberB->start();
+        $fiberA->resume();
+
+        self::assertSame(['audit/a'], array_keys($session->stop()->fnStats()));
+
+        $fiberB->resume();
+        $stats = $session->stop()->fnStats();
+
+        self::assertSame(1, $stats['audit/a']['calls']);
+        self::assertSame(1, $stats['audit/b']['calls']);
+    }
+
+    public function test_a_fiber_frame_does_not_count_as_a_main_child(): void
+    {
+        $session = new ProfilerSession();
+        $session->enter('outer');
+
+        $fiber = new Fiber(static function () use ($session): void {
+            $session->enter('inner');
+            Fiber::suspend();
+            $session->exit();
+        });
+        $fiber->start();
+
+        $session->exit();
+        $fiber->resume();
+
+        $stats = $session->stop()->fnStats();
+        self::assertSame(1, $stats['outer']['calls']);
+        self::assertSame(1, $stats['inner']['calls']);
+        self::assertSame($stats['outer']['totalNs'], $stats['outer']['selfNs']);
     }
 
     public function test_records_compile_phase_durations(): void
