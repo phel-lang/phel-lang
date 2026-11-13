@@ -188,6 +188,7 @@ Analysis, diagnostics and docs:
 
 Editors and servers:
 
+- The language server finds the symbol under the cursor after non-ASCII text on the same line, so go to definition, references, rename and hover on a Phel symbol work there. It used to read the editor's UTF-16 position as a byte offset and found no symbol. (#3821)
 - `phel watch` with the polling backend also compares file contents, so it sees a same-size save within one second. Such an edit used to leave the snapshot unchanged and trigger nothing. (#3820)
 - `phel watch -b inotify` reloads on change again, and both external backends show the tool's startup errors. The watcher opened the tool's output in the wrong direction, and passed a literal `\t` that `inotifywait` printed as is, so no change reached a reload. (#3818)
 - The LSP places edits correctly in CRLF and Unicode documents and lints the latest unsaved text after typing stops. Closing a document cancels queued diagnostics. It used to shift edits, split characters, skip the last edit or lint the saved file. (#3683 #3685)
