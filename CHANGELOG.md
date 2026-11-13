@@ -78,6 +78,7 @@ PHP API:
 
 Reader and literals:
 
+- Symbols containing `#`, such as `foo#bar`, read back from `pr-str` and stay together inside collections. They used to split at the hash. (#3801)
 - Namespace declarations reject qualified names such as `(ns a/b)` with `Invalid namespace` instead of silently declaring `b`. Dot and legacy backslash separators still work. (#3668)
 - Strings with invalid UTF-8 compile as plain data; a following quote, backslash or dollar sign used to turn their contents into PHP code. Unicode escapes above `U+10FFFF` or with lone surrogates report a located parser error, and adjacent UTF-16 escapes in strings, such as `\uD83D\uDE00`, combine into one character. Character literals such as `\é` and `\😀` read as whole characters instead of splitting after the first byte. (#3664 #3711 #3708)
 - Float literals keep their exact value, and integer literals in any base outside the native range read as `BigInt`. Arithmetic stays in `BigInt` after overflow. These used to lose precision, fail on the next operation, or warn on PHP 8.6 for large non-decimal literals. (#3522 #3665 #3676 #3706)

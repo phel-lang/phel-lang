@@ -197,6 +197,24 @@ final class LexerTest extends TestCase
         );
     }
 
+    #[DataProvider('interiorHashSymbols')]
+    public function test_symbol_with_interior_hash_is_one_atom(string $symbol): void
+    {
+        $end = strlen($symbol);
+        self::assertEquals([
+            new Token(Token::T_ATOM, $symbol, new SourceLocation('string', 1, 0), new SourceLocation('string', 1, $end)),
+            new Token(Token::T_EOF, '', new SourceLocation('string', 1, $end), new SourceLocation('string', 1, $end)),
+        ], $this->lex($symbol));
+    }
+
+    public static function interiorHashSymbols(): iterable
+    {
+        yield 'one' => ['foo#bar'];
+        yield 'repeated' => ['foo##bar#baz'];
+        yield 'qualified' => ['my.ns/foo#bar'];
+        yield 'trailing' => ['foo#'];
+    }
+
     public function test_read_number(): void
     {
         self::assertEquals(

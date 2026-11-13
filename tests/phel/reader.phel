@@ -44,3 +44,17 @@
   ;; Divergence: Clojure's reader rejects "\q"; Phel keeps it, as PHP does.
   (is (= 4 (count "a\qb")))
   (is (= "a\\qb" "a\qb")))
+
+(deftest test-symbols-with-interior-hashes-round-trip
+  (doseq [text ["foo#bar" "foo##bar#baz" "my.ns/foo#bar"]]
+    (let [sym (symbol text)]
+      (is (= sym (read-string (pr-str sym))))))
+  (is (= [(symbol "foo#bar")] (read-string "[foo#bar]"))))
+
+(deftest test-hash-reader-dispatch-and-gensym
+  (is (= 3 (#(+ % 1) 2)))
+  (is (= #{1 2} (read-string "#{1 2}")))
+  (is (= "/[a-z]+/" #regex"[a-z]+"))
+  (let [symbols `[item# item#]]
+    (is (= (first symbols) (second symbols)))
+    (is (not= 'item# (first symbols)))))
