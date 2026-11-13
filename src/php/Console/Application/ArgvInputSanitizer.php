@@ -66,6 +66,12 @@ final readonly class ArgvInputSanitizer
 
         // Global options such as `--no-ansi` or `-v` may come before the command name.
         while ($i < $argc && $argv[$i] !== '--' && str_starts_with($argv[$i], '-')) {
+            if (WarnDeprecationsFlag::matches($argv[$i])) {
+                $result[] = $argv[$i];
+                ++$i;
+                continue;
+            }
+
             $consumed = $this->consumeOption($argv, $i);
             if ($consumed === null) {
                 return $argv;

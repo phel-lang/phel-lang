@@ -151,6 +151,10 @@ final class ArgvInputSanitizerTest extends TestCase
             ['phel', '--no-ansi', 'run', '--debug', 'app.phel'],
             ['phel', '--no-ansi', 'run', '--debug=', 'app.phel'],
         ];
+        yield 'warn-deprecations before run' => [
+            ['phel', '--warn-deprecations', 'run', 'app.phel', '--flag=value'],
+            ['phel', '--warn-deprecations', 'run', 'app.phel', '--', '--flag=value'],
+        ];
         yield 'not a run command' => [
             ['phel', '--no-ansi', 'test', '--filter', 'x'],
             ['phel', '--no-ansi', 'test', '--filter', 'x'],
