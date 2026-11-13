@@ -14,6 +14,7 @@ use Phel\Lang\Collections\LazySeq\Cons;
 use Phel\Lang\Collections\LazySeq\LazySeq;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\TypeFactory;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
@@ -369,8 +370,71 @@ final class LazySeqTest extends TestCase
         $lazySeq = LazySeq::fromArray($this->hasher, $this->equalizer, [1, 2, 3]);
 
         $this->assertNotInstanceOf(PersistentMapInterface::class, $lazySeq->getMeta());
+    }
 
-        // WithMeta should be tested if metadata implementation is needed
+    public function test_with_meta_copy_shares_a_generator_with_the_original(): void
+    {
+        $generator = (static function (): Generator {
+            yield 1;
+            yield 2;
+            yield 3;
+        })();
+        $original = LazySeq::fromGenerator($this->hasher, $this->equalizer, $generator);
+        $copy = $original->withMeta(TypeFactory::getInstance()->persistentMapFromKVs('a', 1));
+
+        $this->assertSame([1, 2, 3], $original->toArray());
+        $this->assertSame([1, 2, 3], $copy->toArray());
+    }
+
+    public function test_with_meta_copy_realized_first_leaves_the_original_intact(): void
+    {
+        $generator = (static function (): Generator {
+            yield 1;
+            yield 2;
+        })();
+        $original = LazySeq::fromGenerator($this->hasher, $this->equalizer, $generator);
+        $copy = $original->withMeta(TypeFactory::getInstance()->persistentMapFromKVs('a', 1));
+
+        $this->assertSame([1, 2], $copy->toArray());
+        $this->assertSame([1, 2], $original->toArray());
+    }
+
+    public function test_seq_realized_through_a_wrapping_seq_keeps_its_values(): void
+    {
+        $inner = new LazySeq(
+            $this->hasher,
+            $this->equalizer,
+            fn(): ?LazySeq => LazySeq::fromArray($this->hasher, $this->equalizer, [1, 2]),
+        );
+        $copy = $inner->withMeta(TypeFactory::getInstance()->persistentMapFromKVs('a', 1));
+        $outer = new LazySeq($this->hasher, $this->equalizer, static fn(): LazySeq => $inner);
+
+        $this->assertSame([1, 2], $outer->toArray());
+        $this->assertSame([1, 2], $inner->toArray());
+        $this->assertSame([1, 2], $copy->toArray());
+    }
+
+    public function test_with_meta_copy_runs_the_thunk_once(): void
+    {
+        $callCount = 0;
+        $original = new LazySeq(
+            $this->hasher,
+            $this->equalizer,
+            function () use (&$callCount): ?LazySeq {
+                ++$callCount;
+                return LazySeq::fromArray($this->hasher, $this->equalizer, [1, 2]);
+            },
+        );
+        $meta = TypeFactory::getInstance()->persistentMapFromKVs('a', 1);
+        $copy = $original->withMeta($meta);
+        $copyOfCopy = $copy->withMeta(TypeFactory::getInstance()->persistentMapFromKVs('b', 2));
+
+        $this->assertSame(1, $copyOfCopy->first());
+        $this->assertSame(1, $original->first());
+        $this->assertSame(1, $copy->first());
+        $this->assertSame(1, $callCount);
+        $this->assertNull($original->getMeta());
+        $this->assertSame($meta, $copy->getMeta());
     }
 
     public function test_chaining_operations(): void
