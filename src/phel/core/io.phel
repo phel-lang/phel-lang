@@ -198,8 +198,8 @@
   "sprintf casts an object to 1 with a warning, so an exact number becomes what its directive consumes."
   [x conversion]
   (cond
-    (not (exact-number? x))                       x
-    (php/str_contains "eEfFgGhH" conversion)      (NumericCoercion/toFloat x)
+    (not (exact-number? x)) x
+    (php/str_contains "eEfFgGhH" conversion) (NumericCoercion/toFloat x)
     (not (php/str_contains "bcdouxX" conversion)) x
     (not (php/instanceof x BigInt))
     (throw (new InvalidArgumentException
@@ -207,7 +207,7 @@
     (not (.fitsInPhpInt x))
     (throw (new InvalidArgumentException
                 (str "format: %" conversion " expects an integer that fits in a PHP int, got " x)))
-    :else                                         (.toInt x)))
+    :else (.toInt x)))
 
 (defn- format-args
   "Returns `[fmt args]` for sprintf. When `xs` holds a ratio, bigint or bigdec, every
@@ -239,9 +239,9 @@
                                                 width
                                                 (str "*" (take-arg width-position identity) "$"))
                                     precision (cond
-                                                (= dot "")            ""
+                                                (= dot "") ""
                                                 (= precision-star "") (str "." precision)
-                                                :else                 (str ".*" (take-arg precision-position identity) "$"))
+                                                :else (str ".*" (take-arg precision-position identity) "$"))
                                     value     (take-arg position #(format-exact-number % conversion))]
                                 (str "%" value "$" flags width precision conversion)))))
                         fmt)]
