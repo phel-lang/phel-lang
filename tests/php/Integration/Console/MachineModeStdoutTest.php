@@ -117,6 +117,17 @@ final class MachineModeStdoutTest extends TestCase
         self::assertStringContainsString($onStderr, $result->stderr);
     }
 
+    public function test_profile_fails_on_stderr_when_the_json_report_cannot_be_written(): void
+    {
+        $path = self::$projectDir . '/missing-dir/report.json';
+        $result = $this->phel(['profile', '--format=json', '-o', $path, 'src/app/main.phel']);
+
+        self::assertSame(1, $result->exitCode, $result->stderr . $result->stdout);
+        self::assertStringContainsString('Cannot write JSON report to ' . $path, $result->stderr);
+        self::assertStringNotContainsString('JSON report written', $result->stdout . $result->stderr);
+        self::assertFileDoesNotExist($path);
+    }
+
     public function test_mutate_json_sends_what_the_project_prints_while_loading_to_stderr(): void
     {
         $result = $this->phel(['mutate', '--format=json', 'src/app/calc.phel']);

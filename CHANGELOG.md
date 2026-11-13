@@ -162,6 +162,7 @@ Builds and caches:
 
 Commands and test output:
 
+- `phel profile -o` exits 1 and names the path on stderr when it cannot write the JSON report. It used to exit 0 and print the error on stdout. (#3815)
 - Global options before `run`, as in `phel --no-ansi run app.phel --flag=value`, keep script arguments and a bare `--debug` working. The script's options used to fail as unknown, and `--debug` took the script path as its value. (#3814)
 - `thrown-with-msg?` matches a regex such as `#"bad"` against the exception message, as its docstring says. A string that does not look like `/.../` still needs the exact message. It used to compare the regex text with the message and fail. (#3813)
 - `phel run` accepts options before the script path, as in `phel run --stack-trace --debug app.phel`. Use `--` to end options: `phel run -- app.phel a b` passes `a` and `b` and allows paths starting with `-`. It used to treat `--debug` or `--` as the path and strip `--warn-deprecations` from script arguments. (#3537 #3689)
