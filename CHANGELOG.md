@@ -166,7 +166,7 @@ Commands and test output:
 
 Analysis, diagnostics and docs:
 
-- `phel balance --fix` refuses metadata still missing its target, as in `(list ^:foo`, leaves the file unchanged and exits 1. It used to append `)`, report the file as repaired and leave source that does not parse. (#3817)
+- `phel balance --fix` refuses a reader prefix still missing its form, such as metadata without a target in `(list ^:foo`, leaves the file unchanged and exits 1. It used to append `)`, report the file as repaired and leave source that does not parse. (#3817)
 - Lint reports a wrong-arity call once instead of twice with different messages. (#3655)
 - Analyze and the LSP handle same-file macros without false `PHEL005` errors or running the file's definitions. Removing a macro from the buffer makes it unresolved; it used to keep expanding. (#3621)
 - Lint and analyze resolve definitions in files loaded with `load`, and lint ignores calls inside quoted data while still checking `~x`. These used to produce unresolved-symbol or arity errors for valid code. (#3551 #3550)

@@ -265,6 +265,9 @@ final class DelimiterScannerTest extends TestCase
         yield 'metadata followed by a comment' => ["(list ^:foo ; target\n", '^'];
         yield 'metadata on an unclosed form' => ['(a ^(b', '^'];
         yield 'quoted metadata without a target' => ["(a '^:m", '^'];
+        yield 'metadata whose target is discarded' => ['(a ^:m #_ x', '^'];
+        yield 'a discard whose form is discarded' => ['(x #_ #_ a', '#_'];
+        yield 'metadata on a reader conditional' => ['(a ^:m #?(:clj x)', '^'];
     }
 
     #[DataProvider('prefixWithItsFormsProvider')]
@@ -281,6 +284,8 @@ final class DelimiterScannerTest extends TestCase
         yield 'metadata whose target is the unclosed form' => ['(a ^:m (b'];
         yield 'quoted metadata and target' => ["(a '^:m x"];
         yield 'form skip and its form' => ['(a #_ x'];
+        yield 'two discards and their forms' => ['(x #_ #_ a b'];
+        yield 'metadata, a discard and a target' => ['(a ^:m #_ x y'];
     }
 
     public function test_a_reader_prefix_with_its_form_does_not_block_a_repair(): void

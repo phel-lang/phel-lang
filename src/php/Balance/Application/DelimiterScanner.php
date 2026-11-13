@@ -219,7 +219,12 @@ final readonly class DelimiterScanner
             }
 
             array_pop($owedForms);
-            $owedForms[count($owedForms) - 1] = $this->completeForm($owedForms[count($owedForms) - 1] ?? []);
+
+            // A `#?(` without a `:phel` or `:default` branch reads as nothing,
+            // so a closed one is not counted as a form for a waiting prefix.
+            if ($open->openerText !== '#?(') {
+                $owedForms[count($owedForms) - 1] = $this->completeForm($owedForms[count($owedForms) - 1] ?? []);
+            }
         }
 
         $danglingPrefixToken ??= $this->prefixLeftWithoutAForm($owedForms, count($stack));
@@ -268,15 +273,9 @@ final readonly class DelimiterScanner
     }
 
     /**
-     * A lone `\` is a character literal still waiting for its character, so an
-     * appended closer becomes that character: `\)` counts out, closes nothing,
-     * and leaves the file exactly as unbalanced as it started while the run
-     * reports a repair. With no character after it the char rule does not match
-     * and it falls through to the atom rule, the same way an unclosed `"` does.
-     */
-    /**
      * One more form is complete at this level: it feeds the innermost waiting
-     * prefix, and a prefix with all its forms becomes a form for the one before it.
+     * prefix, and a prefix with all its forms becomes a form for the one before
+     * it, except `#_`, which discards what it read.
      *
      * @param list<array{0:string, 1:int}> $owed
      *
@@ -292,10 +291,13 @@ final readonly class DelimiterScanner
                 return $owed;
             }
 
-            array_pop($owed);
+            // `#_` discards its form, so finishing it gives the prefix before it nothing.
+            if (array_pop($owed)[0] === '#_') {
+                return $owed;
+            }
         }
 
-        return $owed;
+        return [];
     }
 
     /**
@@ -320,6 +322,13 @@ final readonly class DelimiterScanner
         return null;
     }
 
+    /**
+     * A lone `\` is a character literal still waiting for its character, so an
+     * appended closer becomes that character: `\)` counts out, closes nothing,
+     * and leaves the file exactly as unbalanced as it started while the run
+     * reports a repair. With no character after it the char rule does not match
+     * and it falls through to the atom rule, the same way an unclosed `"` does.
+     */
     private function isPrefixAwaitingAForm(Token $token): bool
     {
         if (in_array($token->getType(), self::PREFIX_AWAITING_A_FORM, true)) {
