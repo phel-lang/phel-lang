@@ -124,6 +124,7 @@ Collections and sequences:
 
 Printing and values:
 
+- `re-matches` finds a full match that needs a later alternative or a longer lazy match, as in `(re-matches #"a|ab" "ab")`. It used to return nil when the first match found was shorter than the string. (#3809)
 - `phel.json/encode` writes maps with keys `0` to `n-1`, such as `{0 :a 1 :b}`, as JSON objects. They used to become JSON arrays. (#3807)
 - `phel.html` `when` and `when-not` with several body forms render all of them when the condition holds and none otherwise. The second body form used to render as the else branch. (#3805)
 - `re-find`, `re-seq` and `re-matches` return nil for a capture group that did not match, and keep its slot when it is the last group: `(re-find #"(a)?b" "b")` is `["b" nil]`. They used to return `""`, and `re-find` and `re-matches` dropped a trailing unmatched group, returning a plain string when it was the only one. (#3810)

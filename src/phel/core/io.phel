@@ -66,12 +66,41 @@
         (aget matches 0)
         (into [] matches)))))
 
+(def- regex-closing-delimiters {"(" ")" "[" "]" "{" "}" "<" ">"})
+
+(defn- anchor-whole-subject
+  "Wraps the body of a delimited PCRE pattern in `\\A(?:...)\\z`, so the engine
+  backtracks until the match covers the whole subject. Leading start-of-pattern
+  settings such as `(*UTF8)` stay first, where PCRE requires them. The closing
+  `\\E(?x)` and newline end a `\\Q` quote or an extended-mode comment left open
+  at the end of the body."
+  [re]
+  (let [open  (php/substr re 0 1)
+        close (get regex-closing-delimiters open open)
+        end   (php/strrpos re close)]
+    (if (or (php/=== false end) (php/=== 0 end))
+      re
+      (let [body      (php/substr re 1 (php/- end 1))
+            modifiers (php/substr re (php/+ end 1))
+            verbs     (php-indexed-array)
+            _         (php/preg_match "/^(?:\\(\\*(?:UTF8?|UTF|UCP|NO_[A-Z_]+|NOTEMPTY(?:_ATSTART)?|LIMIT_[A-Z_]+=\\d+|CR|LF|CRLF|ANYCRLF|ANY|NUL|BSR_ANYCRLF|BSR_UNICODE)\\))*/" body verbs)
+            verbs-len (php/strlen (php/aget verbs 0))]
+        (str open
+             (php/substr body 0 verbs-len)
+             "\\A(?:"
+             (php/substr body verbs-len)
+             "\\E(?x)\n)\\z"
+             close
+             modifiers)))))
+
 (defn re-matches
   "Returns the match, if any, of string to pattern. If the pattern has groups, returns a vector of [full-match group1 group2 ...]. Returns nil if no match. Unlike re-find, the entire string must match."
   {:example "(re-matches #\"(\\d+)-(\\d+)\" \"12-34\") ; => [\"12-34\" \"12\" \"34\"]"
    :see-also ["re-find" "re-seq"]}
   [re s]
-  (let [result (re-find re s)]
+  ;; The equality check still matters after anchoring: `\\K` and `(*ACCEPT)`
+  ;; can report less than the whole subject, and an unparsed pattern is used as is.
+  (let [result (re-find (anchor-whole-subject re) s)]
     (when (some? result)
       (let [full-match (if (string? result) result (first result))]
         (when (php/=== full-match s)
