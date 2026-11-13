@@ -118,6 +118,17 @@
   (is (= "<div>xxxxxx</div>"
          (html (when-not false [:div (for [i :range [0 6]] "x")])))))
 
+(deftest when-forms-with-several-body-forms
+  (is (= "" (html (when false [:b "a"] [:i "b"]))) "a false when renders no body form")
+  (is (= "" (html (when false [:b "a"] [:i "b"] [:u "c"]))))
+  (is (= "<b>a</b><i>b</i>" (html (when true [:b "a"] [:i "b"]))) "a true when renders every body form")
+  (is (= "<b>a</b><i>b</i><u>c</u>" (html (when true [:b "a"] [:i "b"] [:u "c"]))))
+  (is (= "" (html (when-not true [:b "a"] [:i "b"]))) "a true when-not renders no body form")
+  (is (= "" (html (when-not true [:b "a"] [:i "b"] [:u "c"]))))
+  (is (= "<b>a</b><i>b</i>" (html (when-not false [:b "a"] [:i "b"]))))
+  (is (= "<b>a</b><i>b</i><u>c</u>" (html (when-not false [:b "a"] [:i "b"] [:u "c"]))))
+  (is (= "<p>y</p>" (html [:p (when false "x" "z") "y"])) "nested inside an element"))
+
 (deftest test-escape-html-flags
   ;; The flags are a hoisted constant now, so pin what they mean.
   ;; ENT_QUOTES covers both quote styles.
