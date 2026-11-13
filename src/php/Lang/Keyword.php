@@ -16,13 +16,16 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     use MetaTrait;
 
     /**
-     * Two-level pool keyed by namespace then name, so (ns nil, name "a/b")
-     * and (ns "a", name "b") never share a slot. The `"\0"` sentinel keeps a
-     * nil namespace distinct from a legitimate empty-string namespace.
+     * Keyed by namespace then name, so (ns nil, name "a/b") and (ns "a",
+     * name "b") never share a slot. Keywords without a namespace live in
+     * their own pool, since any string, NUL included, is a valid namespace.
      *
      * @var array<string, array<string, self>>
      */
     private static array $internPool = [];
+
+    /** @var array<string, self> */
+    private static array $noNamespacePool = [];
 
     private readonly int $hash;
 
@@ -154,6 +157,10 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 
     private static function intern(?string $namespace, string $name): self
     {
-        return self::$internPool[$namespace ?? "\0"][$name] ??= new self($namespace, $name);
+        if ($namespace === null) {
+            return self::$noNamespacePool[$name] ??= new self(null, $name);
+        }
+
+        return self::$internPool[$namespace][$name] ??= new self($namespace, $name);
     }
 }

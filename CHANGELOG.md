@@ -123,6 +123,7 @@ Collections and sequences:
 
 Printing and values:
 
+- A keyword whose namespace is the NUL character stays distinct from the keyword with the same name and no namespace, in either creation order. One used to return the other. (#3812)
 - `phel.html` `when` and `when-not` with several body forms render all of them when the condition holds and none otherwise. The second body form used to render as the else branch. (#3805)
 - `pr-str` and `str` preserve finite float precision, including `1.0000000000000002` and `(/ 1.0 3)`. They used to round the value. (#3707)
 - `pr-str` prints readable `##NaN`, `##Inf` and `##-Inf`, escapes `0x1F` and `0x7F`, and prints PHP resources as `#<PHP Resource id #N>`. It used to produce unreadable numbers, raw control bytes or an exception. (#3712)
