@@ -399,6 +399,21 @@ final class LazySeqTest extends TestCase
         $this->assertSame([1, 2], $original->toArray());
     }
 
+    public function test_seq_realized_through_a_wrapping_seq_keeps_its_values(): void
+    {
+        $inner = new LazySeq(
+            $this->hasher,
+            $this->equalizer,
+            fn(): ?LazySeq => LazySeq::fromArray($this->hasher, $this->equalizer, [1, 2]),
+        );
+        $copy = $inner->withMeta(TypeFactory::getInstance()->persistentMapFromKVs('a', 1));
+        $outer = new LazySeq($this->hasher, $this->equalizer, static fn(): LazySeq => $inner);
+
+        $this->assertSame([1, 2], $outer->toArray());
+        $this->assertSame([1, 2], $inner->toArray());
+        $this->assertSame([1, 2], $copy->toArray());
+    }
+
     public function test_with_meta_copy_runs_the_thunk_once(): void
     {
         $callCount = 0;

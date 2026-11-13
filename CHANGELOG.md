@@ -112,7 +112,7 @@ Definitions and bindings:
 
 Collections and sequences:
 
-- `with-meta` and `vary-meta` copies of an unrealized lazy seq share its values with the original, and the body runs once. A copy of a generator-backed seq such as `concat` used to read empty after the original was realized, and other bodies ran twice. (#3806)
+- `with-meta` and `vary-meta` copies of an unrealized lazy seq share its values with the original, and the body runs once. A copy of a generator-backed seq such as `concat` used to read empty after the original was realized, and other bodies ran twice. A lazy seq returned from another lazy seq's body, as in `(lazy-seq xs)`, keeps its values once the outer seq is realized; it used to read empty. (#3806)
 - `pop` and `pop!` preserve vectors at trie boundaries, including after appending or converting a transient to persistent. They used to crash, retain removed values or lose live ones. (#3672 #3673)
 - `merge-with` with no maps returns nil instead of `{}`, matching `merge`; other arities are unchanged. (#3680)
 - Structs and records remain distinct from plain maps in equality, map keys and set membership. Equality used to depend on argument order. (#3674)

@@ -23,3 +23,11 @@
     (is (nil? (meta xs)))
     (is (= {:a 1} (meta ys)))
     (is (= {:a 1 :b 2} (meta zs)))))
+
+(deftest test-seq-realized-through-a-wrapper-keeps-values
+  (let [xs (lazy-seq [1 2])
+        ys (with-meta xs {:m 1})
+        zs (lazy-seq xs)]
+    (is (= [1 2] (vec zs)))
+    (is (= [1 2] (vec xs)) "the wrapped seq keeps its values")
+    (is (= [1 2] (vec ys)) "so does its metadata copy")))
