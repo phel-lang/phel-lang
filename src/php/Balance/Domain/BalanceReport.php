@@ -89,7 +89,7 @@ final readonly class BalanceReport
 
         if ($this->danglingPrefixToken !== null) {
             return sprintf(
-                "file ends with '%s', which reads the next form; a closer appended there would become that form",
+                "'%s' at the end of the file still reads a following form; a closer appended there would become that form",
                 $this->danglingPrefixToken,
             );
         }
