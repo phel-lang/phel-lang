@@ -11,6 +11,8 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\Token;
 
 use function array_pop;
+use function array_slice;
+use function count;
 use function in_array;
 use function str_starts_with;
 
@@ -51,6 +53,14 @@ final readonly class DelimiterScanner
     private const array TRIVIA = [
         Token::T_WHITESPACE,
         Token::T_NEWLINE,
+    ];
+
+    /** Tokens that are neither a form nor part of one. */
+    private const array NOT_A_FORM = [
+        Token::T_WHITESPACE,
+        Token::T_NEWLINE,
+        Token::T_COMMENT,
+        Token::T_COMMA,
     ];
 
     /**
@@ -111,6 +121,13 @@ final readonly class DelimiterScanner
         $unterminatedStringLine = null;
         $endsInLineComment = false;
         $danglingPrefixToken = null;
+        /**
+         * Per nesting level, the reader prefixes still waiting for forms:
+         * [prefix text, forms still owed]. `^` owes two, its metadata and its target.
+         *
+         * @var list<list<array{0:string, 1:int}>> $owedForms
+         */
+        $owedForms = [[]];
         $pendingPrefixColumn = null;
         $openerAwaitingHead = null;
         /** @var list<int> $topLevelOpenerLines */
@@ -150,7 +167,16 @@ final readonly class DelimiterScanner
                 $unterminatedStringLine = $this->lineOf($token);
             }
 
+            if (in_array($type, self::PREFIX_AWAITING_A_FORM, true)) {
+                $owedForms[count($owedForms) - 1][] = [$token->getCode(), $type === Token::T_CARET ? 2 : 1];
+            } elseif (!isset(self::CLOSER_TEXT_FOR_OPENER[$type]) && !isset(self::TEXT_FOR_CLOSER[$type])
+                && !in_array($type, self::NOT_A_FORM, true)) {
+                $owedForms[count($owedForms) - 1] = $this->completeForm($owedForms[count($owedForms) - 1]);
+            }
+
             if (isset(self::CLOSER_TEXT_FOR_OPENER[$type])) {
+                $owedForms[] = [];
+
                 if (($pendingPrefixColumn ?? $this->columnOf($token)) === 0) {
                     $topLevelOpenerLines[] = $this->lineOf($token);
                 } else {
@@ -188,8 +214,20 @@ final readonly class DelimiterScanner
                 // level back so the levels outside it still reconcile.
                 $stack[] = $open;
                 $unexpectedClosers[] = new UnexpectedCloser($closerText, $open, $this->lineOf($token), $this->columnOf($token));
+
+                continue;
+            }
+
+            array_pop($owedForms);
+
+            // A `#?(` without a `:phel` or `:default` branch reads as nothing,
+            // so a closed one is not counted as a form for a waiting prefix.
+            if ($open->openerText !== '#?(') {
+                $owedForms[count($owedForms) - 1] = $this->completeForm($owedForms[count($owedForms) - 1] ?? []);
             }
         }
+
+        $danglingPrefixToken ??= $this->prefixLeftWithoutAForm($owedForms, count($stack));
 
         return new BalanceReport(
             $stack,
@@ -229,6 +267,56 @@ final readonly class DelimiterScanner
             if ($line > $stack[0]->line) {
                 return $line;
             }
+        }
+
+        return null;
+    }
+
+    /**
+     * One more form is complete at this level: it feeds the innermost waiting
+     * prefix, and a prefix with all its forms becomes a form for the one before
+     * it, except `#_`, which discards what it read.
+     *
+     * @param list<array{0:string, 1:int}> $owed
+     *
+     * @return list<array{0:string, 1:int}>
+     */
+    private function completeForm(array $owed): array
+    {
+        while ($owed !== []) {
+            $last = count($owed) - 1;
+            if ($owed[$last][1] > 1) {
+                --$owed[$last][1];
+
+                return $owed;
+            }
+
+            // `#_` discards its form, so finishing it gives the prefix before it nothing.
+            if (array_pop($owed)[0] === '#_') {
+                return $owed;
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * Replays the closers a repair would append, innermost first. A prefix that
+     * still waits for a form once its level closes would take the appended
+     * closer as that form, as `(list ^:foo` would read `^:foo )`.
+     *
+     * @param list<list<array{0:string, 1:int}>> $owedForms
+     */
+    private function prefixLeftWithoutAForm(array $owedForms, int $openLevels): ?string
+    {
+        $owedForms = array_slice($owedForms, -($openLevels + 1));
+
+        for ($level = count($owedForms) - 1; $level > 0; --$level) {
+            if ($owedForms[$level] !== []) {
+                return $owedForms[$level][count($owedForms[$level]) - 1][0];
+            }
+
+            $owedForms[$level - 1] = $this->completeForm($owedForms[$level - 1]);
         }
 
         return null;

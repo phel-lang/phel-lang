@@ -79,7 +79,9 @@ abstract class AbstractShellWatcher implements FileWatcherInterface
 
         $process = @proc_open(
             $this->buildCommand($paths),
-            [0 => ['pipe', 'r'], 1 => ['pipe', 'r'], 2 => ['pipe', 'r']],
+            // The mode is the child's side: it writes stdout. Its stderr goes
+            // straight to ours, so a startup error shows and never fills a pipe.
+            [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['file', 'php://stderr', 'w']],
             $this->pipes,
         );
         if (!is_resource($process)) {
@@ -106,10 +108,7 @@ abstract class AbstractShellWatcher implements FileWatcherInterface
 
             $line = @fgets($this->stdout);
             if ($line !== false) {
-                $event = $this->parseLine($line);
-                if ($event instanceof WatchEvent) {
-                    $debouncer->record($event);
-                }
+                $this->record($line, $debouncer);
             }
 
             if ($debouncer->hasPending()) {
@@ -117,6 +116,19 @@ abstract class AbstractShellWatcher implements FileWatcherInterface
             } else {
                 $this->clock->sleepMs(self::IDLE_SLEEP_MS);
             }
+        }
+
+        // The tool may exit right after its last lines: read what it left and
+        // deliver what is still waiting instead of dropping it.
+        $stdout = $this->stdout;
+        /** @psalm-suppress RedundantCondition `stop()` clears both from a signal handler */
+        if ($this->running && is_resource($stdout)) {
+            stream_set_blocking($stdout, true);
+            while (($line = @fgets($stdout)) !== false) {
+                $this->record($line, $debouncer);
+            }
+
+            $debouncer->flushIfReady($onChange, true);
         }
 
         $this->close();
@@ -147,6 +159,14 @@ abstract class AbstractShellWatcher implements FileWatcherInterface
     abstract protected function buildCommand(array $paths): string;
 
     abstract protected function parseLine(string $line): ?WatchEvent;
+
+    private function record(string $line, EventDebouncer $debouncer): void
+    {
+        $event = $this->parseLine($line);
+        if ($event instanceof WatchEvent) {
+            $debouncer->record($event);
+        }
+    }
 
     /**
      * @phpstan-impure
