@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 Compiler:
 
+- **BREAKING**: Keyword literals with a missing name, such as `::` and `:a/`, fail with a located `PHEL120`. They used to produce keywords with unintended names. Provide a name after the colon or slash. (#3802)
 - **BREAKING**: `phel build` rejects two namespaces that map to one PHP namespace, such as `a.foo-bar` and `a.foo_bar`, before writing output and names both files. It also rejects duplicate definitions with `PHEL004`, as `phel run` does, including a `defn` reusing a `definterface` method's function name. These used to overwrite output or keep the second definition; rename one. (#3703 #3649)
 - **BREAKING**: Conflicting namespace aliases, referred names and PHP `:use` or `use` aliases fail with `PHEL004` instead of keeping the last target. Repeating the same target, changing an alias by reevaluating in the REPL, repeating a class and explicitly overriding a default import still work. Use distinct names. (#3524 #3718)
 - **BREAKING**: Structs, types, records, exceptions, enums and interfaces in one namespace cannot share a PHP class name, even one differing only in case (`point`, `Point`): the second fails with `PHEL004` instead of silently reusing the first class. Reevaluating the same `defstruct` still works; rename the others. (#3524)

@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ExpressionParserFactory;
 use PhelTest\Support\RendersExceptionReportTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -48,6 +49,21 @@ final class InvalidLiteralReportTest extends TestCase
             REPORT;
 
         self::assertSame($expected, $this->report('(inc 08)'));
+    }
+
+    #[DataProvider('keywordsWithMissingNames')]
+    public function test_a_keyword_with_no_name_reports_its_location(string $keyword, string $carets): void
+    {
+        $expected = "[PHEL120] This is not a valid keyword\nin broken.phel:1\n\n1| (inc {$keyword})\n        {$carets}\n";
+
+        self::assertSame($expected, $this->report('(inc ' . $keyword . ')'));
+    }
+
+    public static function keywordsWithMissingNames(): iterable
+    {
+        yield 'auto namespace' => ['::', '^^'];
+        yield 'namespace' => [':a/', '^^^'];
+        yield 'alias' => ['::a/', '^^^^'];
     }
 
     private function report(string $phelCode): string

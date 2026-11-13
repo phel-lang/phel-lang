@@ -240,6 +240,23 @@ final class AtomParserTest extends TestCase
         );
     }
 
+    #[DataProvider('keywordsWithMissingNames')]
+    public function test_parse_keyword_with_missing_name_throws(string $word): void
+    {
+        $this->expectException(KeywordParserException::class);
+        $this->expectExceptionMessage('This is not a valid keyword');
+
+        $location = new SourceLocation('string', 1, 0);
+        new AtomParser(new GlobalEnvironment())->parse(new Token(Token::T_ATOM, $word, $location, $location));
+    }
+
+    public static function keywordsWithMissingNames(): iterable
+    {
+        yield 'auto namespace without name' => ['::'];
+        yield 'namespace without name' => [':a/'];
+        yield 'alias without name' => ['::a/'];
+    }
+
     public function test_parse_keyword_with_unknown_alias_throws(): void
     {
         $this->expectException(KeywordParserException::class);

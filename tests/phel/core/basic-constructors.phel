@@ -38,6 +38,8 @@
       "namespaced keyword literal with special characters round-trips against (keyword ns name)")
   (is (= "b/c" (name :a/b/c)) "keyword literal keeps everything after the first / as the name")
   (is (= "a" (namespace :a/b/c)) "keyword literal namespace is the part before the first /")
+  (is (= "b/" (name :a/b/)) "a slash can end a nonempty keyword name")
+  (is (= "" (name (keyword "a/"))) "runtime keyword construction accepts an empty name")
   (is (not (= :a/b/c :a/b)) "a multi-slash keyword is not truncated to its first segment")
   (is (= :a/b/c (keyword "a" "b/c")) "multi-slash keyword literal matches (keyword ns name)")
   (is (= "foo" (namespace (keyword "foo/bar"))) "keyword string is split on / into namespace")

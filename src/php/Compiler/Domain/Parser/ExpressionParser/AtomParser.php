@@ -163,7 +163,7 @@ final readonly class AtomParser
         $word = $token->getCode();
         $isValid = preg_match(self::REGEX_KEYWORD, $word, $matches);
 
-        if ($isValid === 0 || $isValid === false) {
+        if ($word === '::' || strpos($word, '/') === strlen($word) - 1 || $isValid === 0 || $isValid === false) {
             throw new KeywordParserException('This is not a valid keyword');
         }
 
