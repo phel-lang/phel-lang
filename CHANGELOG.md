@@ -181,6 +181,7 @@ Analysis, diagnostics and docs:
 
 Editors and servers:
 
+- `phel watch` with the polling backend also compares file contents, so it sees a same-size save within one second. Such an edit used to leave the snapshot unchanged and trigger nothing. (#3820)
 - The LSP places edits correctly in CRLF and Unicode documents and lints the latest unsaved text after typing stops. Closing a document cancels queued diagnostics. It used to shift edits, split characters, skip the last edit or lint the saved file. (#3683 #3685)
 - The LSP resolves Windows file URIs with encoded drives (`file:///C%3A/a.phel`), a `localhost` host or uppercase `FILE://` to local drive paths. It used to keep a leading slash that prevented editors from finding the file. (#3686)
 - The LSP substitutes invalid UTF-8 in responses and turns other encoding failures into protocol errors instead of stopping the server. (#3684)
