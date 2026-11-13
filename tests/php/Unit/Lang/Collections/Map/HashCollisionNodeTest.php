@@ -11,6 +11,7 @@ use Phel\Lang\Collections\Map\IndexedNode;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 final class HashCollisionNodeTest extends TestCase
 {
@@ -37,6 +38,16 @@ final class HashCollisionNodeTest extends TestCase
         $this->assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
         $this->assertSame('bar', $node->find(0, $hasher->hash(3), 3, null));
         $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
+    }
+
+    public function test_find_returns_stored_nil_value(): void
+    {
+        $hasher = new ModuloHasher(2);
+        $notFound = new stdClass();
+        $node = new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 2, [1, null, 3, 'bar']);
+
+        $this->assertNull($node->find(0, $hasher->hash(1), 1, $notFound));
+        $this->assertSame($notFound, $node->find(0, $hasher->hash(5), 5, $notFound));
     }
 
     public function test_put_another_key_with_same_hash(): void

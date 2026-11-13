@@ -1,0 +1,27 @@
+(ns phel-test.core.hash-collision-nil-values
+  (:require phel.test :refer [deftest is]))
+
+(defn- colliding-map []
+  (into {} (map (fn [i] [(symbol (str "n" i) "a") nil]) (range 9))))
+
+(deftest test-persistent-collision-keeps-nil-values
+  (let [m (colliding-map)
+        k (symbol "n0/a")]
+    (is (= 9 (count m)))
+    (is (contains? m k))
+    (is (= [k nil] (find m k)))
+    (is (not (contains? m (symbol "n9/a"))))))
+
+(deftest test-transient-collision-keeps-nil-values
+  (let [t (transient (colliding-map))
+        k (symbol "n0/a")]
+    (is (contains? t k))
+    (is (not (contains? t (symbol "n9/a"))))))
+
+(deftest test-snapshot-unchanged-after-assoc
+  (let [m (colliding-map)
+        k (symbol "n0/a")
+        m2 (assoc m k 1)]
+    (is (contains? m k))
+    (is (nil? (get m k)))
+    (is (= 1 (get m2 k)))))

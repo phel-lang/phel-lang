@@ -113,6 +113,7 @@ Definitions and bindings:
 Collections and sequences:
 
 - `with-meta` and `vary-meta` copies of an unrealized lazy seq share its values with the original, and the body runs once. A copy of a generator-backed seq such as `concat` used to read empty after the original was realized, and other bodies ran twice. A lazy seq returned from another lazy seq's body, as in `(lazy-seq xs)`, keeps its values once the outer seq is realized; it used to read empty. (#3806)
+- Hash maps whose keys share a hash, such as namespaced symbols with one name, find keys stored with a nil value. `contains?` and `find` used to report them missing. (#3804)
 - `pop` and `pop!` preserve vectors at trie boundaries, including after appending or converting a transient to persistent. They used to crash, retain removed values or lose live ones. (#3672 #3673)
 - `merge-with` with no maps returns nil instead of `{}`, matching `merge`; other arities are unchanged. (#3680)
 - Structs and records remain distinct from plain maps in equality, map keys and set membership. Equality used to depend on argument order. (#3674)
@@ -123,6 +124,7 @@ Collections and sequences:
 
 Printing and values:
 
+- `phel.html` `when` and `when-not` with several body forms render all of them when the condition holds and none otherwise. The second body form used to render as the else branch. (#3805)
 - `pr-str` and `str` preserve finite float precision, including `1.0000000000000002` and `(/ 1.0 3)`. They used to round the value. (#3707)
 - `pr-str` prints readable `##NaN`, `##Inf` and `##-Inf`, escapes `0x1F` and `0x7F`, and prints PHP resources as `#<PHP Resource id #N>`. It used to produce unreadable numbers, raw control bytes or an exception. (#3712)
 - Cyclic atoms print as `#<cycle>`, including inside collections and at the REPL. They used to exhaust the process. (#3705)
