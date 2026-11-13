@@ -29,6 +29,17 @@
       (php/aset arr (encode-key k) (encode-value v)))
     arr))
 
+(defn- encode-big-number
+  "JSON has one number type and PHP writes it from an int or a float, so only a
+  value that converts exactly is written; anything else is rejected rather than
+  rounded."
+  [x]
+  (if (and (bigint? x) (.fitsInPhpInt x))
+    (.toInt x)
+    (throw (new JsonException
+                (str "Cannot encode the " (name (type x)) " " x " exactly as a JSON number. "
+                     "Convert it first with str or double.")))))
+
 (defn encode-value
   "Converts a Phel value to JSON-compatible format."
   {:example "(encode-value :name) ; => \"name\""
@@ -42,6 +53,10 @@
     (php/is_iterable x)       (encode-value-iterable x)
     (symbol? x)               (name x)
     (keyword? x)              (name x)
+    ;; `is_object` first keeps the three predicates off the scalar path.
+    (and (php/is_object x)
+         (or (bigint? x) (ratio? x) (decimal? x)))
+    (encode-big-number x)
     true                      x))
 
 (defn encode

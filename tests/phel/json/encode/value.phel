@@ -110,3 +110,21 @@
     (is (=
          "{\"first_name\":\"FirstName\",\"last_name\":\"LastName\",\"age\":30}"
          (json/encode p)))))
+
+(defn- encode-error [value]
+  (try
+    (json/encode value)
+    nil
+    (catch \JsonException e (.getMessage e))))
+
+(deftest test-json-encode-big-numbers
+  (is (= "[9223372036854775807]" (json/encode [(- 9223372036854775808N 1)]))
+      "a BigInt in the int range encodes as an int")
+  (is (= "Cannot encode the bigint 9223372036854775808 exactly as a JSON number. Convert it first with str or double."
+         (encode-error [9223372036854775808N])))
+  (is (= "Cannot encode the ratio 1/2 exactly as a JSON number. Convert it first with str or double."
+         (encode-error [1/2])))
+  (is (= "Cannot encode the bigdec 1.2 exactly as a JSON number. Convert it first with str or double."
+         (encode-error {:price 1.2M})))
+  (is (= "[\"9223372036854775808\",0.5]" (json/encode [(str 9223372036854775808N) (double 1/2)]))
+      "the suggested conversions encode"))
