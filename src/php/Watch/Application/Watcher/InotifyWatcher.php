@@ -72,9 +72,10 @@ final class InotifyWatcher extends AbstractShellWatcher
         }
 
         // `-m` monitor, `-r` recursive, events close_write/create/delete/move,
-        // format "<file>\t<event>" so parsing stays simple.
+        // format "<file><tab><event>". inotifywait expands only `%` codes, so
+        // the tab must be a real one, not `\t`.
         return escapeshellarg($this->binaryPath)
-            . ' -m -r --format \'%w%f\t%e\' --quiet '
+            . ' -m -r --format ' . escapeshellarg("%w%f\t%e") . ' --quiet '
             . '-e close_write -e create -e delete -e move '
             . implode(' ', $args);
     }

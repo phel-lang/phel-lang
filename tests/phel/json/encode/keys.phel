@@ -51,3 +51,10 @@
     Exception "Key can only be an integer, float, symbol, keyword or a string."
     (json/encode {(new DateTime) "DateTime"}))
    "It tests if DateTime is a valid key."))
+
+(deftest test-json-encode-maps-with-consecutive-numeric-keys
+  (is (= "{\"0\":\"a\",\"1\":\"b\"}" (json/encode {0 :a 1 :b})) "int keys 0..n-1 stay an object")
+  (is (= "{\"0\":\"a\",\"1\":\"b\"}" (json/encode {"0" :a "1" :b})) "numeric string keys stay an object")
+  (is (= "{\"x\":{\"0\":1}}" (json/encode {:x {0 1}})) "a nested numeric-key map stays an object")
+  (is (= "[\"a\",\"b\"]" (json/encode [:a :b])) "a vector is still an array")
+  (is (= {:0 "a" :1 "b"} (json/decode (json/encode {0 :a 1 :b}))) "decoding reads a map back"))
