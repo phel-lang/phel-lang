@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Reader\Exceptions\SpliceNotInListException;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -16,6 +17,7 @@ use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\CompilerConstants;
 
 use function count;
 use function is_bool;
@@ -72,6 +74,10 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
 
         if ($form instanceof PersistentMapInterface && count($form) > 0) {
             return $this->createFromMap($form, $context);
+        }
+
+        if ($form instanceof PersistentHashSetInterface && count($form) > 0) {
+            return $this->createFromSet($form, $context);
         }
 
         if ($this->isLiteral($form)) {
@@ -150,6 +156,23 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
             Phel::list([
                 (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
                 ...$this->expandList($kvs, $context),
+            ])->copyLocationFrom($form),
+        ])->copyLocationFrom($form);
+    }
+
+    /**
+     * @param PersistentHashSetInterface<mixed> $form
+     *
+     * @return PersistentListInterface<mixed>
+     */
+    private function createFromSet(PersistentHashSetInterface $form, GensymContext $context): PersistentListInterface
+    {
+        return Phel::list([
+            (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
+            (Symbol::createForNamespace(CompilerConstants::PHEL_CORE_NAMESPACE, 'hash-set'))->copyLocationFrom($form),
+            Phel::list([
+                (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
+                ...$this->expandList($form, $context),
             ])->copyLocationFrom($form),
         ])->copyLocationFrom($form);
     }
