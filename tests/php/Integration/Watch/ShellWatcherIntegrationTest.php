@@ -6,13 +6,19 @@ namespace PhelTest\Integration\Watch;
 
 use Phel\Watch\Application\SystemClock;
 use Phel\Watch\Application\Watcher\AbstractShellWatcher;
+use Phel\Watch\Application\Watcher\InotifyWatcher;
 use Phel\Watch\Domain\FileSystemScannerInterface;
 use Phel\Watch\Transfer\WatchEvent;
 use PHPUnit\Framework\TestCase;
 
+use function chmod;
 use function count;
 use function escapeshellarg;
+use function file_put_contents;
+use function sys_get_temp_dir;
 use function trim;
+use function uniqid;
+use function unlink;
 
 use const PHP_BINARY;
 
@@ -43,14 +49,44 @@ final class ShellWatcherIntegrationTest extends TestCase
         self::assertSame(2, $events);
     }
 
-    private function watcherRunning(string $script): AbstractShellWatcher
+    public function test_inotify_events_reach_the_callback_with_the_format_it_passes(): void
     {
-        $scanner = new class() implements FileSystemScannerInterface {
+        $fake = sys_get_temp_dir() . '/phel-fake-inotifywait-' . uniqid('', true);
+        file_put_contents($fake, <<<'SH'
+            #!/bin/sh
+            printf '%s\n' "$(printf '%s' "$4" | sed 's|%w%f|/tmp/app.phel|; s|%e|CLOSE_WRITE,CLOSE|')"
+            SH);
+        chmod($fake, 0755);
+
+        $watcher = new InotifyWatcher($this->scanner(), new SystemClock(), $fake, 0);
+        $events = [];
+
+        try {
+            $watcher->watch(['/tmp'], static function (array $batch) use (&$events): void {
+                array_push($events, ...$batch);
+            });
+        } finally {
+            unlink($fake);
+        }
+
+        self::assertCount(1, $events);
+        self::assertSame('/tmp/app.phel', $events[0]->path);
+        self::assertSame(WatchEvent::KIND_MODIFIED, $events[0]->kind);
+    }
+
+    private function scanner(): FileSystemScannerInterface
+    {
+        return new class() implements FileSystemScannerInterface {
             public function snapshot(array $paths): array
             {
                 return [];
             }
         };
+    }
+
+    private function watcherRunning(string $script): AbstractShellWatcher
+    {
+        $scanner = $this->scanner();
 
         return new class($scanner, new SystemClock(), PHP_BINARY, 0, $script) extends AbstractShellWatcher {
             public function __construct(

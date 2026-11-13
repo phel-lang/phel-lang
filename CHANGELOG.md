@@ -181,7 +181,7 @@ Analysis, diagnostics and docs:
 
 Editors and servers:
 
-- `phel watch` with the `fswatch` or `inotifywait` backend receives the tool's change events and shows its startup errors. It used to open the tool's output in the wrong direction, so no change ever triggered a reload. (#3818)
+- `phel watch -b inotify` reloads on change again, and both external backends show the tool's startup errors. The watcher opened the tool's output in the wrong direction, and passed a literal `\t` that `inotifywait` printed as is, so no change reached a reload. (#3818)
 - The LSP places edits correctly in CRLF and Unicode documents and lints the latest unsaved text after typing stops. Closing a document cancels queued diagnostics. It used to shift edits, split characters, skip the last edit or lint the saved file. (#3683 #3685)
 - The LSP resolves Windows file URIs with encoded drives (`file:///C%3A/a.phel`), a `localhost` host or uppercase `FILE://` to local drive paths. It used to keep a leading slash that prevented editors from finding the file. (#3686)
 - The LSP substitutes invalid UTF-8 in responses and turns other encoding failures into protocol errors instead of stopping the server. (#3684)
