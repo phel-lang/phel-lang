@@ -122,6 +122,7 @@ Collections and sequences:
 
 Printing and values:
 
+- `phel.json/encode` writes maps with keys `0` to `n-1`, such as `{0 :a 1 :b}`, as JSON objects. They used to become JSON arrays. (#3807)
 - `pr-str` and `str` preserve finite float precision, including `1.0000000000000002` and `(/ 1.0 3)`. They used to round the value. (#3707)
 - `pr-str` prints readable `##NaN`, `##Inf` and `##-Inf`, escapes `0x1F` and `0x7F`, and prints PHP resources as `#<PHP Resource id #N>`. It used to produce unreadable numbers, raw control bytes or an exception. (#3712)
 - Cyclic atoms print as `#<cycle>`, including inside collections and at the REPL. They used to exhaust the process. (#3705)
