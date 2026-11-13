@@ -173,6 +173,22 @@ final class PhpInteropLspTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_completion_past_the_end_of_the_line_keeps_the_token_range(): void
+    {
+        $uri = 'file:///x.phel';
+        $session = $this->sessionWith($uri, '(php/$_S');
+
+        $result = $this->completion()->handle($this->params($uri, line: 0, character: 99), $session);
+
+        $items = array_column($result['items'], null, 'label');
+        self::assertSame([
+            'start' => ['line' => 0, 'character' => 5],
+            'end' => ['line' => 0, 'character' => 8],
+        ], $items['$_SERVER']['textEdit']['range'] ?? null);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_completion_inside_a_superglobal_replaces_the_whole_name(): void
     {
         $uri = 'file:///x.phel';

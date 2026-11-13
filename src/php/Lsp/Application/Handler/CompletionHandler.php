@@ -14,6 +14,7 @@ use Phel\Shared\Api\ProjectIndex;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function max;
+use function ord;
 use function preg_match;
 use function strlen;
 use function substr;
@@ -108,8 +109,8 @@ final readonly class CompletionHandler implements HandlerInterface
         }
 
         // `\w` without `u` matches ASCII only, so the token is as many UTF-16
-        // units as bytes and the client's own `character` anchors the range.
-        $character = max(0, $position['character']);
+        // units as bytes; only the text before it needs converting.
+        $character = $this->utf16Length(substr($lineText, 0, $byte));
         $end = $character;
         if (preg_match('/^\w+/', substr($lineText, $byte), $tail) === 1) {
             $end += strlen($tail[0]);
@@ -119,5 +120,21 @@ final readonly class CompletionHandler implements HandlerInterface
             'start' => ['line' => $lineNumber, 'character' => $character - strlen($matches[0])],
             'end' => ['line' => $lineNumber, 'character' => $end],
         ];
+    }
+
+    private function utf16Length(string $text): int
+    {
+        // One unit per code point, two for one outside the basic plane: count
+        // every byte that is not a continuation byte, plus each 4-byte lead.
+        $units = 0;
+        $length = strlen($text);
+        for ($i = 0; $i < $length; ++$i) {
+            $byte = ord($text[$i]);
+            if (($byte & 0xC0) !== 0x80) {
+                $units += $byte >= 0xF0 ? 2 : 1;
+            }
+        }
+
+        return $units;
     }
 }
