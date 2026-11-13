@@ -107,6 +107,7 @@ Definitions and bindings:
 
 Collections and sequences:
 
+- Hash maps whose keys share a hash, such as namespaced symbols with one name, find keys stored with a nil value. `contains?` and `find` used to report them missing. (#3804)
 - `pop` and `pop!` preserve vectors at trie boundaries, including after appending or converting a transient to persistent. They used to crash, retain removed values or lose live ones. (#3672 #3673)
 - `merge-with` with no maps returns nil instead of `{}`, matching `merge`; other arities are unchanged. (#3680)
 - Structs and records are never equal to plain maps, in either direction, and stay distinct as map keys and set members; equality used to depend on argument order. String and symbol lookup keys behave like array access, and unsupported keys return false or nil instead of raising PHP errors. (#3674 #3675)
