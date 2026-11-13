@@ -92,8 +92,9 @@ HELP)
 
     /**
      * Resolve the target script, validate `--sort`/`--format`, run it under the
-     * profiler hook, then render the report. Returns FAILURE when the path is
-     * unresolved, an option is invalid, or the script throws; SUCCESS otherwise.
+     * profiler hook, then render the report. Returns INVALID when the path is
+     * unresolved or an option is invalid, and FAILURE when the script throws or
+     * the `-o` report cannot be written.
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
