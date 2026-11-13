@@ -90,10 +90,10 @@
                        [(aget matches 1) (aget matches 2)]
                        ["" url])
         encodedUrl   (encode-utf-8-url url)
-        parts        (php/parse_url (str prefix encodedUrl))
-        parts        (php/array_map php/urldecode parts)]
-    (when-not parts
-      (throw (new InvalidArgumentException (str "This is not a valid uri: " url))))
+        raw-parts    (php/parse_url (str prefix encodedUrl))
+        _            (when (php/=== false raw-parts)
+                       (throw (new InvalidArgumentException (str "This is not a valid uri: " (str prefix url)))))
+        parts        (php/array_map php/urldecode raw-parts)]
     (uri
      (aget parts "scheme")
      (if (aget parts "pass")
