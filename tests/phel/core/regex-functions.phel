@@ -36,8 +36,8 @@
       "a zero-length match is the empty string, distinct from nil for no match"))
 
 (deftest test-re-find-unmatched-optional-group
-  (is (= ["12" "12"] (re-find "/(\\d+)(x)?/" "12"))
-      "a trailing optional group that did not participate is absent from the vector"))
+  (is (= ["12" "12" nil] (re-find "/(\\d+)(x)?/" "12"))
+      "a trailing optional group that did not participate is nil"))
 
 (deftest test-re-find-named-group-shape
   ;; Named groups do not return the flat vector the docstring describes: PHP
@@ -74,6 +74,14 @@
   (is (= "ab" (re-matches "/a\\Qb/" "ab")) "a quote left open at the end")
   (is (nil? (re-matches "/a\\Kb/" "ab")) "a reset match start is not a full match")
   (is (nil? (re-matches " /a/" "xax")) "a pattern with leading whitespace still needs a full match"))
+
+(deftest test-unmatched-groups-read-as-nil
+  (is (= ["b" nil] (re-find #"(a)?b" "b")) "a trailing unmatched group keeps its slot")
+  (is (= ["b" nil "b"] (re-find #"(a)?(b)" "b")) "an interior unmatched group is nil")
+  (is (= ["b" ""] (re-find #"(a*)b" "b")) "a group matching the empty string stays empty")
+  (is (= [["b" nil] ["ab" "a"]] (re-seq #"(a)?b" "b ab")) "re-seq keeps unmatched groups as nil")
+  (is (= [["x" "x" nil] ["y" nil "y"]] (re-seq #"(x)|(y)" "xy")) "alternative groups")
+  (is (= ["b" nil] (re-matches #"(a)?b" "b")) "re-matches keeps the group shape"))
 
 ;; --- #"..." regex literal syntax ---
 

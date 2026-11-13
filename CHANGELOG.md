@@ -112,6 +112,7 @@ Definitions and bindings:
 
 Collections and sequences:
 
+- `with-meta` and `vary-meta` copies of an unrealized lazy seq share its values with the original, and the body runs once. A copy of a generator-backed seq such as `concat` used to read empty after the original was realized, and other bodies ran twice. A lazy seq returned from another lazy seq's body, as in `(lazy-seq xs)`, keeps its values once the outer seq is realized; it used to read empty. (#3806)
 - Hash maps whose keys share a hash, such as namespaced symbols with one name, find keys stored with a nil value. `contains?` and `find` used to report them missing. (#3804)
 - `pop` and `pop!` preserve vectors at trie boundaries, including after appending or converting a transient to persistent. They used to crash, retain removed values or lose live ones. (#3672 #3673)
 - `merge-with` with no maps returns nil instead of `{}`, matching `merge`; other arities are unchanged. (#3680)
@@ -125,6 +126,7 @@ Printing and values:
 
 - `re-matches` finds a full match that needs a later alternative or a longer lazy match, as in `(re-matches #"a|ab" "ab")`. It used to return nil when the first match found was shorter than the string. (#3809)
 - `phel.html` `when` and `when-not` with several body forms render all of them when the condition holds and none otherwise. The second body form used to render as the else branch. (#3805)
+- `re-find`, `re-seq` and `re-matches` return nil for a capture group that did not match, and keep its slot when it is the last group: `(re-find #"(a)?b" "b")` is `["b" nil]`. They used to return `""`, and `re-find` and `re-matches` dropped a trailing unmatched group, returning a plain string when it was the only one. (#3810)
 - `pr-str` and `str` preserve finite float precision, including `1.0000000000000002` and `(/ 1.0 3)`. They used to round the value. (#3707)
 - `pr-str` prints readable `##NaN`, `##Inf` and `##-Inf`, escapes `0x1F` and `0x7F`, and prints PHP resources as `#<PHP Resource id #N>`. It used to produce unreadable numbers, raw control bytes or an exception. (#3712)
 - Cyclic atoms print as `#<cycle>`, including inside collections and at the REPL. They used to exhaust the process. (#3705)
@@ -134,6 +136,7 @@ Printing and values:
 
 Files and PHP:
 
+- `phel.http/uri-from-string` throws its documented `InvalidArgumentException` for a URI PHP cannot parse, such as an out-of-range port. It used to fail with a PHP `array_map()` type error. (#3811)
 - `file-seq` ends at symlink cycles and lists each real file once on all PHP builds. It used to repeat paths or throw on thread-safe builds. (#3537)
 - On PHP 8.6, struct, exception and enum predicates, interface methods called with strings and PHP object hashes emit no deprecations. Functions returning `(php/=& target value)` work with OPcache's default optimizer instead of stopping with `Invalid opcode 62/4/0` on PHP 8.6 RC2. (#3522)
 
