@@ -430,10 +430,21 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
-        $clone = clone $this;
-        $clone->meta = $meta;
+        if ($this->fn === null) {
+            $clone = clone $this;
+            $clone->meta = $meta;
 
-        return $clone;
+            return $clone;
+        }
+
+        // An unrealized copy reads through the original, so the thunk runs once
+        // and a generator it closes over is consumed by one owner only.
+        $source = $this;
+
+        /** @var static $copy */
+        $copy = new self($this->hasher, $this->equalizer, static fn(): mixed => $source->realize(), $meta);
+
+        return $copy;
     }
 
     public function hash(): int
