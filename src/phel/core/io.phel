@@ -45,7 +45,7 @@
    :see-also ["re-find" "re-matches"]}
   [re s]
   (let [matches (php-indexed-array)
-        _       (php/preg_match_all re s matches) ; fills `matches` by reference
+        _       (php/preg_match_all re s matches php/PREG_UNMATCHED_AS_NULL) ; fills `matches` by reference
         matches (php->phel matches)]
     (if (= (count matches) 1)
       (first matches)
@@ -57,7 +57,9 @@
    :see-also ["re-seq" "re-matches"]}
   [re s]
   (let [matches (php-indexed-array)]
-    (when (php/=== 1 (php/preg_match re s matches))
+    ;; PREG_UNMATCHED_AS_NULL keeps every group slot, trailing unmatched ones
+    ;; included, so a one-element result means the pattern has no groups.
+    (when (php/=== 1 (php/preg_match re s matches php/PREG_UNMATCHED_AS_NULL))
       ;; A group-less pattern is the common case, and converting the whole
       ;; match array to read element zero out of it costs more than the match.
       (if (php/=== 1 (php/count matches))
@@ -196,8 +198,8 @@
   "sprintf casts an object to 1 with a warning, so an exact number becomes what its directive consumes."
   [x conversion]
   (cond
-    (not (exact-number? x)) x
-    (php/str_contains "eEfFgGhH" conversion) (NumericCoercion/toFloat x)
+    (not (exact-number? x))                       x
+    (php/str_contains "eEfFgGhH" conversion)      (NumericCoercion/toFloat x)
     (not (php/str_contains "bcdouxX" conversion)) x
     (not (php/instanceof x BigInt))
     (throw (new InvalidArgumentException
@@ -205,7 +207,7 @@
     (not (.fitsInPhpInt x))
     (throw (new InvalidArgumentException
                 (str "format: %" conversion " expects an integer that fits in a PHP int, got " x)))
-    :else (.toInt x)))
+    :else                                         (.toInt x)))
 
 (defn- format-args
   "Returns `[fmt args]` for sprintf. When `xs` holds a ratio, bigint or bigdec, every
@@ -237,9 +239,9 @@
                                                 width
                                                 (str "*" (take-arg width-position identity) "$"))
                                     precision (cond
-                                                (= dot "") ""
+                                                (= dot "")            ""
                                                 (= precision-star "") (str "." precision)
-                                                :else (str ".*" (take-arg precision-position identity) "$"))
+                                                :else                 (str ".*" (take-arg precision-position identity) "$"))
                                     value     (take-arg position #(format-exact-number % conversion))]
                                 (str "%" value "$" flags width precision conversion)))))
                         fmt)]
