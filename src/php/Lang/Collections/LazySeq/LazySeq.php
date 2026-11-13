@@ -430,10 +430,21 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
-        $clone = clone $this;
-        $clone->meta = $meta;
+        if ($this->fn === null) {
+            $clone = clone $this;
+            $clone->meta = $meta;
 
-        return $clone;
+            return $clone;
+        }
+
+        // An unrealized copy reads through the original, so the thunk runs once
+        // and a generator it closes over is consumed by one owner only.
+        $source = $this;
+
+        /** @var static $copy */
+        $copy = new self($this->hasher, $this->equalizer, static fn(): mixed => $source->realize(), $meta);
+
+        return $copy;
     }
 
     public function hash(): int
@@ -537,16 +548,19 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
         $result = $fn();
 
-        // Iteratively realize nested LazySeqs to avoid recursion
-        // This handles cases where a LazySeq's thunk returns another unrealized LazySeq
-        while ($result instanceof self && !$result->isRealized()) {
-            if ($result->fn !== null) {
-                $nestedFn = $result->fn;
-                $result->fn = null;
-                $result = $nestedFn();
-            } else {
-                break;
-            }
+        // Iteratively realize nested LazySeqs to avoid recursion. Each nested
+        // seq whose thunk is taken here gets the final result too, so another
+        // holder of it does not read it as empty.
+        $stolen = [];
+        while ($result instanceof self && $result->fn !== null) {
+            $nestedFn = $result->fn;
+            $result->fn = null;
+            $stolen[] = $result;
+            $result = $nestedFn();
+        }
+
+        foreach ($stolen as $nested) {
+            $nested->realized = $result;
         }
 
         $this->realized = $result;

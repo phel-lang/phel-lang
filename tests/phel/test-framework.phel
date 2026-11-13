@@ -114,6 +114,32 @@
                                                   (throw (new InvalidArgumentException "different")))))))]
     (is (= 1 (:failed counts)) "thrown-with-msg? with wrong message records a failure")))
 
+(deftest test-is-thrown-with-msg-matches-a-regex-literal
+  (is (thrown-with-msg? InvalidArgumentException #"bad"
+                        (throw (new InvalidArgumentException "bad input")))
+      "a regex literal matches part of the message")
+  (is (thrown-with-msg? InvalidArgumentException #"^bad \w+$"
+                        (throw (new InvalidArgumentException "bad input")))
+      "anchors and classes work"))
+
+(deftest test-is-thrown-with-msg-fails-when-the-regex-does-not-match
+  (let [counts (:counts (with-isolated-stats
+                          (with-output-buffer
+                            (is (thrown-with-msg? InvalidArgumentException #"^good"
+                                                  (throw (new InvalidArgumentException "bad input")))))))]
+    (is (= 1 (:failed counts)))))
+
+(deftest test-is-thrown-with-msg-keeps-plain-strings-exact
+  (let [counts (:counts (with-isolated-stats
+                          (with-output-buffer
+                            (is (thrown-with-msg? InvalidArgumentException "bad"
+                                                  (throw (new InvalidArgumentException "bad input"))))
+                            (is (thrown-with-msg? InvalidArgumentException "/[/"
+                                                  (throw (new InvalidArgumentException "x"))))
+                            (is (thrown-with-msg? InvalidArgumentException "*error*"
+                                                  (throw (new InvalidArgumentException "an error here")))))))]
+    (is (= 3 (:failed counts)) "a plain prefix, an invalid regex and other delimiters all fail")))
+
 ;; ---------------------------------------------------------------------------
 ;; 'output? — passes when body's stdout matches the expected string
 ;; ---------------------------------------------------------------------------

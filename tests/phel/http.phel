@@ -485,3 +485,17 @@
   (is (nil? (:parsed-body (h/request-from-globals-args
                            json-req-server (php-indexed-array) (php-indexed-array) (php-indexed-array) (php-indexed-array))))
       "omitting raw-body keeps the 5-arg arity working"))
+
+(defn- uri-error [url]
+  (try
+    (h/uri-from-string url)
+    nil
+    (catch \InvalidArgumentException e (.getMessage e))))
+
+(deftest uri-from-string-rejects-malformed-uris
+  (is (= "This is not a valid uri: http://example.com:99999" (uri-error "http://example.com:99999"))
+      "an out-of-range port")
+  (is (= "This is not a valid uri: http:///example.com" (uri-error "http:///example.com"))
+      "a missing host")
+  (is (= "This is not a valid uri: http://[::1]:99999/x" (uri-error "http://[::1]:99999/x"))
+      "an IPv6 host with an out-of-range port"))
