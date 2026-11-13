@@ -92,7 +92,7 @@ final class SemanticAnalysisTest extends TestCase
     #[DataProvider('providerMacrosFailingOnTheirOwnInput')]
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
-    public function test_a_macro_that_fails_on_its_own_input_is_still_an_error(string $form): void
+    public function test_a_macro_that_fails_on_its_own_input_is_still_an_error(string $form, string $errorCode): void
     {
         $this->bootstrap();
         $facade = new ApiFacade();
@@ -100,21 +100,21 @@ final class SemanticAnalysisTest extends TestCase
         $diagnostics = $facade->analyzeSource("(ns user)\n" . $form . "\n", 'user.phel');
 
         self::assertSame(
-            [['PHEL005', 2]],
+            [[$errorCode, 2]],
             array_map(static fn(Diagnostic $d): array => [$d->code, $d->startLine], $diagnostics),
         );
     }
 
     public static function providerMacrosFailingOnTheirOwnInput(): iterable
     {
-        yield 'defstruct' => ['(defstruct 1 [x])'];
-        yield 'defrecord' => ['(defrecord 1 [a])'];
-        yield 'deftype' => ['(deftype 1 [a])'];
-        yield 'defprotocol' => ['(defprotocol P (1 [this]))'];
-        yield 'defmulti' => ['(defmulti 1 :k)'];
-        yield 'defenum' => ['(defenum 1 :a)'];
-        yield 'definterface' => ['(definterface 1 (foo [this]))'];
-        yield 'defexception' => ['(defexception 1)'];
+        yield 'defstruct' => ['(defstruct 1 [x])', 'PHEL003'];
+        yield 'defrecord' => ['(defrecord 1 [a])', 'PHEL003'];
+        yield 'deftype' => ['(deftype 1 [a])', 'PHEL003'];
+        yield 'defprotocol' => ['(defprotocol P (1 [this]))', 'PHEL005'];
+        yield 'defmulti' => ['(defmulti 1 :k)', 'PHEL005'];
+        yield 'defenum' => ['(defenum 1 :a)', 'PHEL003'];
+        yield 'definterface' => ['(definterface 1 (foo [this]))', 'PHEL003'];
+        yield 'defexception' => ['(defexception 1)', 'PHEL003'];
     }
 
     #[PreserveGlobalState(false)]

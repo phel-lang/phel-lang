@@ -176,15 +176,17 @@
 (defmacro defstruct
   "A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function."
   [name keys & implementations]
-  (let [name-str       (.getName name)
-        munge          (new Munge)
-        class-name-str (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))
-        is-name        (Symbol/create (php/. name-str "?"))]
-    `(do
-       (defstruct* ~name ~keys ~@implementations)
-       (defn ~name ~(php/. "Creates a new " name " struct.") ~keys (new ~class-name-str ~@keys))
-       (swap! *type-tag-registry* assoc ~name ~class-name-str)
-       (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " struct.") [x] (and (php/is_object x) (php/is_a x ~class-name-str))))))
+  (if (php/instanceof name Symbol)
+    (let [name-str       (.getName name)
+          munge          (new Munge)
+          class-name-str (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))
+          is-name        (Symbol/create (php/. name-str "?"))]
+      `(do
+         (defstruct* ~name ~keys ~@implementations)
+         (defn ~name ~(php/. "Creates a new " name " struct.") ~keys (new ~class-name-str ~@keys))
+         (swap! *type-tag-registry* assoc ~name ~class-name-str)
+         (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " struct.") [x] (and (php/is_object x) (php/is_a x ~class-name-str)))))
+    `(defstruct* ~name ~keys ~@implementations)))
 
 (defmacro defexception
   "Define a new exception. Optionally pass a parent class to extend (defaults to
@@ -193,15 +195,17 @@
   spelling: bare, dotted (`My.Ns.Error`), or an alias brought in with `:use`."
   ([name] `(defexception ~name nil))
   ([name parent]
-   (let [name-str       (.getName name)
-         munge          (new Munge)
-         class-name-str (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))
-         is-name        (Symbol/create (php/. name-str "?"))]
-     `(do
-        (defexception* ~name ~@(if parent [parent] []))
-        (defn ~name ~(php/. "Creates a new " name " exception.") [& args]
-          (.newInstanceArgs (new ReflectionClass ~class-name-str) (to-php-array args)))
-        (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " exception.") [x] (and (php/is_object x) (php/is_a x ~class-name-str)))))))
+   (if (php/instanceof name Symbol)
+     (let [name-str       (.getName name)
+           munge          (new Munge)
+           class-name-str (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))
+           is-name        (Symbol/create (php/. name-str "?"))]
+       `(do
+          (defexception* ~name ~@(if parent [parent] []))
+          (defn ~name ~(php/. "Creates a new " name " exception.") [& args]
+            (.newInstanceArgs (new ReflectionClass ~class-name-str) (to-php-array args)))
+          (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " exception.") [x] (and (php/is_object x) (php/is_a x ~class-name-str)))))
+     `(defexception* ~name ~@(if parent [parent] [])))))
 
 (defmacro defenum
   "Defines a native PHP enum. Each case is named by a keyword followed by an
@@ -221,13 +225,15 @@
         :php
         (label [this] (.-name this)))"
   [name & cases]
-  (let [name-str       (.getName name)
-        munge          (new Munge)
-        class-name-str (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))
-        is-name        (Symbol/create (php/. name-str "?"))]
-    `(do
-       (defenum* ~name ~@cases)
-       (defn ~is-name ~(php/. "Checks if `x` is a case of the " name " enum.") [x] (and (php/is_object x) (php/is_a x ~class-name-str))))))
+  (if (php/instanceof name Symbol)
+    (let [name-str       (.getName name)
+          munge          (new Munge)
+          class-name-str (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))
+          is-name        (Symbol/create (php/. name-str "?"))]
+      `(do
+         (defenum* ~name ~@cases)
+         (defn ~is-name ~(php/. "Checks if `x` is a case of the " name " enum.") [x] (and (php/is_object x) (php/is_a x ~class-name-str)))))
+    `(defenum* ~name ~@cases)))
 
 (defmacro comment
   "Ignores the body of the comment."

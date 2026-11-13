@@ -90,6 +90,7 @@ Reader and literals:
 
 Definitions and bindings:
 
+- Non-symbol names in `defstruct`, `definterface`, `defexception`, `defenum`, `defrecord`, `deftype` and `defprotocol` report `PHEL003` at the declaration. Integers, strings and nil used to trigger a PHP member-call error. (#3803)
 - Duplicate fn, macro, protocol and `extend-type` arities fail with `PHEL007`, and duplicate interface methods or parameters with `PHEL009`. Struct, record and type fields that repeat, share a PHP property name or are named `hasher`, `equalizer` or `meta`, and parameters tagged `^void` or `^never`, fail with `PHEL007`. All of these used to cause PHP errors. (#3534)
 - `(fn foo)` reports `PHEL002` at the form, and empty lists such as `(try ())` work inside `try`. Both used to fail with an out-of-bounds `PHEL403`. (#3716)
 - Repeated fn parameters bind the last argument, as in Clojure. Parameters with the same PHP spelling, superglobal names such as `_SERVER` and compiler-like names such as `__truthy` keep their values, also in `foreach` and `catch`. These used to corrupt bindings or stop PHP. (#3534 #3576 #3666)
