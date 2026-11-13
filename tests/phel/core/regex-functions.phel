@@ -88,6 +88,14 @@
 (deftest test-regex-literal-with-slash
   (is (= "a/b" (re-find #"a/b" "test a/b end")) "regex with forward slash"))
 
+(deftest test-regex-literal-slash-after-backslashes
+  (is (= "/" (re-matches #"/" "/")))
+  (is (= "/" (re-matches #"\/" "/")))
+  (is (= "\\/" (re-matches #"\\/" "\\/")))
+  (is (= "\\/" (re-matches #"\\\/" "\\/")))
+  (is (= "//" (re-matches #"//" "//")))
+  (is (= "abc" (re-matches #"abc" "abc"))))
+
 (deftest test-regex-literal-url-pattern
   (is (= "https://example.com" (re-find #"https?://[^\s]+" "visit https://example.com now"))
       "regex matching URL with slashes"))

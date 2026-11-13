@@ -9,6 +9,7 @@ use Phel\Shared\Parser\Node\StringNode;
 use Phel\Shared\Parser\Node\Token;
 
 use function sprintf;
+use function strlen;
 
 /**
  * Parses regex literal tokens (#"pattern") into StringNode values
@@ -26,8 +27,7 @@ final class RegexParser
         $raw = substr($token->getCode(), 2, -1);
         $pattern = str_replace('\\"', '"', $raw);
 
-        // Escape unescaped forward slashes so /delimiter/ is never broken
-        $pattern = preg_replace('/(?<!\\\\)\\//', '\\/', $pattern) ?? $pattern;
+        $pattern = $this->escapeDelimiters($pattern);
 
         $delimited = '/' . $pattern . '/';
 
@@ -39,6 +39,24 @@ final class RegexParser
             $token->getEndLocation(),
             $delimited,
         );
+    }
+
+    private function escapeDelimiters(string $pattern): string
+    {
+        $escaped = '';
+        $oddBackslashes = false;
+
+        for ($i = 0, $length = strlen($pattern); $i < $length; ++$i) {
+            $char = $pattern[$i];
+            if ($char === '/' && !$oddBackslashes) {
+                $escaped .= '\\';
+            }
+
+            $escaped .= $char;
+            $oddBackslashes = $char === '\\' && !$oddBackslashes;
+        }
+
+        return $escaped;
     }
 
     private function assertCompiles(string $delimited, string $literal): void
