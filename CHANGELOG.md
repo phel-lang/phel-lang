@@ -125,6 +125,7 @@ Collections and sequences:
 Printing and values:
 
 - `re-matches` finds a full match that needs a later alternative or a longer lazy match, as in `(re-matches #"a|ab" "ab")`. It used to return nil when the first match found was shorter than the string. (#3809)
+- `phel.json/encode` writes maps with keys `0` to `n-1`, such as `{0 :a 1 :b}`, as JSON objects. They used to become JSON arrays. (#3807)
 - `phel.html` `when` and `when-not` with several body forms render all of them when the condition holds and none otherwise. The second body form used to render as the else branch. (#3805)
 - `re-find`, `re-seq` and `re-matches` return nil for a capture group that did not match, and keep its slot when it is the last group: `(re-find #"(a)?b" "b")` is `["b" nil]`. They used to return `""`, and `re-find` and `re-matches` dropped a trailing unmatched group, returning a plain string when it was the only one. (#3810)
 - `pr-str` and `str` preserve finite float precision, including `1.0000000000000002` and `(/ 1.0 3)`. They used to round the value. (#3707)
@@ -160,6 +161,7 @@ Builds and caches:
 
 Commands and test output:
 
+- `thrown-with-msg?` matches a regex such as `#"bad"` against the exception message, as its docstring says. A string that does not look like `/.../` still needs the exact message. It used to compare the regex text with the message and fail. (#3813)
 - `phel run` accepts options before the script path, as in `phel run --stack-trace --debug app.phel`. Use `--` to end options: `phel run -- app.phel a b` passes `a` and `b` and allows paths starting with `-`. It used to treat `--debug` or `--` as the path and strip `--warn-deprecations` from script arguments. (#3537 #3689)
 - `phel config` and its JSON reflect `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations` overrides. They used to show only file values. JSON includes every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`. (#3525)
 - `phel --version`, `phel help` and `phel list` no longer create `.phel/` and its OPcache directory in a directory where nothing is compiled. (#3690)
