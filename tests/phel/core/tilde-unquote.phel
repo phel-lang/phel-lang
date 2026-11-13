@@ -50,3 +50,21 @@
   (let [error :boom]
     (is (= :boom (get (report-tilde "oops") :actual)))
     (is (= "oops" (get (report-tilde "oops") :message)))))
+
+(deftest test-unquote-in-quasiquoted-set
+  (let [x  2
+        xs [2 3]]
+    (is (= #{2} `#{~x}))
+    (is (= #{1 2 3} `#{1 ~@xs}))
+    (is (= [#{2}] `[#{~x}]))
+    (is (= #{} `#{}))))
+
+(deftest test-unquote-in-quasiquoted-set-runs-effects-once
+  (let [calls  (atom 0)
+        result `#{~(do (swap! calls inc) 2) ~@(do (swap! calls inc) [3 4])}]
+    (is (= #{2 3 4} result))
+    (is (= 2 @calls))))
+
+(deftest test-quasiquoted-set-shares-gensym-context
+  (let [result `[item# #{item#}]]
+    (is (contains? (get result 1) (get result 0)))))
