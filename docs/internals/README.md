@@ -11,6 +11,7 @@
 7. [Testing performance](testing-performance.md): suite timings, fast local workflows, parallelization.
 8. [FAQ](faq.md): grouped by reader.
 9. [CLI flag conventions](cli-flag-conventions.md): standard option names + short aliases.
+10. [Audit continuation, 2026-11-13](audit-2026-11-13.md): reproduced findings and coverage for the second repository sweep.
 
 ## What to read for what
 
