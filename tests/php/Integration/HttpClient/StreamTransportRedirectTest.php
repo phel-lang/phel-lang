@@ -244,6 +244,35 @@ final class StreamTransportRedirectTest extends TestCase
         }
     }
 
+    public function test_query_params_land_before_the_fragment(): void
+    {
+        $urls = [
+            self::$origin->url('/path#frag'),
+            self::$origin->url('/path?a=1#frag'),
+            self::$origin->url('/path#frag?b=2'),
+            self::$origin->url('/path'),
+        ];
+        $source = '(ns http-query-test (:require phel.http-client :as hc) (:require phel.json :as json))' . "\n";
+        foreach ($urls as $url) {
+            $source .= '(println (:query (json/decode (:body (hc/get ' . json_encode($url, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES) . ' {:query-params {:x "a b"}})))))' . "\n";
+        }
+
+        $cache = realpath(sys_get_temp_dir()) . '/phel-http-query-' . bin2hex(random_bytes(6));
+        $environment = getenv();
+        $environment['PHEL_CACHE_DIR'] = $cache;
+        $environment['PHEL_NO_OPCACHE_REEXEC'] = '1';
+
+        try {
+            $process = Subprocess::run([PHP_BINARY, dirname(__DIR__, 4) . '/bin/phel', 'eval', $source], env: $environment);
+            self::assertSame(0, $process->exitCode, $process->stdout . $process->stderr);
+            self::assertSame("x=a+b\na=1&x=a+b\nx=a+b\nx=a+b\nnil\n", $process->stdout);
+        } finally {
+            if (is_dir($cache)) {
+                removeDirectory($cache);
+            }
+        }
+    }
+
     public function test_a_query_only_location_keeps_the_current_path(): void
     {
         $echo = $this->send('GET', self::$origin->url('/items/redirect?to=' . rawurlencode('?page=2')));
