@@ -136,6 +136,7 @@ Printing and values:
 
 Files and PHP:
 
+- `phel.http-client` puts `:query-params` before a URL fragment, so they reach the server. It used to append them after `#frag`, where the request drops them, and a `?` inside the fragment chose the separator. (#3822)
 - `phel.http/uri-from-string` throws its documented `InvalidArgumentException` for a URI PHP cannot parse, such as an out-of-range port. It used to fail with a PHP `array_map()` type error. (#3811)
 - `file-seq` ends at symlink cycles and lists each real file once on all PHP builds. It used to repeat paths or throw on thread-safe builds. (#3537)
 - On PHP 8.6, struct, exception and enum predicates, interface methods called with strings and PHP object hashes emit no deprecations. Functions returning `(php/=& target value)` work with OPcache's default optimizer instead of stopping with `Invalid opcode 62/4/0` on PHP 8.6 RC2. (#3522)
