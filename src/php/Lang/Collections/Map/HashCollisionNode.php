@@ -97,12 +97,8 @@ final class HashCollisionNode implements HashMapNodeInterface
             return $notFound;
         }
 
-        // findIndex only ever lands on a key slot of the flat [k, v, k, v, …]
-        // list, so $pair[1] is always the matching value; the coalesce is a
-        // defensive fallback that a well-formed node never reaches.
-        $pair = array_slice($this->objects, $index, 2);
         /** @var TValue $value */
-        $value = $pair[1] ?? $notFound;
+        $value = $this->objects[$index + 1] ?? null;
 
         return $value;
     }
