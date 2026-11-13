@@ -28,23 +28,25 @@
   "An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro."
   {:example "(definterface name & fns)"}
   [name & fns]
-  (let [name-str       (.getName name)
-        munge          (new Munge)
-        class-name-str (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))
+  (if (php/instanceof name Symbol)
+    (let [name-str       (.getName name)
+          munge          (new Munge)
+          class-name-str (php/. (.encodePhpNs munge *ns*) "\\" (.encode munge name-str))
         ;; Only method forms get a Phel wrapper fn; a trailing `:php/const`
         ;; block (and its const forms) is passed through to `definterface*` only.
-        method-forms   (take-while #(not= % :php/const) fns)
-        defs           (for [[fn-name args doc] :in method-forms
-                             :let [fn-name-str (.getName fn-name)
-                                   munged-fn-name (.encode munge fn-name-str)
-                                   dot-call-symbol (Symbol/create (str "." munged-fn-name))]]
-                         `(defn ~fn-name {:doc ~doc} ~args
-                            (if (and (php/is_object ~(first args)) (php/is_a ~(first args) ~class-name-str))
-                              (~dot-call-symbol ~@args)
-                              (throw (new InvalidArgumentException ~(str "Value doesn't implement interface " name))))))]
-    `(do
-       (definterface* ~name ~@fns)
-       ~@defs)))
+          method-forms   (take-while #(not= % :php/const) fns)
+          defs           (for [[fn-name args doc] :in method-forms
+                               :let [fn-name-str (.getName fn-name)
+                                     munged-fn-name (.encode munge fn-name-str)
+                                     dot-call-symbol (Symbol/create (str "." munged-fn-name))]]
+                           `(defn ~fn-name {:doc ~doc} ~args
+                              (if (and (php/is_object ~(first args)) (php/is_a ~(first args) ~class-name-str))
+                                (~dot-call-symbol ~@args)
+                                (throw (new InvalidArgumentException ~(str "Value doesn't implement interface " name))))))]
+      `(do
+         (definterface* ~name ~@fns)
+         ~@defs))
+    `(definterface* ~name ~@fns)))
 
 ;; ---------
 ;; Hierarchy
@@ -513,47 +515,50 @@ When x is an object with no implementation for its exact type, dispatch looks fo
   {:example "(defprotocol Stringable (to-string [this]))"
    :see-also ["extend-type" "satisfies?" "extends?" "protocol-type-key"]}
   [protocol-name & method-specs]
-  (loop [specs method-specs, seen #{}]
-    (when specs
-      (let [spec  (first specs)
-            mname (first spec)]
-        (when (contains? seen mname)
-          (throw (new InvalidArgumentException
-                      (str "Function " mname " in protocol " protocol-name
-                           " was redefined. Specify all arities in single definition."))))
-        (recur (next specs) (conj seen mname)))))
-  (let [pname-str (.getName protocol-name)
+  (if (php/instanceof protocol-name Symbol)
+    (do
+      (loop [specs method-specs, seen #{}]
+        (when specs
+          (let [spec  (first specs)
+                mname (first spec)]
+            (when (contains? seen mname)
+              (throw (new InvalidArgumentException
+                          (str "Function " mname " in protocol " protocol-name
+                               " was redefined. Specify all arities in single definition."))))
+            (recur (next specs) (conj seen mname)))))
+      (let [pname-str (.getName protocol-name)
         ;; `arglists` holds every declared arity vector, so a multi-arity
         ;; method like `(say [this] [this name])` dispatches on all of them.
         ;; Keep only the arity vectors: a spec may carry a trailing docstring
         ;; (`(bar [this a b] "doc")`), which must not be treated as an arity.
-        methods   (for [spec :in method-specs
-                        :let [mname (first spec)
-                              mname-str (.getName mname)
-                              arglists (filter vector? (rest spec))
-                              dsym (Symbol/create (php/. pname-str "--" mname-str "--dispatch"))]]
-                    [mname mname-str arglists dsym])]
-    `(do
-       ~@(for [[_ _ _ dsym] :in methods]
-           `(def ~dsym {:private true} (atom {})))
-       (def ~protocol-name
-         {:name ~pname-str
-          :dispatch [~@(for [[_ _ _ dsym] :in methods] dsym)]})
-       ~@(for [[mname mname-str arglists dsym] :in methods]
-           `(defn ~mname
-              ~@(for [margs :in arglists]
-                  `(~margs
-                    (let [dk             (protocol-type-key ~(first margs))
-                          dispatch-table (deref ~dsym)
-                          impl           (get dispatch-table dk)]
-                      (if impl
-                        (impl ~@margs)
-                        (let [fallback-impl (protocol-fallback-impl dispatch-table ~(first margs))]
-                          (if fallback-impl
-                            (fallback-impl ~@margs)
-                            (throw (new InvalidArgumentException
-                                        (str "No implementation of '" ~mname-str
-                                             "' for type: " dk))))))))))))))
+            methods   (for [spec :in method-specs
+                            :let [mname (first spec)
+                                  mname-str (.getName mname)
+                                  arglists (filter vector? (rest spec))
+                                  dsym (Symbol/create (php/. pname-str "--" mname-str "--dispatch"))]]
+                        [mname mname-str arglists dsym])]
+        `(do
+           ~@(for [[_ _ _ dsym] :in methods]
+               `(def ~dsym {:private true} (atom {})))
+           (def ~protocol-name
+             {:name ~pname-str
+              :dispatch [~@(for [[_ _ _ dsym] :in methods] dsym)]})
+           ~@(for [[mname mname-str arglists dsym] :in methods]
+               `(defn ~mname
+                  ~@(for [margs :in arglists]
+                      `(~margs
+                        (let [dk             (protocol-type-key ~(first margs))
+                              dispatch-table (deref ~dsym)
+                              impl           (get dispatch-table dk)]
+                          (if impl
+                            (impl ~@margs)
+                            (let [fallback-impl (protocol-fallback-impl dispatch-table ~(first margs))]
+                              (if fallback-impl
+                                (fallback-impl ~@margs)
+                                (throw (new InvalidArgumentException
+                                            (str "No implementation of '" ~mname-str
+                                                 "' for type: " dk))))))))))))))
+    `(def ~protocol-name nil)))
 
 (defn- group-protocol-specs
   "Splits a flat protocol spec list into `[[header [methods]] ...]` groups.
@@ -812,19 +817,21 @@ Equivalent to multiple `extend-type` calls."
   {:example "(defrecord Point [x y] Drawable (draw [this canvas] ...))"
    :see-also ["deftype" "defstruct" "defprotocol" "extend-type"]}
   [name fields & impls]
-  (let [name-str   (.getName name)
-        arrow-ctor (Symbol/create (php/. "->" name-str))
-        map-ctor   (Symbol/create (php/. "map->" name-str))
-        m-sym      (gensym "map__")
-        get-calls  (for [f :in fields]
-                     `(get ~m-sym ~(keyword (.getName f))))
-        forms      [`(defstruct ~name ~fields)
-                    `(defn ~arrow-ctor ~(php/. "Positional factory function for " name-str ".") ~fields (~name ~@fields))
-                    `(defn ~map-ctor ~(php/. "Map factory function for " name-str ".") [~m-sym] (~name ~@get-calls))]
-        all-forms  (if (seq impls)
-                     (conj forms `(extend-type ~name ~@impls))
-                     forms)]
-    `(do ~@all-forms)))
+  (if (php/instanceof name Symbol)
+    (let [name-str   (.getName name)
+          arrow-ctor (Symbol/create (php/. "->" name-str))
+          map-ctor   (Symbol/create (php/. "map->" name-str))
+          m-sym      (gensym "map__")
+          get-calls  (for [f :in fields]
+                       `(get ~m-sym ~(keyword (.getName f))))
+          forms      [`(defstruct ~name ~fields)
+                      `(defn ~arrow-ctor ~(php/. "Positional factory function for " name-str ".") ~fields (~name ~@fields))
+                      `(defn ~map-ctor ~(php/. "Map factory function for " name-str ".") [~m-sym] (~name ~@get-calls))]
+          all-forms  (if (seq impls)
+                       (conj forms `(extend-type ~name ~@impls))
+                       forms)]
+      `(do ~@all-forms))
+    `(defstruct* ~name ~fields ~@impls)))
 
 (defmacro deftype
   "Defines a type with the given fields, matching Clojure's `deftype` syntax.
@@ -846,14 +853,16 @@ Equivalent to multiple `extend-type` calls."
   {:example "(deftype PointT [x y] Drawable (draw [this canvas] ...))"
    :see-also ["defrecord" "defstruct" "defprotocol" "extend-type"]}
   [name fields & impls]
-  (let [name-str   (.getName name)
-        arrow-ctor (Symbol/create (php/. "->" name-str))
-        forms      [`(defstruct ~name ~fields)
-                    `(defn ~arrow-ctor ~(php/. "Positional factory function for " name-str ".") ~fields (~name ~@fields))]
-        all-forms  (if (seq impls)
-                     (conj forms `(extend-type ~name ~@impls))
-                     forms)]
-    `(do ~@all-forms)))
+  (if (php/instanceof name Symbol)
+    (let [name-str   (.getName name)
+          arrow-ctor (Symbol/create (php/. "->" name-str))
+          forms      [`(defstruct ~name ~fields)
+                      `(defn ~arrow-ctor ~(php/. "Positional factory function for " name-str ".") ~fields (~name ~@fields))]
+          all-forms  (if (seq impls)
+                       (conj forms `(extend-type ~name ~@impls))
+                       forms)]
+      `(do ~@all-forms))
+    `(defstruct* ~name ~fields ~@impls)))
 
 ;; ------------
 ;; Multimethods
