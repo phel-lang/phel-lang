@@ -233,7 +233,7 @@ final class DelimiterScannerTest extends TestCase
 
         self::assertFalse($report->isRepairable(), sprintf('a trailing %s must not be repaired', $prefix));
         self::assertSame($prefix, $report->danglingPrefixToken);
-        self::assertStringContainsString('reads the next form', (string) $report->unrepairableReason());
+        self::assertStringContainsString('still reads a following form', (string) $report->unrepairableReason());
     }
 
     public static function readerPrefixProvider(): Generator
@@ -247,6 +247,40 @@ final class DelimiterScannerTest extends TestCase
         yield 'var-quote' => ["#'"];
         yield 'form-skip' => ['#_'];
         yield 'tagged literal' => ['#uuid'];
+    }
+
+    #[DataProvider('prefixStillShortOfAFormProvider')]
+    public function test_it_refuses_to_repair_a_prefix_still_waiting_for_a_form(string $code, string $prefix): void
+    {
+        $report = $this->scanner->scan($code, 'test.phel');
+
+        self::assertFalse($report->isRepairable(), $code);
+        self::assertSame($prefix, $report->danglingPrefixToken);
+    }
+
+    public static function prefixStillShortOfAFormProvider(): Generator
+    {
+        yield 'keyword metadata without a target' => ['(list ^:foo', '^'];
+        yield 'map metadata without a target' => ['(list ^{:a 1}', '^'];
+        yield 'metadata followed by a comment' => ["(list ^:foo ; target\n", '^'];
+        yield 'metadata on an unclosed form' => ['(a ^(b', '^'];
+        yield 'quoted metadata without a target' => ["(a '^:m", '^'];
+    }
+
+    #[DataProvider('prefixWithItsFormsProvider')]
+    public function test_a_prefix_with_all_its_forms_allows_a_repair(string $code): void
+    {
+        $report = $this->scanner->scan($code, 'test.phel');
+
+        self::assertTrue($report->isRepairable(), (string) $report->unrepairableReason());
+    }
+
+    public static function prefixWithItsFormsProvider(): Generator
+    {
+        yield 'metadata and target' => ['(list ^:foo x'];
+        yield 'metadata whose target is the unclosed form' => ['(a ^:m (b'];
+        yield 'quoted metadata and target' => ["(a '^:m x"];
+        yield 'form skip and its form' => ['(a #_ x'];
     }
 
     public function test_a_reader_prefix_with_its_form_does_not_block_a_repair(): void
