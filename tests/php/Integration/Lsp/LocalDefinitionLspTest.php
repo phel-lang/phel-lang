@@ -17,6 +17,7 @@ use Phel\Lsp\Application\Handler\SymbolResolver;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\NotificationSink;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -38,6 +39,24 @@ final class LocalDefinitionLspTest extends TestCase
             'start' => ['line' => 0, 'character' => 6],
             'end' => ['line' => 0, 'character' => 11],
         ], $result['range'] ?? null);
+    }
+
+    #[DataProvider('unicodeBeforeTheUsage')]
+    public function test_it_navigates_after_unicode_on_the_same_line(string $prefix, int $character): void
+    {
+        $result = $this->definitionAt('(let [mysym 123] "' . $prefix . '" mysym)', line: 0, character: $character);
+
+        self::assertSame([
+            'start' => ['line' => 0, 'character' => 6],
+            'end' => ['line' => 0, 'character' => 11],
+        ], $result['range'] ?? null);
+    }
+
+    public static function unicodeBeforeTheUsage(): iterable
+    {
+        yield 'ascii' => ['aa', 22];
+        yield 'two-byte characters' => ['éé', 22];
+        yield 'characters outside the basic plane' => ['😀😀', 24];
     }
 
     public function test_it_navigates_from_a_caret_resting_past_the_usage(): void

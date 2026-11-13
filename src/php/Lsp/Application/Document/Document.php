@@ -9,7 +9,7 @@ use Phel\Lsp\Application\Convert\PositionConverter;
 use function count;
 use function explode;
 use function max;
-use function min;
+use function mb_strlen;
 use function ord;
 use function preg_match;
 use function str_ends_with;
@@ -98,26 +98,7 @@ final class Document
             $lineText = substr($lineText, 0, -1);
         }
 
-        $cursor = 0;
-        $lineLength = strlen($lineText);
-        while ($character > 0 && $cursor < $lineLength) {
-            $lead = ord($lineText[$cursor]);
-            $bytes = match (true) {
-                $lead < 0x80 => 1,
-                $lead < 0xE0 => 2,
-                $lead < 0xF0 => 3,
-                default => 4,
-            };
-            $units = $bytes === 4 ? 2 : 1;
-            if ($units > $character) {
-                break;
-            }
-
-            $character -= $units;
-            $cursor += $bytes;
-        }
-
-        return $offset + $cursor;
+        return $offset + $this->byteColumnIn($lineText, $character);
     }
 
     /**
@@ -146,8 +127,7 @@ final class Document
             return '';
         }
 
-        $col = max(0, $position['character']);
-        $col = min($col, strlen($lineText));
+        $col = $this->byteColumnIn($lineText, max(0, $position['character']));
 
         $left = $col;
         while ($left > 0 && $this->isIdentChar($lineText[$left - 1])) {
@@ -178,8 +158,62 @@ final class Document
     {
         return [
             max(1, $position['line'] + 1),
-            max(1, $position['character'] + 1),
+            $this->codePointColumn($position) + 1,
         ];
+    }
+
+    /**
+     * Byte column on the cursor's line for an LSP position, whose `character`
+     * counts UTF-16 code units. Every byte-based scan of a line goes through
+     * here, or text with non-ASCII characters before the cursor shifts it.
+     *
+     * @param Position $position
+     */
+    public function byteColumn(array $position): int
+    {
+        $lineText = $this->lineAt(max(0, $position['line'])) ?? '';
+
+        return $this->byteColumnIn($lineText, max(0, $position['character']));
+    }
+
+    /**
+     * The lexer counts columns in code points, so a 😀 is one column there and
+     * two UTF-16 units in the client's `character`.
+     *
+     * @param Position $position
+     */
+    private function codePointColumn(array $position): int
+    {
+        $lineText = $this->lineAt(max(0, $position['line']));
+        if ($lineText === null) {
+            return max(0, $position['character']);
+        }
+
+        return mb_strlen(substr($lineText, 0, $this->byteColumn($position)), 'UTF-8');
+    }
+
+    private function byteColumnIn(string $lineText, int $character): int
+    {
+        $cursor = 0;
+        $lineLength = strlen($lineText);
+        while ($character > 0 && $cursor < $lineLength) {
+            $lead = ord($lineText[$cursor]);
+            $bytes = match (true) {
+                $lead < 0x80 => 1,
+                $lead < 0xE0 => 2,
+                $lead < 0xF0 => 3,
+                default => 4,
+            };
+            $units = $bytes === 4 ? 2 : 1;
+            if ($units > $character) {
+                break;
+            }
+
+            $character -= $units;
+            $cursor += $bytes;
+        }
+
+        return $cursor;
     }
 
     private function isIdentChar(string $char): bool

@@ -14,7 +14,6 @@ use Phel\Shared\Api\ProjectIndex;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function max;
-use function min;
 use function preg_match;
 use function strlen;
 use function substr;
@@ -103,13 +102,16 @@ final readonly class CompletionHandler implements HandlerInterface
             return null;
         }
 
-        $character = min(max(0, $position['character']), strlen($lineText));
-        if (preg_match('/\$\w*$/', substr($lineText, 0, $character), $matches) !== 1) {
+        $byte = $document->byteColumn($position);
+        if (preg_match('/\$\w*$/', substr($lineText, 0, $byte), $matches) !== 1) {
             return null;
         }
 
+        // `\w` without `u` matches ASCII only, so the token is as many UTF-16
+        // units as bytes and the client's own `character` anchors the range.
+        $character = max(0, $position['character']);
         $end = $character;
-        if (preg_match('/^\w+/', substr($lineText, $character), $tail) === 1) {
+        if (preg_match('/^\w+/', substr($lineText, $byte), $tail) === 1) {
             $end += strlen($tail[0]);
         }
 
