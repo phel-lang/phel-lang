@@ -66,7 +66,14 @@
   (is (= "ab" (re-matches "/a | ab # trailing comment/x" "ab")) "extended mode with a trailing comment")
   (is (= "éa" (re-matches "/(*UTF8)é|éa/u" "éa")) "a leading verb stays first")
   (is (nil? (re-matches #"abc" "xabcx")) "a match inside the string is not enough")
-  (is (nil? (re-matches #"a$" "a\n")) "a trailing newline is not part of a match"))
+  (is (nil? (re-matches #"a$" "a\n")) "a trailing newline is not part of a match")
+  (is (= "a" (re-matches "/(*F)|a/" "a")) "a verb that is part of the pattern stays in place")
+  (is (= "ac" (re-matches "/(*atomic:a|ab)c/" "ac")) "an atomic group stays in place")
+  (is (nil? (re-matches "/(*ACCEPT)a/" "xyz")) "an early accept is not a full match")
+  (is (= "ab" (re-matches #"(?x)a|ab # trailing comment" "ab")) "inline extended mode with a trailing comment")
+  (is (= "ab" (re-matches "/a\\Qb/" "ab")) "a quote left open at the end")
+  (is (nil? (re-matches "/a\\Kb/" "ab")) "a reset match start is not a full match")
+  (is (nil? (re-matches " /a/" "xax")) "a pattern with leading whitespace still needs a full match"))
 
 ;; --- #"..." regex literal syntax ---
 
