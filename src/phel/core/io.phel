@@ -64,16 +64,39 @@
         (aget matches 0)
         (into [] matches)))))
 
+(def- regex-closing-delimiters {"(" ")" "[" "]" "{" "}" "<" ">"})
+
+(defn- anchor-whole-subject
+  "Wraps the body of a delimited PCRE pattern in `\\A(?:...)\\z`, so the engine
+  backtracks until the match covers the whole subject. Leading `(*VERB)`
+  options stay first, where PCRE requires them, and the `x` modifier gets a
+  newline so a trailing comment cannot swallow the closing group."
+  [re]
+  (let [open  (php/substr re 0 1)
+        close (get regex-closing-delimiters open open)
+        end   (php/strrpos re close)]
+    (if (or (php/=== false end) (php/=== 0 end))
+      re
+      (let [body      (php/substr re 1 (php/- end 1))
+            modifiers (php/substr re (php/+ end 1))
+            verbs     (php-indexed-array)
+            _         (php/preg_match "/^(?:\\(\\*[^)]*\\))*/" body verbs)
+            verbs-len (php/strlen (php/aget verbs 0))]
+        (str open
+             (php/substr body 0 verbs-len)
+             "\\A(?:"
+             (php/substr body verbs-len)
+             (if (php/str_contains modifiers "x") "\n" "")
+             ")\\z"
+             close
+             modifiers)))))
+
 (defn re-matches
   "Returns the match, if any, of string to pattern. If the pattern has groups, returns a vector of [full-match group1 group2 ...]. Returns nil if no match. Unlike re-find, the entire string must match."
   {:example "(re-matches #\"(\\d+)-(\\d+)\" \"12-34\") ; => [\"12-34\" \"12\" \"34\"]"
    :see-also ["re-find" "re-seq"]}
   [re s]
-  (let [result (re-find re s)]
-    (when (some? result)
-      (let [full-match (if (string? result) result (first result))]
-        (when (php/=== full-match s)
-          result)))))
+  (re-find (anchor-whole-subject re) s))
 
 ;; ---------------
 ;; Print operation
@@ -196,8 +219,8 @@
   "sprintf casts an object to 1 with a warning, so an exact number becomes what its directive consumes."
   [x conversion]
   (cond
-    (not (exact-number? x)) x
-    (php/str_contains "eEfFgGhH" conversion) (NumericCoercion/toFloat x)
+    (not (exact-number? x))                       x
+    (php/str_contains "eEfFgGhH" conversion)      (NumericCoercion/toFloat x)
     (not (php/str_contains "bcdouxX" conversion)) x
     (not (php/instanceof x BigInt))
     (throw (new InvalidArgumentException
@@ -205,7 +228,7 @@
     (not (.fitsInPhpInt x))
     (throw (new InvalidArgumentException
                 (str "format: %" conversion " expects an integer that fits in a PHP int, got " x)))
-    :else (.toInt x)))
+    :else                                         (.toInt x)))
 
 (defn- format-args
   "Returns `[fmt args]` for sprintf. When `xs` holds a ratio, bigint or bigdec, every
@@ -237,9 +260,9 @@
                                                 width
                                                 (str "*" (take-arg width-position identity) "$"))
                                     precision (cond
-                                                (= dot "") ""
+                                                (= dot "")            ""
                                                 (= precision-star "") (str "." precision)
-                                                :else (str ".*" (take-arg precision-position identity) "$"))
+                                                :else                 (str ".*" (take-arg precision-position identity) "$"))
                                     value     (take-arg position #(format-exact-number % conversion))]
                                 (str "%" value "$" flags width precision conversion)))))
                         fmt)]
