@@ -269,9 +269,9 @@
       "if"       (let [[_ condition & body] form]
                    `(if ~condition ~@(for [x :in body] (compile-html x))))
       "when"     (let [[_ condition & body] form]
-                   `(if ~condition ~@(for [x :in body] (compile-html x))))
+                   `(if ~condition ~(apply compile-html body) ""))
       "when-not" (let [[_ condition & body] form]
-                   `(if (not ~condition) ~@(for [x :in body] (compile-html x))))
+                   `(if ~condition "" ~(apply compile-html body)))
       `(render-html ~form))))
 
 (defn- compile-seq [content]
