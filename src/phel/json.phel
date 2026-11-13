@@ -50,6 +50,10 @@
     ;; php/array would produce; a stdClass forces object encoding. It is the
     ;; same type `decode-value` reads an object back from, at the other end.
     (and (map? x) (empty? x)) (new \stdClass)
+    ;; `json_encode` writes a PHP array with keys 0..n-1 as a JSON array, so a
+    ;; map such as `{0 :a 1 :b}` needs an object wrapper to stay an object.
+    (map? x)                  (let [arr (encode-value-iterable x)]
+                                (if (php/array_is_list arr) (new \ArrayObject arr) arr))
     (php/is_iterable x)       (encode-value-iterable x)
     (symbol? x)               (name x)
     (keyword? x)              (name x)
