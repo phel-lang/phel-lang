@@ -101,4 +101,21 @@ final class MtimeFileSystemScannerTest extends TestCase
         self::assertSame(1_700_000_000, $snapshot[$path]['mtime']);
     }
 
+    public function test_snapshot_hash_changes_with_same_size_content(): void
+    {
+        $path = $this->root . '/same-size.phel';
+        file_put_contents($path, 'aaaa');
+        touch($path, 1_700_000_000);
+
+        $scanner = new MtimeFileSystemScanner();
+        $before = $scanner->snapshot([$path])[$path];
+
+        file_put_contents($path, 'bbbb');
+        touch($path, 1_700_000_000);
+        $after = $scanner->snapshot([$path])[$path];
+
+        self::assertSame([$before['mtime'], $before['size']], [$after['mtime'], $after['size']]);
+        self::assertNotSame($before['hash'] ?? null, $after['hash'] ?? null);
+    }
+
 }

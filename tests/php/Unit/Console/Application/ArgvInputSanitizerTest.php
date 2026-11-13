@@ -127,6 +127,40 @@ final class ArgvInputSanitizerTest extends TestCase
         );
     }
 
+    /**
+     * @param list<string> $argv
+     * @param list<string> $expected
+     */
+    #[DataProvider('globalOptionsBeforeRun')]
+    public function test_global_options_before_the_command_keep_script_arguments(array $argv, array $expected): void
+    {
+        self::assertSame($expected, $this->sanitizer()->sanitize($argv));
+    }
+
+    public static function globalOptionsBeforeRun(): iterable
+    {
+        yield 'no-ansi' => [
+            ['phel', '--no-ansi', 'run', 'app.phel', '--flag=value', 'two'],
+            ['phel', '--no-ansi', 'run', 'app.phel', '--', '--flag=value', 'two'],
+        ];
+        yield 'verbose with alias' => [
+            ['phel', '-v', 'r', 'app.phel', '-x'],
+            ['phel', '-v', 'r', 'app.phel', '--', '-x'],
+        ];
+        yield 'bare debug after a global option' => [
+            ['phel', '--no-ansi', 'run', '--debug', 'app.phel'],
+            ['phel', '--no-ansi', 'run', '--debug=', 'app.phel'],
+        ];
+        yield 'warn-deprecations before run' => [
+            ['phel', '--warn-deprecations', 'run', 'app.phel', '--flag=value'],
+            ['phel', '--warn-deprecations', 'run', 'app.phel', '--', '--flag=value'],
+        ];
+        yield 'not a run command' => [
+            ['phel', '--no-ansi', 'test', '--filter', 'x'],
+            ['phel', '--no-ansi', 'test', '--filter', 'x'],
+        ];
+    }
+
     public function test_keeps_the_filter_of_a_debug_option_given_with_a_value(): void
     {
         $argv = ['phel', 'run', '--debug=core', 'app.phel', 'arg1'];

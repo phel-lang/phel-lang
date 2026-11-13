@@ -11,7 +11,7 @@ use Phel\Watch\Transfer\WatchEvent;
 
 /**
  * Stat-based fallback watcher. Walks the given paths every `$pollIntervalMs`
- * and diffs the mtime + size snapshot with the previous one. Events emitted
+ * and diffs the mtime, size and content-hash snapshot with the previous one. Events emitted
  * in the same `$debounceMs` window are coalesced into a single callback
  * invocation (which stops editor-save-induced double triggers).
  *
@@ -95,7 +95,9 @@ final class PollingWatcher implements FileWatcherInterface
                 continue;
             }
 
-            if ($previous[$path]['mtime'] !== $stat['mtime'] || $previous[$path]['size'] !== $stat['size']) {
+            if ($previous[$path]['mtime'] !== $stat['mtime']
+                || $previous[$path]['size'] !== $stat['size']
+                || ($previous[$path]['hash'] ?? null) !== ($stat['hash'] ?? null)) {
                 $events[] = new WatchEvent($path, WatchEvent::KIND_MODIFIED);
             }
         }

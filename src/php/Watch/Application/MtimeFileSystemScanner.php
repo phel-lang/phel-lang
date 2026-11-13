@@ -14,13 +14,14 @@ use UnexpectedValueException;
 use function clearstatcache;
 use function filemtime;
 use function filesize;
+use function hash_file;
 use function is_array;
 use function is_dir;
 use function is_file;
 
 /**
  * Filesystem scanner that walks directories recursively and returns a
- * snapshot of `.phel` files keyed by realpath with mtime + size.
+ * snapshot of `.phel` files keyed by realpath with mtime, size and content hash.
  *
  * @phpstan-import-type FileStat from FileSystemScannerInterface
  *
@@ -87,10 +88,11 @@ final class MtimeFileSystemScanner implements FileSystemScannerInterface
     {
         $mtime = @filemtime($file);
         $size = @filesize($file);
-        if ($mtime === false || $size === false) {
+        $hash = @hash_file('xxh3', $file);
+        if ($mtime === false || $size === false || $hash === false) {
             return;
         }
 
-        $snapshot[$file] = ['mtime' => $mtime, 'size' => $size];
+        $snapshot[$file] = ['mtime' => $mtime, 'size' => $size, 'hash' => $hash];
     }
 }
