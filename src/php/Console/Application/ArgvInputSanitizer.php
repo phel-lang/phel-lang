@@ -52,6 +52,7 @@ final readonly class ArgvInputSanitizer
      *   phel run -t cmd arg1 arg2    => [script, run, -t, cmd, --, arg1, arg2]
      *   phel run --with-time         => [script, run, --with-time]
      *   phel run --debug app.phel    => [script, run, --debug=, app.phel]
+     *   phel -v run app.phel --flag  => [script, -v, run, app.phel, --, --flag]
      *
      * @param list<string> $argv
      *
@@ -59,23 +60,38 @@ final readonly class ArgvInputSanitizer
      */
     public function sanitize(array $argv): array
     {
+        $argc = count($argv);
+        $result = [$argv[0] ?? ''];
+        $i = 1;
+
+        // Global options such as `--no-ansi` or `-v` may come before the command name.
+        while ($i < $argc && $argv[$i] !== '--' && str_starts_with($argv[$i], '-')) {
+            $consumed = $this->consumeOption($argv, $i);
+            if ($consumed === null) {
+                return $argv;
+            }
+
+            [$tokens, $count] = $consumed;
+            array_push($result, ...$tokens);
+            $i += $count;
+        }
+
         // Nothing to do if this isn't a `run` invocation (or argv too short).
-        if (!in_array($argv[1] ?? null, $this->runNames(), true)) {
+        if (!in_array($argv[$i] ?? null, $this->runNames(), true)) {
             return $argv;
         }
 
-        $argc = count($argv);
-        $result = array_slice($argv, 0, 2);
-
-        $i = 2;
+        $result[] = $argv[$i];
+        ++$i;
 
         while ($i < $argc) {
-            if ($argv[$i] === '--') {
+            $arg = $argv[$i] ?? '';
+            if ($arg === '--') {
                 return [...$result, ...array_slice($argv, $i)];
             }
 
-            if (WarnDeprecationsFlag::matches($argv[$i])) {
-                $result[] = $argv[$i];
+            if (WarnDeprecationsFlag::matches($arg)) {
+                $result[] = $arg;
                 ++$i;
                 continue;
             }

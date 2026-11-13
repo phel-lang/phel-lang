@@ -156,6 +156,7 @@ Builds and caches:
 
 Commands and test output:
 
+- Global options before `run`, as in `phel --no-ansi run app.phel --flag=value`, keep script arguments and a bare `--debug` working. The script's options used to fail as unknown, and `--debug` took the script path as its value. (#3814)
 - `phel run` accepts options before the script path, as in `phel run --stack-trace --debug app.phel`. Use `--` to end options: `phel run -- app.phel a b` passes `a` and `b` and allows paths starting with `-`. It used to treat `--debug` or `--` as the path and strip `--warn-deprecations` from script arguments. (#3537 #3689)
 - `phel config` and its JSON reflect `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations` overrides. They used to show only file values. JSON includes every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`. (#3525)
 - `phel --version`, `phel help` and `phel list` no longer create `.phel/` and its OPcache directory in a directory where nothing is compiled. (#3690)
