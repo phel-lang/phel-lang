@@ -135,8 +135,10 @@
                             (is (thrown-with-msg? InvalidArgumentException "bad"
                                                   (throw (new InvalidArgumentException "bad input"))))
                             (is (thrown-with-msg? InvalidArgumentException "/[/"
-                                                  (throw (new InvalidArgumentException "x")))))))]
-    (is (= 2 (:failed counts)) "a plain prefix and an invalid regex both fail")))
+                                                  (throw (new InvalidArgumentException "x"))))
+                            (is (thrown-with-msg? InvalidArgumentException "*error*"
+                                                  (throw (new InvalidArgumentException "an error here")))))))]
+    (is (= 3 (:failed counts)) "a plain prefix, an invalid regex and other delimiters all fail")))
 
 ;; ---------------------------------------------------------------------------
 ;; 'output? — passes when body's stdout matches the expected string

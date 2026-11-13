@@ -355,15 +355,15 @@
          (report-thrown! true ~loc '~form ~message ~exception-name)))))
 
 (defn- message-matches?
-  "True when `actual` equals `expected`, or when `expected` is a delimited regex,
-  such as a `#\"...\"` literal, that matches `actual`. A regex literal reads as a
+  "True when `actual` equals `expected`, or when `expected` is a `/`-delimited
+  regex, such as a `#\"...\"` literal, that matches `actual`. A regex literal reads as a
   plain string, so its shape is the only sign of one; equality comes first so
   exact-message checks keep passing."
   [expected actual]
   (or (= expected actual)
       (and (string? expected)
            (string? actual)
-           (php/=== 1 (php/preg_match "/^([^a-zA-Z0-9\\\\\\s]).*\\1[a-zA-Z]*$/s" expected))
+           (php/=== 1 (php/preg_match "#^/.+/[a-zA-Z]*$#s" expected))
            (do
              (php/set_error_handler (fn [& _] true))
              (try
