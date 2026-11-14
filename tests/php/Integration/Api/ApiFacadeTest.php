@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Api;
 use Phel;
 use Phel\Api\ApiConfig;
 use Phel\Api\ApiFacade;
+use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use Phel\Shared\Api\PhelFunction;
@@ -23,6 +24,43 @@ use function sprintf;
 
 final class ApiFacadeTest extends TestCase
 {
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_multi_arity_signatures_keep_quoted_destructuring_defaults(): void
+    {
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+
+        $facade = new ApiFacade();
+        $facade->getPhelFunctions(['phel.core']);
+
+        $compiler = new CompilerFacade();
+        $defaults = [
+            'quoted-close' => '"]"',
+            'quoted-open' => '"["',
+            'quoted-escape' => <<<'PHEL'
+            "\"["
+            PHEL,
+        ];
+
+        foreach ($defaults as $name => $literal) {
+            $compiler->eval('(def ' . $name . ' (fn ([{:keys [x] :or {x ' . $literal . '}}] x) ([] nil)))');
+        }
+
+        $functions = $facade->getPhelFunctions(['phel.core']);
+        foreach ($defaults as $name => $literal) {
+            $function = $this->findFunction($functions, 'user', $name);
+
+            self::assertNotNull($function);
+            self::assertCount(2, $function->signatures);
+            self::assertStringStartsWith('(' . $name . ' ', $function->signatures[0]);
+            self::assertStringContainsString($literal, $function->signatures[0]);
+            self::assertSame('(' . $name . ')', $function->signatures[1]);
+        }
+    }
+
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_can_load_phel_functions_from_all_namespaces(): void

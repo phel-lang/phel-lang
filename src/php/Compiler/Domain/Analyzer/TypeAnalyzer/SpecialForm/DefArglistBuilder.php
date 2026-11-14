@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Printer\Printer;
 
 use function array_map;
 use function array_pop;
@@ -26,6 +29,11 @@ final readonly class DefArglistBuilder
 {
     public function buildFnNodeArglist(FnNode $fnNode, int $skipFirst = 0): string
     {
+        $sourceParams = $fnNode->getSourceParams();
+        if ($sourceParams instanceof PersistentVectorInterface) {
+            return Printer::readable()->print(Phel::vector(array_slice($sourceParams->toArray(), $skipFirst)));
+        }
+
         return $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic(), $skipFirst);
     }
 
@@ -33,7 +41,7 @@ final readonly class DefArglistBuilder
     {
         $vectors = [];
         foreach ($multiFnNode->getFnNodes() as $fnNode) {
-            $vectors[] = $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic(), $skipFirst);
+            $vectors[] = $this->buildFnNodeArglist($fnNode, $skipFirst);
         }
 
         return '(' . implode(' ', $vectors) . ')';

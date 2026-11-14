@@ -72,9 +72,25 @@ final readonly class ArglistSignatureParser
         $vectors = [];
         $depth = 0;
         $start = 0;
+        $inString = false;
 
         for ($i = 0, $length = strlen($input); $i < $length; ++$i) {
             $char = $input[$i];
+
+            if ($inString) {
+                if ($char === '\\') {
+                    ++$i;
+                } elseif ($char === '"') {
+                    $inString = false;
+                }
+
+                continue;
+            }
+
+            if ($char === '"') {
+                $inString = true;
+                continue;
+            }
 
             if ($char === '[') {
                 if ($depth === 0) {
@@ -96,6 +112,6 @@ final readonly class ArglistSignatureParser
         // An unbalanced string means the metadata is not the shape this parser
         // knows. Reporting nothing lets the caller keep its existing fallback
         // rather than publishing a mangled signature.
-        return $depth === 0 && $vectors !== [] ? $vectors : [];
+        return !$inString && $depth === 0 && $vectors !== [] ? $vectors : [];
     }
 }
