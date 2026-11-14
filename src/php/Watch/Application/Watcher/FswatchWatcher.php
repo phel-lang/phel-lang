@@ -10,8 +10,10 @@ use Phel\Watch\Domain\FileSystemScannerInterface;
 use Phel\Watch\Transfer\WatchEvent;
 
 use function escapeshellarg;
+use function file_exists;
 use function implode;
-use function trim;
+use function in_array;
+use function preg_match;
 
 /**
  * macOS-friendly watcher. Pipes events out of the `fswatch` binary and lets
@@ -23,6 +25,13 @@ use function trim;
 final class FswatchWatcher extends AbstractShellWatcher
 {
     public const string NAME = 'fswatch';
+
+    /** Event flag names fswatch prints after a path with `--event-flags`. */
+    private const array EVENT_FLAGS = [
+        'NoOp', 'PlatformSpecific', 'Created', 'Updated', 'Removed', 'Renamed',
+        'OwnerModified', 'AttributeModified', 'MovedFrom', 'MovedTo',
+        'IsFile', 'IsDir', 'IsSymLink', 'Link', 'Overflow', 'CloseWrite',
+    ];
 
     public function __construct(
         FileSystemScannerInterface $scanner,
@@ -60,13 +69,55 @@ final class FswatchWatcher extends AbstractShellWatcher
             . implode(' ', $args);
     }
 
+    /**
+     * `-0` ends every record with NUL, so a path may hold spaces or newlines.
+     *
+     * @return non-empty-string
+     */
+    protected function recordSeparator(): string
+    {
+        return "\0";
+    }
+
+    /**
+     * A record is the path followed by its event flags, each after a space:
+     * `/src/a.phel Updated IsFile`. Flags are peeled off the end, so a space
+     * inside the path survives.
+     */
     protected function parseLine(string $line): ?WatchEvent
     {
-        $path = trim($line);
-        if ($path === '') {
+        $path = $line;
+        $flags = [];
+        while (preg_match('/^(.*) ([A-Za-z]+)$/s', $path, $match) === 1 && in_array($match[2], self::EVENT_FLAGS, true)) {
+            $path = $match[1];
+            $flags[] = $match[2];
+        }
+
+        if (preg_match('/\.(phel|cljc)$/', $path) !== 1) {
             return null;
         }
 
-        return new WatchEvent($path, WatchEvent::KIND_MODIFIED);
+        return new WatchEvent($path, $this->kindOf($path, $flags));
+    }
+
+    /**
+     * @param list<string> $flags
+     */
+    private function kindOf(string $path, array $flags): string
+    {
+        if (in_array('Removed', $flags, true)) {
+            return WatchEvent::KIND_DELETED;
+        }
+
+        // A rename reports both names: the old one no longer exists.
+        if (in_array('Renamed', $flags, true) || in_array('MovedFrom', $flags, true)) {
+            return file_exists($path) ? WatchEvent::KIND_CREATED : WatchEvent::KIND_DELETED;
+        }
+
+        if (in_array('Created', $flags, true)) {
+            return WatchEvent::KIND_CREATED;
+        }
+
+        return WatchEvent::KIND_MODIFIED;
     }
 }
