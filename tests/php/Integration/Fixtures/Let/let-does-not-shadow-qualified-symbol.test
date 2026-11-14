@@ -3,4 +3,4 @@
 --PHP--
 /** @var int $inc_1 */
 $inc_1 = 1;
-($inc_1 + 1);
+(\is_int($inc_1) && $inc_1 !== \PHP_INT_MAX ? ($inc_1 + 1) : (\Phel\Lang\Registry::readRoot("phel.core", "inc"))->__invoke($inc_1));

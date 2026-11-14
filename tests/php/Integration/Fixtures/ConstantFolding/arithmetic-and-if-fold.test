@@ -7,4 +7,4 @@
 $x_1 = 3;
 /** @var int $y_2 */
 $y_2 = 20;
-($y_2 - $x_1);
+(\is_int($y_2) && \is_int($x_1) && \is_int($__phel_guard_3 = $y_2 - $x_1) ? $__phel_guard_3 : (\Phel\Lang\Registry::readRoot("phel.core", "-"))->__invoke($y_2, $x_1));

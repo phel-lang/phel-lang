@@ -1,6 +1,6 @@
 --PHEL--
 #(php/+ 1 2)
 --PHP--
-(function(): int {
+(function() {
   return (1 + 2);
 });

@@ -511,6 +511,7 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
                 $selfNamespace,
                 $selfName,
             );
+            $inferred = new BindingTypeInferrer()->stableRecurTypes($fnNode->getBody(), $params, $inferred);
 
             foreach ($params as $param) {
                 $tag = $inferred[$param->getName()] ?? null;

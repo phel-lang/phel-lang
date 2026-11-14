@@ -2,7 +2,8 @@
 (fn [c] (let [n (if c 1 2)] (+ n 1)))
 --PHP--
 (function($c) {
+  static $__phel_call_0;
   /** @var int $n_1 */
   $n_1 = ($c !== null && $c !== false ? 1 : 2);
-  return ($n_1 + 1);
+  return (\is_int($n_1) && \is_int($__phel_guard_2 = $n_1 + 1) ? $__phel_guard_2 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($n_1, 1));
 });

@@ -1,0 +1,25 @@
+(ns phel-bench.int-overflow
+  (:require phel.bench :refer [defbench]))
+
+(defn- typed-add [^int a ^int b] (+ a b))
+
+(defbench bench-inferred-integer-loop
+  {:revs 2000}
+  (loop [i 0 acc 0]
+    (if (< i 1000)
+      (recur (inc i) (+ acc i))
+      acc)))
+
+(defbench bench-typed-add
+  {:revs 2000}
+  (loop [i 0 result 0]
+    (if (php/< i 1000)
+      (recur (php/+ i 1) (typed-add 3 7))
+      result)))
+
+(defbench bench-float-loop
+  {:revs 2000}
+  (loop [i 0 acc 0.0]
+    (if (php/< i 1000)
+      (recur (php/+ i 1) (+ acc 0.5))
+      acc)))

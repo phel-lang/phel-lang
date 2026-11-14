@@ -5,7 +5,7 @@
       outer
       (recur (loop [inner outer] (if (php/<= inner 1) inner (recur (php/- inner 1))))))))
 --PHP--
-(function(int $n): int {
+(function(int $n) {
   $outer_1 = $n;
   while (true) {
     if ((($outer_1 <= 0))) {

@@ -1,7 +1,7 @@
 --PHEL--
 (fn [^int x] (if (php/< x 0) 0 (php/+ x 1)))
 --PHP--
-(function(int $x): int {
+(function(int $x) {
   return ((($x < 0)) ? 0 : ($x + 1));
 
 });

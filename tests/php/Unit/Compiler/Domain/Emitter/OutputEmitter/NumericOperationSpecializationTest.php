@@ -121,7 +121,7 @@ final class NumericOperationSpecializationTest extends TestCase
         self::assertNull(NumericOperationSpecialization::notOverBoolOperand($outer));
     }
 
-    public function test_variadic_mul_three_int_locals_chains_arith(): void
+    public function test_variadic_integer_multiplication_keeps_runtime_promotion(): void
     {
         $node = $this->coreCall('*', [
             $this->localWithTag('a', 'int'),
@@ -129,10 +129,7 @@ final class NumericOperationSpecializationTest extends TestCase
             $this->localWithTag('c', 'int'),
         ]);
 
-        self::assertSame(
-            ['op' => '*', 'kind' => 'arith'],
-            NumericOperationSpecialization::typedVariadicChain($node),
-        );
+        self::assertNull(NumericOperationSpecialization::typedVariadicChain($node));
     }
 
     public function test_variadic_lt_chains_compare(): void
@@ -224,14 +221,14 @@ final class NumericOperationSpecializationTest extends TestCase
         $this->env();
         $depth = 12;
         $env = $this->createMock(NodeEnvironmentInterface::class);
-        $env->expects(self::exactly(2 * $depth + 1))->method('inferredTypeOf')->willReturn('int');
+        $env->expects(self::exactly(2 * $depth + 1))->method('inferredTypeOf')->willReturn('float');
         $local = new LocalVarNode($env, Symbol::create('x'));
         $node = $local;
         for ($i = 0; $i < $depth; ++$i) {
             $node = $this->coreCall('+', [$local, $local, $node]);
         }
 
-        self::assertSame('int', NumericOperationSpecialization::inferredTypeOfNode($node));
+        self::assertSame('float', NumericOperationSpecialization::inferredTypeOfNode($node));
     }
 
     public function test_runtime_arithmetic_does_not_publish_a_primitive_result_type(): void
@@ -248,17 +245,15 @@ final class NumericOperationSpecializationTest extends TestCase
         }
     }
 
-    public function test_typed_binary_op_keeps_literal_mixed_with_typed_local(): void
+    public function test_integer_operands_keep_guarded_arithmetic(): void
     {
-        // A literal paired with a tagged local is the opt-in case: the user
-        // promised the binding is an int, so the native op stays.
         $env = $this->env();
         $node = $this->coreCall('*', [
             $this->localWithTag('a', 'int'),
             new LiteralNode($env, 2),
         ]);
 
-        self::assertSame('*', NumericOperationSpecialization::typedBinaryOpName($node));
+        self::assertNull(NumericOperationSpecialization::typedBinaryOpName($node));
     }
 
     public function test_typed_binary_op_keeps_two_literal_comparison(): void
@@ -273,18 +268,18 @@ final class NumericOperationSpecializationTest extends TestCase
         self::assertSame('<', NumericOperationSpecialization::typedBinaryOpName($node));
     }
 
-    public function test_inc_on_int_local_lowers_to_plus(): void
+    public function test_inc_on_int_local_keeps_guarded_promotion(): void
     {
         $node = $this->coreCall('inc', [$this->localWithTag('x', 'int')]);
 
-        self::assertSame('+', NumericOperationSpecialization::typedIncDecOp($node));
+        self::assertNull(NumericOperationSpecialization::typedIncDecOp($node));
     }
 
-    public function test_dec_on_int_local_lowers_to_minus(): void
+    public function test_dec_on_int_local_keeps_guarded_promotion(): void
     {
         $node = $this->coreCall('dec', [$this->localWithTag('x', 'int')]);
 
-        self::assertSame('-', NumericOperationSpecialization::typedIncDecOp($node));
+        self::assertNull(NumericOperationSpecialization::typedIncDecOp($node));
     }
 
     public function test_inc_on_float_local_lowers_to_plus(): void

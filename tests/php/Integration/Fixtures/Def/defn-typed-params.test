@@ -7,7 +7,7 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\add";
 
-    public function __invoke(int $x, int $y): int {
+    public function __invoke(int $x, int $y) {
       return ($x + $y);
     }
   },
@@ -17,7 +17,6 @@
     \Phel\Lang\Keyword::create("doc"), "```phel\n(add x y)\n```\n",
     "min-arity", 2,
     "is-variadic", false,
-    "arglists", "[x y]",
-    \Phel\Lang\Keyword::create("tag"), "int"
+    "arglists", "[x y]"
   )
 );

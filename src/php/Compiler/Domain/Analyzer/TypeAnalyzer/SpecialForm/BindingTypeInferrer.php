@@ -31,6 +31,7 @@ use Phel\Shared\CompilerConstants;
 use Phel\Shared\TagResolver;
 
 use function array_all;
+use function array_key_exists;
 use function array_map;
 use function count;
 use function in_array;
@@ -82,28 +83,21 @@ use function substr;
  * provable is left untouched. A missing tag only ever costs a
  * (correct) runtime dispatch; it never produces a wrong lowering. An
  * inferred tag is byte-identical to the same tag written by hand, so it
- * inherits the emitter's existing specialization guards verbatim — including
- * the accepted policy that a native `+`/`-`/`*` on an int operand yields a
- * PHP float past `PHP_INT_MAX` where the runtime would promote to `BigInt`
- * (identical to an explicit `^int` and to `inc`/`dec`).
+ * inherits the emitter's existing specialization guards verbatim.
  *
  * @internal
  */
 final class BindingTypeInferrer
 {
     /**
-     * `php/<op>` binary ops whose result type is exactly PHP's: `int` when
-     * every operand is int, `float` when any operand is float. Restricted to
-     * `+ - *` — `/` (`5/2 → float`), `%`, `**` and the bit ops can change the
-     * result category in ways a single fixed tag would misstate.
+     * Arithmetic operations whose integer result can overflow.
      *
      * @var list<string>
      */
     private const array NUMERIC_BINARY_OPS = ['+', '-', '*'];
 
     /**
-     * `phel.core` arity-1 ops whose result type is the operand's numeric type
-     * — so `(recur (inc i))` over an int counter keeps the binding int.
+     * Arithmetic steps whose integer result can overflow.
      *
      * @var list<string>
      */
@@ -237,27 +231,54 @@ final class BindingTypeInferrer
             return;
         }
 
-        $recurArgTypes = [];
-        $this->collectRecurArgTypes($body, $seeded, $recurArgTypes);
+        $stable = $this->stableRecurTypes(
+            $body,
+            array_map(static fn(BindingNode $binding): Symbol => $binding->getShadow(), $bindings),
+            $seeded,
+        );
 
-        foreach ($bindings as $i => $binding) {
+        foreach ($bindings as $binding) {
             $name = $binding->getShadow()->getName();
-            if (!isset($seeded[$name])) {
+            if (!isset($stable[$name])) {
+                $symbol = $binding->getSymbol();
+                $binding->replaceSymbol($symbol->withMeta($symbol->getMeta()?->remove(Keyword::create('tag'))));
                 continue;
             }
 
-            // A user-written tag wins unconditionally (the author owns the
-            // type); an inferred one survives only when the init and every
-            // recur arm agree, else the binding stays untyped so the body
-            // never sees an over-narrow tag.
-            if ($this->declaredTag($binding->getSymbol()) === null
-                && !$this->recurArgsAgree($recurArgTypes[$i] ?? null, $seeded[$name])
-            ) {
-                continue;
-            }
-
-            $this->graftBinding($binding, $seeded[$name]);
+            $this->graftBinding($binding, $stable[$name]);
         }
+    }
+
+    /**
+     * @param list<Symbol>          $params
+     * @param array<string, string> $types
+     *
+     * @return array<string, string>
+     */
+    public function stableRecurTypes(AbstractNode $body, array $params, array $types): array
+    {
+        if ($types === []) {
+            return [];
+        }
+
+        $locals = $types;
+        do {
+            $changed = false;
+            $recurArgTypes = [];
+            $this->collectRecurArgTypes($body, $locals, $recurArgTypes);
+            foreach ($params as $i => $param) {
+                $name = $param->getName();
+                if (!isset($types[$name]) || $this->recurArgsAgree($recurArgTypes[$i] ?? null, $types[$name])) {
+                    continue;
+                }
+
+                unset($types[$name]);
+                $locals[$name] = null;
+                $changed = true;
+            }
+        } while ($changed);
+
+        return $types;
     }
 
     /**
@@ -286,7 +307,7 @@ final class BindingTypeInferrer
      * enclosing loop and records each argument's inferred type per binding
      * slot. Nested loops own their own `recur`s and are skipped.
      *
-     * @param array<string, string>     $locals
+     * @param array<string, ?string>    $locals
      * @param array<int, list<?string>> $types
      */
     private function collectRecurArgTypes(AbstractNode $node, array $locals, array &$types): void
@@ -328,7 +349,7 @@ final class BindingTypeInferrer
      * rejects any operand that is not `int` or `float`, so a class tag
      * reaching one of them bails rather than lowering to a native operator.
      *
-     * @param array<string, string> $locals
+     * @param array<string, ?string> $locals
      */
     private function typeOf(AbstractNode $node, array $locals = []): ?string
     {
@@ -337,7 +358,8 @@ final class BindingTypeInferrer
         }
 
         if ($node instanceof LocalVarNode) {
-            return $locals[$node->getName()->getName()] ?? $node->getInferredType();
+            $name = $node->getName()->getName();
+            return array_key_exists($name, $locals) ? $locals[$name] : $node->getInferredType();
         }
 
         // A collection literal whose elements are not all constant stays a
@@ -392,7 +414,7 @@ final class BindingTypeInferrer
     }
 
     /**
-     * @param array<string, string> $locals
+     * @param array<string, ?string> $locals
      */
     private function callType(CallNode $node, array $locals): ?string
     {
@@ -405,7 +427,7 @@ final class BindingTypeInferrer
     }
 
     /**
-     * @param array<string, string> $locals
+     * @param array<string, ?string> $locals
      */
     private function phpCallType(string $op, CallNode $node, array $locals): ?string
     {
@@ -423,18 +445,14 @@ final class BindingTypeInferrer
     /**
      * The type a call to a Phel global contributes to a binding.
      *
-     * `phel.core` `+ - *` and `inc`/`dec` are computed from their operands —
-     * these preserve the operand's numeric type, which is more precise than a
-     * fixed return tag (they carry none: an int op can promote past
-     * `PHP_INT_MAX`), so `(let [d (+ a b)] …)` and a `(recur (+ i 1))` counter
-     * type from their arguments.
+     * Integer arithmetic can promote to BigInt, so it does not fix a binding's primitive type.
      *
      * Any other global — a `phel.core` helper or a user `defn` — contributes
      * its declared or inferred primitive return `:tag`, so
      * `(let [s (make-greeting x)] (str s "!"))` types `s` from `make-greeting`'s
      * `:string` return. Non-primitive tags and untagged fns stay on dispatch.
      *
-     * @param array<string, string> $locals
+     * @param array<string, ?string> $locals
      */
     private function globalCallType(GlobalVarNode $fn, CallNode $node, array $locals): ?string
     {
@@ -442,9 +460,8 @@ final class BindingTypeInferrer
             $name = $fn->getName()->getName();
 
             if ((in_array($name, self::NUMERIC_BINARY_OPS, true) || in_array($name, self::CORE_INC_DEC_OPS, true))
-                && array_all($node->getArguments(), static fn(AbstractNode $arg): bool => $arg instanceof LiteralNode)
-                && new LiteralArithmeticFolder()->fold($name, $node->getArguments()) === null) {
-                return null;
+                && array_all($node->getArguments(), static fn(AbstractNode $arg): bool => $arg instanceof LiteralNode)) {
+                return $this->literalType(new LiteralArithmeticFolder()->fold($name, $node->getArguments()));
             }
 
             if (in_array($name, self::NUMERIC_BINARY_OPS, true)) {
@@ -462,7 +479,7 @@ final class BindingTypeInferrer
                 }
 
                 $type = $this->typeOf($args[0], $locals);
-                return ArithmeticResultType::isFloatOrInt($type) ? $type : null;
+                return $type === 'float' ? 'float' : null;
             }
         }
 
@@ -471,8 +488,7 @@ final class BindingTypeInferrer
 
     /**
      * The callee's declared or inferred return `:tag`, kept only when a binding
-     * can stand on it (see {@see self::isBindableReturnTag}). `int` inherits the
-     * same overflow policy as every other inferred int (see the class docblock).
+     * can stand on it (see {@see self::isBindableReturnTag}).
      * A recursive self-call is skipped so a redefinition never reads its own
      * stale registry tag.
      */
@@ -521,10 +537,9 @@ final class BindingTypeInferrer
     }
 
     /**
-     * `int` when every operand is int, `float` when any is float; `null` if an
-     * operand is not statically numeric (so the binding stays on dispatch).
+     * Integer results may promote, while known float operands keep floating arithmetic.
      *
-     * @param array<string, string> $locals
+     * @param array<string, ?string> $locals
      */
     private function numericResultType(CallNode $node, array $locals): ?string
     {

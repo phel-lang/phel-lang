@@ -17,10 +17,12 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\TailCallRewriter;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReadModel\FnSymbolTuple;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\TagResolver;
 
+use function array_any;
 use function array_filter;
 use function array_flip;
 use function count;
@@ -213,6 +215,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             && $selfNameStr !== null
             && !$fnSymbolTuple->isVariadic()
             && !$name instanceof Symbol
+            && !array_any($fnSymbolTuple->params(), static fn(Symbol $param): bool => in_array(TagResolver::fromMeta($param->getMeta()), ['int', 'float'], true))
         ) {
             [$body] = $this->tailCallRewriter->rewrite(
                 $body,
@@ -222,6 +225,21 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
                 count($fnSymbolTuple->params()),
                 $fnSymbolTuple->isVariadic(),
             );
+        }
+
+        $declaredTypes = [];
+        foreach ($fnSymbolTuple->params() as $param) {
+            $tag = TagResolver::fromMeta($param->getMeta());
+            if (in_array($tag, ['int', 'float'], true)) {
+                $declaredTypes[$param->getName()] = $tag;
+            }
+        }
+
+        $stableTypes = new BindingTypeInferrer()->stableRecurTypes($body, $fnSymbolTuple->params(), $declaredTypes);
+        foreach ($body->getEnv()->getLocals() as $local) {
+            if (isset($stableTypes[$local->getName()])) {
+                $body->getEnv()->publishInferredType($local, $stableTypes[$local->getName()]);
+            }
         }
 
         // For a `def`-owned single-arity fn the return-type inference is
@@ -398,7 +416,17 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
                 : $this->createLetTupleWithBody($fnSymbolTuple, $strippedBody),
         );
 
-        $locals = $fnSymbolTuple->params();
+        $locals = [];
+        foreach ($fnSymbolTuple->params() as $param) {
+            $tag = TagResolver::fromMeta($param->getMeta());
+            if (in_array($tag, ['int', 'float'], true)) {
+                // Parameter types hold at entry; recur can rebind a promoted value.
+                $param = $param->withMeta($param->getMeta()?->remove(Keyword::create('tag')));
+            }
+
+            $locals[] = $param;
+        }
+
         if ($name instanceof Symbol) {
             // Bind the fn's own name as a local inside the body so self-recursion
             // resolves to a LocalVarNode (which the emitter turns into the

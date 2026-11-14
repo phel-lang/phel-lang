@@ -155,6 +155,8 @@ final class ReturnTypeInferrer
         }
 
         $paramTypes = $this->collectParamTypes($params, $isVariadic);
+        $paramTypes = new BindingTypeInferrer()->stableRecurTypes($body, $params, $paramTypes);
+
         $this->sawOperator = false;
         $this->selfNamespace = $selfNamespace;
         $this->selfName = $selfName;

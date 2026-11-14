@@ -2,5 +2,6 @@
 (fn [^int x] (** x 2))
 --PHP--
 (function(int $x) {
-  return ($x * $x);
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "**"))->__invoke($x, 2);
 });

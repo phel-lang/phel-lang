@@ -1,8 +1,7 @@
 --PHEL--
 (fn [^int n] (loop [i 0] (if (php/< i n) (recur (php/+ i 1)) i)))
 --PHP--
-(function(int $n): int {
-  /** @var int $i_1 */
+(function(int $n) {
   $i_1 = 0;
   while (true) {
     if ((($i_1 < $n))) {

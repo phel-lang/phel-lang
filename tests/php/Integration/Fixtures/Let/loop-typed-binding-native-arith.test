@@ -2,11 +2,11 @@
 (fn [^int n] (loop [^int i 0] (if (< i n) (recur (+ i 1)) i)))
 --PHP--
 (function(int $n) {
-  /** @var int $i_1 */
+  static $__phel_call_0, $__phel_call_1;
   $i_1 = 0;
   while (true) {
-    if ((($i_1 < $n))) {
-      $i_1 = ($i_1 + 1);
+    if (((\is_scalar($i_1) && \is_scalar($n) ? ($i_1 < $n) : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "<"))->invokeArity2($i_1, $n)))) {
+      $i_1 = (\is_int($i_1) && \is_int($__phel_guard_2 = $i_1 + 1) ? $__phel_guard_2 : ($__phel_call_1 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($i_1, 1));
       continue;
 
     } else {

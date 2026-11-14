@@ -176,6 +176,14 @@ final class NumericOperationsTest extends TestCase
         self::assertSame(-1, NumericOperations::negate(1));
     }
 
+    public function test_negate_int_min_promotes_to_bigint(): void
+    {
+        $result = NumericOperations::negate(PHP_INT_MIN);
+
+        self::assertInstanceOf(BigInt::class, $result);
+        self::assertSame('9223372036854775808', (string) $result);
+    }
+
     public function test_negate_rational(): void
     {
         $half = Ratio::create(1, 2);

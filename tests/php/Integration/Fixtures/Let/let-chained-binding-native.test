@@ -2,9 +2,9 @@
 (fn [v] (let [a (php/count v) b (+ a 1)] (< b 10)))
 --PHP--
 (function($v): bool {
+  static $__phel_call_0, $__phel_call_1;
   /** @var int $a_1 */
   $a_1 = count($v);
-  /** @var int $b_2 */
-  $b_2 = ($a_1 + 1);
-  return ($b_2 < 10);
+  $b_2 = (\is_int($a_1) && \is_int($__phel_guard_3 = $a_1 + 1) ? $__phel_guard_3 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($a_1, 1));
+  return (\is_scalar($b_2) ? ($b_2 < 10) : ($__phel_call_1 ??= \Phel::fnSlot("phel.core", "<"))->invokeArity2($b_2, 10));
 });

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Compiler;
 
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
+use Phel\Lang\BigInt;
 use Phel\Shared\CompileOptions;
 
 /**
@@ -332,18 +333,28 @@ final class CallInlineRuntimeTest extends AbstractCompilerRuntimeTestCase
         $this->compilerFacade->eval('(tagged-id 42)', $options);
     }
 
-    public function test_a_tagged_int_parameter_keeps_its_arithmetic_semantics(): void
+    public function test_tagged_int_arithmetic_promotes_after_optimization(): void
     {
-        // `^int` makes the emitter treat the parameter as proven, so `*`
-        // lowers to the native operator and overflows to float. Inlined at an
-        // untagged call site the same expression promotes to BigInt instead,
-        // which is a different value (#3126).
         $options = new CompileOptions()->setOptimizationLevel(2);
         $this->compilerFacade->eval('(defn tagged-mul [^int a ^int b] (* a b))', $options);
 
         $result = $this->compilerFacade->eval('(tagged-mul 4000000000 4000000000)', $options);
 
-        self::assertIsFloat($result, 'a tagged int multiply overflows to float, as it does unoptimised');
+        self::assertInstanceOf(BigInt::class, $result);
+        self::assertSame('16000000000000000000', (string) $result);
+    }
+
+    public function test_typed_tail_calls_keep_parameter_validation(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval(
+            '(defn typed-tail [^int x ^int n] (if (zero? n) x (typed-tail (inc x) (dec n))))',
+            $options,
+        );
+
+        $this->expectException(EvaluatedCodeException::class);
+        $this->expectExceptionMessageMatches('/must be of type int, .*BigInt given/');
+        $this->compilerFacade->eval('(typed-tail 9223372036854775807 1)', $options);
     }
 
     public function test_an_untagged_parameter_still_inlines(): void
