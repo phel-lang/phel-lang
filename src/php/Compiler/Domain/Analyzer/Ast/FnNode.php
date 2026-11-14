@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\Ast;
 
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
@@ -20,8 +21,9 @@ final class FnNode extends AbstractNode implements FnNodeInterface
     private bool $isMultiArityChild = false;
 
     /**
-     * @param list<Symbol> $params
-     * @param list<Symbol> $uses
+     * @param list<Symbol>                          $params
+     * @param list<Symbol>                          $uses
+     * @param PersistentVectorInterface<mixed>|null $sourceParams
      */
     public function __construct(
         NodeEnvironmentInterface $env,
@@ -33,6 +35,7 @@ final class FnNode extends AbstractNode implements FnNodeInterface
         ?SourceLocation $sourceLocation = null,
         private readonly ?Symbol $name = null,
         private ?string $returnType = null,
+        private readonly ?PersistentVectorInterface $sourceParams = null,
     ) {
         parent::__construct($env, $sourceLocation);
     }
@@ -92,6 +95,14 @@ final class FnNode extends AbstractNode implements FnNodeInterface
     public function getParams(): array
     {
         return $this->params;
+    }
+
+    /**
+     * @return PersistentVectorInterface<mixed>|null
+     */
+    public function getSourceParams(): ?PersistentVectorInterface
+    {
+        return $this->sourceParams;
     }
 
     public function replaceParam(Symbol $original, Symbol $replacement): void

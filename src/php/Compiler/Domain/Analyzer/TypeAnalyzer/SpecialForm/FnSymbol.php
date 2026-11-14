@@ -270,6 +270,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             $list->getStartLocation(),
             $effectiveName,
             $returnType,
+            $paramVector,
         );
     }
 

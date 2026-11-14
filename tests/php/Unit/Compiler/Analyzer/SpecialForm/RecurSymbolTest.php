@@ -174,6 +174,7 @@ final class RecurSymbolTest extends TestCase
                 [],
                 false,
                 true,
+                sourceParams: Phel::vector([Symbol::create('x')]),
             ),
             $this->analyzer->analyze($list, $env),
         );

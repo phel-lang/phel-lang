@@ -51,6 +51,29 @@ final class ArglistSignatureParserTest extends TestCase
         );
     }
 
+    #[DataProvider('quotedDefaults')]
+    public function test_brackets_in_quoted_defaults_do_not_split_arities(string $literal): void
+    {
+        $params = '{:keys [x] :or {x ' . $literal . '}}';
+
+        self::assertSame(
+            ['(f ' . $params . ')', '(f)'],
+            ArglistSignatureParser::parse('([' . $params . '] [])', 'f'),
+        );
+    }
+
+    public static function quotedDefaults(): iterable
+    {
+        yield 'closing bracket' => ['"]"'];
+        yield 'opening bracket' => ['"["'];
+        yield 'escaped quote before bracket' => [<<<'PHEL'
+        "\"["
+        PHEL];
+        yield 'escaped backslash before closing quote' => [<<<'PHEL'
+        "\\"
+        PHEL];
+    }
+
     #[DataProvider('provideNothingToParse')]
     public function test_it_reports_nothing_when_there_is_nothing_to_read(string $arglists): void
     {
@@ -67,6 +90,7 @@ final class ArglistSignatureParserTest extends TestCase
         yield 'wrapped but empty' => ['()'];
         yield 'unbalanced open' => ['([a b)'];
         yield 'wrapped with no vector' => ['(a b)'];
+        yield 'unterminated string' => ['(["unclosed] [])'];
     }
 
     /**
