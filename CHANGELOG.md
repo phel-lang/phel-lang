@@ -8,199 +8,193 @@ All notable changes to this project will be documented in this file.
 
 Compiler:
 
-- **BREAKING**: Keyword literals with a missing name, such as `::` and `:a/`, fail with a located `PHEL120`. They used to produce keywords with unintended names. Provide a name after the colon or slash. (#3802)
-- **BREAKING**: `phel build` rejects namespaces that map to the same PHP namespace, such as `a.foo-bar` and `a.foo_bar`, before writing output. The error names both files; rename one namespace. They used to overwrite output. (#3703)
-- **BREAKING**: `phel build` rejects duplicate definitions with `PHEL004`, as `phel run` does, including a `defn` reusing a `definterface` method name. It used to keep the second definition; rename one. (#3649)
-- **BREAKING**: Conflicting namespace aliases, referred names and PHP `:use` or `use` aliases fail with `PHEL004`. They used to keep the last target; use distinct names. Repeating a target or class, changing an alias in the REPL and explicitly overriding a default import still work. (#3524 #3718)
-- **BREAKING**: Structs, types, records, exceptions, enums and interfaces in one namespace must have distinct PHP class names, ignoring case (`point`, `Point`). A conflict raises `PHEL004` instead of reusing the first class. Rename the conflicting type; reevaluating the same `defstruct` still works. (#3524)
-- **BREAKING**: Invalid PHP type names, including `let`, `is`, `list`, `match`, `never` and PHP 8.6 reserved names, fail with `PHEL007`. Interface constants cannot be named `let`, `is` or `namespace`. Choose another name; both checks ignore case, while `enum`, `resource` and `numeric` remain valid. (#3522 #3667)
+- **BREAKING**: Keyword literals with no name, such as `::` and `:a/`, fail with a located `PHEL120` instead of producing keywords with unintended names. Add a name after the colon or slash. (#3802)
+- **BREAKING**: `phel build` rejects namespaces that map to one PHP namespace, such as `a.foo-bar` and `a.foo_bar`, and names both files. It used to overwrite output; rename one namespace. (#3703)
+- **BREAKING**: `phel build` rejects duplicate definitions with `PHEL004`, as `phel run` does, including a `defn` that reuses a `definterface` method name. It used to keep the second one; rename one. (#3649)
+- **BREAKING**: Conflicting namespace aliases, referred names and PHP `:use` or `use` aliases fail with `PHEL004` instead of keeping the last target; use distinct names. Repeating a target or class, changing an alias in the REPL and overriding a default import still work. (#3524 #3718)
+- **BREAKING**: Structs, types, records, exceptions, enums and interfaces in one namespace need distinct PHP class names, ignoring case (`point`, `Point`). A conflict raises `PHEL004` instead of reusing the first class; rename one. Reevaluating the same `defstruct` still works. (#3524)
+- **BREAKING**: Invalid PHP type names, such as `let`, `is`, `list`, `match`, `never` and PHP 8.6 reserved names, fail with `PHEL007`, ignoring case. Interface constants cannot be named `let`, `is` or `namespace`. Choose another name; `enum`, `resource` and `numeric` stay valid. (#3522 #3667)
 - **BREAKING**: `def` and `defn` cannot target another namespace (`PHEL007`). Use a bare name or a qualified name in the current namespace. (#3524)
-- **BREAKING**: Invalid bindings and destructuring fail with `PHEL008` instead of binding nothing. `catch` and `foreach` require bare binding names; `:keys`/`:syms`/`:strs` require symbols, though `:keys` and `:syms` also accept keywords. Use a map for `:or`. (#3524)
-- **BREAKING**: Special-form errors replace the `PHEL007` fallback with `PHEL002` for arity, `PHEL003` for wrong value kinds or literals contradicting type tags, `PHEL008` for invalid parameters or destructuring, and `PHEL001` for unresolved `catch` types, `var` targets or `use` classes. Lint reports arity and unresolved cases as `phel/arity-mismatch` and `phel/unresolved-symbol`; it used to pass them. Update tools that match `PHEL007`. (#3603)
-- **BREAKING**: Repeated `case` constants, including grouped tests, fail with `PHEL005` instead of keeping the first match; remove the duplicate. Incomplete pairs in `binding`, `with-redefs`, `doseq`, `dotimes`, `cond->` and `cond->>` also fail with `PHEL005`. They used to drop or pad forms; supply the missing value or remove the extra form. (#3524)
+- **BREAKING**: Invalid bindings and destructuring fail with `PHEL008` instead of binding nothing. `catch` and `foreach` take bare names, `:keys`/`:syms`/`:strs` take symbols (`:keys` and `:syms` also keywords), and `:or` takes a map. (#3524)
+- **BREAKING**: Special-form errors use specific codes instead of `PHEL007`: `PHEL002` for arity, `PHEL003` for wrong value kinds or literals that contradict a type tag, `PHEL008` for invalid parameters or destructuring, and `PHEL001` for unresolved `catch` types, `var` targets or `use` classes. Lint reports arity and unresolved cases as `phel/arity-mismatch` and `phel/unresolved-symbol` instead of passing them. Update tools that match `PHEL007`. (#3603)
+- **BREAKING**: Repeated `case` constants, grouped tests included, fail with `PHEL005` instead of keeping the first match. Incomplete pairs in `binding`, `with-redefs`, `doseq`, `dotimes`, `cond->` and `cond->>` also fail with `PHEL005` instead of dropping or padding forms. Remove the duplicate or supply the missing value. (#3524)
 - **BREAKING**: Invalid regex literals and malformed numbers such as `08`, `1+` and `1_` fail with a located `PHEL120` instead of returning nil with a warning or reading part of the number. Repeated symbol or collection keys in map and set literals fail with `PHEL203` instead of keeping the last entry, and lint reports them once. Fix the literal or drop the duplicate key. (#3524 #3710 #3607)
-- **BREAKING**: A nested `#(` fails with `PHEL210` instead of losing the outer parameters; write the inner function with `fn`. `~` and `~@` outside quasiquote also fail with `PHEL210` instead of reading as whitespace, and a splice needs an enclosing collection. (#3709 #3524)
-- **BREAKING**: Macro calls with the wrong number of arguments fail with `PHEL002`, not counting the implicit `&form` and `&env`. `if-not`, `if-let`, `if-some`, `assert` and `defexception` reject extra arguments instead of dropping them. Match the declared arity. (#3524)
+- **BREAKING**: A nested `#(` fails with `PHEL210` instead of losing the outer parameters; use `fn` for the inner function. `~` and `~@` outside quasiquote also fail with `PHEL210` instead of reading as whitespace, and a splice needs an enclosing collection. (#3709 #3524)
+- **BREAKING**: Macro calls with the wrong number of arguments fail with `PHEL002`; the implicit `&form` and `&env` do not count. `if-not`, `if-let`, `if-some`, `assert` and `defexception` reject extra arguments instead of dropping them. (#3524)
 - **BREAKING**: `defprotocol` rejects a method declared in separate forms with `PHEL005` instead of keeping the last form. Put all arities in one form: `(m [this] [this x])`. (#3568)
-- **BREAKING**: Unknown lower-case type tags on parameters, returns, struct fields and interface methods fail with `PHEL001` and a suggestion, such as `strng` to `string`. Correct the tag; it used to produce an unusable class type. `^long`, `^double` and `^boolean` mean `int`, `float` and `bool`; capitalised and qualified class names are unchanged. (#3524)
-- **BREAKING**: `defstruct` and `defrecord` methods, including `defstruct*` `:php` blocks, fail with `PHEL007` if they replace built-in struct methods. They used to corrupt lookup, equality or printing, or stop PHP. Rename the method; implemented interface methods such as `Stringable` and magic methods such as `__invoke` in `:php` blocks remain valid overrides. (#3576)
-- **BREAKING**: `recur` inside `foreach`, `doseq`, `dotimes` or `dofor` fails with `PHEL010` instead of rebinding an outer loop or fn while continuing the inner iteration. Put `loop` inside the body, or collect with `reduce`. (#3523)
+- **BREAKING**: Unknown lower-case type tags on parameters, returns, struct fields and interface methods fail with `PHEL001` and a suggestion (`strng` to `string`). They used to produce an unusable class type. `^long`, `^double` and `^boolean` mean `int`, `float` and `bool`; capitalized and qualified class names are unchanged. (#3524)
+- **BREAKING**: `defstruct` and `defrecord` methods, `defstruct*` `:php` blocks included, that replace built-in struct methods fail with `PHEL007`. They used to break lookup, equality or printing, or stop PHP; rename the method. Interface methods such as `Stringable` and magic methods such as `__invoke` can still be overridden. (#3576)
+- **BREAKING**: `recur` inside `foreach`, `doseq`, `dotimes` or `dofor` fails with `PHEL010` instead of rebinding an outer loop or fn while the inner iteration continues. Put `loop` inside the body, or collect with `reduce`. (#3523)
 
 Runtime:
 
-- **BREAKING**: `rand-int` excludes its upper bound, so `(rand-int 1)` always returns `0`; use `(rand-int (inc n))` for the old inclusive range. Non-positive bounds return `0`, and `rand-nth` on an empty collection reports a Phel error instead of a PHP range error. (#3679)
-- **BREAKING**: Sequence functions read maps, sorted maps and structs as `[key value]` entries, matching `seq`, `vec` and `into`. This covers conversion, grouping, selection, transformation, concatenation, partitioning, initialized `reduce` and transducers. They used to read values or fail on `rest`; use `(vals m)` for values. (#3556 #3570 #3567)
-- **BREAKING**: `compare` and `sort` compare lazy seqs, ranges, map entries and queues element by element, like vectors and lists. A seq equals a vector with the same elements; even equal seqs used to compare as `1`. Maps, sets and transients compare as `0` when equal and throw otherwise; use `sort-by` with a key such as `count` to replace their old arbitrary order. (#3555)
-- **BREAKING**: `take`, `drop`, `take-last`, `drop-last`, `take-nth` and `split-at` round fractional counts up (`5/2` means 3) and accept ratio, `BigInt` and `BigDecimal` counts. They used to throw for these types; pass `(int n)` for the old count. (#3566)
-- **BREAKING**: `partition` returns `()` for non-integer counts such as `2.0`. With an integer size, it rejects non-positive sizes or non-positive numeric steps before realizing values; `partition-all` also rejects non-positive sizes. These used to return an empty seq or repeat without advancing; use positive integers. (#3566 #3680)
-- **BREAKING**: `phel.http-client` accepts only `http` and `https` URLs, redirects included, and rejects header names that are not tokens and values containing `\r` or `\n`. A redirect to another origin keeps only `accept`, `accept-encoding`, `accept-language`, `user-agent` and `content-type`, so credentials such as `x-api-key` no longer follow it; review code that relied on that. More than 20 redirects throw. (#3531 #3687)
+- **BREAKING**: `rand-int` excludes its upper bound, so `(rand-int 1)` is always `0`; use `(rand-int (inc n))` for the old range. Non-positive bounds return `0`, and `rand-nth` on an empty collection raises a Phel error instead of a PHP range error. (#3679)
+- **BREAKING**: Sequence functions read maps, sorted maps and structs as `[key value]` entries, as `seq`, `vec` and `into` do. This covers conversion, grouping, selection, transformation, concatenation, partitioning, initialized `reduce` and transducers. They used to read values or fail on `rest`; use `(vals m)` for values. (#3556 #3570 #3567)
+- **BREAKING**: `compare` and `sort` compare lazy seqs, ranges, map entries and queues element by element, like vectors and lists, and a seq equals a vector with the same elements. Equal seqs used to compare as `1`. Maps, sets and transients compare as `0` when equal and throw otherwise; use `sort-by` with a key such as `count` instead of their old arbitrary order. (#3555)
+- **BREAKING**: `take`, `drop`, `take-last`, `drop-last`, `take-nth` and `split-at` accept ratio, `BigInt` and `BigDecimal` counts and round fractions up (`5/2` means 3). They used to throw; pass `(int n)` for the old count. (#3566)
+- **BREAKING**: `partition` returns `()` for non-integer counts such as `2.0`, and with an integer size rejects non-positive sizes or steps before realizing values; `partition-all` rejects non-positive sizes. They used to return an empty seq or repeat without advancing; use positive integers. (#3566 #3680)
+- **BREAKING**: `phel.http-client` accepts only `http` and `https` URLs, redirects included, and rejects invalid header names and values containing `\r` or `\n`. A redirect to another origin keeps only `accept`, `accept-encoding`, `accept-language`, `user-agent` and `content-type`, so credentials such as `x-api-key` no longer follow it. More than 20 redirects throw. (#3531 #3687)
 
 Tooling:
 
-- **BREAKING**: Invalid invocations exit 2 with the error on stderr and empty stdout. Examples include unknown commands or options, missing paths, `--changed` refs starting with `-` and non-integer `PHEL_OPTIMIZATION_LEVEL` values. They used to exit inconsistently, write to stdout, ignore paths or read bad numbers as zero. Use the exit codes in `docs/cli-reference.md`; exit 1 means the command ran and found an issue. (#3525 #3691)
-- **BREAKING**: Environment switches accept `1`, `true`, `yes`, `on` and `0`, `false`, `no`, `off` in any case, and empty means unset. False values no longer enable `PHEL_WARN_DEPRECATIONS`, `PHEL_NO_OPCACHE_REEXEC` or `PHEL_OPCACHE_REEXEC`. Any other value, or a `PHEL_TEST_WORKERS` that is not a whole number of at least 1, exits 2 on stderr. Use the values in `docs/cli-reference.md`. (#3525)
+- **BREAKING**: Invalid invocations exit 2 with the error on stderr and nothing on stdout: unknown commands or options, missing paths, `--changed` refs starting with `-`, a non-integer `PHEL_OPTIMIZATION_LEVEL`. They used to exit inconsistently, write to stdout, ignore paths or read bad numbers as zero. Exit 1 means the command ran and found an issue; see `docs/cli-reference.md`. (#3525 #3691)
+- **BREAKING**: Environment switches accept `1`, `true`, `yes`, `on` and `0`, `false`, `no`, `off` in any case; empty means unset. False values no longer enable `PHEL_WARN_DEPRECATIONS`, `PHEL_NO_OPCACHE_REEXEC` or `PHEL_OPCACHE_REEXEC`. Any other value, or a `PHEL_TEST_WORKERS` that is not a whole number of at least 1, exits 2. (#3525)
 - **BREAKING**: Lint in every format, analyze, `api-daemon` `analyzeSource`, `Phel\Shared\Api\Diagnostic`, balance, mutate JSON and deprecation notices report 1-based columns; drop any `+ 1`. LSP positions stay 0-based, with corrected diagnostic ranges. Analyze `uri` values are absolute paths, and lint GitHub `file=` paths are relative to the working directory. (#3525)
-- **BREAKING**: Lint reports wrong-arity calls to keyword, vector, map, set and fn literals as `phel/arity-mismatch`. A vector, map or set takes only the key and ignores an extra default at runtime; use `(get m k default)`. The new `phel/compile-error` rule reports every analyzer error, with its code in the JSON `errorCode` field, so a file that does not compile fails lint. Turn it off with `{:rules {:phel/compile-error :off}}`. (#3524 #3621)
+- **BREAKING**: Lint reports wrong-arity calls to keyword, vector, map, set and fn literals as `phel/arity-mismatch`. A collection called with a default ignores it at runtime; use `(get m k default)`. The new `phel/compile-error` rule reports every analyzer error, with its code in the JSON `errorCode` field, so a file that does not compile fails lint; turn it off with `{:rules {:phel/compile-error :off}}`. (#3524 #3621)
 
 PHP API:
 
-- **BREAKING (PHP API)**: `EmitterResult`, `ReaderResult` and `BuildOptions` move to `Phel\Shared`; update imports. Tooling facades and the listed Shared plumbing are internal, while internal types in public facade signatures remain supported as opaque handles. (#3521, ADR 0021)
+- **BREAKING (PHP API)**: `EmitterResult`, `ReaderResult` and `BuildOptions` move to `Phel\Shared`; update imports. Tooling facades and the listed Shared plumbing are internal; internal types in public facade signatures stay supported as opaque handles. (#3521, ADR 0021)
 - **BREAKING (PHP API)**: `DynamicScope::$boundNames` and `Registry::$profilerHook` are private; use `DynamicScope::hasBoundName()` and `Registry::{getProfilerHook,setProfilerHook}()`. (#3521)
-- **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::analyze()` accepts `mixed`, including `DateTimeImmutable` values from `#inst`, and `CommandFacadeInterface` gains `reportWarningsAtPhelSource()`, which installs a handler reporting compiled-code warnings at their Phel source. Update implementations; callers are unaffected. (#3610 #3537)
-- **BREAKING (PHP API)**: Replace `Phel\Lang\LoadClasspath::NAMESPACE` with `LoadClasspath::NS`. The old constant has no alias because its declaration triggers a PHP 8.6 deprecation. (#3522)
+- **BREAKING (PHP API, implementers only)**: `CompilerFacadeInterface::analyze()` accepts `mixed`, including `DateTimeImmutable` values from `#inst`, and `CommandFacadeInterface` gains `reportWarningsAtPhelSource()`, which reports compiled-code warnings at their Phel source. Update implementations; callers are unaffected. (#3610 #3537)
+- **BREAKING (PHP API)**: Replace `Phel\Lang\LoadClasspath::NAMESPACE` with `LoadClasspath::NS`. The old constant has no alias because declaring it triggers a PHP 8.6 deprecation. (#3522)
 
 ### Added
 
 Compiler:
 
-- `declare` accepts several names, as in `(declare a b)`, and rejects non-symbol arguments instead of silently dropping them. (#3524)
+- `declare` accepts several names, as in `(declare a b)`, and rejects non-symbol arguments instead of dropping them. (#3524)
 
 Tooling:
 
-- Security reports can use GitHub's private vulnerability reporting or email; `.github/SECURITY.md` covers fixes for the latest 1.x minor. The README explains release PHAR sha256 verification. (#3533)
-- `api-daemon` answers `version` requests with the running Phel version, also reported by LSP as `serverInfo.version` instead of `0.1.0`. (#3525)
-- `phel mutate` accepts `--format` (`-f`); `--reporter` remains available with a stderr deprecation notice, but conflicting values exit 2. `text` is the default format name for lint, doc and profile; `human` and `table` remain aliases. (#3525)
-- Command names and aliases, documented options, exit codes, source positions, machine-output fields, `api-daemon` methods, nREPL `reload` and `run-tests`, `.nrepl-port` and documented environment variables change only in major releases; human-readable text is excluded. `docs/stability.md` and `docs/cli-reference.md` define the scope and output shapes. (#3525, ADR 0022)
+- Security reports go through GitHub private vulnerability reporting or email, and `.github/SECURITY.md` covers fixes for the latest 1.x minor. The README explains how to check a release PHAR's sha256. (#3533)
+- `api-daemon` answers `version` requests with the running Phel version, and the LSP reports it as `serverInfo.version` instead of `0.1.0`. (#3525)
+- `phel mutate` accepts `--format` (`-f`). `--reporter` still works with a deprecation notice on stderr; conflicting values exit 2. Lint, doc and profile name their default format `text`, keeping `human` and `table` as aliases. (#3525)
+- Command names and aliases, documented options, exit codes, source positions, machine-output fields, `api-daemon` methods, nREPL `reload` and `run-tests`, `.nrepl-port` and documented environment variables change only in major releases. Human-readable text is not covered. `docs/stability.md` and `docs/cli-reference.md` define the scope and output shapes. (#3525, ADR 0022)
 
 PHP API:
 
-- `\Phel::assertBuiltWith(string $version)`, built entry points and exported PHP wrappers reject a different runtime version, including patch and development revisions. Rebuild with `phel build` or `phel export` after upgrading; mismatches used to fail later on missing internal methods. Builds warn if their version differs from the project lock file. Public `Phel\Shared\VersionResolver::{current,currentReference}()` report the running version and commit. (#3519, ADR 0020)
-- Generated PHP uses an owner-only `<system temp>/phel-<uid>/tmp`; other users could read the old shared `/tmp/phel/tmp`. Phel and `doctor` set owned directories to 0700 and reject those owned by someone else or replaceable through a parent. Public `PhelConfig::defaultTempDir()` and `Phel\Shared\CurrentUser` expose the default directory and effective uid, including without posix. (#3532)
-- Public `Phel\Shared\Parser\Node\ReaderConditionalNode` exposes the selected branch while retaining every branch's source. (#3669)
+- `\Phel::assertBuiltWith(string $version)`, built entry points and exported PHP wrappers reject a different runtime version, patch and development revisions included; rebuild with `phel build` or `phel export` after upgrading. Mismatches used to fail later on missing internal methods. Builds warn when their version differs from the lock file, and public `Phel\Shared\VersionResolver::{current,currentReference}()` report the running version and commit. (#3519, ADR 0020)
+- Generated PHP goes to an owner-only `<system temp>/phel-<uid>/tmp` instead of the shared `/tmp/phel/tmp` that other users could read. Phel and `doctor` set owned directories to 0700 and reject ones owned by someone else or replaceable through a parent. Public `PhelConfig::defaultTempDir()` and `Phel\Shared\CurrentUser` expose the default directory and effective uid, with or without posix. (#3532)
+- Public `Phel\Shared\Parser\Node\ReaderConditionalNode` exposes the selected branch and keeps every branch's source. (#3669)
 
 ### Removed
 
 - **BREAKING (PHP API)**: The unused `DynamicScope::$anyActive` property is removed, with no replacement. (#3521)
-- The `phel/duplicate-key` lint rule; the reader rejects duplicate keys with `PHEL203`. A config that still sets it is ignored, and `LintRuleCodes::DUPLICATE_KEY` stays as a deprecated constant. (#3607)
+- The `phel/duplicate-key` lint rule, since the reader rejects duplicate keys with `PHEL203`. A config that still sets it is ignored, and `LintRuleCodes::DUPLICATE_KEY` stays as a deprecated constant. (#3607)
 
 ### Performance
 
-- A warm `phel run` or `phel test` reuses the namespace scan cache without walking the source directories again. Added, removed and edited sources still invalidate it. (#3699)
-- A `.phel` file without `ns` no longer forces `run` or `test` to reread all sources, avoiding an approximately 2x slowdown. Adding `ns` to that file still invalidates the cache. (#3629)
+- A warm `phel run` or `phel test` reuses the namespace scan cache instead of walking the source directories again. Added, removed and edited sources still invalidate it. (#3699)
+- A `.phel` file without `ns` no longer makes `run` or `test` reread all sources, which made them about 2x slower. Adding `ns` to that file still invalidates the cache. (#3629)
 
 ### Fixed
 
 Reader and literals:
 
-- Quasiquoted sets evaluate `~` and `~@` forms. They used to retain those forms as set members. (#3799)
-- Namespace declarations reject qualified names such as `(ns a/b)` with `Invalid namespace` instead of silently declaring `b`. Dot and legacy backslash separators still work. (#3668)
-- Regex literals accept a slash after an even number of backslashes. They used to fail with an unknown modifier error. (#3800)
+- Quasiquoted sets evaluate `~` and `~@` forms instead of keeping them as members. (#3799)
+- `(ns a/b)` fails with `Invalid namespace` instead of declaring `b`. Dot and legacy backslash separators still work. (#3668)
+- Regex literals accept a slash after an even number of backslashes instead of failing with an unknown modifier error. (#3800)
 - Strings with invalid UTF-8 compile as data. A following quote, backslash or dollar sign used to turn their contents into PHP code. (#3664)
-- Unicode escapes above `U+10FFFF` or with lone surrogates report a located parser error. Adjacent UTF-16 escapes such as `\uD83D\uDE00` combine into one character instead of invalid UTF-8. (#3711)
+- Unicode escapes above `U+10FFFF` or with lone surrogates report a located parser error, and UTF-16 pairs such as `😀` combine into one character instead of invalid UTF-8. (#3711)
 - Character literals such as `\é` and `\😀` read as whole characters instead of splitting after the first byte. (#3708)
-- Symbols containing `#`, such as `foo#bar`, read back from `pr-str` and stay together inside collections. They used to split at the hash. (#3801)
-- Float literals keep their exact value, and integer literals in any base outside the native range read as `BigInt`. Arithmetic stays in `BigInt` after overflow. These used to lose precision, fail on the next operation, or warn on PHP 8.6 for large non-decimal literals. (#3522 #3665 #3676 #3706)
-- Phel scripts accept a `#!` shebang line, and `phel format` preserves it. They used to fail to lex the opening `#`. (#3714)
-- Reader prefixes accept whitespace and comments before their form, as in `' x` and `^ :a x`, instead of failing or reading the wrong form. `phel format` keeps those comments, and a missing form names the prefix instead of an unrelated `Unterminated list`. (#3713)
+- Symbols containing `#`, such as `foo#bar`, read back from `pr-str` and stay whole inside collections instead of splitting at the hash. (#3801)
+- Float literals keep their exact value, and integer literals in any base outside the native range read as `BigInt`, with arithmetic staying in `BigInt` after overflow. They used to lose precision, fail on the next operation, or warn on PHP 8.6 for large non-decimal literals. (#3522 #3665 #3676 #3706)
+- Scripts accept a `#!` shebang line, and `phel format` keeps it. The `#` used to fail to lex. (#3714)
+- Reader prefixes accept whitespace and comments before their form, as in `' x` and `^ :a x`, instead of failing or reading the wrong form. `phel format` keeps those comments, and a missing form names the prefix instead of `Unterminated list`. (#3713)
 
 Definitions and bindings:
 
-- Non-symbol names in `defstruct`, `definterface`, `defexception`, `defenum`, `defrecord`, `deftype` and `defprotocol` report `PHEL003` at the declaration. Integers, strings and nil used to trigger a PHP member-call error. (#3803)
-- Duplicate fn, macro, protocol and `extend-type` arities fail with `PHEL007`, and duplicate interface methods or parameters with `PHEL009`. Struct, record and type fields that repeat, share a PHP property name or are named `hasher`, `equalizer` or `meta`, and parameters tagged `^void` or `^never`, fail with `PHEL007`. All of these used to cause PHP errors. (#3534)
+- Non-symbol names in `defstruct`, `definterface`, `defexception`, `defenum`, `defrecord`, `deftype` and `defprotocol` report `PHEL003` at the declaration instead of a PHP member-call error. (#3803)
+- Duplicate fn, macro, protocol and `extend-type` arities fail with `PHEL007`, and duplicate interface methods or parameters with `PHEL009`. Struct, record and type fields that repeat, share a PHP property name or are named `hasher`, `equalizer` or `meta` fail with `PHEL007`, as do parameters tagged `^void` or `^never`. All of these used to cause PHP errors. (#3534)
 - `(fn foo)` reports `PHEL002` at the form, and empty lists such as `(try ())` work inside `try`. Both used to fail with an out-of-bounds `PHEL403`. (#3716)
-- Repeated fn parameters bind the last argument, as in Clojure. Bindings keep their values when names share a PHP spelling, match superglobals such as `_SERVER` or resemble compiler names such as `__truthy`, including in `foreach` and `catch`. They used to corrupt bindings or stop PHP. (#3534 #3576 #3666)
+- Repeated fn parameters bind the last argument, as in Clojure. Bindings keep their values when names share a PHP spelling, match superglobals such as `_SERVER` or look like compiler names such as `__truthy`, in `foreach` and `catch` too. They used to corrupt bindings or stop PHP. (#3534 #3576 #3666)
 - Struct fields containing an apostrophe work in keyword lookup and JSON serialization instead of producing invalid PHP. (#3722)
-- Vector destructuring binds `:as` to the original input, including after rest bindings and in nested patterns. It used to reject the keyword as a binding. (#3721)
+- Vector destructuring binds `:as` to the original input, after rest bindings and in nested patterns too, instead of rejecting the keyword as a binding. (#3721)
 - `binding` and `with-redefs` require var targets and report `PHEL008` instead of an internal assertion. `defn`, `defn-` and `defmacro` require a parameter vector in every arity instead of failing inside `apply`. (#3534 #3537)
 - Interface implementations report wrong parameter counts with `PHEL009`, and structs report missing methods. Interface methods require `this`; `reify` and `extend-type` name unknown protocol methods. These used to fail in PHP or with unrelated compiler errors. (#3537 #3646 #3647 #3648)
-- Recursive macro expansion stops after 1,000 nested expansions with `PHEL005` at the original call. It used to hang builds, lint and the LSP. (#3719)
-- Type tags for structs, interfaces, exceptions and enums in the same namespace work in `run`, `test` and the REPL. They used to accept values only after a build. (#3654)
-- A malformed PHP member, class or type tag such as `.foo-bar` or `\Foo-Bar` fails with `PHEL007` at its symbol. It used to produce invalid PHP or interpret the dash as subtraction. (#3667)
-- A namespace's own definitions take precedence over PHP `:use` aliases in bare values and calls; constructors, static calls, class callables and type tags still use the import. An import used to hide a same-named `def`. (#3717)
-- PHP class names such as `PDO` no longer produce constant-collision warnings in constructor, static-member or callable positions. The warning still applies to bare value positions. (#3537)
-- An empty symbol, including one a macro returns, reports `PHEL001`. It and empty PHP imports used to raise `Uninitialized string offset 0` first. (#3720)
+- Recursive macro expansion stops after 1,000 levels with `PHEL005` at the original call instead of hanging builds, lint and the LSP. (#3719)
+- Type tags for structs, interfaces, exceptions and enums in the same namespace work in `run`, `test` and the REPL, not only after a build. (#3654)
+- A malformed PHP member, class or type tag such as `.foo-bar` or `\Foo-Bar` fails with `PHEL007` at its symbol instead of producing invalid PHP or reading the dash as subtraction. (#3667)
+- A namespace's own definitions take precedence over PHP `:use` aliases in bare values and calls, so an import no longer hides a same-named `def`. Constructors, static calls, class callables and type tags still use the import. (#3717)
+- PHP class names such as `PDO` no longer warn about constant collisions in constructor, static-member or callable positions; bare value positions still warn. (#3537)
+- An empty symbol, including one a macro returns, reports `PHEL001`. It and empty PHP imports used to raise `Uninitialized string offset 0`. (#3720)
 
 Collections and sequences:
 
-- `with-meta` and `vary-meta` copies of an unrealized lazy seq share its values with the original, and the body runs once. A copy of a generator-backed seq such as `concat` used to read empty after the original was realized, and other bodies ran twice. A lazy seq returned from another lazy seq's body, as in `(lazy-seq xs)`, keeps its values once the outer seq is realized; it used to read empty. (#3806)
-- Hash maps whose keys share a hash, such as namespaced symbols with one name, find keys stored with a nil value. `contains?` and `find` used to report them missing. (#3804)
-- `pop` and `pop!` preserve vectors at trie boundaries, including after appending or converting a transient to persistent. They used to crash, retain removed values or lose live ones. (#3672 #3673)
-- `merge-with` with no maps returns nil instead of `{}`, matching `merge`; other arities are unchanged. (#3680)
-- Structs and records remain distinct from plain maps in equality, map keys and set membership. Equality used to depend on argument order. (#3674)
+- `with-meta` and `vary-meta` copies of an unrealized lazy seq share its values, and its body runs once. A copy of a generator-backed seq such as `concat` used to read empty once the original was realized, and other bodies ran twice. A lazy seq returned from another's body, as in `(lazy-seq xs)`, also keeps its values; it used to read empty. (#3806)
+- Hash maps whose keys share a hash, such as namespaced symbols with one name, find keys stored with a nil value. `contains?` and `find` used to miss them. (#3804)
+- `pop` and `pop!` preserve vectors at trie boundaries, including after appending or converting a transient to persistent. They used to crash, keep removed values or lose live ones. (#3672 #3673)
+- `merge-with` with no maps returns nil instead of `{}`, as `merge` does; other arities are unchanged. (#3680)
+- Structs and records stay distinct from plain maps in equality, map keys and set membership. Equality used to depend on argument order. (#3674)
 - Struct and record lookup accept string and symbol keys as array access does; unsupported keys return false or nil instead of PHP errors. (#3675)
 - Floats hash by their full value, so `1.5` no longer shares a bucket with `1`, and floats past 2^63 hash without a warning. Signed zero and NaN keys still look up consistently. (#3677)
-- `iterate` returns its seed without calling the step function; `repeatedly` and `cycle` also realize values only on demand. Reading a head used to prefetch later values and trigger extra effects. (#3678)
+- `iterate` returns its seed without calling the step function, and `repeatedly` and `cycle` realize values only on demand. Reading the head used to compute later values and run their effects. (#3678)
 - `range` accepts ratio, `BigInt` and `BigDecimal` bounds and steps, also through `repeat`, `repeatedly`, `dotimes` and `for :range`, instead of failing with a `Seq::range()` type error. (#3557)
 
 Printing and values:
 
-- `phel.json/encode` writes a `BigInt` in the int range as a JSON number and throws a `JsonException` for other `BigInt`, ratio and `BigDecimal` values, naming the value. They used to encode as `{}`. Convert with `str` or `double` first. (#3808)
-- A keyword whose namespace is the NUL character stays distinct from the keyword with the same name and no namespace, in either creation order. One used to return the other. (#3812)
-- `re-matches` finds a full match that needs a later alternative or a longer lazy match, as in `(re-matches #"a|ab" "ab")`. It used to return nil when the first match found was shorter than the string. (#3809)
-- `phel.json/encode` writes maps with keys `0` to `n-1`, such as `{0 :a 1 :b}`, as JSON objects. They used to become JSON arrays. (#3807)
-- `phel.html` `when` and `when-not` with several body forms render all of them when the condition holds and none otherwise. The second body form used to render as the else branch. (#3805)
-- `re-find`, `re-seq` and `re-matches` return nil for a capture group that did not match, and keep its slot when it is the last group: `(re-find #"(a)?b" "b")` is `["b" nil]`. They used to return `""`, and `re-find` and `re-matches` dropped a trailing unmatched group, returning a plain string when it was the only one. (#3810)
-- `pr-str` and `str` preserve finite float precision, including `1.0000000000000002` and `(/ 1.0 3)`. They used to round the value. (#3707)
+- `phel.json/encode` writes maps with keys `0` to `n-1`, such as `{0 :a 1 :b}`, as JSON objects instead of arrays. It writes a `BigInt` in the int range as a number and throws a `JsonException` naming other `BigInt`, ratio and `BigDecimal` values, which used to encode as `{}`. Convert those with `str` or `double` first. (#3807 #3808)
+- `re-find`, `re-seq` and `re-matches` return nil for a capture group that did not match and keep its slot when it is the last group: `(re-find #"(a)?b" "b")` is `["b" nil]`. They used to return `""` or drop a trailing unmatched group. `re-matches` also finds a full match that needs a later alternative or a longer lazy match, as in `(re-matches #"a|ab" "ab")`, instead of returning nil. (#3809 #3810)
+- A keyword whose namespace is the NUL character stays distinct from the same keyword without a namespace, in either creation order. One used to return the other. (#3812)
+- `phel.html` `when` and `when-not` with several body forms render all of them when the condition holds and none otherwise. The second form used to render as the else branch. (#3805)
+- `pr-str` and `str` keep full float precision, as in `1.0000000000000002` and `(/ 1.0 3)`, instead of rounding. (#3707)
 - `pr-str` prints readable `##NaN`, `##Inf` and `##-Inf`, escapes `0x1F` and `0x7F`, and prints PHP resources as `#<PHP Resource id #N>`. It used to produce unreadable numbers, raw control bytes or an exception. (#3712)
-- Cyclic atoms print as `#<cycle>`, including inside collections and at the REPL. They used to exhaust the process. (#3705)
+- Cyclic atoms print as `#<cycle>`, inside collections and at the REPL too, instead of exhausting the process. (#3705)
 - `(symbol "/a")` keeps its full name without a namespace instead of becoming `a` with an empty namespace. (#3524 #3710)
 - `name` on nil or another unsupported value raises an argument error naming its type instead of a PHP member-call error. (#3680)
-- `with-meta` and `vary-meta` accept fn literals, preserving their metadata and callable behavior instead of failing on a missing method. (#3537)
+- `with-meta` and `vary-meta` accept fn literals and keep their metadata and callable behavior instead of failing on a missing method. (#3537)
 
 Files and PHP:
 
-- `phel.http-client` puts `:query-params` before a URL fragment, so they reach the server. It used to append them after `#frag`, where the request drops them, and a `?` inside the fragment chose the separator. (#3822)
-- `phel.http/uri-from-string` throws its documented `InvalidArgumentException` for a URI PHP cannot parse, such as an out-of-range port. It used to fail with a PHP `array_map()` type error. (#3811)
-- `file-seq` ends at symlink cycles and lists each real file once on all PHP builds. It used to repeat paths or throw on thread-safe builds. (#3537)
+- `file-seq` stops at symlink cycles and lists each real file once on all PHP builds. It used to repeat paths or throw on thread-safe builds. (#3537)
 - On PHP 8.6, struct, exception and enum predicates, interface methods called with strings and PHP object hashes emit no deprecations. Functions returning `(php/=& target value)` work with OPcache's default optimizer instead of stopping with `Invalid opcode 62/4/0` on PHP 8.6 RC2. (#3522)
 
 HTTP:
 
+- `phel.http-client` puts `:query-params` before a URL fragment, so they reach the server. It used to append them after `#frag`, where the request drops them, and pick the separator from a `?` inside the fragment. (#3822)
 - `phel.http-client` keeps URL credentials on same-origin redirects instead of dropping them, and accepts `:max-body-bytes` to reject an oversized body; the default stays unlimited. (#3688)
+- `phel.http/uri-from-string` throws its documented `InvalidArgumentException` for a URI PHP cannot parse, such as an out-of-range port, instead of a PHP `array_map()` type error. (#3811)
 
 Builds and caches:
 
-- PHAR builds leave out untracked project files and produce the same checksum for unchanged source and production dependencies. They used to vary with checkout timestamps. (#3697)
-- Same-second source rewrites refresh namespace information and compiled output. Whole-second timestamps used to preserve stale dependencies or ship old code. (#3537 #3564)
+- PHAR builds leave out untracked project files and give the same checksum for unchanged source and production dependencies instead of varying with checkout timestamps. (#3697)
+- Rewriting a source within the same second refreshes namespace information and compiled output. Whole-second timestamps used to keep stale dependencies or ship old code. (#3537 #3564)
 - Namespace, scan and compiled-code caches handle concurrent processes and interrupted writes without exposing partial PHP. Incomplete caches from older versions count as empty. (#3553)
-- Macro edits invalidate all directly and indirectly dependent namespaces, including after parallel compilation. Distant dependents used to keep old expansions, and concurrent cache saves could lose dependencies. (#3698 #3700)
+- Macro edits invalidate every direct and indirect dependent namespace, after parallel compilation too. Distant dependents used to keep old expansions, and concurrent cache saves could lose dependencies. (#3698 #3700)
 - `phel cache:clear` refuses an unsafe cache directory with exit 2 before deleting anything, and only unlinks a symlinked temp directory. A setting such as `.` used to delete project files. (#3532 #3702)
-- Built apps find namespace-relative and classpath-absolute `load` files, including in flat layouts and phel-sql dependencies. These used to build and then fail with `Cannot locate ... for (load ...)`. (#3528 #3542)
+- Built apps find namespace-relative and classpath-absolute `load` files, in flat layouts and phel-sql dependencies too. They used to build and then fail with `Cannot locate ... for (load ...)`. (#3528 #3542)
 - Built apps bootstrap the runtime for `read-string`, `eval`, `load-string`, `compile`, `promise`, `future-call` and `phel.edn`, which used to fail. The `http-json-api` template serves built `out/index.php`, declares its request namespace and preloads Phel's `build/preload.php`. (#3527)
-- Composer-installed builds no longer warn that every stdlib namespace is defined twice. They used to read the same files as both source and vendor directories. (#3549)
-- Running Phel from a subdirectory resolves configured source and test directories from the project root. A matching subdirectory used to take precedence and could load the wrong namespace. (#3701)
-- `.phel/` ignores itself after every command, including `run` and `build`, which used to leave its files untracked. (#3537)
-- The `phellang/repl` Docker image installs the release named by its tag and supports `linux/arm64`. It used to install `main`, and prerelease tags incorrectly moved `latest`. (#3536)
+- Composer-installed builds no longer warn that every stdlib namespace is defined twice, from reading the same files as source and vendor directories. (#3549)
+- Running Phel from a subdirectory resolves configured source and test directories from the project root. A matching subdirectory used to win and could load the wrong namespace. (#3701)
+- `.phel/` ignores itself after every command, `run` and `build` included, instead of leaving its files untracked. (#3537)
+- The `phellang/repl` Docker image installs the release named by its tag and supports `linux/arm64`. It used to install `main`, and prerelease tags moved `latest`. (#3536)
 
 Commands and test output:
 
-- `phel profile` keeps a call stack per fiber, so calls from interleaved fibers count toward the function that made them. A fiber returning used to close another fiber's open call. (#3816)
-- `phel profile -o` exits 1 and names the path on stderr when it cannot write the JSON report. It used to exit 0 and print the error on stdout. (#3815)
-- Global options before `run`, as in `phel --no-ansi run app.phel --flag=value`, keep script arguments and a bare `--debug` working. The script's options used to fail as unknown, and `--debug` took the script path as its value. (#3814)
-- `thrown-with-msg?` matches a regex such as `#"bad"` against the exception message, as its docstring says. A string that does not look like `/.../` still needs the exact message. It used to compare the regex text with the message and fail. (#3813)
-- `phel run` accepts options before the script path, as in `phel run --stack-trace --debug app.phel`. Use `--` to end options: `phel run -- app.phel a b` passes `a` and `b` and allows paths starting with `-`. It used to treat `--debug` or `--` as the path and strip `--warn-deprecations` from script arguments. (#3537 #3689)
-- `phel config` and its JSON reflect `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations` overrides. They used to show only file values. JSON includes every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`. (#3525)
-- `phel --version`, `phel help` and `phel list` no longer create `.phel/` and its OPcache directory in a directory where nothing is compiled. (#3690)
-- Machine output sends status messages and failures to stderr: TAP and stdout JUnit timing, mutation JSON progress, `index -o` persistence notices, daemon startup failures and loaded-namespace messages from analyze, lint, JSON doc/profile/mutate and api-daemon. They used to mix with machine output. (#3525)
-- Parallel and serial JUnit runs produce the same XML on stdout or in the `-o` file, with progress and summary on stderr. Workers used to overwrite files or print only a summary. TAP stays serial; its `Ignoring --parallel` notice appears on stderr in verbose mode. TAP and stdout JUnit send test output and compile errors to stderr while preserving `output?` and `with-out-str` capture inside tests. (#3627 #3642)
+- `phel run` accepts options before the script path, as in `phel run --stack-trace --debug app.phel`, and global options before `run`, as in `phel --no-ansi run app.phel --flag=value`. `--` ends options: `phel run -- app.phel a b` passes `a` and `b` and allows paths starting with `-`. It used to read `--debug` or `--` as the path, reject the script's own options and strip `--warn-deprecations` from script arguments. (#3537 #3689 #3814)
+- `phel profile` keeps a call stack per fiber, so calls from interleaved fibers count toward the function that made them; a fiber returning used to close another fiber's call. `phel profile -o` exits 1 and names the path on stderr when it cannot write the report, instead of exiting 0 with the error on stdout. (#3815 #3816)
+- `thrown-with-msg?` matches a regex such as `#"bad"` against the exception message, as its docstring says, instead of comparing the regex text. A string that does not look like `/.../` still needs the exact message. (#3813)
+- `phel config` and its JSON reflect `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations` overrides instead of only file values. The JSON includes every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`. (#3525)
+- `phel --version`, `phel help` and `phel list` no longer create `.phel/` and its OPcache directory where nothing is compiled. (#3690)
+- Machine output keeps status messages and failures on stderr: TAP and stdout JUnit timing, mutation JSON progress, `index -o` notices, daemon startup failures, and loaded-namespace messages from analyze, lint, JSON doc/profile/mutate and api-daemon. They used to mix into the machine output. (#3525)
+- Parallel and serial JUnit runs write the same XML to stdout or the `-o` file, with progress and summary on stderr; workers used to overwrite files or print only a summary. TAP stays serial and notes `Ignoring --parallel` on stderr in verbose mode. TAP and stdout JUnit send test output and compile errors to stderr, while `output?` and `with-out-str` still capture inside tests. (#3627 #3642)
 - An exception outside `is` counts as a test error, and later tests and the summary still run. It used to abort serial runs or lose a parallel namespace without counting an error. (#3537)
-- Mutation worker startup output and PHP notices no longer corrupt responses or hang workers. Unexpected stdout fails the run with that text. Tests that fill the stderr pipe keep their verdict instead of blocking until timeout. (#3526 #3696)
+- Mutation worker startup output and PHP notices no longer corrupt responses or hang workers; unexpected stdout fails the run with that text. Tests that fill the stderr pipe keep their verdict instead of blocking until timeout. (#3526 #3696)
 
 Analysis, diagnostics and docs:
 
 - `phel balance --fix` refuses a reader prefix still missing its form, such as metadata without a target in `(list ^:foo`, leaves the file unchanged and exits 1. It used to append `)`, report the file as repaired and leave source that does not parse. (#3817)
 - Lint reports a wrong-arity call once instead of twice with different messages. (#3655)
-- Analyze and the LSP handle same-file macros without false `PHEL005` errors or running the file's definitions. Removing a macro from the buffer makes it unresolved; it used to keep expanding. (#3621)
-- Lint and analyze resolve definitions in files loaded with `load`, and lint ignores calls inside quoted data while still checking `~x`. These used to produce unresolved-symbol or arity errors for valid code. (#3551 #3550)
-- Lint, analyze and the LSP continue after files containing `#inst` literals instead of aborting on `DateTimeImmutable`. (#3610)
+- Analyze and the LSP handle same-file macros without false `PHEL005` errors or running the file's definitions. A macro removed from the buffer becomes unresolved instead of still expanding. (#3621)
+- Lint and analyze resolve definitions in files loaded with `load`, and lint ignores calls inside quoted data while still checking `~x`. Both used to report unresolved-symbol or arity errors for valid code. (#3551 #3550)
+- Lint, analyze and the LSP continue past files containing `#inst` literals instead of aborting on `DateTimeImmutable`. (#3610)
 - `phel run` prints every compiler error code, and `phel eval` shows lexer errors with a code, source line and caret. A zero denominator such as `1/0` reports a located `PHEL120`. These errors used to lose their code or print raw exception blocks. (#3537 #3608)
-- `phel eval` rejects missing or blank expressions, including empty stdin, with exit 2 instead of silently succeeding. Command exit codes outside `0..255` become 255 instead of wrapping to success. (#3695)
-- `PHEL402` argument errors, missing `load` files and PHP warnings, notices or deprecations from `run` or `test` point to the calling `.phel` file and line. They used to name generated PHP; `error_get_last()` retains its message. Typed eval/REPL code and built output still name PHP files. (#3537)
+- `phel eval` rejects missing or blank expressions, empty stdin included, with exit 2 instead of succeeding. Exit codes outside `0..255` become 255 instead of wrapping to success. (#3695)
+- `PHEL402` argument errors, missing `load` files and PHP warnings, notices or deprecations from `run` or `test` point to the calling `.phel` file and line instead of generated PHP; `error_get_last()` keeps its message. Typed eval/REPL code and built output still name PHP files. (#3537)
 - `phel doc` and the API reference link declaration macros, special forms, `apply`, `ns`, and PHP array, object, class, callable and reference forms to their guides. They and REPL completion use `phel.http-client` instead of `http_client`. (#3656 #3645)
 - Help for `debug:container`, `debug:dependencies`, `debug:modules`, `profile:report`, `validate:config` and `cache:warm` shows `phel ...` examples instead of `bin/gacela` and `gacela.php`, and `phel doctor` recommends the existing `phel cache:clear`. (#3537 #3563 #3577)
 
 Editors and servers:
 
-- `phel watch -b fswatch` reads each change as its own path and kind, so a deleted file is reported as deleted and paths with spaces or newlines work. It used to read the NUL-separated output as lines and keep the event flags in the path, so no change reached a reload. (#3819)
-- The language server finds the symbol under the cursor after non-ASCII text on the same line, so go to definition, references, rename and hover on a Phel symbol work there. It used to read the editor's UTF-16 position as a byte offset and found no symbol. (#3821)
-- `phel watch` with the polling backend also compares file contents, so it sees a same-size save within one second. Such an edit used to leave the snapshot unchanged and trigger nothing. (#3820)
-- `phel watch -b inotify` reloads on change again, and both external backends show the tool's startup errors. The watcher opened the tool's output in the wrong direction, and passed a literal `\t` that `inotifywait` printed as is, so no change reached a reload. (#3818)
-- The LSP places edits correctly in CRLF and Unicode documents and lints the latest unsaved text after typing stops. Closing a document cancels queued diagnostics. It used to shift edits, split characters, skip the last edit or lint the saved file. (#3683 #3685)
-- The LSP resolves Windows file URIs with encoded drives (`file:///C%3A/a.phel`), a `localhost` host or uppercase `FILE://` to local drive paths. It used to keep a leading slash that prevented editors from finding the file. (#3686)
-- The LSP substitutes invalid UTF-8 in responses and turns other encoding failures into protocol errors instead of stopping the server. (#3684)
-- nREPL limits pending input and nesting, rejects malformed messages and sends complete responses without letting slow clients block others. It used to stall connections, exhaust memory or truncate replies. SIGTERM and Ctrl+C stop it cleanly instead of exiting 1. Binding outside loopback warns that nREPL has no authentication. (#3681 #3682 #3575 #3532)
-- `phel format` preserves every reader-conditional branch, including splicing and unmatched forms, plus whitespace and comments between tagged literals and their values. It used to delete branches or produce unparseable code. Malformed conditionals such as `#?(:phel)` and `#?(1 2)` report located parser errors. (#3669 #3670 #3715)
-- `phel format` aligns names such as `é` and `日本語` by character count. It used to count UTF-8 bytes and misalign them. (#3671)
+- `phel watch` reloads on change with every backend. `-b inotify` reads the tool's output again, and both it and `-b fswatch` show the tool's startup errors. `-b fswatch` reads each NUL-separated event as its own path and kind, so deletions and paths with spaces or newlines work, and polling also compares file contents, so it sees a same-size save within one second. No inotify or fswatch change used to reach a reload. (#3818 #3819 #3820)
+- The language server finds the symbol under the cursor after non-ASCII text on the same line, so go to definition, references, rename and hover work there. It used to read the editor's UTF-16 position as a byte offset. (#3821)
+- The LSP places edits correctly in CRLF and Unicode documents and lints the latest unsaved text after typing stops; closing a document cancels queued diagnostics. It used to shift edits, split characters, skip the last edit or lint the saved file. (#3683 #3685)
+- The LSP resolves Windows file URIs with encoded drives (`file:///C%3A/a.phel`), a `localhost` host or uppercase `FILE://` to local drive paths. A leftover leading slash used to stop editors from finding the file. (#3686)
+- The LSP substitutes invalid UTF-8 in responses and turns other encoding failures into protocol errors instead of stopping. (#3684)
+- nREPL limits pending input and nesting, rejects malformed messages and sends complete responses without letting slow clients block others; it used to stall connections, exhaust memory or truncate replies. SIGTERM and Ctrl+C stop it cleanly instead of exiting 1. Binding outside loopback warns that nREPL has no authentication. (#3681 #3682 #3575 #3532)
+- `phel format` keeps every reader-conditional branch, splicing and unmatched forms included, plus whitespace and comments between tagged literals and their values. It used to delete branches or produce unparseable code. Malformed conditionals such as `#?(:phel)` and `#?(1 2)` report located parser errors. (#3669 #3670 #3715)
+- `phel format` aligns names such as `é` and `日本語` by character count instead of UTF-8 bytes. (#3671)
 
 PHP API:
 
