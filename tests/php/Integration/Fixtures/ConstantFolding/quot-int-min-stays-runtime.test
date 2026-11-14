@@ -1,0 +1,7 @@
+--PHEL--
+(fn [] (quot -9223372036854775808 -1))
+--PHP--
+(function() {
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "quot"))->__invoke((-9223372036854775807 - 1), -1);
+});
