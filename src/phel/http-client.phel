@@ -44,8 +44,11 @@
       (foreach [k v params]
         (aset php-params (key->string k) (str v)))
       (let [query-string (php/http_build_query php-params)
-            separator    (if (s/includes? url "?") "&" "?")]
-        (str url separator query-string)))))
+            hash-at      (php/strpos url "#")
+            base         (if (false? hash-at) url (php/substr url 0 hash-at))
+            fragment     (if (false? hash-at) "" (php/substr url hash-at))
+            separator    (if (s/includes? base "?") "&" "?")]
+        (str base separator query-string fragment)))))
 
 ;; -----------
 ;; Response conversion

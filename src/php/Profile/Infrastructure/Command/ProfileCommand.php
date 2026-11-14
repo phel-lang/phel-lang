@@ -92,8 +92,9 @@ HELP)
 
     /**
      * Resolve the target script, validate `--sort`/`--format`, run it under the
-     * profiler hook, then render the report. Returns FAILURE when the path is
-     * unresolved, an option is invalid, or the script throws; SUCCESS otherwise.
+     * profiler hook, then render the report. Returns INVALID when the path is
+     * unresolved or an option is invalid, and FAILURE when the script throws or
+     * the `-o` report cannot be written.
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -133,9 +134,9 @@ HELP)
             return self::FAILURE;
         }
 
-        $this->renderReport($report, $input, $output, $sort, $format, $top);
-
-        return self::SUCCESS;
+        return $this->renderReport($report, $input, $output, $sort, $format, $top)
+            ? self::SUCCESS
+            : self::FAILURE;
     }
 
     /**
@@ -179,7 +180,7 @@ HELP)
         SortOrder $sort,
         ReportFormat $format,
         int $top,
-    ): void {
+    ): bool {
         $includeCompilePhases = !$input->getOption(self::OPT_NO_COMPILE_PHASES);
 
         if ($format->emitsText()) {
@@ -189,20 +190,20 @@ HELP)
         $outputFile = $input->getOption(self::OPT_OUTPUT);
         $writeToFile = is_string($outputFile) && $outputFile !== '';
         if (!$writeToFile && !$format->emitsJson()) {
-            return;
+            return true;
         }
 
         $json = $this->getFacade()->renderJson($report);
         if ($writeToFile) {
             if (@file_put_contents($outputFile, $json) === false) {
-                $output->writeln(sprintf('<error>Cannot write JSON report to %s</error>', $outputFile));
+                StandardError::of($output)->writeln(sprintf('<error>Cannot write JSON report to %s</error>', $outputFile));
 
-                return;
+                return false;
             }
 
             $output->writeln(sprintf('<info>JSON report written to %s</info>', $outputFile));
 
-            return;
+            return true;
         }
 
         if ($format === ReportFormat::Both) {
@@ -210,6 +211,8 @@ HELP)
         }
 
         $output->writeln($json);
+
+        return true;
     }
 
     private function resolvePath(InputInterface $input, OutputInterface $output): ?string

@@ -233,6 +233,15 @@ final class DocumentTest extends TestCase
         self::assertSame([6, 11], $document->oneBasedLineCol(['line' => 5, 'character' => 10]));
     }
 
+    public function test_cursor_positions_count_utf16_units_after_unicode(): void
+    {
+        $document = new Document('file:///x.phel', 'phel', 1, '(f "é😀" mysym)');
+        $position = ['line' => 0, 'character' => 9];
+
+        self::assertSame('mysym', $document->wordAt($position));
+        self::assertSame([1, 9], $document->oneBasedLineCol($position));
+    }
+
     public function test_one_based_line_col_clamps_negative_to_one(): void
     {
         $document = new Document('file:///x.phel', 'phel', 1, 'whatever');

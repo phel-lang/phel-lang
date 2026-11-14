@@ -124,6 +124,8 @@ Collections and sequences:
 
 Printing and values:
 
+- `re-matches` finds a full match that needs a later alternative or a longer lazy match, as in `(re-matches #"a|ab" "ab")`. It used to return nil when the first match found was shorter than the string. (#3809)
+- `phel.json/encode` writes maps with keys `0` to `n-1`, such as `{0 :a 1 :b}`, as JSON objects. They used to become JSON arrays. (#3807)
 - `phel.html` `when` and `when-not` with several body forms render all of them when the condition holds and none otherwise. The second body form used to render as the else branch. (#3805)
 - `re-find`, `re-seq` and `re-matches` return nil for a capture group that did not match, and keep its slot when it is the last group: `(re-find #"(a)?b" "b")` is `["b" nil]`. They used to return `""`, and `re-find` and `re-matches` dropped a trailing unmatched group, returning a plain string when it was the only one. (#3810)
 - `pr-str` and `str` preserve finite float precision, including `1.0000000000000002` and `(/ 1.0 3)`. They used to round the value. (#3707)
@@ -135,6 +137,7 @@ Printing and values:
 
 Files and PHP:
 
+- `phel.http-client` puts `:query-params` before a URL fragment, so they reach the server. It used to append them after `#frag`, where the request drops them, and a `?` inside the fragment chose the separator. (#3822)
 - `phel.http/uri-from-string` throws its documented `InvalidArgumentException` for a URI PHP cannot parse, such as an out-of-range port. It used to fail with a PHP `array_map()` type error. (#3811)
 - `file-seq` ends at symlink cycles and lists each real file once on all PHP builds. It used to repeat paths or throw on thread-safe builds. (#3537)
 - On PHP 8.6, struct, exception and enum predicates, interface methods called with strings and PHP object hashes emit no deprecations. Functions returning `(php/=& target value)` work with OPcache's default optimizer instead of stopping with `Invalid opcode 62/4/0` on PHP 8.6 RC2. (#3522)
@@ -160,6 +163,8 @@ Builds and caches:
 Commands and test output:
 
 - `phel profile` keeps a call stack per fiber, so calls from interleaved fibers count toward the function that made them. A fiber returning used to close another fiber's open call. (#3816)
+- `phel profile -o` exits 1 and names the path on stderr when it cannot write the JSON report. It used to exit 0 and print the error on stdout. (#3815)
+- Global options before `run`, as in `phel --no-ansi run app.phel --flag=value`, keep script arguments and a bare `--debug` working. The script's options used to fail as unknown, and `--debug` took the script path as its value. (#3814)
 - `thrown-with-msg?` matches a regex such as `#"bad"` against the exception message, as its docstring says. A string that does not look like `/.../` still needs the exact message. It used to compare the regex text with the message and fail. (#3813)
 - `phel run` accepts options before the script path, as in `phel run --stack-trace --debug app.phel`. Use `--` to end options: `phel run -- app.phel a b` passes `a` and `b` and allows paths starting with `-`. It used to treat `--debug` or `--` as the path and strip `--warn-deprecations` from script arguments. (#3537 #3689)
 - `phel config` and its JSON reflect `PHEL_CACHE_DIR`, `PHEL_DIR`, `PHEL_OPTIMIZATION_LEVEL`, `PHEL_WARN_DEPRECATIONS` and `--warn-deprecations` overrides. They used to show only file values. JSON includes every `PhelConfig` key, adding `app-module-paths`, `enable-intermediate-cache`, `strip-symbol-meta` and `cache-env-vars`. (#3525)
@@ -171,6 +176,7 @@ Commands and test output:
 
 Analysis, diagnostics and docs:
 
+- `phel balance --fix` refuses a reader prefix still missing its form, such as metadata without a target in `(list ^:foo`, leaves the file unchanged and exits 1. It used to append `)`, report the file as repaired and leave source that does not parse. (#3817)
 - Lint reports a wrong-arity call once instead of twice with different messages. (#3655)
 - Analyze and the LSP handle same-file macros without false `PHEL005` errors or running the file's definitions. Removing a macro from the buffer makes it unresolved; it used to keep expanding. (#3621)
 - Lint and analyze resolve definitions in files loaded with `load`, and lint ignores calls inside quoted data while still checking `~x`. These used to produce unresolved-symbol or arity errors for valid code. (#3551 #3550)
@@ -183,6 +189,9 @@ Analysis, diagnostics and docs:
 
 Editors and servers:
 
+- The language server finds the symbol under the cursor after non-ASCII text on the same line, so go to definition, references, rename and hover on a Phel symbol work there. It used to read the editor's UTF-16 position as a byte offset and found no symbol. (#3821)
+- `phel watch` with the polling backend also compares file contents, so it sees a same-size save within one second. Such an edit used to leave the snapshot unchanged and trigger nothing. (#3820)
+- `phel watch -b inotify` reloads on change again, and both external backends show the tool's startup errors. The watcher opened the tool's output in the wrong direction, and passed a literal `\t` that `inotifywait` printed as is, so no change reached a reload. (#3818)
 - The LSP places edits correctly in CRLF and Unicode documents and lints the latest unsaved text after typing stops. Closing a document cancels queued diagnostics. It used to shift edits, split characters, skip the last edit or lint the saved file. (#3683 #3685)
 - The LSP resolves Windows file URIs with encoded drives (`file:///C%3A/a.phel`), a `localhost` host or uppercase `FILE://` to local drive paths. It used to keep a leading slash that prevented editors from finding the file. (#3686)
 - The LSP substitutes invalid UTF-8 in responses and turns other encoding failures into protocol errors instead of stopping the server. (#3684)
