@@ -6,9 +6,13 @@ namespace PhelTest\Integration\Run\Command\Run;
 
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use PhelTest\Support\AssertsErrorReportShapeTrait;
+use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\Attributes\DataProvider;
 
+use function dirname;
 use function preg_quote;
+
+use const PHP_BINARY;
 
 /**
  * One report shape for every class of uncaught runtime error (#3264). The
@@ -18,6 +22,27 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
 {
     use AssertsErrorReportShapeTrait;
     use CapturesRunCommandOutputTrait;
+
+    /**
+     * Report per fixture and flag. Several tests read different parts of the
+     * same report, and producing it means compiling and running the fixture.
+     *
+     * @var array<string, string>
+     */
+    private static array $reports = [];
+
+    /**
+     * The compiled-code index is written when a process exits, so each test's
+     * fresh container would read it empty and compile the stdlib again. One
+     * `phel run` here writes it once for every in-process run below.
+     */
+    public static function setUpBeforeClass(): void
+    {
+        Subprocess::run(
+            [PHP_BINARY, dirname(__DIR__, 6) . '/bin/phel', 'run', 'Fixtures/ex-info-script.phel'],
+            __DIR__,
+        );
+    }
 
     /**
      * @return iterable<string, array{0: string, 1: string}>
@@ -39,7 +64,7 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
     #[DataProvider('runtimeErrorClassProvider')]
     public function test_every_runtime_error_class_reports_the_same_sections(string $fixture, string $message): void
     {
-        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/' . $fixture);
+        $output = $this->reportFor($fixture);
 
         self::assertStringContainsString($message, $output);
         self::assertErrorReportShape($output);
@@ -48,7 +73,7 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
     #[DataProvider('runtimeErrorClassProvider')]
     public function test_the_at_line_names_the_users_own_file(string $fixture, string $message): void
     {
-        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/' . $fixture);
+        $output = $this->reportFor($fixture);
 
         self::assertStringContainsString($message, $output);
         self::assertMatchesRegularExpression('~^  at .*/Fixtures/' . preg_quote($fixture, '~') . ':\d+$~m', $output);
@@ -57,7 +82,7 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
     #[DataProvider('runtimeErrorClassProvider')]
     public function test_the_stack_trace_flag_keeps_the_same_sections(string $fixture, string $message): void
     {
-        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/' . $fixture, stackTrace: true);
+        $output = $this->reportFor($fixture, stackTrace: true);
 
         self::assertStringContainsString($message, $output);
         self::assertStringNotContainsString('internal frame', $output);
@@ -84,7 +109,7 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
     #[DataProvider('codedRuntimeErrorProvider')]
     public function test_a_recognised_runtime_error_opens_with_its_code(string $fixture, string $code): void
     {
-        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/' . $fixture);
+        $output = $this->reportFor($fixture);
 
         self::assertMatchesRegularExpression('~^\[' . $code . '\] \S~m', $output);
     }
@@ -94,7 +119,7 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
      */
     public function test_a_java_class_call_hints_at_the_phel_replacement(): void
     {
-        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/java-class-call-script.phel');
+        $output = $this->reportFor('java-class-call-script.phel');
 
         self::assertStringContainsString('hint: Integer is a Java class, not a PHP one: for Integer/parseInt use (parse-long s).', $output);
     }
@@ -105,7 +130,7 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
      */
     public function test_a_runtime_arity_headline_names_no_php_file(): void
     {
-        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/arity-error-script.phel');
+        $output = $this->reportFor('arity-error-script.phel');
 
         self::assertMatchesRegularExpression('~^\[PHEL401\] Wrong number of args \(1\) passed to arity-error-script/add, expected 2$~m', $output);
         self::assertStringNotContainsString('Too few arguments', $output);
@@ -113,7 +138,7 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
 
     public function test_a_missing_load_target_points_at_the_load_form(): void
     {
-        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/load-missing-script.phel');
+        $output = $this->reportFor('load-missing-script.phel');
 
         self::assertStringContainsString('Cannot locate missing for (load ...)', $output);
         self::assertMatchesRegularExpression('~^  at .*/Fixtures/load-missing-script\.phel:2$~m', $output);
@@ -121,7 +146,7 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
 
     public function test_a_loaded_file_in_another_namespace_points_at_the_load_form(): void
     {
-        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/load-wrong-ns-script.phel');
+        $output = $this->reportFor('load-wrong-ns-script.phel');
 
         self::assertStringContainsString('must use (in-ns load-wrong-ns-script)', $output);
         self::assertMatchesRegularExpression('~^  at .*/Fixtures/load-wrong-ns-script\.phel:2$~m', $output);
@@ -133,9 +158,16 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
      */
     public function test_an_uncaught_ex_info_carries_no_code(): void
     {
-        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/ex-info-script.phel');
+        $output = $this->reportFor('ex-info-script.phel');
 
         self::assertStringContainsString('boom', $output);
         self::assertDoesNotMatchRegularExpression('~\[PHEL\d{3}\]~', $output);
+    }
+
+    private function reportFor(string $fixture, bool $stackTrace = false): string
+    {
+        $key = $fixture . ($stackTrace ? '|stack-trace' : '');
+
+        return self::$reports[$key] ??= $this->captureRunOutput(__DIR__ . '/Fixtures/' . $fixture, stackTrace: $stackTrace);
     }
 }

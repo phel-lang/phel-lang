@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Bench;
 
 use Override;
+use PhelTest\Support\SharedStdlibCache;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -249,8 +250,9 @@ final class BenchAbCommandTest extends TestCase
     private function runPhel(array $arguments, string $subdirectory = ''): array
     {
         $command = sprintf(
-            'cd %s && php %s %s 2>&1',
+            'cd %s && %sphp %s %s 2>&1',
             escapeshellarg($this->projectDir . $subdirectory),
+            SharedStdlibCache::envPrefix(),
             escapeshellarg($this->repoRoot . '/bin/phel'),
             implode(' ', array_map(escapeshellarg(...), $arguments)),
         );
