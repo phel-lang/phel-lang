@@ -35,6 +35,8 @@ assert concurrency by wall clock and would race the other workers.
   their configured cache or run `cache:clear` use `IsolatedBuildCacheTrait` to
   keep their cache separate. Worker cleanup runs after deferred cache saves,
   so a child cannot leave an index whose compiled files were already deleted.
+  Gacela configuration stays private to each process, and its merged files are
+  cleared before each test so temporary and source directories cannot leak.
   `composer test-integration:serial` keeps the single-process path for debugging.
 - **Paratest schedules whole classes.** The slowest class sets the floor
   (now `BenchAbCommandTest`, ~65 s). `--functional` (per-method)

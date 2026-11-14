@@ -50,6 +50,11 @@ foreach (['GIT_DIR', 'GIT_INDEX_FILE', 'GIT_WORK_TREE'] as $gitVariable) {
     $_ENV['TMPDIR'] = $workerTmp;
     $_SERVER['TMPDIR'] = $workerTmp;
 
+    $configCache = $workerTmp . DIRECTORY_SEPARATOR . 'phel-phpunit-gacela-cache';
+    putenv('GACELA_CACHE_DIR=' . $configCache);
+    $_ENV['GACELA_CACHE_DIR'] = $configCache;
+    $_SERVER['GACELA_CACHE_DIR'] = $configCache;
+
     $sharedCache = getenv('PHEL_TEST_SHARED_CACHE_DIR');
     if ($sharedCache === false || $sharedCache === '') {
         $sharedCache = $workerTmp . DIRECTORY_SEPARATOR . 'phel-cache';
