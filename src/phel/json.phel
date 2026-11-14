@@ -24,9 +24,10 @@
     (foreach [k v x]
       (when-not (valid-key? k)
         (throw (new JsonException "Key can only be an integer, float, symbol, keyword or a string.")))
-      ;; `php/aset` and not `aset`: the array is a PHP array here by
-      ;; construction, and this runs once per key of every object encoded.
-      (php/aset arr (encode-key k) (encode-value v)))
+      (let [json-key (encode-key k)]
+        (when (php/array_key_exists json-key arr)
+          (throw (new JsonException (str "Duplicate JSON key: " json-key))))
+        (php/aset arr json-key (encode-value v))))
     arr))
 
 (defn- encode-big-number
@@ -41,7 +42,7 @@
                      "Convert it first with str or double.")))))
 
 (defn encode-value
-  "Converts a Phel value to JSON-compatible format."
+  "Converts a Phel value to JSON-compatible format. Keywords and symbols keep their namespaces. Throws `JsonException` when map keys encode to the same JSON key."
   {:example "(encode-value :name) ; => \"name\""
    :see-also ["encode" "decode-value"]}
   [x]
@@ -55,8 +56,8 @@
     (map? x)                  (let [arr (encode-value-iterable x)]
                                 (if (php/array_is_list arr) (new \ArrayObject arr) arr))
     (php/is_iterable x)       (encode-value-iterable x)
-    (symbol? x)               (name x)
-    (keyword? x)              (name x)
+    (symbol? x)               (.getFullName x)
+    (keyword? x)              (.getFullName x)
     ;; `is_object` first keeps the three predicates off the scalar path.
     (and (php/is_object x)
          (or (bigint? x) (ratio? x) (decimal? x)))
@@ -64,8 +65,9 @@
     true                      x))
 
 (defn encode
-  "Encodes a Phel value to a JSON string. Throws `JsonException` when PHP cannot encode it, such as for `NAN` or invalid UTF-8."
-  {:example "(encode {:name \"Alice\"}) ; => \"{\\\"name\\\":\\\"Alice\\\"}\""}
+  "Encodes a Phel value to a JSON string, preserving keyword and symbol namespaces. Throws `JsonException` when keys collide or PHP cannot encode a value, such as `NAN` or invalid UTF-8."
+  {:example "(encode {:name \"Alice\"}) ; => \"{\\\"name\\\":\\\"Alice\\\"}\""
+   :see-also ["encode-value" "decode"]}
   ;; Fixed arities rather than `& [{...}]`, which allocated a rest argument and
   ;; then destructured a map out of it on every call (#2973, #3021). The
   ;; no-options arity also skips the three option checks: 0 and 512 are the

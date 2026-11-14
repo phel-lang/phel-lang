@@ -58,3 +58,23 @@
   (is (= "{\"x\":{\"0\":1}}" (json/encode {:x {0 1}})) "a nested numeric-key map stays an object")
   (is (= "[\"a\",\"b\"]" (json/encode [:a :b])) "a vector is still an array")
   (is (= {:0 "a" :1 "b"} (json/decode (json/encode {0 :a 1 :b}))) "decoding reads a map back"))
+
+(deftest test-json-encode-keeps-key-namespaces
+  (is (= "{\"user/id\":1,\"order/id\":2}"
+         (json/encode {:user/id 1, :order/id 2} {:flags php/JSON_UNESCAPED_SLASHES})))
+  (is (= "{\"a/b\":1,\"c/d\":\"e/f\"}"
+         (json/encode {:a/b 1, 'c/d :e/f} {:flags php/JSON_UNESCAPED_SLASHES})))
+  (is (= {:user/id 1, :order/id 2} (json/decode (json/encode {:user/id 1, :order/id 2})))))
+
+(deftest test-json-encode-rejects-colliding-keys
+  (foreach [value [{:a 1, "a" 2}
+                   {:a nil, "a" 2}
+                   {:a false, "a" 2}
+                   {"1" :s, 1 :i}
+                   {:a 'first, 'a 'second}
+                   {:a/b 1, "a/b" 2}]]
+    (is (thrown? JsonException (json/encode value))))
+  (is (thrown-with-msg? JsonException "Duplicate JSON key: a"
+                        (json/encode {:a nil, "a" 2})))
+  (is (thrown? JsonException (json/encode [{:a 1, "a" 2}])))
+  (is (thrown? JsonException (json/encode-value {:a 1, "a" 2}))))
