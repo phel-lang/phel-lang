@@ -6,9 +6,13 @@ namespace Phel\Run\Application\Test;
 
 use Phel\Shared\ScalarCoercion;
 
+use function htmlspecialchars;
 use function is_array;
 use function is_string;
 use function sprintf;
+
+use const ENT_QUOTES;
+use const ENT_XML1;
 
 /**
  * Decoded worker-to-parent result frame. Plain value object so the
@@ -76,6 +80,31 @@ final readonly class WorkerResult
     }
 
     /**
+     * Synthetic result for a namespace the parent stopped at `--timeout`.
+     * Carries its own JUnit document, since the worker never wrote one.
+     */
+    public static function fromTimeout(int $index, string $ns, int $seconds, string $lastTest): self
+    {
+        $message = sprintf(
+            'Timed out after %ds running %s%s.',
+            $seconds,
+            $ns,
+            $lastTest === '' ? '' : sprintf(' (last test started: %s)', $lastTest),
+        );
+
+        return new self(
+            $index,
+            $ns,
+            false,
+            '<error>' . $message . "</error>\n",
+            $lastTest === '' ? [] : [$ns . '/' . $lastTest],
+            new Counts(error: 1, total: 1),
+            WorkerOutcome::TimedOut,
+            junitXml: self::timeoutJunitXml($ns, $lastTest, $seconds, $message),
+        );
+    }
+
+    /**
      * Whether re-running this namespace on a fresh worker can change the
      * answer. Only a worker-level fault qualifies; a compile error and a
      * failing test are verdicts about the source.
@@ -83,6 +112,19 @@ final readonly class WorkerResult
     public function isRetryable(): bool
     {
         return $this->outcome->isRetryable();
+    }
+
+    private static function timeoutJunitXml(string $ns, string $lastTest, int $seconds, string $message): string
+    {
+        $attr = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_XML1);
+        $time = (string) $seconds;
+
+        return '<?xml version="1.0" encoding="UTF-8"?>'
+            . '<testsuites tests="1" failures="0" errors="1" skipped="0" time="' . $time . '">'
+            . '<testsuite name="' . $attr($ns) . '" tests="1" failures="0" errors="1" skipped="0" time="' . $time . '">'
+            . '<testcase name="' . $attr($lastTest === '' ? $ns : $lastTest) . '" classname="' . $attr($ns) . '" file="" line="0">'
+            . '<error message="' . $attr($message) . '" type="Timeout"></error>'
+            . '</testcase></testsuite></testsuites>';
     }
 
     /**

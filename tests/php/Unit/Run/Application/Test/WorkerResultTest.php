@@ -122,4 +122,36 @@ final class WorkerResultTest extends TestCase
         self::assertFalse($result->isRetryable());
         self::assertSame(['phel.a/some-test'], $result->failedTests);
     }
+
+    public function test_a_timeout_names_the_namespace_and_the_last_test_that_started(): void
+    {
+        $result = WorkerResult::fromTimeout(3, 'app.hang-test', 5, 'spins');
+
+        self::assertSame(3, $result->index);
+        self::assertFalse($result->ok);
+        self::assertSame(WorkerOutcome::TimedOut, $result->outcome);
+        self::assertFalse($result->isRetryable());
+        self::assertStringContainsString('Timed out after 5s running app.hang-test (last test started: spins).', $result->output);
+        self::assertSame(['app.hang-test/spins'], $result->failedTests);
+        self::assertSame(1, $result->counts->error);
+        self::assertStringContainsString('<testsuite name="app.hang-test" tests="1" failures="0" errors="1"', $result->junitXml);
+        self::assertStringContainsString('<testcase name="spins" classname="app.hang-test"', $result->junitXml);
+        self::assertStringContainsString('<error message="Timed out after 5s running app.hang-test (last test started: spins)." type="Timeout">', $result->junitXml);
+    }
+
+    public function test_a_timeout_before_any_test_started_lists_no_failed_test(): void
+    {
+        $result = WorkerResult::fromTimeout(0, 'app.slow-load', 5, '');
+
+        self::assertStringContainsString('Timed out after 5s running app.slow-load.', $result->output);
+        self::assertSame([], $result->failedTests);
+        self::assertStringContainsString('<testcase name="app.slow-load" classname="app.slow-load"', $result->junitXml);
+    }
+
+    public function test_a_timeout_escapes_names_in_the_junit_document(): void
+    {
+        $result = WorkerResult::fromTimeout(0, 'app.x', 1, 'a<b&"c"');
+
+        self::assertStringContainsString('<testcase name="a&lt;b&amp;&quot;c&quot;"', $result->junitXml);
+    }
 }

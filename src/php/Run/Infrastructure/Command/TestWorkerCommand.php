@@ -124,7 +124,8 @@ final class TestWorkerCommand extends Command
     private function handleWork(array $frame): array
     {
         $request = WorkRequest::fromFrame($frame);
-        $junitFile = (string) tempnam(sys_get_temp_dir(), 'phel-junit-');
+        $ownsJunitFile = $request->junitFile === '';
+        $junitFile = $ownsJunitFile ? (string) tempnam(sys_get_temp_dir(), 'phel-junit-') : $request->junitFile;
 
         ob_start();
         try {
@@ -162,7 +163,9 @@ final class TestWorkerCommand extends Command
                 FrameKey::OUTCOME => WorkerOutcome::WorkerError->value,
             ];
         } finally {
-            @unlink($junitFile);
+            if ($ownsJunitFile) {
+                @unlink($junitFile);
+            }
         }
     }
 
@@ -193,19 +196,40 @@ final class TestWorkerCommand extends Command
     private function runTestsForNamespace(WorkRequest $request, string $junitFile): mixed
     {
         $phelCode = sprintf(
-            "(do (phel.test/set-junit-output! %s) (phel.test/run-tests %s '%s) "
+            '(do (phel.test/set-junit-output! %s) %s '
             . '(phel.json/encode {"ok" (phel.test/successful?) '
             . '"failed-tests" (phel.test/get-failed-tests) '
             . '"focused" (phel.test/focused-run?) '
             . '"counts" (get (phel.test/get-stats) :counts)}))',
             Printer::readable()->print($junitFile),
-            $request->options,
-            $request->ns,
+            $this->runTestsForm($request),
         );
 
         return $this->getFacade()->eval(
             $phelCode,
             new CompileOptions()->setIsEnabledSourceMaps(false),
+        );
+    }
+
+    /**
+     * With a progress file, every test writes its name there as it starts, so
+     * a parent that times the namespace out can say which test hung. The
+     * hook a test file installed itself still runs.
+     */
+    private function runTestsForm(WorkRequest $request): string
+    {
+        $runTests = sprintf("(phel.test/run-tests %s '%s)", $request->options, $request->ns);
+        if ($request->progressFile === '') {
+            return $runTests;
+        }
+
+        return sprintf(
+            '(let [previous phel.test/*event-hook*] '
+            . '(binding [phel.test/*event-hook* (fn [event] '
+            . '(when (= :begin-test (:type event)) (php/file_put_contents %s (str (:test-name event)))) '
+            . '(when previous (previous event)))] %s))',
+            Printer::readable()->print($request->progressFile),
+            $runTests,
         );
     }
 

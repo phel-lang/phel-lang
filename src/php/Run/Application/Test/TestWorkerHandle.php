@@ -9,10 +9,13 @@ use RuntimeException;
 
 use function fclose;
 use function feof;
+use function file_get_contents;
+use function file_put_contents;
 use function fread;
 use function fwrite;
 use function implode;
 use function is_resource;
+use function microtime;
 use function preg_match;
 use function proc_close;
 use function proc_get_status;
@@ -22,7 +25,10 @@ use function sprintf;
 use function stream_set_blocking;
 use function strlen;
 use function substr;
+use function sys_get_temp_dir;
+use function tempnam;
 use function trim;
+use function unlink;
 use function usleep;
 
 /**
@@ -51,6 +57,13 @@ final class TestWorkerHandle
     private ?int $assignedIndex = null;
 
     private ?string $assignedNamespace = null;
+
+    private float $assignedAt = 0.0;
+
+    /** Where the worker writes the name of each test as it starts; see {@see FrameKey::PROGRESS_FILE}. */
+    private ?string $progressFile = null;
+
+    private ?string $junitFile = null;
 
     /** Captured on first sight: `proc_get_status()` reports the exit code only once. */
     private ?string $exitStatus = null;
@@ -196,7 +209,55 @@ final class TestWorkerHandle
     {
         $this->assignedIndex = $index;
         $this->assignedNamespace = $namespace;
+        $this->assignedAt = microtime(true);
         $this->writeAll($frame);
+    }
+
+    /**
+     * Seconds since the current namespace was handed to this worker; 0 when idle.
+     */
+    public function busySeconds(): float
+    {
+        return $this->assignedIndex === null ? 0.0 : microtime(true) - $this->assignedAt;
+    }
+
+    /**
+     * A fresh, empty progress file for the next namespace, created on first use.
+     */
+    public function resetProgressFile(): string
+    {
+        $this->progressFile ??= $this->tempFile('phel-test-progress-');
+        if ($this->progressFile === null) {
+            return '';
+        }
+
+        @file_put_contents($this->progressFile, '');
+
+        return $this->progressFile;
+    }
+
+    /**
+     * Where the worker writes its JUnit report. The parent owns it, since a
+     * worker stopped mid-namespace never reaches its own cleanup. '' lets the
+     * worker pick its own file.
+     */
+    public function junitFile(): string
+    {
+        $this->junitFile ??= $this->tempFile('phel-junit-');
+
+        return $this->junitFile ?? '';
+    }
+
+    /**
+     * The test the worker last reported starting, or '' when none did.
+     */
+    public function lastStartedTest(): string
+    {
+        if ($this->progressFile === null) {
+            return '';
+        }
+
+        return trim((string) @file_get_contents($this->progressFile));
     }
 
     public function assignedIndex(): ?int
@@ -271,6 +332,14 @@ final class TestWorkerHandle
             $status = @proc_get_status($this->process);
             if ($status['running']) {
                 @proc_terminate($this->process);
+                $deadline = microtime(true) + 0.2;
+                while ($this->isAlive() && microtime(true) < $deadline) {
+                    usleep(10_000);
+                }
+
+                if ($this->isAlive()) {
+                    @proc_terminate($this->process, 9);
+                }
             }
 
             @proc_close($this->process);
@@ -281,6 +350,22 @@ final class TestWorkerHandle
                 @fclose($pipe);
             }
         }
+
+        foreach ([$this->progressFile, $this->junitFile] as $file) {
+            if ($file !== null) {
+                @unlink($file);
+            }
+        }
+
+        $this->progressFile = null;
+        $this->junitFile = null;
+    }
+
+    private function tempFile(string $prefix): ?string
+    {
+        $path = tempnam(sys_get_temp_dir(), $prefix);
+
+        return $path === false ? null : $path;
     }
 
     private function pumpReadBuffer(): void

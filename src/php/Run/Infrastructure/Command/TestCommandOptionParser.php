@@ -71,6 +71,8 @@ final readonly class TestCommandOptionParser
 
     public const string OPT_PARALLEL = 'parallel';
 
+    public const string OPT_TIMEOUT = 'timeout';
+
     public const string OPT_WATCH = 'watch';
 
     public const string OPT_CHANGED = 'changed';
@@ -164,6 +166,28 @@ final readonly class TestCommandOptionParser
         }
 
         return $value === 1 ? null : $value;
+    }
+
+    /**
+     * Seconds a parallel worker may spend on one namespace, or null for no limit.
+     * One process cannot interrupt its own busy loop without pcntl, which
+     * Windows lacks, so a serial run has no way to honour it.
+     *
+     * @throws InvalidArgumentException when the value is not a whole number of
+     *                                  at least 1, or the run will be serial
+     */
+    public function decideTimeout(InputInterface $input, ?int $workerCount, bool $coverageRequested): ?int
+    {
+        $timeout = NumericOption::wholeNumber($input, self::OPT_TIMEOUT, 1);
+        if ($timeout === null) {
+            return null;
+        }
+
+        if ($workerCount === null || $coverageRequested) {
+            throw new InvalidArgumentException('--timeout needs a parallel run: pass --parallel with 2 or more workers, without --coverage, --list or --reporter=tap.');
+        }
+
+        return $timeout;
     }
 
     /**

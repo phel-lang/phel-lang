@@ -60,8 +60,9 @@ final readonly class ParallelTestOrchestrator
     /**
      * @param list<NamespaceInformation> $namespaces
      * @param array<string, mixed>       $options
+     * @param int|null                   $timeoutSeconds per namespace; null runs without a limit
      */
-    public function run(array $namespaces, array $options, int $workerCount, OutputInterface $output): ParallelRunOutcome
+    public function run(array $namespaces, array $options, int $workerCount, OutputInterface $output, ?int $timeoutSeconds = null): ParallelRunOutcome
     {
         $total = count($namespaces);
         if ($total === 0) {
@@ -85,7 +86,7 @@ final readonly class ParallelTestOrchestrator
 
         $startedAt = microtime(true);
         try {
-            $recoveredByRetry = $this->runDispatchLoop($workers, $namespaces, $loadOrders, $optionsPhel, $buffer);
+            $recoveredByRetry = $this->runDispatchLoop($workers, $namespaces, $loadOrders, $optionsPhel, $buffer, $timeoutSeconds);
         } finally {
             foreach ($workers as $worker) {
                 $worker->terminate();
@@ -184,6 +185,7 @@ final readonly class ParallelTestOrchestrator
         LoadOrderResolver $loadOrders,
         string $optionsPhel,
         OrderedResultBuffer $buffer,
+        ?int $timeoutSeconds,
     ): int {
         $total = count($namespaces);
         $nextToDispatch = 0;
@@ -194,7 +196,7 @@ final readonly class ParallelTestOrchestrator
                 break;
             }
 
-            $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $loadOrders, $optionsPhel);
+            $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $loadOrders, $optionsPhel, $timeoutSeconds);
             ++$nextToDispatch;
         }
 
@@ -220,7 +222,7 @@ final readonly class ParallelTestOrchestrator
                 if ($budget->allows($result)) {
                     $budget->consume($result->index);
                     $worker = $this->replaceWithFreshWorker($workers, $worker);
-                    $this->dispatch($worker, $namespaces[$result->index], $result->index, $loadOrders, $optionsPhel);
+                    $this->dispatch($worker, $namespaces[$result->index], $result->index, $loadOrders, $optionsPhel, $timeoutSeconds);
                     continue;
                 }
 
@@ -232,7 +234,27 @@ final readonly class ParallelTestOrchestrator
                         $worker = $this->replaceWithFreshWorker($workers, $worker);
                     }
 
-                    $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $loadOrders, $optionsPhel);
+                    $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $loadOrders, $optionsPhel, $timeoutSeconds);
+                    ++$nextToDispatch;
+                }
+            }
+
+            if ($timeoutSeconds === null) {
+                continue;
+            }
+
+            foreach ($this->timedOutWorkers($workers, $timeoutSeconds) as $worker) {
+                $buffer->record(WorkerResult::fromTimeout(
+                    (int) $worker->assignedIndex(),
+                    $worker->assignedNamespace() ?? '<unknown>',
+                    $timeoutSeconds,
+                    $worker->lastStartedTest(),
+                ));
+                $worker->clearAssignment();
+                $worker = $this->replaceWithFreshWorker($workers, $worker);
+
+                if ($nextToDispatch < $total) {
+                    $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $loadOrders, $optionsPhel, $timeoutSeconds);
                     ++$nextToDispatch;
                 }
             }
@@ -342,6 +364,26 @@ final readonly class ParallelTestOrchestrator
     }
 
     /**
+     * Busy workers whose namespace has run past the limit. The test name is
+     * read before the worker is stopped, since stopping removes its file.
+     *
+     * @param array<int, TestWorkerHandle> $workers
+     *
+     * @return list<TestWorkerHandle>
+     */
+    private function timedOutWorkers(array $workers, int $timeoutSeconds): array
+    {
+        $out = [];
+        foreach ($workers as $worker) {
+            if (!$worker->isIdle() && $worker->busySeconds() >= $timeoutSeconds) {
+                $out[] = $worker;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
      * Terminate a (possibly wedged) worker and swap a fresh one into its pool
      * slot, so a retried namespace runs in a clean process.
      *
@@ -370,6 +412,7 @@ final readonly class ParallelTestOrchestrator
         int $index,
         LoadOrderResolver $loadOrders,
         string $optionsPhel,
+        ?int $timeoutSeconds,
     ): void {
         $frame = WorkerFrame::encode([
             FrameKey::INDEX => $index,
@@ -377,6 +420,8 @@ final readonly class ParallelTestOrchestrator
             FrameKey::FILE => $info->getFile(),
             FrameKey::OPTIONS => $optionsPhel,
             FrameKey::LOAD_ORDER => $loadOrders->loadOrderFor($info),
+            FrameKey::PROGRESS_FILE => $timeoutSeconds === null ? '' : $worker->resetProgressFile(),
+            FrameKey::JUNIT_FILE => $worker->junitFile(),
         ]);
         $worker->assign($index, $info->getNamespace(), $frame);
     }

@@ -32,6 +32,8 @@ final readonly class WorkRequest
         public string $file,
         public string $options,
         public array $loadOrder = [],
+        public string $progressFile = '',
+        public string $junitFile = '',
     ) {}
 
     /**
@@ -45,6 +47,8 @@ final readonly class WorkRequest
             ScalarCoercion::toString($frame[FrameKey::FILE] ?? null),
             ScalarCoercion::toString($frame[FrameKey::OPTIONS] ?? null, '{}'),
             self::decodeLoadOrder($frame[FrameKey::LOAD_ORDER] ?? null),
+            ScalarCoercion::toString($frame[FrameKey::PROGRESS_FILE] ?? null),
+            ScalarCoercion::toString($frame[FrameKey::JUNIT_FILE] ?? null),
         );
     }
 
