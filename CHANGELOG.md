@@ -125,6 +125,7 @@ Collections and sequences:
 Printing and values:
 
 - `phel.json/encode` writes a `BigInt` in the int range as a JSON number and throws a `JsonException` for other `BigInt`, ratio and `BigDecimal` values, naming the value. They used to encode as `{}`. Convert with `str` or `double` first. (#3808)
+- A keyword whose namespace is the NUL character stays distinct from the keyword with the same name and no namespace, in either creation order. One used to return the other. (#3812)
 - `re-matches` finds a full match that needs a later alternative or a longer lazy match, as in `(re-matches #"a|ab" "ab")`. It used to return nil when the first match found was shorter than the string. (#3809)
 - `phel.json/encode` writes maps with keys `0` to `n-1`, such as `{0 :a 1 :b}`, as JSON objects. They used to become JSON arrays. (#3807)
 - `phel.html` `when` and `when-not` with several body forms render all of them when the condition holds and none otherwise. The second body form used to render as the else branch. (#3805)
