@@ -37,13 +37,6 @@ final readonly class LiteralArithmeticFolder
     use PairwiseLiteralFoldingTrait;
 
     /**
-     * `2^63`, the smallest float strictly above `PHP_INT_MAX` (2^63 - 1).
-     * Used as the exclusive upper bound for the int range because
-     * `(float) PHP_INT_MAX` rounds up to this same value.
-     */
-    private const float INT_RANGE_UPPER_BOUND = 9223372036854775808.0;
-
-    /**
      * Variadic numeric reducers. `+` and `*` define an identity element so
      * `(+)` and `(*)` are also foldable. `-` and `/` use one-arg semantics
      * that differ from a reducer and live in their own helpers.
@@ -325,19 +318,16 @@ final readonly class LiteralArithmeticFolder
     }
 
     /**
-     * Keep the int path when both operands are ints so the folded literal
-     * preserves Phel's numeric type. PHP silently widens `int op int` to
-     * `float` on overflow, but Phel's runtime `NumericOperations` promotes
-     * to `BigInt` to preserve exactness — so we sample the result in float
-     * space first and bail when it falls outside the PHP int range,
-     * leaving the call for the runtime to handle. Mixed `int|float`
-     * operands cast to float explicitly to satisfy psalm's strict
+     * Two ints stay on PHP's native int operators, which are exact. PHP
+     * returns a float exactly when the result leaves the int range, where the
+     * runtime promotes to `BigInt`, so the fold bails there. Mixed
+     * `int|float` operands cast to float explicitly to satisfy psalm's strict
      * binary-operand mode.
      */
     private function add(int|float $a, int|float $b): int|float|null
     {
         if (is_int($a) && is_int($b)) {
-            return $this->checkedInt((float) $a + (float) $b);
+            return $this->intOrNull($a + $b);
         }
 
         return (float) $a + (float) $b;
@@ -346,7 +336,7 @@ final readonly class LiteralArithmeticFolder
     private function mul(int|float $a, int|float $b): int|float|null
     {
         if (is_int($a) && is_int($b)) {
-            return $this->checkedInt((float) $a * (float) $b);
+            return $this->intOrNull($a * $b);
         }
 
         return (float) $a * (float) $b;
@@ -355,29 +345,14 @@ final readonly class LiteralArithmeticFolder
     private function sub(int|float $a, int|float $b): int|float|null
     {
         if (is_int($a) && is_int($b)) {
-            return $this->checkedInt((float) $a - (float) $b);
+            return $this->intOrNull($a - $b);
         }
 
         return (float) $a - (float) $b;
     }
 
-    /**
-     * Convert a float result back to int when it fits exactly in PHP's
-     * int range. Otherwise bail so the runtime can promote to `BigInt`.
-     *
-     * `PHP_INT_MAX` (2^63 - 1) is not representable as a float; the nearest
-     * float rounds up to 2^63, which equals the float an overflowing product
-     * lands on. Comparing against `(float) PHP_INT_MAX` would therefore miss
-     * that boundary and reach the lossy `(int)` cast (a PHP warning), so the
-     * upper bound is the exact float `2^63` with a strict `>=`.
-     */
-    private function checkedInt(float $value): ?int
+    private function intOrNull(int|float $value): ?int
     {
-        if ($value < (float) PHP_INT_MIN || $value >= self::INT_RANGE_UPPER_BOUND) {
-            return null;
-        }
-
-        $int = (int) $value;
-        return ((float) $int === $value) ? $int : null;
+        return is_int($value) ? $value : null;
     }
 }

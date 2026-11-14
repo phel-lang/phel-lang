@@ -1,0 +1,4 @@
+--PHEL--
+(- -9223372036854775808 1)
+--PHP--
+(\Phel\Lang\Registry::readRoot("phel.core", "-"))->__invoke((-9223372036854775807 - 1), 1);
