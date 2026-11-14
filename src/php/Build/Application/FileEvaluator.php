@@ -8,6 +8,7 @@ use ParseError;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Build\Domain\Cache\DependencyTrackerInterface;
+use Phel\Build\Domain\Cache\SourceFilePath;
 use Phel\Build\Domain\Compile\CompiledSecondaryStore;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
@@ -147,7 +148,7 @@ final class FileEvaluator
             }
 
             $options = new CompileOptions()
-                ->setSource($src)
+                ->setSource(SourceFilePath::normalize($src))
                 ->setIsEnabledSourceMaps(true)
                 ->setOptimizationLevel($this->optimizationLevel);
 
@@ -165,7 +166,7 @@ final class FileEvaluator
         }
 
         $options = new CompileOptions()
-            ->setSource($src)
+            ->setSource(SourceFilePath::normalize($src))
             ->setIsEnabledSourceMaps(true)
             ->setOptimizationLevel($this->optimizationLevel);
 

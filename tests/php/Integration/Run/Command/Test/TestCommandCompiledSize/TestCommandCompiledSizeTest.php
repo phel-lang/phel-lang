@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Run\Command\Test\TestCommandCompiledSize;
 
 use Override;
 use PhelTest\Integration\Run\Command\Test\FixtureProjectHelper;
+use PhelTest\Support\IsolatedBuildCacheTrait;
 use PHPUnit\Framework\TestCase;
 
 use function intdiv;
@@ -21,6 +22,8 @@ use function strlen;
  */
 final class TestCommandCompiledSizeTest extends TestCase
 {
+    use IsolatedBuildCacheTrait;
+
     private const int MAX_BYTES_PER_ASSERTION = 1400;
 
     private FixtureProjectHelper $project;

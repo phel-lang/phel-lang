@@ -87,7 +87,7 @@ Collections and values:
 
 Builds and caches:
 
-- Caches survive concurrent processes and interrupted writes, and same-second edits and macro edits refresh every dependent namespace. `.phel/` ignores itself, and `phel --version`, `help` and `list` no longer create it. (#3537 #3564 #3553 #3698 #3700 #3690)
+- Caches survive concurrent processes and interrupted writes, and same-second edits and macro edits refresh every dependent namespace. Relative and absolute source paths reuse one compiled cache entry, loading a bundled namespace keeps the REPL's current namespace, and warm builds keep forward declarations when a secondary file must recompile. `.phel/` ignores itself, and `phel --version`, `help` and `list` no longer create it. (#3537 #3564 #3553 #3698 #3700 #3690 #3864)
 - Builds: PHARs leave out untracked files and have reproducible checksums, built apps find `load` files and bootstrap `eval`, `future-call` and `phel.edn`, Composer installs no longer warn about duplicate namespaces, and running from a subdirectory finds the project. `phel cache:clear` refuses unsafe paths, and the Docker image installs its tagged release on amd64 and arm64. (#3697 #3528 #3542 #3527 #3549 #3701 #3532 #3702 #3536)
 
 Commands and tests:
@@ -99,7 +99,7 @@ Editors and diagnostics:
 
 - The LSP handles UTF-16 positions after non-ASCII text, CRLF files, unsaved edits, Windows file URIs and invalid UTF-8. `phel watch` reloads with the inotify, fswatch and polling backends. (#3821 #3683 #3685 #3686 #3684 #3818 #3819 #3820)
 - `phel format` keeps every reader-conditional branch and comment and aligns Unicode names by character. nREPL limits input, stops cleanly on SIGTERM and warns when bound outside loopback. (#3669 #3670 #3715 #3671 #3681 #3682 #3575 #3532)
-- Errors from `run` and `test` name the calling `.phel` file and line, and keep their `PHEL` code. Lint and analyze follow `load` files, skip quoted data, handle same-file macros and `#inst`, and report an arity error once. `phel balance --fix` refuses a prefix missing its form, `phel doc` links the right guides, and command help shows `phel ...` examples. (#3537 #3608 #3551 #3550 #3621 #3610 #3655 #3817 #3656 #3645 #3563 #3577)
+- Errors from `run` and `test` name the calling `.phel` file and line, and keep their `PHEL` code. A cached library path with `..` still points errors at the user call site. Lint and analyze follow `load` files, skip quoted data, handle same-file macros and `#inst`, and report an arity error once. `phel balance --fix` refuses a prefix missing its form, `phel doc` links the right guides, and command help shows `phel ...` examples. (#3537 #3608 #3551 #3550 #3621 #3610 #3655 #3817 #3656 #3645 #3563 #3577 #3864)
 
 PHP API:
 

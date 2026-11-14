@@ -68,6 +68,7 @@ Both are injected as Shared `*FacadeInterface`. One non-facade edge, **Config**:
 | `Domain/Compile/SecondaryFileHarvester` | Writes `(in-ns ...)` secondary `.php` siblings to the output tree, from the compiled-code cache, else `CompiledSecondaryStore` (a cache-off build still emits them) |
 | `Domain/Compile/SymbolMetaStripper` | Token-based removal of `\Phel::locationMeta(...)` args when `strip-symbol-meta` is on (write path only) |
 | `Domain/Compile/CompiledSecondaryStore` | In-memory hand-off of secondaries from `FileEvaluator` to `SecondaryFileHarvester` when the cache is off |
+| `Domain/Cache/SourceFilePath` | Parent-directory normalization shared by cache keys and emitted source paths |
 | `Infrastructure/Cache/CompiledCodeCache` | Compiled-code cache policy |
 | `Infrastructure/Cache/EnvCacheFingerprint` | Hash of `cache-env-vars`, mixed into the cache key |
 | `Infrastructure/Cache/PhpScanIndexCache` | Persisted dir-scan index |
@@ -81,8 +82,8 @@ Both are injected as Shared `*FacadeInterface`. One non-facade edge, **Config**:
 
 ### Caching (namespace extraction and compiled code, each optional)
 
-- **Compiled-code cache** (`CompiledCodeCache`): keys entries by `CompiledSourceHash::of(source, optimizationLevel, envFingerprint)` under an index stamped with the running Phel version (beta commits included). Delegates to `CacheDirectory`, `CacheIndexFile` (load/save/merge), `NamespaceEnvironmentStore`, `CachePathResolver`, `AtomicFileWriter`.
-- An entry stores its compile's deprecation notices (`EmitterResult::getDeprecations()`, index field `deprecations`); `FileEvaluator` replays them on every hit via `CompilerFacadeInterface::replayDeprecations()`, so `--warn-deprecations` matches warm and cold (#3222). Never key the cache on the flag. `NamespaceExtractor` reads `ns` forms inside `withoutDeprecations()` (#3381). `INDEX_FORMAT_VERSION` 1.10 rejects older namespace environments lacking default PHP-import provenance (#3718).
+- **Compiled-code cache** (`CompiledCodeCache`): uses `SourceFilePath` to canonicalize parent directories for both index keys and emitted source paths, preserving file-symlink identity because source-relative loads can differ. Uses `CompiledSourceHash::of(source, optimizationLevel, envFingerprint)` under an index stamped with the running Phel version (beta commits included). Format 1.11 rejects entries keyed by older path spellings. Delegates to `CacheDirectory`, `CacheIndexFile` (load/save/merge), `NamespaceEnvironmentStore`, `CachePathResolver`, `AtomicFileWriter`.
+- An entry stores its compile's deprecation notices (`EmitterResult::getDeprecations()`, index field `deprecations`); `FileEvaluator` replays them on every hit via `CompilerFacadeInterface::replayDeprecations()`, so `--warn-deprecations` matches warm and cold (#3222). Never key the cache on the flag. `NamespaceExtractor` reads `ns` forms inside `withoutDeprecations()` (#3381). Older namespace environments lacking default PHP-import provenance are rejected (#3718).
 - `put`/`invalidate` mutate the in-memory index only; it flushes **once per process at shutdown** (`DeferredFlushTrait`), keeping cold-build index I/O O(N). `CacheIndexFile::save()` does atomic write + `flock` + disk merge, so concurrent `phel test` workers lose no entries. Compiled `.php` files are written eagerly (`AtomicFileWriter`). `clear()` writes the empty index eagerly.
 - **Test gotcha:** a test needing cross-instance disk persistence in one process must call `save()`.
 - **Scan-index cache** (`PhpScanIndexCache`, `<cacheDir>/scan-index.php`, `ScanIndexCacheInterface`; `NullScanIndexCache` when disabled) lets `CachedNamespaceExtractor` skip the directory walk across processes. Keyed by resolved dir-set; served only if all hold:

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Console;
 
-use PhelTest\Support\SharedStdlibCache;
 use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -145,7 +144,6 @@ final class InvocationErrorExitCodeTest extends TestCase
         $result = Subprocess::run(
             [PHP_BINARY, dirname(__DIR__, 4) . '/bin/phel', 'test', '--reporter=my-reporter', ...$mode, 'reporter_test.phel'],
             $this->dir,
-            env: SharedStdlibCache::env(),
         );
 
         self::assertSame(0, $result->exitCode, $result->stderr . $result->stdout);
@@ -163,7 +161,6 @@ final class InvocationErrorExitCodeTest extends TestCase
         $result = Subprocess::run(
             [PHP_BINARY, dirname(__DIR__, 4) . '/bin/phel', 'test', '--reporter=xml', ...$mode, 'reporter_test.phel'],
             $this->dir,
-            env: SharedStdlibCache::env(),
         );
 
         self::assertSame(2, $result->exitCode, $result->stderr . $result->stdout);

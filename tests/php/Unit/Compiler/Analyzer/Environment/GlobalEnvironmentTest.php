@@ -457,6 +457,22 @@ final class GlobalEnvironmentTest extends TestCase
         self::assertNull($env->getDefinition('foo-bar', Symbol::create('other')));
     }
 
+    public function test_runtime_nil_definition_resolves_without_an_analyzer_registration(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->setNs('from-file');
+
+        $symbol = Symbol::create('later');
+        $meta = Phel::map(Keyword::create('doc'), 'Forward declaration');
+        Phel::addDefinition('from_file', 'later', null, $meta);
+
+        self::assertTrue($env->hasDefinition('from-file', $symbol));
+        self::assertSame($meta, $env->getDefinition('from-file', $symbol));
+        self::assertInstanceOf(GlobalVarNode::class, $env->resolve($symbol, NodeEnvironment::empty()));
+        self::assertFalse($env->hasDefinition('from-file', Symbol::create('missing')));
+        self::assertNull($env->getDefinition('from-file', Symbol::create('missing')));
+    }
+
     public function test_add_duplicate_definition_points_at_the_redefinition_and_names_the_first_one(): void
     {
         $env = new GlobalEnvironment();

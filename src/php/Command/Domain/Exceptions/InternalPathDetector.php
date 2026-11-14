@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Domain\Exceptions;
 
+use function realpath;
 use function str_starts_with;
 
 /**
@@ -47,6 +48,13 @@ final readonly class InternalPathDetector
     {
         if ($directory === '') {
             return false;
+        }
+
+        $resolvedFile = realpath($file);
+        $resolvedDirectory = realpath($directory);
+        if ($resolvedFile !== false && $resolvedDirectory !== false) {
+            $file = $resolvedFile;
+            $directory = $resolvedDirectory;
         }
 
         // A PHAR stream path always uses `/`, whatever the host separator is.

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Test\TestCommandFocus;
 
 use Override;
-use PhelTest\Support\SharedStdlibCache;
 use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
@@ -108,7 +107,7 @@ final class TestCommandFocusTest extends TestCase
         }
 
         $cmd = 'cd ' . escapeshellarg($this->projectDir)
-            . ' && ' . SharedStdlibCache::envPrefix() . $env . ' php ' . escapeshellarg($this->repoRoot . '/bin/phel')
+            . ' && ' . $env . ' php ' . escapeshellarg($this->repoRoot . '/bin/phel')
             . ' test' . $args . ' 2>&1';
 
         exec($cmd, $output, $exitCode);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Console;
 
-use PhelTest\Support\SharedStdlibCache;
 use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -15,7 +14,6 @@ use function escapeshellarg;
 use function exec;
 use function explode;
 use function file_put_contents;
-use function getenv;
 use function json_decode;
 use function json_encode;
 use function mkdir;
@@ -269,13 +267,10 @@ final class MachineModeStdoutTest extends TestCase
      */
     private function phel(array $args, ?string $stdin = null): Subprocess
     {
-        $cacheDir = SharedStdlibCache::dir();
-
         return Subprocess::run(
             [PHP_BINARY, self::repoRoot() . '/bin/phel', ...$args],
             self::$projectDir,
             $stdin,
-            $cacheDir === null ? null : [...getenv(), 'PHEL_CACHE_DIR' => $cacheDir],
         );
     }
 

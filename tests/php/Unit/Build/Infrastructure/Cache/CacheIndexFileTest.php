@@ -45,6 +45,17 @@ final class CacheIndexFileTest extends TestCase
         self::assertSame([], $this->index()->load());
     }
 
+    public function test_indices_with_noncanonical_source_paths_are_recompiled(): void
+    {
+        mkdir($this->cacheDir, 0o700, true);
+        file_put_contents($this->cacheDir . '/compiled-index.php', '<?php return ' . var_export([
+            'version' => '1.10:test',
+            'entries' => ['/a/../a.phel' => $this->entry('a')],
+        ], true) . ';');
+
+        self::assertSame([], $this->index()->load());
+    }
+
     public function test_save_replaces_the_index_instead_of_rewriting_it(): void
     {
         // A reader includes the index without a lock, so it must only ever see

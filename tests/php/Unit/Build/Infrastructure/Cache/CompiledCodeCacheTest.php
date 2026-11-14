@@ -38,6 +38,68 @@ final class CompiledCodeCacheTest extends TestCase
         self::assertNull($cache->get('/unknown/file.phel', 'abc123'));
     }
 
+    public function test_source_path_spellings_share_one_persisted_entry(): void
+    {
+        mkdir($this->cacheDir . '/nested', 0o700, true);
+        file_put_contents($this->sourceFile, '(ns test)');
+        $alias = $this->cacheDir . '/nested/../test.phel';
+        $cache = new CompiledCodeCache($this->cacheDir);
+
+        $cache->put($this->sourceFile, 'test', 'hash', '$x = 1;');
+
+        $compiledPath = $cache->getCompiledPath($this->sourceFile, 'test');
+        self::assertSame($compiledPath, $cache->getCompiledPath($alias, 'test'));
+        self::assertTrue($cache->has($alias));
+        self::assertSame($compiledPath, $cache->get($alias, 'hash'));
+
+        $cache->put($alias, 'test', 'hash', '$x = 1;');
+        $cache->save();
+        self::assertCount(1, glob($this->cacheDir . '/compiled/*.php'));
+
+        $fresh = new CompiledCodeCache($this->cacheDir);
+        self::assertSame($compiledPath, $fresh->get($alias, 'hash'));
+        $fresh->invalidate($alias);
+        self::assertFalse($fresh->has($this->sourceFile));
+    }
+
+    public function test_source_alias_can_be_invalidated_after_the_file_is_deleted(): void
+    {
+        mkdir($this->cacheDir . '/nested', 0o700, true);
+        file_put_contents($this->sourceFile, '(ns test)');
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $cache->put($this->sourceFile, 'test', 'hash', '$x = 1;');
+
+        $compiledPath = $cache->getCompiledPath($this->sourceFile, 'test');
+
+        unlink($this->sourceFile);
+        $cache->invalidate($this->cacheDir . '/nested/../test.phel');
+
+        self::assertFalse($cache->has($this->sourceFile));
+        self::assertFileDoesNotExist($compiledPath);
+    }
+
+    public function test_file_symlinks_keep_their_caller_directory_identity(): void
+    {
+        mkdir($this->cacheDir . '/alias', 0o700, true);
+        file_put_contents($this->sourceFile, '(ns test)');
+        $alias = $this->cacheDir . '/alias/test.phel';
+        if (!@symlink($this->sourceFile, $alias)) {
+            self::markTestSkipped('File symlinks are unavailable.');
+        }
+
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $cache->put($this->sourceFile, 'test', 'hash', '$caller = "original";');
+        $cache->put($alias, 'test', 'hash', '$caller = "alias";');
+
+        $original = $cache->get($this->sourceFile, 'hash');
+        $linked = $cache->get($alias, 'hash');
+        self::assertIsString($original);
+        self::assertIsString($linked);
+        self::assertNotSame($original, $linked);
+        self::assertStringContainsString('"original"', (string) file_get_contents($original));
+        self::assertStringContainsString('"alias"', (string) file_get_contents($linked));
+    }
+
     public function test_get_returns_null_for_wrong_hash(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);

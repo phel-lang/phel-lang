@@ -28,16 +28,15 @@ assert concurrency by wall clock and would race the other workers.
 - **`unit` is already fast** (~1 ms/test). Leave it alone.
 - **`integration` is the bottleneck.** Its slow tests run `bin/phel` as a
   subprocess against a fixture project in a fresh temp dir, and each subprocess
-  cold-compiles the bundled stdlib into that project's empty cache: 5 s alone,
-  10-17 s under paratest's load. `PhelTest\Support\SharedStdlibCache` points
-  such a subprocess at one build cache per paratest worker, so the stdlib
-  compiles once per worker (`BenchCommandTest` 96 s to 24 s, `MutateCommandTest`
-  91 s to 43 s). The project's own namespaces still compile cold,
-  since each project lives at a fresh path. It is opt-in: the benchmark,
-  mutation and `phel test` project suites use it. A test that runs
-  `phel build`, reads the project's `.phel/cache` or asserts where the cache
-  lives must not, and in-process tests never do. Making it global cost an
-  intermittent `phel build` failure nobody could reproduce outside the suite.
+  would otherwise cold-compile the bundled stdlib into that project's empty
+  cache. Parallel integration tests inherit one build cache per worker, including
+  in-process commands and isolated PHPUnit children. Each fixture project's own
+  namespaces still compile cold because its path is fresh. Tests that inspect
+  their configured cache or run `cache:clear` use `IsolatedBuildCacheTrait` to
+  keep their cache separate. Worker cleanup runs after deferred cache saves,
+  so a child cannot leave an index whose compiled files were already deleted.
+  Gacela configuration stays private to each process, and its merged files are
+  cleared before each test so temporary and source directories cannot leak.
   `composer test-integration:serial` keeps the single-process path for debugging.
 - **Paratest schedules whole classes.** The slowest class sets the floor
   (now `BenchAbCommandTest`, ~65 s). `--functional` (per-method)

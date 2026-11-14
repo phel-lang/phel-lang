@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Build\Cache;
 
 use Phel;
+use PhelTest\Support\IsolatedBuildCacheTrait;
 use PhelTest\Support\RemoveDirTrait;
 use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -14,6 +15,7 @@ use function dirname;
 
 final class ScanIndexCacheExclusionTest extends TestCase
 {
+    use IsolatedBuildCacheTrait;
     use RemoveDirTrait;
 
     private string $project;
