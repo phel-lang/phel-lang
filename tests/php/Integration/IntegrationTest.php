@@ -23,6 +23,9 @@ final class IntegrationTest extends TestCase
 {
     private static GlobalEnvironmentInterface $globalEnv;
 
+    /** @var array<string, mixed> */
+    private static array $globalEnvSnapshot;
+
     private CompilerFacade $compilerFacade;
 
     public static function setUpBeforeClass(): void
@@ -35,25 +38,15 @@ final class IntegrationTest extends TestCase
             tempnam(sys_get_temp_dir(), 'phel-core'),
         );
         self::$globalEnv = $globalEnv;
+        self::$globalEnvSnapshot = $globalEnv->snapshot();
     }
 
     protected function setUp(): void
     {
+        self::$globalEnv->restore(self::$globalEnvSnapshot);
+        GlobalEnvironmentSingleton::setInstance(self::$globalEnv);
         $this->compilerFacade = new CompilerFacade();
 
-        // Every fixture compiles into `user`, and a `def` from one is still
-        // registered when the next runs, so the order decides the output.
-        // SetVar/set-var.test defines `^:dynamic x`; after it, a read of `x` in
-        // Def/nested-def-inside-fn.test sees a bindable var and compiles to
-        // `\Phel::getDefinition` rather than `Registry::readRoot`, because
-        // GlobalVarEmitter keeps the scope gate only for bindable vars.
-        //
-        // paratest hides this by running the fixtures in separate workers. The
-        // coverage job runs unit and integration in one process with
-        // executionOrder="random", which is where it surfaced.
-        //
-        // Only `user` is cleared: `phel.core` is compiled once in
-        // setUpBeforeClass and every fixture needs it.
         Registry::getInstance()->removeNamespace('user');
     }
 
@@ -67,7 +60,7 @@ final class IntegrationTest extends TestCase
         string $expectedGeneratedCode,
         array $expectedDeprecations,
     ): void {
-        $globalEnv = self::$globalEnv;
+        $globalEnv = GlobalEnvironmentSingleton::getInstance();
         $globalEnv->setNs('user');
         Symbol::resetGen();
 
@@ -75,13 +68,17 @@ final class IntegrationTest extends TestCase
             ->setSource($filename);
 
         $deprecations = [];
-        set_error_handler(
-            static function (int $level, string $message) use (&$deprecations): bool {
+        $previousHandler = null;
+        $previousHandler = set_error_handler(
+            static function (int $level, string $message, string $file, int $line) use (&$deprecations, &$previousHandler): bool {
+                if ($level !== E_USER_DEPRECATED) {
+                    return $previousHandler !== null && $previousHandler($level, $message, $file, $line) !== false;
+                }
+
                 $deprecations[] = $message;
 
                 return true;
             },
-            E_USER_DEPRECATED,
         );
 
         BuildFacade::enableBuildMode();
@@ -103,6 +100,33 @@ final class IntegrationTest extends TestCase
             'in ' . $filename,
         );
         self::assertSame($expectedDeprecations, $deprecations, 'deprecations in ' . $filename);
+    }
+
+    public function test_fixture_warnings_reach_the_previous_error_handler(): void
+    {
+        $warnings = [];
+        set_error_handler(static function (int $level, string $message, string $file, int $line) use (&$warnings): bool {
+            $warnings[] = [$level, $message, $file, $line];
+
+            return true;
+        });
+
+        try {
+            $this->test_integration(
+                'unexpected-warning.phel',
+                '(php/trigger_error "unexpected fixture warning" php/E_USER_WARNING)',
+                'trigger_error("unexpected fixture warning", E_USER_WARNING);',
+                [],
+            );
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertCount(1, $warnings);
+        self::assertSame(E_USER_WARNING, $warnings[0][0]);
+        self::assertSame('unexpected fixture warning', $warnings[0][1]);
+        self::assertNotEmpty($warnings[0][2]);
+        self::assertGreaterThan(0, $warnings[0][3]);
     }
 
     public static function providerIntegration(): Generator

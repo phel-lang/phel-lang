@@ -174,13 +174,17 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
     public function test_the_constant_wins_in_value_position(): void
     {
         $warnings = [];
-        set_error_handler(
-            static function (int $level, string $message) use (&$warnings): bool {
+        $previousHandler = null;
+        $previousHandler = set_error_handler(
+            static function (int $level, string $message, string $file, int $line) use (&$warnings, &$previousHandler): bool {
+                if ($level !== E_USER_WARNING) {
+                    return $previousHandler !== null && $previousHandler($level, $message, $file, $line) !== false;
+                }
+
                 $warnings[] = $message;
 
                 return true;
             },
-            E_USER_WARNING,
         );
         try {
             $bare = $this->compilerFacade->eval(

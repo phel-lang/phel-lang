@@ -115,15 +115,19 @@ final class PhpInteropIdentifierTest extends AbstractCompilerRuntimeTestCase
     private function compileEmitOnly(string $source): string
     {
         $unexpected = [];
-        set_error_handler(
-            static function (int $level, string $message) use (&$unexpected): bool {
+        $previousHandler = null;
+        $previousHandler = set_error_handler(
+            static function (int $level, string $message, string $file, int $line) use (&$unexpected, &$previousHandler): bool {
+                if ($level !== E_USER_DEPRECATED) {
+                    return $previousHandler !== null && $previousHandler($level, $message, $file, $line) !== false;
+                }
+
                 if (!str_starts_with($message, "Backslash ('\\') namespace separator")) {
                     $unexpected[] = $message;
                 }
 
                 return true;
             },
-            E_USER_DEPRECATED,
         );
 
         try {

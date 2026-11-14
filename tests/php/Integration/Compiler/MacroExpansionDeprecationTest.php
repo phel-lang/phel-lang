@@ -189,10 +189,15 @@ final class MacroExpansionDeprecationTest extends TestCase
     private function captureDeprecations(callable $action): array
     {
         $warnings = [];
-        set_error_handler(static function (int $errno, string $errstr) use (&$warnings): bool {
+        $previousHandler = null;
+        $previousHandler = set_error_handler(static function (int $errno, string $errstr, string $file, int $line) use (&$warnings, &$previousHandler): bool {
+            if ($errno !== E_USER_DEPRECATED) {
+                return $previousHandler !== null && $previousHandler($errno, $errstr, $file, $line) !== false;
+            }
+
             $warnings[] = $errstr;
             return true;
-        }, E_USER_DEPRECATED);
+        });
 
         try {
             $action();
