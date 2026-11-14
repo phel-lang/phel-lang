@@ -14,14 +14,17 @@ Applies to every write under `## Unreleased`: a new entry, a merge, or a rewrite
 
 ## Sections
 
-In this order, each heading at most once: `### Changed`, `### Added`, `### Removed`, `### Performance`, `### Fixed`.
+In this order, each heading at most once: `### Highlights`, `### Changed`, `### Added`, `### Removed`, `### Performance`, `### Fixed`.
+
+`### Highlights` holds at most seven one-sentence or two-sentence bullets, the changes most users must know or act on: breaking changes everyone hits, security, new guarantees. No refs; the sections below carry them. Revisit it whenever a bigger change lands.
 
 A section with more than four bullets across areas splits into plain sub-label lines (`Compiler:`, `Runtime:`, `Tooling:`) followed by a blank line. Not `####` headings. A caveat shared by several bullets goes once, as a sentence under the heading or label.
 
 ## Entries
 
 - Describe what the user sees, in present tense: "`phel lint` reports a file that does not parse", "PHP 8.5 is the minimum supported version". Not "Add" or "Added".
-- One to four short sentences, one idea each. Lead with the change. For a fix, add the old behavior in one sentence ("It used to ...").
+- One to four short sentences. Lead with the change.
+- A `### Fixed` bullet says what works now and leaves the old behavior to the linked issue.
 - Show the code, flag or error text in backticks instead of describing it.
 - One or two representative numbers for performance (`2.9x faster for two keys`), not every measurement.
 - Leave out internals: implementation steps, allowlists, internal class names, test counts. Name a PHP class only when it is public API. Say when a class becomes public API.
@@ -31,11 +34,12 @@ A section with more than four bullets across areas splits into plain sub-label l
 
 ## Grouping
 
-- One bullet per user-visible change, not per PR. PRs that touch the same thing share a bullet and list every ref.
+- One bullet per theme, not per PR or per change: related changes share a bullet as a short list (`Reader: ...`, `Lazy seqs: ...`) and list every ref. A section rarely needs more than a dozen bullets.
+- Keep a change in its own bullet only when it is breaking and needs its own instruction.
 - A fix to something still unreleased folds into that feature's bullet. It is never a `### Fixed` entry.
 - Skip changes users cannot see: `chore:`, CI, test-only, internal refactors.
 
-Before committing, reread the whole `## Unreleased`, not only the new bullet: duplicate headings, siblings to merge, entries past four sentences.
+Before committing, reread the whole `## Unreleased`, not only the new bullet: duplicate headings, siblings to merge, entries past four sentences, and whether Highlights still names the biggest changes.
 
 ## Archive
 

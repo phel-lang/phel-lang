@@ -23,6 +23,6 @@ Run first: `git log $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD~20
    - The argument is `--optimize` → rewrite `## Unreleased` in place. No new entries.
    - Otherwise → treat the argument as entry text; place under correct category.
 
-3. Follow `.agnostic-ai/rules/changelog.md` (section order, entry style, grouping) on every write. On `--optimize`, apply all of it to the whole `## Unreleased`: merge duplicate headings and sibling bullets, fold fixes to unreleased features into their bullet, trim internals.
+3. Follow `.agnostic-ai/rules/changelog.md` (section order, entry style, grouping) on every write. On `--optimize`, apply all of it to the whole `## Unreleased`: merge duplicate headings and sibling bullets, fold fixes to unreleased features into their bullet, group related changes into theme bullets, trim internals, and refresh `### Highlights`.
 
 4. Edit `CHANGELOG.md` when the request authorizes changes, then summarize the entries. For a draft-only request, return the text without editing.
