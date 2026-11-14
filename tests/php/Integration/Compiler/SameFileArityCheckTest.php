@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Compiler;
 
 use PhelTest\Support\RemoveDirTrait;
+use PhelTest\Support\SharedStdlibCache;
 use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -176,6 +177,8 @@ final class SameFileArityCheckTest extends TestCase
         return Subprocess::run(
             ['php', '-d', 'memory_limit=256M', $this->repoRoot . '/bin/phel', ...$arguments],
             $this->projectDir,
+            env: SharedStdlibCache::env(),
         );
     }
+
 }

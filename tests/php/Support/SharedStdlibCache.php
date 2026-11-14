@@ -14,9 +14,10 @@ use function getenv;
  * stdlib (same path and source hash everywhere) is reused; the project's own
  * namespaces still compile cold.
  *
- * Opt-in on purpose: use it only for subprocesses that never run `phel build`,
- * never read the project's `.phel/cache` and never assert where the cache
- * lives. Outside paratest it does nothing.
+ * Opt-in on purpose: use it only for subprocesses that never read the
+ * project's `.phel/cache` and never assert where the cache lives. `phel build`
+ * is fine: its own reuse of `out/` files is project-local and ignores this
+ * cache. Outside paratest it does nothing.
  */
 final class SharedStdlibCache
 {
