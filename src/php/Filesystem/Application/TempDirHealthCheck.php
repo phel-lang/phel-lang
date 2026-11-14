@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Phel\Filesystem\Application;
 
 use Closure;
+use FilesystemIterator;
 use Gacela\Framework\Health\HealthStatus;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Override;
 use Phel\Shared\Exceptions\FileException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 
 use function is_dir;
 use function is_writable;
@@ -27,6 +31,8 @@ use function sprintf;
  */
 final readonly class TempDirHealthCheck implements ModuleHealthCheckInterface
 {
+    private const int EVAL_FILE_LIMIT = 1000;
+
     /** @var Closure(string): void */
     private Closure $closeToOthers;
 
@@ -90,9 +96,44 @@ final readonly class TempDirHealthCheck implements ModuleHealthCheckInterface
             );
         }
 
+        $evalFiles = $this->evalFileCount();
+        if ($evalFiles > self::EVAL_FILE_LIMIT) {
+            return HealthStatus::degraded(
+                sprintf('Temp dir holds more than %d evaluated PHP files. Run phel cache:clear to reclaim them: %s', self::EVAL_FILE_LIMIT, $this->tempDir),
+                ['path' => $this->tempDir, 'eval_files_at_least' => $evalFiles],
+            );
+        }
+
         return HealthStatus::healthy(
             sprintf('Temp dir is writable: %s', $this->tempDir),
             ['path' => $this->tempDir],
         );
+    }
+
+    private function evalFileCount(): int
+    {
+        if (!is_readable($this->tempDir)) {
+            return 0;
+        }
+
+        $count = 0;
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            flags: RecursiveIteratorIterator::CATCH_GET_CHILD,
+        );
+        foreach ($files as $file) {
+            if (!$file instanceof SplFileInfo) {
+                continue;
+            }
+
+            $name = $file->getFilename();
+            if ($file->isFile() && str_starts_with($name, '__phel_') && str_ends_with($name, '.php')) {
+                if (++$count > self::EVAL_FILE_LIMIT) {
+                    break;
+                }
+            }
+        }
+
+        return $count;
     }
 }

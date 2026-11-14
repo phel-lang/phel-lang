@@ -6,12 +6,16 @@ namespace PhelTest\Unit\Filesystem\Application;
 
 use Closure;
 use Phel\Filesystem\Application\TempDirHealthCheck;
+use PhelTest\Support\RemoveDirTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function function_exists;
 
 final class TempDirHealthCheckTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $tempDir;
 
     protected function setUp(): void
@@ -21,9 +25,7 @@ final class TempDirHealthCheckTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (is_dir($this->tempDir)) {
-            rmdir($this->tempDir);
-        }
+        $this->removeDir($this->tempDir);
     }
 
     public function test_it_is_healthy_when_temp_dir_exists_and_is_writable(): void
@@ -137,6 +139,29 @@ final class TempDirHealthCheckTest extends TestCase
 
         self::assertFalse($status->isHealthy());
         self::assertStringContainsString('owned by another user', $status->message);
+    }
+
+    #[DataProvider('evalDirectories')]
+    public function test_it_warns_about_an_eval_file_backlog(string $subdirectory): void
+    {
+        $directory = $this->tempDir . $subdirectory;
+        mkdir($directory, 0o700, true);
+        for ($index = 0; $index <= 1000; ++$index) {
+            file_put_contents($directory . '/__phel_' . md5((string) $index) . '.php', '');
+        }
+
+        $status = new TempDirHealthCheck($this->tempDir)->checkHealth();
+
+        self::assertTrue($status->isDegraded());
+        self::assertStringContainsString('more than 1000 evaluated PHP files', $status->message);
+        self::assertStringContainsString('phel cache:clear', $status->message);
+        self::assertSame(1001, $status->metadata['eval_files_at_least']);
+    }
+
+    public static function evalDirectories(): iterable
+    {
+        yield 'legacy flat files' => [''];
+        yield 'process directory' => ['/eval/__phel_42_' . str_repeat('a', 32)];
     }
 
     /**

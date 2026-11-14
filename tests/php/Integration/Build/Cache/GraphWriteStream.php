@@ -47,6 +47,11 @@ final class GraphWriteStream
         return fflush($this->stream);
     }
 
+    public function stream_truncate(int $size): bool
+    {
+        return ftruncate($this->stream, $size);
+    }
+
     public function stream_lock(int $operation): bool
     {
         return $operation === 0 || flock($this->stream, $operation);
@@ -85,6 +90,11 @@ final class GraphWriteStream
     public function unlink(string $path): bool
     {
         return $this->native(static fn(): bool => unlink($path));
+    }
+
+    public function rmdir(string $path): bool
+    {
+        return $this->native(static fn(): bool => rmdir($path));
     }
 
     public function dir_opendir(string $path): bool
