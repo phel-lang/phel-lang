@@ -9,6 +9,8 @@ use PhelTest\Support\IsolatedBuildCacheTrait;
 use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 use function bin2hex;
 use function dirname;
@@ -151,7 +153,7 @@ final class CacheClearOpcacheTest extends TestCase
         // The keep-on run first, so the empty result below is a cleanup and not
         // an eval that never wrote to this directory at all.
         $this->runPhel(['eval', '(+ 1 2 3)'], ['PHEL_TEST_KEEP_TEMP' => '1']);
-        self::assertNotSame([], $this->tempDirEntries());
+        self::assertNotSame([], $this->generatedTempFiles());
 
         // Every cache goes, so the second eval is as cold as the first one: a
         // warm compiled-code cache needs no generated temp file at all, and a
@@ -165,13 +167,14 @@ final class CacheClearOpcacheTest extends TestCase
         self::assertSame(0, $exitCode, $output);
         self::assertStringContainsString('6', $output);
         self::assertDirectoryExists($this->projectDir . '/temp');
-        self::assertSame([], $this->tempDirEntries());
+        self::assertSame([], $this->generatedTempFiles());
+        self::assertSame(['.sweep.lock'], array_values(array_diff(scandir($this->projectDir . '/temp/eval') ?: [], ['.', '..'])));
     }
 
     /**
      * @return list<string>
      */
-    private function tempDirEntries(): array
+    private function generatedTempFiles(): array
     {
         $tempDir = $this->projectDir . '/temp';
         if (!is_dir($tempDir)) {
@@ -179,9 +182,9 @@ final class CacheClearOpcacheTest extends TestCase
         }
 
         $entries = [];
-        foreach (scandir($tempDir) ?: [] as $entry) {
-            if ($entry !== '.' && $entry !== '..') {
-                $entries[] = $entry;
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($tempDir, RecursiveDirectoryIterator::SKIP_DOTS)) as $entry) {
+            if (str_starts_with($entry->getFilename(), '__phel_') && str_ends_with($entry->getFilename(), '.php')) {
+                $entries[] = $entry->getPathname();
             }
         }
 

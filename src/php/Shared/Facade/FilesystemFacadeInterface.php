@@ -14,5 +14,7 @@ interface FilesystemFacadeInterface
 
     public function getTempDir(): string;
 
+    public function getProcessTempDir(): string;
+
     public function getHealthCheck(): ModuleHealthCheckInterface;
 }

@@ -53,4 +53,9 @@ final class FilesystemFacade extends AbstractFacade implements FilesystemFacadeI
     {
         return $this->getFactory()->createTempDirHealthCheck();
     }
+
+    public function getProcessTempDir(): string
+    {
+        return $this->getFactory()->createProcessTempDirectory()->getOrCreate();
+    }
 }
