@@ -318,15 +318,6 @@ final class TestWorkerHandle
     {
         $this->closeStdin();
 
-        foreach ([$this->progressFile, $this->junitFile] as $file) {
-            if ($file !== null) {
-                @unlink($file);
-            }
-        }
-
-        $this->progressFile = null;
-        $this->junitFile = null;
-
         if (is_resource($this->process)) {
             $deadline = microtime(true) + 0.2;
             while (microtime(true) < $deadline) {
@@ -359,6 +350,15 @@ final class TestWorkerHandle
                 @fclose($pipe);
             }
         }
+
+        foreach ([$this->progressFile, $this->junitFile] as $file) {
+            if ($file !== null) {
+                @unlink($file);
+            }
+        }
+
+        $this->progressFile = null;
+        $this->junitFile = null;
     }
 
     private function tempFile(string $prefix): ?string
