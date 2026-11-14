@@ -2,14 +2,13 @@
 (fn [^float d ^float angle] (loop [^int i 0 ^float sum 0.0] (if (< i 10) (recur (+ i 1) (+ sum (* d (php/cos angle)))) sum)))
 --PHP--
 (function(float $d, float $angle) {
-  /** @var int $i_1 */
+  static $__phel_call_0, $__phel_call_1, $__phel_call_2;
   $i_1 = 0;
-  /** @var float $sum_2 */
   $sum_2 = 0.0;
   while (true) {
-    if ((($i_1 < 10))) {
-      $i_1 = ($i_1 + 1);
-      $sum_2 = ($sum_2 + ($d * cos($angle)));
+    if (((\is_scalar($i_1) ? ($i_1 < 10) : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "<"))->invokeArity2($i_1, 10)))) {
+      $i_1 = (\is_int($i_1) && \is_int($__phel_guard_3 = $i_1 + 1) ? $__phel_guard_3 : ($__phel_call_1 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($i_1, 1));
+      $sum_2 = (\is_int($sum_2) & \is_int(($__phel_guard_4 = ($d * cos($angle)))) && \is_int($__phel_guard_5 = $sum_2 + $__phel_guard_4) ? $__phel_guard_5 : ($__phel_call_2 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($sum_2, $__phel_guard_4));
       continue;
 
     } else {

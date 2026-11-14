@@ -138,7 +138,7 @@ final class StaticTypeCheckerTest extends TestCase
         // the compiled PHP signature carries the type hint and OPcache
         // JIT can specialise the function body.
         $php = $this->compile('(defn add1 [x] (php/+ x 1))');
-        self::assertStringContainsString('__invoke(int $x): int', $php);
+        self::assertStringContainsString('__invoke(int $x) {', $php);
     }
 
     public function test_branch_disagreement_drops_inferred_param(): void

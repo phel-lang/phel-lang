@@ -14,6 +14,8 @@ use function intdiv;
 use function is_float;
 use function is_int;
 
+use const PHP_INT_MIN;
+
 /**
  * Runtime numeric dispatch for `+ - * /` and friends across native PHP
  * numbers, {@see BigInt}, and {@see Ratio}. Native PHP operators
@@ -210,6 +212,10 @@ final class NumericOperations
     public static function negate(mixed $a): mixed
     {
         NumericCoercion::ensureNumeric($a);
+
+        if ($a === PHP_INT_MIN) {
+            return BigInt::fromInt($a)->negate();
+        }
 
         if ($a instanceof Ratio) {
             return $a->negate();

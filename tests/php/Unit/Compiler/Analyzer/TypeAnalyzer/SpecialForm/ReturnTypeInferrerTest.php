@@ -88,9 +88,8 @@ final class ReturnTypeInferrerTest extends TestCase
         self::assertNull($type);
     }
 
-    public function test_operator_body_still_infers_alongside_passthrough(): void
+    public function test_integer_arithmetic_does_not_infer_an_int_return(): void
     {
-        // (fn [^int x] (php/+ x 1)) -> int: the arithmetic path is untouched.
         $type = new ReturnTypeInferrer()->infer(
             $this->phpCall('+', [
                 new LocalVarNode($this->env, Symbol::create('x')),
@@ -99,7 +98,20 @@ final class ReturnTypeInferrerTest extends TestCase
             [$this->typedParam('x', 'int')],
         );
 
-        self::assertSame('int', $type);
+        self::assertNull($type);
+    }
+
+    public function test_float_arithmetic_still_infers_a_float_return(): void
+    {
+        $type = new ReturnTypeInferrer()->infer(
+            $this->phpCall('+', [
+                new LocalVarNode($this->env, Symbol::create('x')),
+                new LiteralNode($this->env, 1),
+            ]),
+            [$this->typedParam('x', 'float')],
+        );
+
+        self::assertSame('float', $type);
     }
 
     private function typedParam(string $name, string $tag): Symbol

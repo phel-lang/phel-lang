@@ -108,6 +108,11 @@ final class LiteralArithmeticFolderTest extends TestCase
         self::assertNull($this->folder->compute('abs', [PHP_INT_MIN]));
     }
 
+    public function test_negation_of_int_min_keeps_runtime_promotion(): void
+    {
+        self::assertNull($this->folder->compute('-', [PHP_INT_MIN]));
+    }
+
     public function test_min_with_nan_bails_to_null(): void
     {
         self::assertNull($this->folder->compute('min', [1, NAN]));

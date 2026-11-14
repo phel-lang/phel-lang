@@ -134,30 +134,7 @@ final readonly class NumericOperationSpecialization
     }
 
     /**
-     * `(** x 2)` where `x` is a `LocalVarNode` statically tagged `int` or
-     * `float`. Returns the base node so the emitter can splice it either side
-     * of a native `*`, or `null` when the call is not reducible.
-     *
-     * `phel.core/**` routes through `NumericOperations::power`, a real function
-     * call; squaring is the overwhelmingly common exponent, and `$x * $x`
-     * measures ~2.3x faster than `pow($x, 2)` on PHP 8.5.
-     *
-     * The guards are what keep the two operations interchangeable:
-     *
-     * - The base must carry an `int`/`float` tag. An untagged base could be a
-     *   `Ratio` or `BigDecimal` at runtime, and `power` and `multiply` do not
-     *   agree on those (`power` funnels non-float through `BigInt`, while
-     *   `multiply` has a dedicated `BigDecimal` branch).
-     * - The exponent must be the *integer* literal `2`. A float `2.0` sends
-     *   `power` down its float branch even for an int base, so it is a
-     *   different operation.
-     * - The base must be a `LocalVarNode`: the lowering emits it twice, so it
-     *   has to be a side-effect-free variable reference.
-     *
-     * Int overflow is not a divergence: the native `*` this lowers to is the
-     * same operator {@see self::typedBinaryOpName()} already emits for a tagged
-     * `(* x y)`, so the reduction inherits that family's existing trade-off
-     * rather than introducing a new one.
+     * Only float squares can use multiplication without losing integer promotion.
      */
     public static function squaredBase(CallNode $node): ?AbstractNode
     {
@@ -180,11 +157,7 @@ final readonly class NumericOperationSpecialization
             return null;
         }
 
-        return in_array(
-            TagNormalizer::normalise($base->getInferredType()),
-            self::NUMERIC_PRIMITIVE_TAGS,
-            true,
-        ) ? $base : null;
+        return TagNormalizer::normalise($base->getInferredType()) === 'float' ? $base : null;
     }
 
     /**
@@ -206,7 +179,8 @@ final readonly class NumericOperationSpecialization
         }
 
         if (isset(self::NUMERIC_BINARY_OPS[$name])) {
-            if (self::isOverflowProneLiteralArithmetic($name, $args)) {
+            if (in_array($name, self::ARITHMETIC_OPS, true)
+                && self::bothArgsHavePrimitiveTag($args, ['int'])) {
                 return null;
             }
 
@@ -283,25 +257,7 @@ final readonly class NumericOperationSpecialization
     }
 
     /**
-     * Single-arg `(inc x)` / `(dec x)` where `x` is a statically proven
-     * primitive `int` / `float` operand. Returns the PHP operator to
-     * splice before a literal `1` (`($x + 1)` / `($x - 1)`), or `null`
-     * when the call is not specialisable.
-     *
-     * This is the 1-arg twin of the already-shipped `(+ ^int x 1)`
-     * lowering: `inc`/`dec` are defined in `phel.core` as a
-     * `NumericOperations::add`/`subtract` dispatch over a literal `1`, so
-     * a tagged operand collapses to the same native op `(php/+ ^int x 1)`
-     * already emits. The only divergence from the runtime — native `+`
-     * promoting an overflowing `int` to `float` instead of `BigInt` — is
-     * identical to that accepted policy.
-     *
-     * A **literal** operand is deliberately excluded: an int literal at
-     * `PHP_INT_MAX` would overflow under native `+ 1` and diverge from the
-     * runtime's `BigInt` promotion, exactly as a pure-literal `(+ ...)`
-     * chain bails via {@see self::isOverflowProneLiteralArithmetic()}. A
-     * nullable tag (`?int`) also fails the primitive-tag check, so the
-     * moot `assert-non-nil` guard in the runtime defns can never matter.
+     * Float steps stay native; integer steps need the guarded promotion path.
      */
     public static function typedIncDecOp(CallNode $node): ?string
     {
@@ -321,9 +277,7 @@ final readonly class NumericOperationSpecialization
         }
 
         $tag = TagNormalizer::normalise(self::inferredTypeOfNode($operand));
-        return $tag !== null && in_array($tag, self::NUMERIC_PRIMITIVE_TAGS, true)
-            ? self::INC_DEC_OPS[$name]
-            : null;
+        return $tag === 'float' ? self::INC_DEC_OPS[$name] : null;
     }
 
     public static function isTypedIncDec(CallNode $node): bool
@@ -338,11 +292,7 @@ final readonly class NumericOperationSpecialization
      * splice between consecutive operands together with a `kind`
      * discriminating chained arithmetic from chained comparison emission.
      *
-     * Literals are deliberately excluded for N>=3: a pure-literal int
-     * chain that the constant folder refused (because the product would
-     * exceed `PHP_INT_MAX`) must keep its runtime dispatch so
-     * `BigInt` / `Ratio` promotion still triggers. The user opts into the
-     * primitive-only trade-off by tagging the binding.
+     * An integer prefix can overflow before a later float operand is applied.
      *
      * @return array{op: string, kind: 'arith'|'compare'}|null
      */
@@ -363,7 +313,9 @@ final readonly class NumericOperationSpecialization
         }
 
         if (in_array($name, ['+', '*'], true)) {
-            return ['op' => self::NUMERIC_BINARY_OPS[$name], 'kind' => 'arith'];
+            return array_all($args, static fn(AbstractNode $arg): bool => self::operandNumericTag($arg) === 'float')
+                ? ['op' => self::NUMERIC_BINARY_OPS[$name], 'kind' => 'arith']
+                : null;
         }
 
         if (in_array($name, ['<', '<=', '>', '>='], true)) {
@@ -425,12 +377,6 @@ final readonly class NumericOperationSpecialization
             }
         }
 
-        // Nested typed-arith / typed-equality calls keep their numeric tag so
-        // an outer specialiser fires on the chained shape. `(+ a (* b c))`
-        // with all-numeric operands lowers `(* b c)` to a native PHP product;
-        // the outer `+` must see that product as `float` (when any operand is
-        // float) or `int` so it can emit `($a + ($b * $c))` instead of a
-        // runtime dispatch around the inner native expression.
         return self::numericTypeOfTypedBinaryCall($arg);
     }
 
@@ -483,29 +429,6 @@ final readonly class NumericOperationSpecialization
     }
 
     /**
-     * Arithmetic (`+`, `-`, `*`) over two int literals only reaches the
-     * emitter when the constant folder declined it — which, for int literals,
-     * happens exactly when the native result overflows `PHP_INT_MAX`. Emitting
-     * a native PHP op there would yield a `float`, diverging from the runtime's
-     * `BigInt` promotion, so the call stays on the runtime dispatch. Mirrors
-     * the literal exclusion already applied to {@see self::typedVariadicChain()}
-     * for N>=3. Comparisons can't overflow and are left specialised.
-     *
-     * @param list<AbstractNode> $args
-     */
-    private static function isOverflowProneLiteralArithmetic(string $name, array $args): bool
-    {
-        if (!in_array($name, self::ARITHMETIC_OPS, true)) {
-            return false;
-        }
-
-        return array_all(
-            $args,
-            static fn(AbstractNode $arg): bool => $arg instanceof LiteralNode && is_int($arg->getValue()),
-        );
-    }
-
-    /**
      * @param list<AbstractNode> $args
      */
     private static function allArgsAreTaggedNumericLocals(array $args): bool
@@ -533,16 +456,7 @@ final readonly class NumericOperationSpecialization
     }
 
     /**
-     * Result tag of a numeric typed-arith call (`+`, `-`, `*`) when every
-     * operand carries a known numeric tag. The promotion rule mirrors
-     * PHP's arithmetic operators: any `float` operand yields `float`,
-     * otherwise `int`. Comparison ops return `bool` and aren't covered
-     * here because the caller wants a numeric tag to splice into another
-     * arithmetic op; equality / comparison feed the boolean-expression
-     * detector instead.
-     *
-     * Recursion is bounded by AST depth — each call inspects strictly
-     * smaller subexpressions.
+     * Integer results may promote, so only float arithmetic feeds native outer operators.
      */
     private static function numericTypeOfTypedBinaryCall(CallNode $node): ?string
     {
@@ -557,10 +471,6 @@ final readonly class NumericOperationSpecialization
 
         $args = $node->getArguments();
         if (count($args) < 2) {
-            return null;
-        }
-
-        if (count($args) === 2 && self::isOverflowProneLiteralArithmetic($name, $args)) {
             return null;
         }
 
@@ -585,7 +495,7 @@ final readonly class NumericOperationSpecialization
             }
         }
 
-        return $anyFloat ? 'float' : 'int';
+        return $anyFloat ? 'float' : null;
     }
 
     private static function operandNumericTag(AbstractNode $arg): ?string

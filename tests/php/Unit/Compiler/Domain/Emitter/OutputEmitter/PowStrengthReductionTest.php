@@ -19,12 +19,12 @@ use PHPUnit\Framework\TestCase;
 
 final class PowStrengthReductionTest extends TestCase
 {
-    public function test_square_of_typed_int_local_is_reduced(): void
+    public function test_integer_square_keeps_overflow_promotion(): void
     {
         $base = $this->localWithTag('x', 'int');
         $node = $this->coreCall('**', [$base, $this->int(2)]);
 
-        self::assertSame($base, NumericOperationSpecialization::squaredBase($node));
+        self::assertNull(NumericOperationSpecialization::squaredBase($node));
     }
 
     public function test_square_of_typed_float_local_is_reduced(): void

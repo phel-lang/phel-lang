@@ -306,7 +306,7 @@ final readonly class LiteralArithmeticFolder
 
         $head = array_shift($literals);
         if ($literals === []) {
-            return -$head;
+            return $head === PHP_INT_MIN ? null : -$head;
         }
 
         $acc = $head;

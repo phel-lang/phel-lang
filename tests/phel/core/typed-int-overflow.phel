@@ -1,0 +1,80 @@
+(ns phel-test.core.typed-int-overflow
+  (:require phel.test :refer [deftest is]))
+
+(defn- typed-add [^int a ^int b] (+ a b))
+(defn- typed-subtract [^int a ^int b] (- a b))
+(defn- typed-multiply [^int a ^int b] (* a b))
+(defn- typed-inc [^int a] (inc a))
+(defn- typed-dec [^int a] (dec a))
+(defn- typed-negate [^int a] (- a))
+(defn- typed-add-three [^int a ^int b ^int c] (+ a b c))
+(defn- typed-multiply-three [^int a ^int b ^int c] (* a b c))
+(defn- typed-square [^int a] (** a 2))
+(defn- typed-product-is-large [^int a] (> (* a a) php/PHP_INT_MAX))
+
+(deftest typed-integer-arithmetic-matches-runtime
+  (doseq [[compiled runtime] [[typed-add +] [typed-subtract -] [typed-multiply *]]
+          a [php/PHP_INT_MIN -3037000500 -1 0 1 3037000500 php/PHP_INT_MAX]
+          b [php/PHP_INT_MIN -3037000500 -1 0 1 3037000500 php/PHP_INT_MAX]]
+    (let [actual   (compiled a b)
+          expected (apply runtime [a b])]
+      (is (= (php/get_debug_type expected) (php/get_debug_type actual)))
+      (is (= expected actual)))))
+
+(deftest typed-unary-and-variadic-arithmetic-promotes
+  (is (= 9223372036854775808N (typed-inc php/PHP_INT_MAX)))
+  (is (= -9223372036854775809N (typed-dec php/PHP_INT_MIN)))
+  (is (= 9223372036854775808N (typed-negate php/PHP_INT_MIN)))
+  (is (= 9223372036854775808N (- -9223372036854775808)))
+  (is (= 18446744073709551615N (typed-add-three php/PHP_INT_MAX php/PHP_INT_MAX 1)))
+  (is (= 18446744073709551614N (typed-multiply-three php/PHP_INT_MAX 2 1)))
+  (is (= php/PHP_INT_MAX (typed-add-three php/PHP_INT_MAX 1 -1)))
+  (is (= 9223372037000250000N (typed-square 3037000500)))
+  (is (typed-product-is-large 3037000500)))
+
+(deftest inferred-integer-results-stay-exact
+  (let [a       3037000500
+        product (* a a)]
+    (is (= 9223372037000250000N product))
+    (is (bigint? product))
+    (is (> product php/PHP_INT_MAX)))
+  (let [^int a 9223372036854775807]
+    (is (= 9223372036854775808N (+ a 1))))
+  (let [n (php/strlen "abc")]
+    (is (= 13835058055282163712N (* n 4611686018427387904)))))
+
+(defn- factorial-loop [n]
+  (loop [i 1 acc 1]
+    (if (> i n)
+      acc
+      (recur (inc i) (* acc i)))))
+
+(deftest loop-bindings-can-promote
+  (is (= 15511210043330985984000000N (factorial-loop 25)))
+  (is (bigint? (factorial-loop 25)))
+  (is (= 9223372036854775809N
+         (loop [x php/PHP_INT_MAX i 0]
+           (if (= i 2) x (recur (inc x) (inc i)))))))
+
+(deftest recur-types-widen-with-promoted-values
+  (is (loop [^int x php/PHP_INT_MAX i 0]
+        (if (= i 1) (> x 9223372036854775807) (recur (inc x) (inc i)))))
+  (is (loop [a 0 b php/PHP_INT_MAX i 0]
+        (if (= i 2) (> a 9223372036854775807) (recur b (inc b) (inc i)))))
+  (is (= 9223372036854775808N
+         ((fn [^int x ^int n]
+            (if (zero? n) x (recur (inc x) (dec n))))
+          php/PHP_INT_MAX 1)))
+  (is ((fn [^int x ^int n]
+         (let [copy x]
+           (if (zero? n) (> copy 9223372036854775807) (recur (inc x) (dec n)))))
+       php/PHP_INT_MAX 1)))
+
+(deftest float-recur-can-receive-promoted-integer
+  (is (float?
+       ((fn [^float x ^int n]
+          (if (zero? n) (+ x 0.5) (recur (dec (php/intval x)) (dec n))))
+        -9.223372036854776e18 1))))
+
+(deftest unary-negation-preserves-negative-zero
+  (is (neg? (php/fdiv 1 (- (identity 0.0))))))

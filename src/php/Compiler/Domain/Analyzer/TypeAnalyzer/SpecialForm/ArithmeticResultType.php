@@ -4,16 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
-use function in_array;
-
 /**
- * PHP's result-type rule for the operand-preserving arithmetic operators
- * (`+`, `-`, `*`): `int` when every operand is `int`, `float` when any operand
- * is `float`, and `null` (not statically numeric) as soon as one operand is
- * neither. The single source of truth for both type-inference passes that need
- * it — {@see ReturnTypeInferrer} (fn return types) and
- * {@see BindingTypeInferrer} (let/loop binding tags) — so the promotion rule
- * cannot drift between them.
+ * Integer arithmetic may promote, so only floating arithmetic has a primitive result tag.
  *
  * @internal
  */
@@ -39,11 +31,6 @@ final class ArithmeticResultType
             }
         }
 
-        return $hasFloat ? 'float' : 'int';
-    }
-
-    public static function isFloatOrInt(?string $type): bool
-    {
-        return in_array($type, ['int', 'float'], true);
+        return $hasFloat ? 'float' : null;
     }
 }

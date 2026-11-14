@@ -2,5 +2,6 @@
 (fn [^int a ^int b ^int c] (* a b c))
 --PHP--
 (function(int $a, int $b, int $c) {
-  return ($a * $b * $c);
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "*"))->invokeArity3($a, $b, $c);
 });
