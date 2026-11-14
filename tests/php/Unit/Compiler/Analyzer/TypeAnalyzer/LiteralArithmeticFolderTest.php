@@ -51,6 +51,24 @@ final class LiteralArithmeticFolderTest extends TestCase
         }
     }
 
+    public function test_int_arithmetic_above_two_pow_53_stays_exact(): void
+    {
+        self::assertSame(9_007_199_254_740_993, $this->folder->compute('inc', [9_007_199_254_740_992]));
+        self::assertSame(9_007_199_254_740_991, $this->folder->compute('dec', [9_007_199_254_740_992]));
+        self::assertSame(2_000_000_000_000_000_002, $this->folder->compute('+', [1_000_000_000_000_000_001, 1_000_000_000_000_000_001]));
+        self::assertSame(4_611_686_018_427_387_903, $this->folder->compute('-', [4_611_686_018_427_387_904, 1]));
+        self::assertSame(9_007_199_254_740_993, $this->folder->compute('*', [9_007_199_254_740_993, 1]));
+        self::assertSame(9_007_199_254_740_993, $this->folder->compute('+', [9_007_199_254_740_993]));
+    }
+
+    public function test_underflow_below_int_min_bails_to_null(): void
+    {
+        self::assertNull($this->folder->compute('-', [PHP_INT_MIN, 1]));
+        self::assertNull($this->folder->compute('dec', [PHP_INT_MIN]));
+        self::assertNull($this->folder->compute('+', [PHP_INT_MIN, -1]));
+        self::assertNull($this->folder->compute('*', [PHP_INT_MIN, -1]));
+    }
+
     public function test_equality_is_type_strict(): void
     {
         self::assertTrue($this->folder->compute('=', [1, 1]));

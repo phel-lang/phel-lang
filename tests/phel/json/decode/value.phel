@@ -72,3 +72,10 @@
   (is (= [1 2 3] (json/decode-value [1 2 3])) "a vector is unchanged")
   (is (= 5 (json/decode-value 5)) "a scalar is unchanged")
   (is (nil? (json/decode-value nil)) "nil is unchanged"))
+
+(deftest test-json-decode-throws-on-invalid-json
+  (is (thrown-with-msg? \JsonException "Syntax error" (json/decode "{bad")))
+  (is (thrown-with-msg? \JsonException "Maximum stack depth exceeded"
+                        (json/decode (str (php/str_repeat "[" 600) (php/str_repeat "]" 600)))))
+  (is (thrown? \JsonException (json/decode "[[1]]" {:depth 1})))
+  (is (nil? (json/decode "null")) "JSON null still decodes to nil"))

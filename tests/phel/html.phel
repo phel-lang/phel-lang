@@ -167,3 +167,13 @@
       "a raw-string is not escaped")
   (is (= "<div data-x=\"q&quot;uote\">t</div>" (html [:div {:data-x "q\"uote"} "t"]))
       "attribute values are escaped"))
+
+(deftest test-runtime-keyword-child-renders-like-a-literal
+  (let [x  :foo
+        xs (list :a :b)
+        el [:div :foo]]
+    (is (= "<div>foo</div>" (html [:div :foo])))
+    (is (= "<div>foo</div>" (html [:div x])))
+    (is (= "<div>ab</div>" (html [:div xs])))
+    (is (= "<div>foo</div>" (html el)))
+    (is (= "<p>&lt;b&gt;</p>" (let [k (keyword "<b>")] (html [:p k]))) "escaped")))

@@ -128,3 +128,14 @@
          (encode-error {:price 1.2M})))
   (is (= "[\"9223372036854775808\",0.5]" (json/encode [(str 9223372036854775808N) (double 1/2)]))
       "the suggested conversions encode"))
+
+(deftest test-json-encode-throws-when-php-cannot-encode
+  (is (thrown-with-msg? \JsonException "Inf and NaN cannot be JSON encoded"
+                        (json/encode {:a php/NAN})))
+  (is (thrown-with-msg? \JsonException "Malformed UTF-8 characters, possibly incorrectly encoded"
+                        (json/encode {:name (php/hex2bin "636166e9")})))
+  (is (thrown? \JsonException (json/encode {:a php/NAN} {:flags php/JSON_PRETTY_PRINT}))
+      "user flags keep the throw"))
+
+(deftest test-json-encode-partial-output-flag-still-wins
+  (is (= "{\"a\":0}" (json/encode {:a php/NAN} {:flags php/JSON_PARTIAL_OUTPUT_ON_ERROR}))))
