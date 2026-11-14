@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\BareHostClass;
 use Phel\Compiler\Domain\Analyzer\BundledSymbolIndex;
 use Phel\Compiler\Domain\Analyzer\Environment\AmbiguousBareHostWarner;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Domain\Analyzer\PhpIdentifier;
 use Phel\Compiler\Domain\Analyzer\SymbolSuggestionProvider;
 use Phel\Compiler\Domain\Analyzer\UnresolvedSymbolAdvisor;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -30,6 +31,8 @@ final class AnalyzeSymbol
     public function analyze(Symbol $symbol, NodeEnvironmentInterface $env): AbstractNode
     {
         if ($symbol->getNamespace() === 'php') {
+            PhpIdentifier::assertReference($symbol, $symbol->getName());
+
             return new PhpVarNode($env, $symbol->getName(), $symbol->getStartLocation());
         }
 
