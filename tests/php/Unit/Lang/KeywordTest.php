@@ -54,6 +54,28 @@ final class KeywordTest extends TestCase
         $this->assertFalse($withEmptyNs->equals($withNullNs));
     }
 
+    public function test_nul_namespace_distinct_from_null_when_null_comes_first(): void
+    {
+        $withoutNs = Keyword::create('nul-first-a');
+        $withNulNs = Keyword::create('nul-first-a', "\0");
+
+        $this->assertNull($withoutNs->getNamespace());
+        $this->assertSame("\0", $withNulNs->getNamespace());
+        $this->assertFalse($withoutNs->equals($withNulNs));
+        $this->assertSame($withoutNs, Keyword::create('nul-first-a'));
+        $this->assertSame($withNulNs, Keyword::create('nul-first-a', "\0"));
+    }
+
+    public function test_nul_namespace_distinct_from_null_when_nul_comes_first(): void
+    {
+        $withNulNs = Keyword::create('nul-first-b', "\0");
+        $withoutNs = Keyword::create('nul-first-b');
+
+        $this->assertNull($withoutNs->getNamespace());
+        $this->assertSame("\0", $withNulNs->getNamespace());
+        $this->assertFalse($withNulNs->equals($withoutNs));
+    }
+
     public function test_empty_string_namespace_interns_same_instance(): void
     {
         $keyword1 = Keyword::create('hi', '');
