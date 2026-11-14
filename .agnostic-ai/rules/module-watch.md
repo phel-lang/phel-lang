@@ -47,7 +47,8 @@ All four getters return the Shared contract, never a concrete facade; `Satellite
 
 ## Key Constraints
 
-- Backends are strategies. Only `PollingWatcher` runs in CI; `InotifyWatcher`/`FswatchWatcher` are runtime-probed but not unit-tested (need external binaries).
+- Backends are strategies. Only `PollingWatcher` runs against a real filesystem in CI; `InotifyWatcher`/`FswatchWatcher` are runtime-probed, and `ShellWatcherIntegrationTest` drives them through fake binaries that print each tool's output format.
+- `AbstractShellWatcher` buffers stdout and splits it on `recordSeparator()` (newline, NUL for fswatch `-0`); a non-blocking read can stop mid-record, so never parse a raw read.
 - Debounce coalesces rapid changes so an editor double-save triggers one reload.
 - `ReloadOrchestrator.handleChanges` order: resolve namespaces → reload in dep order → run `(phel.watch/run-on-reload-hooks <ns>)` per ns → re-index → publish event. Reload, hooks and reindex are best-effort (catch `Throwable`) so one broken file never kills the loop. Deleted files are skipped.
 - `NullReloadEventPublisher` is the default; inject an nREPL-aware publisher for nREPL contexts.
