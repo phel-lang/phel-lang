@@ -4,39 +4,39 @@ declare(strict_types=1);
 
 namespace Phel\Filesystem\Infrastructure;
 
+use Phel\Filesystem\Application\ProcessTempDirectory;
 use Phel\Filesystem\Domain\FilesystemInterface;
 
 /**
- * Tracks compiled files in a process-local static array and deletes them
- * via unlink() on clearAll().
- *
- * Note: the tracking array is static, so it is shared across every instance:
- * addFile() and clearAll() operate on the same global state regardless of the
- * instance they are called on. reset() clears the array and exists primarily
- * to isolate tests.
- *
- * NullFilesystem is used instead when KEEP_GENERATED_TEMP_FILES is true.
- *
  * @internal
  */
 final class RealFilesystem implements FilesystemInterface
 {
-    /** @var list<string> */
+    /** @var array<int, list<string>> */
     private static array $files = [];
+
+    private static bool $cleanupRegistered = false;
 
     public static function reset(): void
     {
-        self::$files = [];
+        unset(self::$files[getmypid() ?: 0]);
     }
 
     public function addFile(string $file): void
     {
-        self::$files[] = $file;
+        if (!self::$cleanupRegistered) {
+            register_shutdown_function(static function (): void {
+                new self()->clearAll();
+            });
+            self::$cleanupRegistered = true;
+        }
+
+        self::$files[getmypid() ?: 0][] = $file;
     }
 
     public function clearAll(): void
     {
-        foreach (self::$files as $file) {
+        foreach (self::$files[getmypid() ?: 0] ?? [] as $file) {
             // $files is process-global static, so a path may already be gone
             // (cleared by another run or never written) — skip rather than warn.
             if (file_exists($file)) {
@@ -45,5 +45,6 @@ final class RealFilesystem implements FilesystemInterface
         }
 
         self::reset();
+        ProcessTempDirectory::clearAll();
     }
 }

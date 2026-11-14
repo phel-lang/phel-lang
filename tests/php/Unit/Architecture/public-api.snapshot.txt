@@ -290,6 +290,7 @@ final class Phel\Filesystem\FilesystemFacade extends Gacela\Framework\AbstractFa
   public function addFile(string $file): void
   public function clearAll(): void
   public function getHealthCheck(): Gacela\Framework\Health\ModuleHealthCheckInterface
+  public function getProcessTempDir(): string
   public function getTempDir(): string
 
 final class Phel\Formatter\FormatterFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\FormatterFacadeInterface
@@ -1924,6 +1925,7 @@ interface Phel\Shared\Facade\FilesystemFacadeInterface
   public function addFile(string $file): void
   public function clearAll(): void
   public function getHealthCheck(): Gacela\Framework\Health\ModuleHealthCheckInterface
+  public function getProcessTempDir(): string
   public function getTempDir(): string
 
 interface Phel\Shared\Facade\FormatterFacadeInterface
