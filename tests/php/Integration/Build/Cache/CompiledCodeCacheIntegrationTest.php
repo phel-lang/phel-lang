@@ -112,6 +112,36 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_a_secondary_cache_miss_resolves_a_reloaded_primary_declaration(): void
+    {
+        $root = dirname(__DIR__, 5);
+        Phel::bootstrap($root);
+        $compiler = new CompilerFacade();
+        $compiler->initializeNewGlobalEnvironment();
+        LoadClasspath::publish([$root . '/src/phel']);
+        new BuildFacade()->evalFile($root . '/src/phel/core.phel');
+
+        mkdir($this->cacheDir, 0o700, true);
+        $primary = $compiler->compile('(in-ns cache-forward.main) (declare later)');
+        $primaryFile = $this->cacheDir . '/primary.php';
+        file_put_contents($primaryFile, "<?php\n" . $primary->getPhpCode());
+        $compiler->initializeNewGlobalEnvironment();
+        require $primaryFile;
+
+        $secondary = $this->cacheDir . '/secondary.phel';
+        file_put_contents($secondary, '(in-ns cache-forward.main) (def read-later (fn [] later))');
+        $extractor = $this->createStub(NamespaceExtractorInterface::class);
+        $extractor->method('getNamespaceFromFile')->willReturn(new NamespaceInformation($secondary, 'cache-forward.main', []));
+        $evaluator = new FileEvaluator($compiler, $extractor, new CompiledCodeCache($this->cacheDir . '/cache'));
+
+        $compiled = $evaluator->evalFile($secondary);
+
+        self::assertFileExists($compiled->getTargetFile());
+        self::assertNull(Phel::getDefinition('cache_forward.main', 'read-later')());
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_cache_miss_returns_null(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);

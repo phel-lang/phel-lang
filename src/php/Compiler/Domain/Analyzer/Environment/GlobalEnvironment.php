@@ -244,7 +244,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     {
         return (
             isset($this->definitions[$namespace][$name->getName()])
-            || Phel::hasDefinition(
+            || Phel::isDefined(
                 $this->mungeEncodeNs($namespace),
                 $name->getName(),
             )
