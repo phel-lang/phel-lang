@@ -112,4 +112,26 @@ final class LiteralArithmeticFolderTest extends TestCase
     {
         self::assertNull($this->folder->compute('not-a-fold', [1, 2]));
     }
+
+    public function test_quot_of_int_min_by_minus_one_is_not_folded(): void
+    {
+        self::assertNull($this->folder->compute('quot', [PHP_INT_MIN, -1]));
+    }
+
+    public function test_min_and_max_return_the_later_operand_on_a_tie(): void
+    {
+        self::assertSame(1.0, $this->folder->compute('min', [1, 1.0]));
+        self::assertSame(1, $this->folder->compute('min', [1.0, 1]));
+        self::assertSame(1.0, $this->folder->compute('max', [1, 1.0]));
+        self::assertSame(1.0, $this->folder->compute('max', [1, 1, 1.0]));
+        self::assertSame(-1, $this->folder->compute('min', [3, -1, 2]));
+    }
+
+    public function test_addition_keeps_negative_zero(): void
+    {
+        self::assertSame('-0', (string) $this->folder->compute('+', [-0.0]));
+        self::assertSame('-0', (string) $this->folder->compute('+', [-0.0, -0.0]));
+        self::assertSame(0, $this->folder->compute('+', []));
+        self::assertSame(1, $this->folder->compute('*', []));
+    }
 }

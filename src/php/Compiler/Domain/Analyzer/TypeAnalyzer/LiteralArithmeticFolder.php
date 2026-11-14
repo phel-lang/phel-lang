@@ -14,8 +14,6 @@ use function intdiv;
 use function is_float;
 use function is_int;
 use function is_nan;
-use function max;
-use function min;
 
 /**
  * Compile-time evaluation of scalar `phel.core` arithmetic and comparison
@@ -151,7 +149,16 @@ final readonly class LiteralArithmeticFolder
             }
         }
 
-        return $useMin ? min($literals) : max($literals);
+        // The runtime folds pairwise and keeps the left operand only when it
+        // is strictly smaller (larger), so a tie such as `1` and `1.0`
+        // returns the right one. PHP's `min`/`max` keep the first.
+        $result = array_shift($literals);
+        foreach ($literals as $n) {
+            $keepLeft = $useMin ? $result < $n : $result > $n;
+            $result = $keepLeft ? $result : $n;
+        }
+
+        return $result;
     }
 
     /**
@@ -196,7 +203,9 @@ final readonly class LiteralArithmeticFolder
         }
 
         [$a, $b] = $pair;
-        if ($b === 0) {
+        // `intdiv` throws for both: a zero divisor, and `PHP_INT_MIN / -1`,
+        // whose result does not fit in an int.
+        if ($b === 0 || ($a === PHP_INT_MIN && $b === -1)) {
             return null;
         }
 
@@ -270,7 +279,13 @@ final readonly class LiteralArithmeticFolder
      */
     private function reduce(array $spec, array $literals): int|float|null
     {
-        $acc = $spec['identity'];
+        if ($literals === []) {
+            return $spec['identity'];
+        }
+
+        // Starting from the first operand, not the identity: `0 + -0.0` is
+        // `0.0`, while the runtime returns `(+ -0.0)` unchanged.
+        $acc = array_shift($literals);
         foreach ($literals as $literal) {
             $acc = $spec['op'] === 'add'
                 ? $this->add($acc, $literal)
