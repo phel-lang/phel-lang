@@ -27,6 +27,7 @@ use Phel\Lang\Symbol;
 use PhelTest\Support\CapturesDeprecationsTrait;
 use PhelTest\Support\DefinesClassConstantCollisionTrait;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 use function define;
 use function defined;
@@ -732,6 +733,9 @@ final class SymbolResolverTest extends TestCase
 
         $loadCalls = [];
         $globalEnv = $this->globalEnv;
+        $namespaceMeta = Phel::map(Keyword::create('dynamic'), true);
+        Phel::addDefinition('phel.core', '*ns*', 'user', $namespaceMeta);
+        Phel::addDefinition('phel.core', '*file*', '/project/main.phel');
         $this->globalEnv->setBundledNamespaceResolver(
             new class($globalEnv, $loadCalls) implements BundledNamespaceResolverInterface {
                 /**
@@ -745,6 +749,9 @@ final class SymbolResolverTest extends TestCase
                 public function resolveBundledNamespace(string $namespace): bool
                 {
                     $this->loadCalls[] = $namespace;
+                    $this->env->setNs($namespace);
+                    Phel::addDefinition('phel.core', '*ns*', $namespace);
+                    Phel::addDefinition('phel.core', '*file*', '/cache/json.phel');
                     $this->env->addDefinition($namespace, Symbol::create('encode'));
 
                     return true;
@@ -759,6 +766,38 @@ final class SymbolResolverTest extends TestCase
             $this->resolver->resolve(Symbol::createForNamespace('phel.json', 'encode'), $nodeEnv),
         );
         self::assertSame(['phel.json'], $loadCalls);
+        self::assertSame('user', $this->globalEnv->getNs());
+        self::assertSame('user', Phel::getDefinition('phel.core', '*ns*'));
+        self::assertSame('/project/main.phel', Phel::getDefinition('phel.core', '*file*'));
+        self::assertSame($namespaceMeta, Registry::getInstance()->getDefinitionMetaData('phel.core', '*ns*'));
+    }
+
+    public function test_lazy_load_failure_restores_the_callers_scope(): void
+    {
+        $this->globalEnv->setNs('user');
+        Phel::addDefinition('phel.core', '*ns*', 'user');
+        Phel::addDefinition('phel.core', '*file*', '/project/main.phel');
+        $globalEnv = $this->globalEnv;
+        $loader = $this->createStub(BundledNamespaceResolverInterface::class);
+        $loader->method('resolveBundledNamespace')->willReturnCallback(
+            static function () use ($globalEnv): never {
+                $globalEnv->setNs('phel.json');
+                Phel::addDefinition('phel.core', '*ns*', 'phel.json');
+                Phel::addDefinition('phel.core', '*file*', '/cache/json.phel');
+                throw new RuntimeException('Broken lazy load');
+            },
+        );
+        $this->globalEnv->setBundledNamespaceResolver($loader);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Broken lazy load');
+        try {
+            $this->resolver->resolve(Symbol::createForNamespace('phel.json', 'encode'), NodeEnvironment::empty());
+        } finally {
+            self::assertSame('user', $this->globalEnv->getNs());
+            self::assertSame('user', Phel::getDefinition('phel.core', '*ns*'));
+            self::assertSame('/project/main.phel', Phel::getDefinition('phel.core', '*file*'));
+        }
     }
 
     public function test_fqn_resolution_does_not_invoke_loader_when_already_resolvable(): void

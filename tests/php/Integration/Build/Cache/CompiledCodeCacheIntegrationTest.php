@@ -4,11 +4,21 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Build\Cache;
 
+use Phel;
+use Phel\Build\Application\FileEvaluator;
+use Phel\Build\BuildFacade;
+use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
+use Phel\Command\Infrastructure\SourceMapExtractor;
+use Phel\Compiler\CompilerFacade;
+use Phel\Lang\LoadClasspath;
+use Phel\Shared\NamespaceInformation;
 use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
+
+use function dirname;
 
 /**
  * Integration tests for CompiledCodeCache verifying end-to-end cache behavior.
@@ -54,6 +64,50 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
 
         /** @var string $testVar */
         self::assertSame('cached value', $testVar);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_cached_sibling_load_survives_removing_a_directory_alias(): void
+    {
+        $root = dirname(__DIR__, 5);
+        Phel::bootstrap($root);
+        $compiler = new CompilerFacade();
+        $compiler->initializeNewGlobalEnvironment();
+        LoadClasspath::publish([$root . '/src/phel']);
+        new BuildFacade()->evalFile($root . '/src/phel/core.phel');
+        LoadClasspath::publish([]);
+
+        $sourceDir = $this->cacheDir . '/real';
+        mkdir($sourceDir, 0o700, true);
+        $main = $sourceDir . '/main.phel';
+        file_put_contents($main, "(ns cache-alias.main)\n(load \"child\")\n");
+        file_put_contents($sourceDir . '/child.phel', '(in-ns cache-alias.main) (def answer 42)');
+        $alias = $this->cacheDir . '/alias';
+        if (!@symlink($sourceDir, $alias)) {
+            self::markTestSkipped('Directory symlinks are unavailable.');
+        }
+
+        $extractor = $this->createStub(NamespaceExtractorInterface::class);
+        $extractor->method('getNamespaceFromFile')->willReturn(new NamespaceInformation($main, 'cache-alias.main', []));
+        $cache = new CompiledCodeCache($this->cacheDir . '/cache');
+        $evaluator = new FileEvaluator($compiler, $extractor, $cache);
+
+        try {
+            $cold = $evaluator->evalFile($alias . '/main.phel');
+            touch($cold->getTargetFile(), 1);
+            $this->removeDirectoryLink($alias);
+
+            $warm = $evaluator->evalFile($main);
+
+            self::assertSame($cold->getTargetFile(), $warm->getTargetFile());
+            clearstatcache();
+            self::assertSame(1, filemtime($warm->getTargetFile()));
+            self::assertSame(42, Phel::getDefinition('cache_alias.main', 'answer'));
+            self::assertSame(realpath($main), new SourceMapExtractor()->extractFromFile($warm->getTargetFile())->filename());
+        } finally {
+            $this->removeDirectoryLink($alias);
+        }
     }
 
     #[PreserveGlobalState(false)]
@@ -200,6 +254,20 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
         $fresh = new CompiledCodeCache($this->cacheDir);
         self::assertNotNull($fresh->get($outerFile, 'hash_outer'));
         self::assertNotNull($fresh->get($nestedFile, 'hash_nested'));
+    }
+
+    private function removeDirectoryLink(string $path): void
+    {
+        if (!is_link($path)) {
+            return;
+        }
+
+        if (PHP_OS_FAMILY === 'Windows') {
+            rmdir($path);
+            return;
+        }
+
+        unlink($path);
     }
 
 }

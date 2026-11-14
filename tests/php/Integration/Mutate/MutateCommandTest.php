@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Mutate;
 
 use Override;
-use PhelTest\Support\SharedStdlibCache;
 use PHPUnit\Framework\TestCase;
 
 use function array_keys;
@@ -473,7 +472,7 @@ final class MutateCommandTest extends TestCase
         }
 
         $cmd = 'cd ' . escapeshellarg($this->projectDir)
-            . ' && ' . SharedStdlibCache::envPrefix() . ($env === [] ? '' : implode(' ', $env) . ' ')
+            . ' && ' . ($env === [] ? '' : implode(' ', $env) . ' ')
             . 'php ' . escapeshellarg($this->repoRoot . '/bin/phel')
             . ' mutate' . $args . ' 2>&1';
 

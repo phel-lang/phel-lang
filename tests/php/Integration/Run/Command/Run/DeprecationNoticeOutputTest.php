@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Run;
 
+use PhelTest\Support\IsolatedBuildCacheTrait;
 use PhelTest\Support\RemoveDirTrait;
 use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +29,7 @@ use function trim;
  */
 final class DeprecationNoticeOutputTest extends TestCase
 {
+    use IsolatedBuildCacheTrait;
     use RemoveDirTrait;
 
     private string $repoRoot;

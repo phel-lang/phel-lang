@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Phel;
 
+use PhelTest\Support\IsolatedBuildCacheTrait;
 use PhelTest\Support\RemoveDirTrait;
 use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +29,7 @@ use function uniqid;
  */
 final class BreakCachedMacroLocalsTest extends TestCase
 {
+    use IsolatedBuildCacheTrait;
     use RemoveDirTrait;
 
     private const string MACROS = <<<'PHEL'

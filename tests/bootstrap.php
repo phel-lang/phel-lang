@@ -50,13 +50,19 @@ foreach (['GIT_DIR', 'GIT_INDEX_FILE', 'GIT_WORK_TREE'] as $gitVariable) {
     $_ENV['TMPDIR'] = $workerTmp;
     $_SERVER['TMPDIR'] = $workerTmp;
 
-    // A build cache per worker for tests that opt in through
-    // PhelTest\Support\SharedStdlibCache: their `bin/phel` subprocesses then
-    // compile the bundled stdlib once per worker instead of once each.
-    putenv('PHEL_TEST_SHARED_CACHE_DIR=' . $workerTmp . DIRECTORY_SEPARATOR . 'phel-cache');
+    $sharedCache = getenv('PHEL_TEST_SHARED_CACHE_DIR');
+    if ($sharedCache === false || $sharedCache === '') {
+        $sharedCache = $workerTmp . DIRECTORY_SEPARATOR . 'phel-cache';
+    }
+
+    putenv('PHEL_TEST_SHARED_CACHE_DIR=' . $sharedCache);
+    putenv('PHEL_CACHE_DIR=' . $sharedCache);
 
     register_shutdown_function(static function () use ($workerTmp): void {
-        removeDirectory($workerTmp);
+        // Queue cleanup after caches have run their deferred shutdown writes.
+        register_shutdown_function(static function () use ($workerTmp): void {
+            removeDirectory($workerTmp);
+        });
     });
 })();
 

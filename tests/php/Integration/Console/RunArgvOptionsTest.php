@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Console;
 
-use PhelTest\Support\SharedStdlibCache;
 use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -146,7 +145,6 @@ final class RunArgvOptionsTest extends TestCase
         return Subprocess::run(
             [PHP_BINARY, $bin, $command, ...$args],
             cwd: $this->dir,
-            env: SharedStdlibCache::env(),
         );
     }
 }

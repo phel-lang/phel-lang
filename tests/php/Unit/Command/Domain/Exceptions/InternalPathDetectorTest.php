@@ -7,6 +7,8 @@ namespace PhelTest\Unit\Command\Domain\Exceptions;
 use Phel\Command\Domain\Exceptions\InternalPathDetector;
 use PHPUnit\Framework\TestCase;
 
+use function dirname;
+
 final class InternalPathDetectorTest extends TestCase
 {
     private const string PHEL_SRC_DIR = '/proj/vendor/phel-lang/phel-lang/src';
@@ -23,9 +25,27 @@ final class InternalPathDetectorTest extends TestCase
         self::assertFalse($this->detector()->isInternalSource('/proj/src/app/main.phel'));
     }
 
+    public function test_source_aliases_are_classified_by_the_resolved_path(): void
+    {
+        $root = dirname(__DIR__, 6);
+        $detector = new InternalPathDetector($root . '/src', '');
+
+        self::assertTrue($detector->isInternalSource($root . '/tests/../src/phel/core/math.phel'));
+        self::assertFalse($detector->isInternalSource($root . '/src/../tests/php/Unit/Command/Domain/Exceptions/InternalPathDetectorTest.php'));
+    }
+
     public function test_a_sibling_directory_sharing_the_prefix_is_not_internal(): void
     {
         self::assertFalse($this->detector()->isInternalSource(self::PHEL_SRC_DIR . '-backup/phel/core/sequences.phel'));
+    }
+
+    public function test_missing_source_keeps_its_lexical_internal_path(): void
+    {
+        $directory = dirname(__DIR__, 6) . '/tests/../src';
+        $file = $directory . '/missing-internal-source.phel';
+        self::assertFileDoesNotExist($file);
+
+        self::assertTrue(new InternalPathDetector($directory, '')->isInternalSource($file));
     }
 
     public function test_compiled_cache_artifact_is_internal(): void

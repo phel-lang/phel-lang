@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Test;
 
-use PhelTest\Support\SharedStdlibCache;
 use RuntimeException;
 
 use function dirname;
@@ -27,15 +26,12 @@ final readonly class FixtureProjectHelper
     private function __construct(
         private string $projectDir,
         private string $repoRoot,
-        private bool $shareStdlibCache,
     ) {}
 
     /**
-     * @param string $fixtureDir       Directory containing the committed `.phel` fixtures (copied recursively, except PHP files)
-     * @param bool   $shareStdlibCache Compile the bundled stdlib once per paratest worker, see {@see SharedStdlibCache}.
-     *                                 Leave it off when the test reads the project's `.phel/cache`.
+     * @param string $fixtureDir Directory containing the committed `.phel` fixtures (copied recursively, except PHP files)
      */
-    public static function setUpProject(string $fixtureDir, bool $shareStdlibCache = false): self
+    public static function setUpProject(string $fixtureDir): self
     {
         $repoRoot = dirname(__DIR__, 6);
         $projectDir = sys_get_temp_dir() . '/phel-fixture-project-' . bin2hex(random_bytes(8));
@@ -74,7 +70,7 @@ final readonly class FixtureProjectHelper
             ),
         );
 
-        return new self($projectDir, $repoRoot, $shareStdlibCache);
+        return new self($projectDir, $repoRoot);
     }
 
     public function tearDownProject(): void
@@ -120,8 +116,7 @@ final readonly class FixtureProjectHelper
         }
 
         $cmd = 'cd ' . escapeshellarg($this->projectDir)
-            . ' && ' . ($this->shareStdlibCache ? SharedStdlibCache::envPrefix() : '')
-            . 'php -d memory_limit=256M ' . escapeshellarg($this->repoRoot . '/bin/phel')
+            . ' && php -d memory_limit=256M ' . escapeshellarg($this->repoRoot . '/bin/phel')
             . ' ' . $command . $args . ' 2>&1';
 
         exec($cmd, $output, $exitCode);

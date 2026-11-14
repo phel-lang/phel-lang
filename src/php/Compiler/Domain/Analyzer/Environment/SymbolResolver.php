@@ -207,7 +207,26 @@ final readonly class SymbolResolver
             return false;
         }
 
-        return $resolver->resolveBundledNamespace($namespace);
+        $callerNamespace = $this->globalEnv->getNs();
+        $registry = Registry::getInstance();
+        $callerDefinitions = [];
+        foreach (['*ns*', '*file*'] as $name) {
+            if ($registry->isDefined(CompilerConstants::PHEL_CORE_NAMESPACE, $name)) {
+                $callerDefinitions[$name] = [
+                    $registry->getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $name),
+                    $registry->getDefinitionMetaData(CompilerConstants::PHEL_CORE_NAMESPACE, $name),
+                ];
+            }
+        }
+
+        try {
+            return $resolver->resolveBundledNamespace($namespace);
+        } finally {
+            $this->globalEnv->setNs($callerNamespace);
+            foreach ($callerDefinitions as $name => [$value, $meta]) {
+                $registry->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $name, $value, $meta);
+            }
+        }
     }
 
     /**

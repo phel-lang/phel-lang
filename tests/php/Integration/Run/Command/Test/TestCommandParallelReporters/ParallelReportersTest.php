@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Test\TestCommandParallelReporters;
 
-use PhelTest\Support\SharedStdlibCache;
 use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\TestCase;
 use SimpleXMLElement;
@@ -15,7 +14,6 @@ use function escapeshellarg;
 use function exec;
 use function file_get_contents;
 use function file_put_contents;
-use function getenv;
 use function mkdir;
 use function random_bytes;
 use function realpath;
@@ -137,13 +135,9 @@ final class ParallelReportersTest extends TestCase
      */
     private function phel(array $args): Subprocess
     {
-        $cacheDir = SharedStdlibCache::dir();
-
         return Subprocess::run(
             [PHP_BINARY, self::repoRoot() . '/bin/phel', ...$args],
             self::$projectDir,
-            null,
-            $cacheDir === null ? null : [...getenv(), 'PHEL_CACHE_DIR' => $cacheDir],
         );
     }
 

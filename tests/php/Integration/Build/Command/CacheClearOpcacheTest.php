@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Build\Command;
 
 use Phel\Shared\Performance\OpcacheFileCache;
+use PhelTest\Support\IsolatedBuildCacheTrait;
 use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -29,6 +30,7 @@ use function sys_get_temp_dir;
  */
 final class CacheClearOpcacheTest extends TestCase
 {
+    use IsolatedBuildCacheTrait;
     use RemoveDirTrait;
 
     private const string FOREIGN_ID = 'cf11b0a41c1f745a1bfd730ac5e2b089';

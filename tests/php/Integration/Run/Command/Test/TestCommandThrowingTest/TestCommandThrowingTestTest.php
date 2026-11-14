@@ -15,7 +15,7 @@ final class TestCommandThrowingTestTest extends TestCase
     #[Override]
     protected function setUp(): void
     {
-        $this->project = FixtureProjectHelper::setUpProject(__DIR__, shareStdlibCache: true);
+        $this->project = FixtureProjectHelper::setUpProject(__DIR__);
     }
 
     #[Override]

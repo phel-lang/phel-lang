@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Run\Command\Repl;
 
 use Gacela\Framework\Gacela;
 use Override;
+use Phel;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -86,7 +87,9 @@ final class ReplLazyBundledNamespaceTest extends AbstractTestCommand
         );
 
         self::assertStringContainsString('&lt;div&gt;', $io->getOutputString(), 'A fully qualified bundle reference must resolve on demand');
-        self::assertContains('true', $io->getOutputLines(), 'phel.html must be loaded after a fully qualified reference');
+        self::assertContains('true', $io->getOutputLines(), 'phel.html must be loaded after a fully qualified reference: ' . $io->getOutputString());
+        self::assertSame('user', Phel::getDefinition('phel.core', '*ns*'));
+        self::assertSame('', Phel::getDefinition('phel.core', '*file*'));
     }
 
     #[RunInSeparateProcess]

@@ -7,6 +7,7 @@ namespace Phel\Build\Infrastructure\Cache;
 use Gacela\Framework\Cache\FileCache;
 use ParseError;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
+use Phel\Build\Domain\Cache\SourceFilePath;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\SourceMap\SupersededSourceMaps;
 
@@ -115,6 +116,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function get(string $sourcePath, string $sourceHash): ?string
     {
+        $sourcePath = SourceFilePath::normalize($sourcePath);
         $this->loadEntries();
 
         $entry = $this->entries[$sourcePath] ?? null;
@@ -152,6 +154,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function has(string $sourcePath): bool
     {
+        $sourcePath = SourceFilePath::normalize($sourcePath);
         $this->loadEntries();
 
         return isset($this->entries[$sourcePath]);
@@ -165,6 +168,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function put(string $sourcePath, string $namespace, string $sourceHash, string $phpCode, array $deprecations = []): void
     {
+        $sourcePath = SourceFilePath::normalize($sourcePath);
         $this->loadEntries();
         $this->directory->ensure();
 
@@ -201,6 +205,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
 
     public function getDeprecations(string $sourcePath): array
     {
+        $sourcePath = SourceFilePath::normalize($sourcePath);
         $this->loadEntries();
 
         return $this->entries[$sourcePath]['deprecations'] ?? [];
@@ -211,7 +216,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function getCompiledPath(string $sourcePath, string $namespace): string
     {
-        return $this->pathResolver->compiledPath($namespace, $sourcePath, '.php');
+        return $this->pathResolver->compiledPath($namespace, SourceFilePath::normalize($sourcePath), '.php');
     }
 
     /**
@@ -247,6 +252,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function invalidate(string $sourcePath): void
     {
+        $sourcePath = SourceFilePath::normalize($sourcePath);
         $this->loadEntries();
 
         $entry = $this->entries[$sourcePath] ?? null;

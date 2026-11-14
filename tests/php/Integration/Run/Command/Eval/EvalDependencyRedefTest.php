@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Eval;
 
+use PhelTest\Support\IsolatedBuildCacheTrait;
 use PHPUnit\Framework\TestCase;
 
 use function dirname;
@@ -30,6 +31,8 @@ use function sys_get_temp_dir;
  */
 final class EvalDependencyRedefTest extends TestCase
 {
+    use IsolatedBuildCacheTrait;
+
     private string $projectDir = '';
 
     protected function setUp(): void
