@@ -2,7 +2,7 @@
 (fn [x] (fn [y] 1))
 --PHP--
 (function($x) {
-  return (function($y) use($x) {
+  return (function($y) {
     return 1;
   });
 });

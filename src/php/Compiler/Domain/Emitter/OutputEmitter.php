@@ -19,7 +19,6 @@ use Phel\Shared\MungeInterface;
 use Phel\Shared\Printer\PrinterInterface;
 
 use function array_pop;
-use function array_values;
 use function count;
 use function in_array;
 use function str_starts_with;
@@ -52,6 +51,9 @@ final class OutputEmitter implements OutputEmitterInterface
 
     /** @var list<ConstantScope> */
     private array $constantScopes = [];
+
+    /** @var list<array<string, int>> */
+    private array $uncapturedLocalsPerFrame = [];
 
     private readonly DeferredDefinitionRegistrations $deferredDefinitions;
 
@@ -86,6 +88,23 @@ final class OutputEmitter implements OutputEmitterInterface
     public function currentConstantScope(): ?ConstantScope
     {
         return array_last($this->constantScopes);
+    }
+
+    /**
+     * Enters a fn body. `$names` are the emitted names of enclosing locals
+     * the fn does not capture: they are absent from its PHP frame, so a wrap
+     * inside the body must not `use` them. Pair with {@see exitFnFrame()}.
+     *
+     * @param list<string> $names
+     */
+    public function enterFnFrame(array $names): void
+    {
+        $this->uncapturedLocalsPerFrame[] = array_flip($names);
+    }
+
+    public function exitFnFrame(): void
+    {
+        array_pop($this->uncapturedLocalsPerFrame);
     }
 
     /**
@@ -371,7 +390,15 @@ final class OutputEmitter implements OutputEmitterInterface
      */
     private function emitUseClauseForWrap(NodeEnvironmentInterface $env, ?SourceLocation $sl, array $byRefLocalNames = []): void
     {
-        $locals = array_values($env->getLocals());
+        $uncaptured = array_last($this->uncapturedLocalsPerFrame) ?? [];
+        $locals = [];
+        foreach ($env->getLocals() as $local) {
+            $emitName = ($env->getShadowed($local) ?? $local)->getName();
+            if (!isset($uncaptured[$emitName])) {
+                $locals[] = $local;
+            }
+        }
+
         $scope = $this->currentConstantScope();
         $constantSlots = $scope?->count() ?? 0;
         $callSlots = $scope?->callSlotCount() ?? 0;

@@ -6,7 +6,7 @@
 (function($coll) {
   foreach (\Phel\Lang\Seq::toIterable($coll) as $__phel_1_2) {
     $x_3 = $__phel_1_2;
-    ((function($y) use($coll, $__phel_1_2, $x_3) {
+    ((function($y) {
       yield $y;
     }))($x_3);
   }

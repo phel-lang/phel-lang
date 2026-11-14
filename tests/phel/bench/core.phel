@@ -93,3 +93,12 @@
 (defbench bench-transduce-conj
   {:revs 1000}
   (transduce (comp (map heal) (filter :alive)) conj [] entities))
+
+(defn- make-callback [xs y]
+  (let [n (count xs)
+        label (str "items: " n)]
+    (fn [x] (+ x y))))
+
+(defbench bench-closure-creation
+  {:revs 200}
+  (dotimes [_ 20] (make-callback ints 1)))

@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
+use Phel\Compiler\Domain\Analyzer\Ast\Reference\LocalVarReferences;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\TailCallRewriter;
@@ -20,6 +21,8 @@ use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\TagResolver;
 
+use function array_filter;
+use function array_flip;
 use function count;
 use function in_array;
 use function sprintf;
@@ -243,7 +246,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             $env,
             $fnSymbolTuple->params(),
             $body,
-            $this->buildUsesFromEnv($env, $fnSymbolTuple, $effectiveName),
+            $this->buildUsesFromEnv($env, $fnSymbolTuple, $body, $effectiveName),
             $fnSymbolTuple->isVariadic(),
             $recurFrame->isActive(),
             $list->getStartLocation(),
@@ -449,6 +452,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
     private function buildUsesFromEnv(
         NodeEnvironmentInterface $env,
         FnSymbolTuple $fnSymbolTuple,
+        AbstractNode $body,
         ?Symbol $name = null,
     ): array {
         $excluded = $fnSymbolTuple->params();
@@ -459,7 +463,24 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             $excluded = [$name, ...$excluded];
         }
 
-        return array_values(array_diff($env->getLocals(), $excluded));
+        $candidates = array_values(array_diff($env->getLocals(), $excluded));
+
+        // A captured value lives as long as the closure, so capture only the
+        // locals the body names. A body with a node the scanner cannot read
+        // keeps every local. A reference to a shadowed local carries the
+        // shadow's name, not the source name.
+        $referenced = LocalVarReferences::collect($body);
+        if ($referenced === null) {
+            return $candidates;
+        }
+
+        $referenced = array_flip($referenced);
+
+        return array_values(array_filter(
+            $candidates,
+            static fn(Symbol $local): bool => isset($referenced[$local->getName()])
+                || isset($referenced[$env->getShadowed($local)?->getName() ?? '']),
+        ));
     }
 
 }

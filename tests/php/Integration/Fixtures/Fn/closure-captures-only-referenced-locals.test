@@ -1,0 +1,23 @@
+--PHEL--
+(fn [xs y]
+  (let [z 1]
+    [(fn [x] (inc x))
+     (fn [x] (+ x z))
+     (fn [x] (fn [w] (+ w y)))]))
+--PHP--
+(function($xs, $y): \Phel\Lang\Collections\Vector\PersistentVectorInterface {
+  /** @var int $z_1 */
+  $z_1 = 1;
+  return \Phel::vector([(function($x) {
+    static $__phel_call_0;
+    return (\is_int($x) && $x !== \PHP_INT_MAX ? ($x + 1) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "inc"))->__invoke($x));
+  }), (function($x) use($z_1) {
+    static $__phel_call_0;
+    return (\is_int($x) && \is_int($z_1) && \is_int($__phel_guard_2 = $x + $z_1) ? $__phel_guard_2 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($x, $z_1));
+  }), (function($x) use($y) {
+    return (function($w) use($y) {
+      static $__phel_call_0;
+      return (\is_int($w) && \is_int($y) && \is_int($__phel_guard_3 = $w + $y) ? $__phel_guard_3 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($w, $y));
+    });
+  })]);
+});

@@ -1,0 +1,89 @@
+(ns phel-test.core.fn-captures
+  (:require phel.test :refer [deftest is]))
+
+(defn- adder [xs y]
+  (let [unused (count xs)
+        z 10]
+    (fn [x] (+ x y z))))
+
+(defn- nested-adder [a b]
+  (let [c (* a 10)]
+    (fn [x]
+      (fn [y] (+ x y a c)))))
+
+(defn- shadowing [n]
+  (let [n (inc n)
+        n (* n 2)]
+    (fn [] n)))
+
+(defn- method-call-in-closure [sb items]
+  (let [append #(.append sb %)]
+    (doseq [i items] (append i))
+    (.getArrayCopy sb)))
+
+(defn- self-recursive [limit]
+  (let [step 2]
+    (fn count-up [n acc]
+      (if (>= n limit)
+        acc
+        (count-up (+ n step) (conj acc n))))))
+
+(defn- looping-closure [xs k]
+  (fn []
+    (loop [s (seq xs) acc 0]
+      (if s
+        (recur (next s) (+ acc (* k (first s))))
+        acc))))
+
+(defn- catching-closure [msg]
+  (fn [f]
+    (try (f) (catch \Exception e (str msg ": " (.getMessage e))))))
+
+(defn- multi-arity-closure [base]
+  (let [ignored :x]
+    (fn
+      ([] base)
+      ([a] (+ base a))
+      ([a & more] (apply + base a more)))))
+
+(defn- destructuring-closure [m]
+  (let [{:keys [a b]} m]
+    (fn [[x y]] [(+ a x) (+ b y)])))
+
+(defn- reify-closure [prefix]
+  (let [unused 1]
+    (reify \Stringable
+      (__toString [this] (str prefix "!")))))
+
+(deftest a-closure-reads-the-locals-it-names
+  (is (= 16 ((adder [1 2 3] 5) 1))))
+
+(deftest a-nested-closure-reads-outer-locals-through-the-middle-one
+  (is (= 116 (((nested-adder 10 0) 3) 3))))
+
+(deftest a-closure-reads-the-last-shadowing-binding
+  (is (= 8 ((shadowing 3)))))
+
+(deftest a-method-call-inside-a-closure-sees-its-target
+  (is (= ["a" "b"] (vec (method-call-in-closure (\ArrayObject.) ["a" "b"])))))
+
+(deftest a-named-closure-recurs-through-its-own-name
+  (is (= [0 2 4] ((self-recursive 6) 0 []))))
+
+(deftest a-loop-inside-a-closure-reads-captured-locals
+  (is (= 12 ((looping-closure [1 2 3] 2)))))
+
+(deftest a-catch-inside-a-closure-reads-captured-locals
+  (is (= "failed: boom" ((catching-closure "failed") #(throw (\Exception. "boom"))))))
+
+(deftest every-arity-of-a-closure-reads-captured-locals
+  (let [f (multi-arity-closure 10)]
+    (is (= 10 (f)))
+    (is (= 11 (f 1)))
+    (is (= 16 (f 1 2 3)))))
+
+(deftest a-destructured-local-is-captured
+  (is (= [11 22] ((destructuring-closure {:a 10 :b 20}) [1 2]))))
+
+(deftest a-reify-reads-captured-locals
+  (is (= "p!" (str (reify-closure "p")))))

@@ -142,13 +142,50 @@ final readonly class MethodEmitter
         $scope = new ConstantScope();
         $this->constantScanner->scan($node->getBody(), $scope, $this->shouldCacheCallSites());
         $this->outputEmitter->pushConstantScope($scope);
+        $this->outputEmitter->enterFnFrame($this->uncapturedLocalNames($node));
 
         try {
             $this->emitConstantStatics($scope, $node);
             $this->emitMethodBody($node);
         } finally {
+            $this->outputEmitter->exitFnFrame();
             $this->outputEmitter->popConstantScope();
         }
+    }
+
+    /**
+     * Emitted names of the enclosing locals this fn left out of its captures.
+     * Its parameters and self name are not among them, since they shadow
+     * those locals inside the body.
+     *
+     * @return list<string>
+     */
+    private function uncapturedLocalNames(FnNode $node): array
+    {
+        $env = $node->getEnv();
+        $kept = [];
+        foreach ([...$node->getUses(), ...$node->getParams()] as $symbol) {
+            $kept[$symbol->getName()] = true;
+        }
+
+        $name = $node->getName();
+        if ($name instanceof Symbol) {
+            $kept[$name->getName()] = true;
+        }
+
+        $names = [];
+        foreach ($env->getLocals() as $local) {
+            if (isset($kept[$local->getName()])) {
+                continue;
+            }
+
+            $emitName = ($env->getShadowed($local) ?? $local)->getName();
+            if (!isset($kept[$emitName])) {
+                $names[] = $emitName;
+            }
+        }
+
+        return $names;
     }
 
     /**
