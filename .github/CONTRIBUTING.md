@@ -104,7 +104,7 @@ Optional but recommended:
 tools/git-hooks/init.sh
 ```
 
-Installs a pre-commit hook that runs `composer test-all` when PHP or Phel files are staged. Let required hooks complete and reuse a successful gate on unchanged code. Fixture-only changes still need the selected checks because `.test` files do not trigger this hook.
+Installs a pre-commit hook that runs `composer test-commit` (quality checks, unit and core suites) when PHP or Phel files are staged. The integration suite runs in CI; run `composer test-compiler` locally when your change can affect it. Let required hooks complete and reuse a successful gate on unchanged code. Fixture-only changes still need the selected checks because `.test` files do not trigger this hook.
 
 ## Commit Messages
 

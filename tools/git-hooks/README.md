@@ -24,7 +24,7 @@ every repository on the machine.
 
 | File | Hook | What it does |
 |---|---|---|
-| [`pre-commit.sh`](pre-commit.sh) | `pre-commit` | Runs `composer test-all` when the staged diff includes `.php` or `.phel` files. Skips when only docs/config changed — so commits to `.md`, `composer.json`, CI files, etc. stay fast. |
+| [`pre-commit.sh`](pre-commit.sh) | `pre-commit` | Runs `composer test-commit` (quality checks, unit suite, core suite) when the staged diff includes `.php` or `.phel` files. The integration suite is left to CI; run `composer test-compiler` to get it locally before pushing. Skips when only docs/config changed, so commits to `.md`, `composer.json`, CI files, etc. stay fast. |
 | [`post-merge.sh`](post-merge.sh) | `post-merge` | Runs `agnostic-ai sync` when a pull changed `.agnostic-ai/` or `agnostic-ai.yaml`, so the gitignored `.claude/`, `.codex/` and `AGENTS.md` never lag behind the specs. |
 | [`post-checkout.sh`](post-checkout.sh) | `post-checkout` | The same on a branch switch. |
 | [`post-rewrite.sh`](post-rewrite.sh) | `post-rewrite` | The same after `git pull --rebase` or `git rebase`, which never run `post-merge`. |
