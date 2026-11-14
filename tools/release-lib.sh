@@ -479,7 +479,7 @@ git_commit_release() {
     local repo_root="$2"
     shift 2
     git -C "$repo_root" add "$@"
-    # Skip the pre-commit hook (which runs `composer test-all`). The release
+    # Skip the pre-commit hook (which runs `composer test-commit`). The release
     # commit only bumps version strings — there is no code change to re-test —
     # and the hook has tripped on an order-dependent integration test. The
     # release should already be gated on a green CI on `main` plus the PHAR

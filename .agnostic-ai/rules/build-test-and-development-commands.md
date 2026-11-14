@@ -11,4 +11,4 @@ Run the selected gate after reviewing the complete diff. Reuse passing checks on
 
 Agent specs: `agnostic-ai validate`, `agnostic-ai lint --strict`, `agnostic-ai sync`, then `agnostic-ai sync --check`. Scope changes also need `agnostic-ai explain --file <path> --target <claude|codex>`. Prose needs a diff and link check; shell tooling needs `composer test-tools`; downstream `resources/agents/` needs `composer test-agents`.
 
-If installed, the pre-commit hook (`tools/git-hooks/init.sh`) runs `composer test-all` for staged PHP or Phel. Reuse it with `COMPOSER_PROCESS_TIMEOUT=0` when triggered; otherwise run the selected gate yourself, including fixture-only changes. Never bypass required hooks or claim unrun checks passed.
+If installed, the pre-commit hook (`tools/git-hooks/init.sh`) runs `composer test-commit` (quality, unit, core) for staged PHP or Phel; the integration suite is left to CI, so run `composer test-compiler` when a change can affect it. Reuse it with `COMPOSER_PROCESS_TIMEOUT=0` when triggered; otherwise run the selected gate yourself, including fixture-only changes. Never bypass required hooks or claim unrun checks passed.
