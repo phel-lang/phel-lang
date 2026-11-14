@@ -64,7 +64,7 @@ final class WorkerTempCleanupTest extends TestCase
             self::assertSame(0, $result->exitCode, $result->stderr);
             [$actualCache, $configCache, $childTemp] = json_decode($result->stdout, true, flags: JSON_THROW_ON_ERROR);
             self::assertSame($cacheDir, $actualCache);
-            self::assertSame($childTemp . '/phel-phpunit-gacela-cache', $configCache);
+            self::assertSame($childTemp . DIRECTORY_SEPARATOR . 'phel-phpunit-gacela-cache', $configCache);
             self::assertFileExists($cacheDir . '/compiled-index.php');
             self::assertCount(1, glob($cacheDir . '/compiled/*.php'));
         } finally {
