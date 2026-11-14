@@ -9,7 +9,7 @@ All notable changes to this project are documented in this file. Releases before
 - **BREAKING**: The compiler rejects code it used to accept with a different meaning, such as duplicate definitions, conflicting aliases, invalid bindings and malformed literals. Each case fails with a specific `PHEL` code; see Changed below.
 - **BREAKING**: Sequence functions read maps and structs as `[key value]` entries, and `compare` and `sort` compare seqs element by element, as in Clojure.
 - **BREAKING**: The command line has a stable contract: invalid invocations exit 2 with the error on stderr, machine output uses 1-based columns and environment switches are strict. Documented commands, options and machine output change only in major releases.
-- Security: generated PHP lives in an owner-only temp directory, `phel.http-client` drops credentials on cross-origin redirects, `phel cache:clear` refuses unsafe paths and nREPL limits its input.
+- Security: generated PHP lives in an owner-only temp directory, `phel.http` ignores untrusted forwarded schemes, `phel.http-client` drops credentials on cross-origin redirects, `phel cache:clear` refuses unsafe paths and nREPL limits its input.
 - Built apps reject a different Phel runtime version at startup instead of failing later.
 - Float literals keep their exact value, `BigInt` arithmetic survives overflow, and `take`, `drop` and `range` accept ratio and big numbers.
 
@@ -27,6 +27,7 @@ Runtime:
 
 - **BREAKING**: Sequence functions read maps, sorted maps and structs as `[key value]` entries, as `seq` does; use `(vals m)` for values. `compare` and `sort` compare seqs, ranges, map entries and queues element by element, and a seq equals a vector with the same elements. Unequal maps, sets and transients throw; use `sort-by` for those. (#3556 #3570 #3567 #3555)
 - **BREAKING**: `rand-int` excludes its upper bound; use `(rand-int (inc n))` for the old range. `take`, `drop`, `take-last`, `drop-last`, `take-nth` and `split-at` accept ratio and big counts and round them up; use `(int n)` for the old count. `partition` returns `()` for non-integer counts and rejects non-positive steps, and both it and `partition-all` reject non-positive sizes. (#3679 #3566 #3680)
+- **BREAKING**: `phel.http` builds request URIs with only `http` or `https` schemes and ignores `X-Forwarded-Proto` by default. For requests through a trusted proxy that replaces the header, pass `{:trusted-proxy? true}` to `request-from-globals` or as the options argument to `uri-from-globals` and `request-from-globals-args`. (#3859)
 - **BREAKING**: `phel.http-client` accepts only `http` and `https` URLs, rejects invalid headers and throws after 20 redirects. A cross-origin redirect keeps only content-negotiation headers, so credentials such as `x-api-key` no longer follow it. (#3531 #3687)
 - **BREAKING**: `phel.json/encode` and `decode` throw `JsonException` with PHP's message when PHP reports an error, such as `NAN`, invalid UTF-8, malformed JSON or too deep nesting. They returned `false` or nil, which looked like a result, and `phel.http/json-response` sent a `200` with an empty body. Wrap the call in `try` where bad input is expected. (#3855)
 

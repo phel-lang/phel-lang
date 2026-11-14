@@ -52,19 +52,27 @@
       [http-host server-port]
       [server-name server-port])))
 
+(defn- http-scheme [value]
+  (when (string? value)
+    (let [scheme (php/strtolower (php/trim value))]
+      (when (or (= scheme "http") (= scheme "https")) scheme))))
+
 (defn uri-from-globals
-  "Extracts the URI from the `$_SERVER` variable. The scheme is read from
-  `HTTP_X_FORWARDED_PROTO`, `REQUEST_SCHEME`, or `HTTPS`; the path from
-  `REQUEST_URI`; and the host/port via the `$_SERVER` host fields. Returns a
-  uri struct."
+  "Extracts a URI from `$_SERVER` or the supplied server array. The scheme is
+  `http` or `https`, using `REQUEST_SCHEME`, then `HTTPS`, then `http`.
+  With `{:trusted-proxy? true}` as the second argument, a valid
+  `HTTP_X_FORWARDED_PROTO` takes precedence. Enable this only for requests
+  received through a trusted proxy that replaces that header."
   {:example "(uri-from-globals) ; => (phel.http.uri \"https\" nil \"example.com\" 443 \"/path\" \"foo=bar\" nil)"
    :see-also ["uri-from-string" "request-from-globals"]}
-  [& [server]]
+  [& [server options]]
   (let [server (or server php/$_SERVER)
-        scheme (cond
-                 (get server "HTTP_X_FORWARDED_PROTO") (get server "HTTP_X_FORWARDED_PROTO")
-                 (get server "REQUEST_SCHEME")         (get server "REQUEST_SCHEME")
-                 (get server "HTTPS")                  (if (= "on" (get server "HTTPS")) "https" "http"))
+        scheme (or (when (true? (get options :trusted-proxy?))
+                     (http-scheme (get server "HTTP_X_FORWARDED_PROTO")))
+                   (http-scheme (get server "REQUEST_SCHEME"))
+                   (if (php/in_array (get server "HTTPS") (php-indexed-array "on" "1" 1 true) true)
+                     "https"
+                     "http"))
         path   (when (get server "REQUEST_URI")
                  (first (php/explode "?" (get server "REQUEST_URI" ""))))
         query  (get server "QUERY_STRING")
@@ -247,12 +255,13 @@
 (defn request-from-globals-args
   "Extracts a request from args. The optional `raw-body` (the raw request body
   string) is decoded into `:parsed-body` when the `Content-Type` is
-  `application/json`; form bodies still come from `post-parameter`."
+  `application/json`; form bodies still come from `post-parameter`.
+  An optional options map after `raw-body` is passed to `uri-from-globals`."
   {:example "(request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES (php/file_get_contents \"php://input\")) ; => (phel.http.request \"GET\" (phel.http.uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
    :see-also ["request-from-globals" "request-from-map"]}
-  [server get-parameter post-parameter cookies files & [raw-body]]
+  [server get-parameter post-parameter cookies files & [raw-body options]]
   (let [method          (get-method-from-globals server)
-        uri             (uri-from-globals server)
+        uri             (uri-from-globals server options)
         headers         (headers-from-server server)
         server-protocol (get server "SERVER_PROTOCOL")
         version         (if (string? server-protocol)
@@ -280,12 +289,12 @@
       (php/file_get_contents "php://input"))))
 
 (defn request-from-globals
-  "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE`, `$_FILES` and, for JSON requests, the raw request body (`php://input`). Requires a web request context (PHP-FPM, mod_php, or `php -S`); it cannot be used from the REPL or a CLI script - use `request-from-map` for testing."
+  "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE`, `$_FILES` and, for JSON requests, the raw request body (`php://input`). Requires a web request context (PHP-FPM, mod_php, or `php -S`); it cannot be used from the REPL or a CLI script - use `request-from-map` for testing. An optional options map is passed to `uri-from-globals`; forwarded schemes require `{:trusted-proxy? true}`."
   {:example "(request-from-globals) ; => (phel.http.request \"GET\" (phel.http.uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
    :see-also ["request-from-globals-args" "request-from-map"]}
-  []
+  [& [options]]
   (request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES
-                             (json-request-body php/$_SERVER)))
+                             (json-request-body php/$_SERVER) options))
 
 (defn request-from-map
   "Creates a request struct from a map. Supports the optional keys `:method`,
