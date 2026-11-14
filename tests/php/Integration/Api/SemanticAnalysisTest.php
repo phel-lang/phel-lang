@@ -211,6 +211,41 @@ final class SemanticAnalysisTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_a_backslash_declared_namespace_is_found_by_its_dotted_name(): void
+    {
+        $this->bootstrap();
+        $dir = sys_get_temp_dir() . '/phel-index-backslash-' . bin2hex(random_bytes(4));
+        mkdir($dir);
+        file_put_contents($dir . '/legacy.phel', "(ns legacy\\spelling)\n(defn f [] 1)\n");
+
+        $unexpected = [];
+        set_error_handler(
+            static function (int $level, string $message) use (&$unexpected): bool {
+                if (!str_starts_with($message, "Backslash ('\\') namespace separator")) {
+                    $unexpected[] = $message;
+                }
+
+                return true;
+            },
+            E_USER_DEPRECATED,
+        );
+
+        try {
+            $index = new ApiFacade()->indexProject([$dir]);
+        } finally {
+            restore_error_handler();
+            unlink($dir . '/legacy.phel');
+            rmdir($dir);
+        }
+
+        self::assertSame([], $unexpected);
+        $location = $index->namespaceLocation('legacy.spelling');
+        self::assertNotNull($location);
+        self::assertStringEndsWith('legacy.phel', $location->uri);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_it_finds_references_to_a_symbol_across_files(): void
     {
         $this->bootstrap();

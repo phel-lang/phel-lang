@@ -4,7 +4,7 @@
 (def a :bar)
 (def b ::bar)
 (def c ::foo/bar)
-(def d :xyz.foo/bar)
+(def d :xyz\foo/bar)
 --PHP--
 namespace test;
 require_once __DIR__ . '/phel/core.php';
@@ -40,6 +40,6 @@ require_once __DIR__ . '/xyz/foo.php';
 \Phel::addDefinition(
   "test",
   "d",
-  \Phel\Lang\Keyword::create("bar", "xyz.foo"),
+  \Phel\Lang\Keyword::create("bar", "xyz\\foo"),
   static fn() => \Phel::locationMeta(\Phel::location("Keyword/keywords.test", 6, 0), \Phel::location("Keyword/keywords.test", 6, 20))
 );

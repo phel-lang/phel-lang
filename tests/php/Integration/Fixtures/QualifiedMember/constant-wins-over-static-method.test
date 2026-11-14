@@ -1,4 +1,7 @@
 --PHEL--
-PhelTest.Support.Fixtures.PhpInterop.QualifiedMemberFixture/new
+\PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture/new
+--DEPRECATIONS--
+Backslash ('\') namespace separator in symbol '\PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture/new' at QualifiedMember/constant-wins-over-static-method.test:1; use dot ('.') instead, e.g. 'PhelTest.Support.Fixtures.PhpInterop.QualifiedMemberFixture/new'. The backslash form will be removed in a future release.
+Backslash ('\') namespace separator in symbol '\PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture' at QualifiedMember/constant-wins-over-static-method.test:1; use dot ('.') instead, e.g. 'PhelTest.Support.Fixtures.PhpInterop.QualifiedMemberFixture'. The backslash form will be removed in a future release.
 --PHP--
 (\PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture::new);
