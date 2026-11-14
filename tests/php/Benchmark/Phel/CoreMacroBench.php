@@ -50,6 +50,9 @@ final class CoreMacroBench extends CoreBenchCase
     /** @var callable */
     private $caseKeyword;
 
+    /** @var callable */
+    private $caseKeywordStatements;
+
     /** @var list<int> */
     private array $intArray = [];
 
@@ -138,6 +141,14 @@ final class CoreMacroBench extends CoreBenchCase
         ($this->caseKeyword)(self::SIZE);
     }
 
+    /**
+     * @Revs(1000)
+     */
+    public function bench_case_keyword_statement_last_arm(): void
+    {
+        ($this->caseKeywordStatements)(self::SIZE);
+    }
+
     protected function setUpFixtures(): void
     {
         for ($i = 0; $i < self::SIZE; ++$i) {
@@ -154,6 +165,13 @@ final class CoreMacroBench extends CoreBenchCase
             '(fn [n] (let [k (keyword "e")]'
             . ' (loop [i 0 acc 0] (if (php/< i n)'
             . ' (recur (php/+ i 1) (php/+ acc (case k :a 1 :b 2 :c 3 :d 4 :e 5 0))) acc))))',
+        );
+        $this->caseKeywordStatements = $this->compileFn(
+            '(fn [n] (let [k (keyword "e")] (loop [i 0 acc 0]'
+            . ' (if (php/< i n) (do'
+            . ' (case k :a (php/= acc (php/+ acc 1)) :b (php/= acc (php/+ acc 2))'
+            . ' :c (php/= acc (php/+ acc 3)) :d (php/= acc (php/+ acc 4)) :e (php/= acc (php/+ acc 5)))'
+            . ' (recur (php/+ i 1) acc)) acc))))',
         );
     }
 

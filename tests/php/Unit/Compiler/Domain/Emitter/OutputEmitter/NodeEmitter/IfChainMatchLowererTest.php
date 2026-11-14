@@ -15,6 +15,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\IfChainMatchLowerer;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use PHPUnit\Framework\TestCase;
@@ -166,6 +167,22 @@ final class IfChainMatchLowererTest extends TestCase
         );
 
         self::assertNull(IfChainMatchLowerer::analyseIfChain($chain));
+    }
+
+    public function test_rebindable_equality_keeps_runtime_dispatch(): void
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        foreach (['dynamic', 'redef'] as $flag) {
+            foreach ([$flag, Keyword::create($flag)] as $key) {
+                $call = new CallNode(
+                    $env,
+                    new GlobalVarNode($env, CompilerConstants::PHEL_CORE_NAMESPACE, Symbol::create('='), Phel::map($key, true)),
+                    [new LocalVarNode($env, Symbol::create('x')), new LiteralNode($env, 1)],
+                );
+
+                self::assertNull(IfChainMatchLowerer::parseEqualityCall($call));
+            }
+        }
     }
 
     private function equalityTest(NodeEnvironment $env, Symbol $shadow, int $key): CallNode

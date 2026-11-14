@@ -3,13 +3,13 @@
 (fn [x] (if x {:a 1} :k) (php/print "d"))
 --PHP--
 (function($x) {
-  static $__phel_call_0, $__phel_call_1;
+  static $__phel_const_0, $__phel_const_1;
   $__phel_1_2 = $x;
-  if (($__truthy = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "equals1"))->__invoke($__phel_1_2, \Phel\Lang\Keyword::create("a"))) !== null && $__truthy !== false) {
+  if (($__phel_1_2 === ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")) || ($__phel_1_2 instanceof \Phel\Lang\EqualsInterface && $__phel_1_2->equals(($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")))))) {
 
   } else {
     $__phel_3_4 = $__phel_1_2;
-    if (($__truthy = ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "equals1"))->__invoke($__phel_3_4, \Phel\Lang\Keyword::create("b"))) !== null && $__truthy !== false) {
+    if (($__phel_3_4 === ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")) || ($__phel_3_4 instanceof \Phel\Lang\EqualsInterface && $__phel_3_4->equals(($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")))))) {
 
     } else {
 
