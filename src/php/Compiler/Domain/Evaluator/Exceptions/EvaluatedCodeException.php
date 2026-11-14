@@ -68,9 +68,7 @@ final class EvaluatedCodeException extends RuntimeException
         $filenameComment = $lines[0];
         $sourceMapComment = $lines[1] ?? '';
 
-        $file = str_starts_with($filenameComment, InlineSourceMapComments::FILENAME_PREFIX)
-            ? trim(substr($filenameComment, strlen(InlineSourceMapComments::FILENAME_PREFIX)))
-            : 'string';
+        $file = InlineSourceMapComments::parseFilenameComment($filenameComment) ?? 'string';
 
         if (!str_starts_with($sourceMapComment, InlineSourceMapComments::MAPPINGS_PREFIX)) {
             return [$file, $generatedLine];

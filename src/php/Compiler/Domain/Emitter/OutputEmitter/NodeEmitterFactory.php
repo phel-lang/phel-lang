@@ -42,6 +42,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ReifyNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\SourcePathNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Ast\UseNode;
@@ -88,6 +89,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\RecurEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ReifyEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\SetEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\SetVarEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\SourcePathEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ThrowEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\TryEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\UseEmitter;
@@ -141,6 +143,7 @@ final class NodeEmitterFactory
             LoadNode::class => new LoadEmitter($outputEmitter),
             DefNode::class => new DefEmitter($outputEmitter),
             LiteralNode::class => new LiteralEmitter($outputEmitter),
+            SourcePathNode::class => new SourcePathEmitter($outputEmitter),
             QuoteNode::class => new QuoteEmitter($outputEmitter),
             VarNode::class => new VarEmitter($outputEmitter),
             FnNode::class => new FnAsClassEmitter($outputEmitter, $methodEmitter, $closureHelper),

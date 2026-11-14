@@ -36,6 +36,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ReifyNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\SourcePathNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VarNode;
@@ -166,6 +167,7 @@ final class LocalVarReferences
         return match (true) {
             // Leaf nodes that cannot contain a LocalVarNode.
             $node instanceof LiteralNode,
+            $node instanceof SourcePathNode,
             $node instanceof QuoteNode,
             $node instanceof PhpVarNode,
             $node instanceof PhpClassNameNode,

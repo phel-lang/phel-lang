@@ -8,9 +8,9 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\SourcePathNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\DuplicateDefinitionException;
@@ -77,10 +77,12 @@ final class GlobalEnvironmentTest extends TestCase
         $sym = Symbol::create('__DIR__');
         $sym->setStartLocation(new SourceLocation(__FILE__, 0, 0));
 
-        $this->assertEquals(
-            new LiteralNode($nodeEnv, __DIR__),
-            $env->resolve($sym, $nodeEnv),
-        );
+        $node = $env->resolve($sym, $nodeEnv);
+
+        self::assertInstanceOf(SourcePathNode::class, $node);
+        self::assertSame(__DIR__, $node->getValue());
+        self::assertTrue($node->isDirectory());
+        self::assertSame($sym->getStartLocation(), $node->getStartSourceLocation());
     }
 
     public function test_resolve_file(): void
@@ -90,10 +92,12 @@ final class GlobalEnvironmentTest extends TestCase
         $sym = Symbol::create('__FILE__');
         $sym->setStartLocation(new SourceLocation(__FILE__, 0, 0));
 
-        $this->assertEquals(
-            new LiteralNode($nodeEnv, __FILE__),
-            $env->resolve($sym, $nodeEnv),
-        );
+        $node = $env->resolve($sym, $nodeEnv);
+
+        self::assertInstanceOf(SourcePathNode::class, $node);
+        self::assertSame(__FILE__, $node->getValue());
+        self::assertFalse($node->isDirectory());
+        self::assertSame($sym->getStartLocation(), $node->getStartSourceLocation());
     }
 
     public function test_resolve_absolute_php_class(): void

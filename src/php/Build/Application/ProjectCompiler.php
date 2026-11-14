@@ -6,6 +6,8 @@ namespace Phel\Build\Application;
 
 use Phel\Build\BuildConfigInterface;
 use Phel\Build\BuildFacade;
+use Phel\Build\Domain\Compile\ArtifactSourcePath;
+use Phel\Build\Domain\Compile\ArtifactSourcePaths;
 use Phel\Build\Domain\Compile\CompiledTargetPathResolver;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
@@ -18,10 +20,12 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Munge;
 use Phel\Shared\NamespaceInformation;
+use Phel\Shared\SourceMap\SourceMapSiblings;
 use RuntimeException;
 
 use function dirname;
 use function filemtime;
+use function function_exists;
 use function sprintf;
 use function strtolower;
 use function time;
@@ -112,78 +116,85 @@ final readonly class ProjectCompiler
 
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories, failOnInvalidNsForm: true);
         $this->assertDistinctNamespaces($namespaceInformation);
-        /** @var list<CompiledFile> $result */
-        $result = [];
-        // Dependency-ordered, so checking direct requires against this set
-        // cascades transitively in one pass (see dependsOnRecompiled).
-        /** @var array<string, true> $recompiledNamespaces */
-        $recompiledNamespaces = [];
-        foreach ($namespaceInformation as $info) {
-            if ($this->shouldIgnoreNs($info)) {
-                continue;
-            }
-
-            // Secondary `(in-ns ...)` files are pulled in by the primary's
-            // `(load ...)` during build-time evaluation; that run caches
-            // their compiled output. We relocate those cached files below
-            // so we don't recompile them standalone, which would re-run
-            // macro expansions against a partially-ready registry.
-            if (!$info->isPrimaryDefinition()) {
-                continue;
-            }
-
-            $targetFile = $dest . '/' . $this->targetPathResolver->resolve($info, $srcDirectories);
-            $targetDir = dirname($targetFile);
-            if (!file_exists($targetDir) && !mkdir($targetDir, 0777, true) && !is_dir($targetDir)) {
-                throw new RuntimeException(sprintf('Directory "%s" was not created', $targetDir));
-            }
-
-            if (!$buildSettingsChanged
-                && !$this->dependsOnRecompiled($info, $recompiledNamespaces)
-                && $this->canUseCache($buildOptions, $targetFile, $info)
-            ) {
-                BuildFacade::enableBuildMode();
-                ob_start();
-                try {
-                    /** @psalm-suppress UnresolvableInclude */
-                    require_once $targetFile;
-                } finally {
-                    ob_end_clean();
-                    BuildFacade::disableBuildMode();
+        $sourcePaths = $this->artifactSourcePaths($namespaceInformation, $dest, $srcDirectories);
+        $previousSources = ArtifactSourcePath::setOriginalSources($sourcePaths->originalSources());
+        try {
+            /** @var list<CompiledFile> $result */
+            $result = [];
+            // Dependency-ordered, so checking direct requires against this set
+            // cascades transitively in one pass (see dependsOnRecompiled).
+            /** @var array<string, true> $recompiledNamespaces */
+            $recompiledNamespaces = [];
+            foreach ($namespaceInformation as $info) {
+                if ($this->shouldIgnoreNs($info)) {
+                    continue;
                 }
 
-                $result[] = new CompiledFile(
+                // Secondary `(in-ns ...)` files are pulled in by the primary's
+                // `(load ...)` during build-time evaluation; that run caches
+                // their compiled output. We relocate those cached files below
+                // so we don't recompile them standalone, which would re-run
+                // macro expansions against a partially-ready registry.
+                if (!$info->isPrimaryDefinition()) {
+                    continue;
+                }
+
+                $targetFile = $dest . '/' . $this->targetPathResolver->resolve($info, $srcDirectories);
+                $targetDir = dirname($targetFile);
+                if (!file_exists($targetDir) && !mkdir($targetDir, 0777, true) && !is_dir($targetDir)) {
+                    throw new RuntimeException(sprintf('Directory "%s" was not created', $targetDir));
+                }
+
+                if (!$buildSettingsChanged
+                    && !$this->dependsOnRecompiled($info, $recompiledNamespaces)
+                    && $this->canUseCache($buildOptions, $targetFile, $info)
+                ) {
+                    BuildFacade::enableBuildMode();
+                    ob_start();
+                    try {
+                        /** @psalm-suppress UnresolvableInclude */
+                        require_once $targetFile;
+                    } finally {
+                        ob_end_clean();
+                        BuildFacade::disableBuildMode();
+                    }
+
+                    $result[] = new CompiledFile(
+                        $info->getFile(),
+                        $targetFile,
+                        $info->getNamespace(),
+                        cached: true,
+                    );
+
+                    continue;
+                }
+
+                $compiledAt = time();
+                $result[] = $this->fileCompiler->compileFile(
                     $info->getFile(),
                     $targetFile,
-                    $info->getNamespace(),
-                    cached: true,
+                    $buildOptions->isSourceMapEnabled(),
+                    $optimizationLevel,
                 );
 
-                continue;
+                touch($targetFile, $this->cacheStamp($info->getFile(), $compiledAt));
+                $recompiledNamespaces[$info->getNamespace()] = true;
             }
 
-            $compiledAt = time();
-            $result[] = $this->fileCompiler->compileFile(
-                $info->getFile(),
-                $targetFile,
-                $buildOptions->isSourceMapEnabled(),
-                $optimizationLevel,
-            );
+            $this->storeOptimizationLevel($dest, $optimizationLevel);
+            $this->storeStripSymbolMeta($dest, $stripSymbolMeta);
+            $this->storeCacheEnvFingerprint($dest);
+            $this->harvestSecondaries($namespaceInformation, $dest, $srcDirectories, $buildOptions->isSourceMapEnabled());
+            $this->rewriteArtifactSourcePaths($sourcePaths);
 
-            touch($targetFile, $this->cacheStamp($info->getFile(), $compiledAt));
-            $recompiledNamespaces[$info->getNamespace()] = true;
+            if ($this->config->shouldCreateEntryPointPhpFile()) {
+                $this->entryPointPhpFile->createFile();
+            }
+
+            return $result;
+        } finally {
+            ArtifactSourcePath::setOriginalSources($previousSources);
         }
-
-        $this->storeOptimizationLevel($dest, $optimizationLevel);
-        $this->storeStripSymbolMeta($dest, $stripSymbolMeta);
-        $this->storeCacheEnvFingerprint($dest);
-        $this->harvestSecondaries($namespaceInformation, $dest, $srcDirectories);
-
-        if ($this->config->shouldCreateEntryPointPhpFile()) {
-            $this->entryPointPhpFile->createFile();
-        }
-
-        return $result;
     }
 
     /**
@@ -221,7 +232,7 @@ final readonly class ProjectCompiler
      * @param list<NamespaceInformation> $namespaceInformation
      * @param list<string>               $srcDirectories
      */
-    private function harvestSecondaries(array $namespaceInformation, string $dest, array $srcDirectories): void
+    private function harvestSecondaries(array $namespaceInformation, string $dest, array $srcDirectories, bool $enableSourceMaps): void
     {
         $primaryFiles = [];
         foreach ($namespaceInformation as $info) {
@@ -239,7 +250,75 @@ final readonly class ProjectCompiler
                 continue;
             }
 
-            $this->secondaryFileHarvester->harvest($info, $dest, $srcDirectories, $primaryFiles[$info->getNamespace()] ?? null);
+            $this->secondaryFileHarvester->harvest($info, $dest, $srcDirectories, $primaryFiles[$info->getNamespace()] ?? null, $enableSourceMaps);
+        }
+    }
+
+    /**
+     * @param list<NamespaceInformation> $namespaceInformation
+     * @param list<string>               $sourceDirectories
+     */
+    private function artifactSourcePaths(array $namespaceInformation, string $dest, array $sourceDirectories): ArtifactSourcePaths
+    {
+        $primaries = [];
+        foreach ($namespaceInformation as $info) {
+            if ($info->isPrimaryDefinition()) {
+                $primaries[$info->getNamespace()] = $info->getFile();
+            }
+        }
+
+        $compiled = [];
+        foreach ($namespaceInformation as $info) {
+            if ($this->shouldIgnoreNs($info)) {
+                continue;
+            }
+
+            $compiled[$info->getFile()] = $dest . '/' . $this->targetPathResolver->resolve(
+                $info,
+                $sourceDirectories,
+                $primaries[$info->getNamespace()] ?? null,
+            );
+        }
+
+        return new ArtifactSourcePaths($compiled);
+    }
+
+    private function rewriteArtifactSourcePaths(ArtifactSourcePaths $sourcePaths): void
+    {
+        foreach ($sourcePaths->compiledFiles() as $file) {
+            if (!is_file($file)) {
+                continue;
+            }
+
+            $code = file_get_contents($file);
+            if ($code === false) {
+                throw new RuntimeException('Unable to read compiled file ' . $file);
+            }
+
+            $mapFile = SourceMapSiblings::mapFile($file);
+            $mappings = is_file($mapFile) ? file_get_contents($mapFile) : '';
+            if ($mappings === false) {
+                throw new RuntimeException('Unable to read source map ' . $mapFile);
+            }
+
+            $portable = $sourcePaths->rewriteWithMap($code, $file, $mappings);
+            if ($portable['code'] === $code) {
+                continue;
+            }
+
+            $mtime = $this->getFileMtime($file);
+            if (file_put_contents($file, $portable['code']) === false) {
+                throw new RuntimeException('Unable to write compiled file ' . $file);
+            }
+
+            if ($portable['map'] !== $mappings && file_put_contents($mapFile, $portable['map']) === false) {
+                throw new RuntimeException('Unable to write source map ' . $mapFile);
+            }
+
+            touch($file, $mtime);
+            if (function_exists('opcache_invalidate')) {
+                @opcache_invalidate($file, true);
+            }
         }
     }
 

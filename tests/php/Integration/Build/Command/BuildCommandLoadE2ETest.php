@@ -14,6 +14,7 @@ use RuntimeException;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\StreamOutput;
 
+use function dirname;
 use function escapeshellarg;
 use function file_get_contents;
 use function fopen;
@@ -73,11 +74,6 @@ final class BuildCommandLoadE2ETest extends TestCase
     #[RunInSeparateProcess]
     public function test_built_artifact_does_not_bake_absolute_require_paths(): void
     {
-        // The source-tree path is allowed to appear in informational metadata
-        // (e.g. `*file*`, `start-location`) — those describe the origin for
-        // error reporting and do not affect runtime behaviour. What must not
-        // leak is any runtime lookup that would require the source tree to
-        // still exist on disk.
         $this->runBuild();
 
         $srcDir = $this->srcDir();
@@ -98,6 +94,22 @@ final class BuildCommandLoadE2ETest extends TestCase
                     $content,
                     sprintf('Compiled artifact %s bakes a runtime require of the source tree; the artifact would not run outside the build machine.', $file),
                 );
+            }
+        }
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_built_artifact_omits_absolute_source_paths(): void
+    {
+        $this->runBuild();
+        $paths = [$this->workspace->root(), dirname(__DIR__, 5) . '/src/phel'];
+
+        foreach ($this->workspace->compiledPhpFiles(self::DEST_DIR) as $file) {
+            $content = (string) file_get_contents($file);
+            foreach ($paths as $path) {
+                self::assertStringNotContainsString($path, $content, $file);
+                self::assertStringNotContainsString(str_replace('\\', '\\\\', $path), $content, $file);
             }
         }
     }

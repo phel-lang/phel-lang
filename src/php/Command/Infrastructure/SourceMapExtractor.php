@@ -69,9 +69,7 @@ final class SourceMapExtractor implements SourceMapExtractorInterface
                 );
             }
 
-            if (str_starts_with($line, InlineSourceMapComments::FILENAME_PREFIX)) {
-                $sourceFilename = trim(substr($line, strlen(InlineSourceMapComments::FILENAME_PREFIX)));
-            }
+            $sourceFilename = InlineSourceMapComments::parseFilenameComment($line) ?? $sourceFilename;
         }
 
         return null;

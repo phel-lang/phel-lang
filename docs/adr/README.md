@@ -34,6 +34,7 @@ stale exactly that way. See [Editing](#editing).
 | [0020](0020-build-artifacts-require-the-generating-version.md) | Build artifacts require the generating Phel version | Accepted |
 | [0021](0021-public-embedding-types-and-internal-tooling.md) | Expose embedding types and exclude internal tooling | Accepted |
 | [0022](0022-the-cli-machine-surface-is-under-semver.md) | The CLI's machine surface is under semver, its human text is not | Accepted |
+| [0023](0023-build-source-paths-follow-the-artifact.md) | Build source paths follow the artifact | Accepted |
 
 Statuses: **Proposed**, **Accepted**, **Amended by NNNN** (in force, narrowed by a
 later record), **Superseded by NNNN**, **Deprecated** (in force, being unwound).

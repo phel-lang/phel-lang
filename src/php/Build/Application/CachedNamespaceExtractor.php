@@ -279,7 +279,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
 
         return new RegexIterator(
             $iterator,
-            '/^.+\.(phel|cljc)$/i',
+            '/^.+\.(phel|cljc)$/is',
             RegexIterator::GET_MATCH,
         );
     }

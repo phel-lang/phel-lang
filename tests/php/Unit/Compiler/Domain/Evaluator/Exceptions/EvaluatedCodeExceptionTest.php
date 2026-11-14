@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Domain\Evaluator\Exceptions;
 
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
+use Phel\Shared\SourceMap\InlineSourceMapComments;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use TypeError;
@@ -42,6 +43,16 @@ final class EvaluatedCodeExceptionTest extends TestCase
         $exception = EvaluatedCodeException::fromThrowableAndCompiledCode($original, $compiledCode);
 
         self::assertSame('my-file.phel', $exception->getPhelFile());
+        self::assertSame(1, $exception->getPhelLine());
+    }
+
+    public function test_decodes_multiline_source_labels_without_shifting_the_body(): void
+    {
+        $source = "/line\r\nbreak/main.phel";
+        $code = InlineSourceMapComments::filenameComment($source) . "\n// ;;AAAA\nbody();";
+        $exception = EvaluatedCodeException::fromThrowableAndCompiledCode($this->throwableAtLine(3), $code);
+
+        self::assertSame($source, $exception->getPhelFile());
         self::assertSame(1, $exception->getPhelLine());
     }
 

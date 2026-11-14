@@ -8,9 +8,9 @@ use ErrorException;
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\SourcePathNode;
 use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\BundledNamespaceResolverInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\DeprecatedDefinitionWarner;
@@ -86,7 +86,7 @@ final class SymbolResolverTest extends TestCase
         $sym->setStartLocation(new SourceLocation(__FILE__, 0, 0));
 
         self::assertEquals(
-            new LiteralNode($nodeEnv, __DIR__),
+            new SourcePathNode($nodeEnv, __DIR__, true, $sym->getStartLocation()),
             $this->resolver->resolve($sym, $nodeEnv),
         );
     }
@@ -98,7 +98,7 @@ final class SymbolResolverTest extends TestCase
         $sym->setStartLocation(new SourceLocation(__FILE__, 0, 0));
 
         self::assertEquals(
-            new LiteralNode($nodeEnv, __FILE__),
+            new SourcePathNode($nodeEnv, __FILE__, false, $sym->getStartLocation()),
             $this->resolver->resolve($sym, $nodeEnv),
         );
     }

@@ -2352,6 +2352,8 @@ final class Phel\Shared\SourceMap\BuiltFilePreamble
 final class Phel\Shared\SourceMap\InlineSourceMapComments
   public const string FILENAME_PREFIX = '// '
   public const string MAPPINGS_PREFIX = '// ;;'
+  public static function filenameComment(string $source): string
+  public static function parseFilenameComment(string $comment): ?string
 
 final class Phel\Shared\SourceMap\SourceMapConsumer
   public function __construct(string $mapping)
@@ -2361,6 +2363,10 @@ final class Phel\Shared\SourceMap\SourceMapConsumer
 final class Phel\Shared\SourceMap\SourceMapSiblings
   public static function mapFile(string $compiledFile): string
   public static function sourceFile(string $compiledFile): string
+
+final class Phel\Shared\SourceMap\SourcePathMarker
+  public static function decode(string $comment): ?array
+  public static function encode(string $file, bool $directory): string
 
 final class Phel\Shared\SourceMap\VLQ
   public function __construct()
