@@ -221,9 +221,32 @@ jobs:
           BENCHMARK_PR_HEAD: ${{ github.event.pull_request.head.sha }}
         run: bash tools/benchmark-revisions.sh "$BENCHMARK_EVENT" "$BENCHMARK_EVENT_SHA" "$BENCHMARK_PR_HEAD" >> "$GITHUB_ENV"
 
+      # A pull request that cannot move a benchmark (docs, changelog, agent
+      # rules, other workflows) skips both measurements. The job still runs and
+      # passes, so it keeps working as a required check; a workflow-level
+      # `paths` filter would leave that check pending forever. Pushes to main
+      # always measure.
+      - name: Check whether the change can move a benchmark
+        id: scope
+        env:
+          BENCHMARK_EVENT: ${{ github.event_name }}
+        run: |
+          if [[ "$BENCHMARK_EVENT" != pull_request ]]; then
+            echo 'affected=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          result=$(bash tools/benchmark-affected.sh "$BASE_SHA" "$HEAD_SHA")
+          echo "$result" >> "$GITHUB_OUTPUT"
+          if [[ "$result" == 'affected=false' ]]; then
+            echo 'Benchmark comparison skipped: this pull request changes no file that can move a benchmark (see tools/benchmark-affected.sh).' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - uses: ./.github/actions/setup-phel
+        if: steps.scope.outputs.affected == 'true'
 
       - name: Measure the base revision and store it as `baseline`
+        if: steps.scope.outputs.affected == 'true'
         run: |
           echo "head=$HEAD_SHA base=$BASE_SHA"
 
@@ -254,6 +277,7 @@ jobs:
       # that cries wolf is one people learn to ignore, which is how the benchmarks
       # ended up never being compared at all.
       - name: Compare the pull request against the baseline
+        if: steps.scope.outputs.affected == 'true'
         run: |
           git checkout --quiet --force "$HEAD_SHA"
           vendor/bin/phpbench run \
