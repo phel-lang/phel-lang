@@ -1,4 +1,4 @@
-(ns test\runtime-lib-error-script)
+(ns test.runtime-lib-error-script)
 
 (defn add-boom [x]
   (+ x "boom"))

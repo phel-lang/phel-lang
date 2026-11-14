@@ -1,4 +1,4 @@
-(ns test-cmd-export-multiple\adder)
+(ns test-cmd-export-multiple.adder)
 
 (defn adder-1
   {:export true}

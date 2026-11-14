@@ -21,6 +21,7 @@ Each `.test` file has two sections:
 ```
 
 - `--PHEL--` is the Phel input; `--PHP--` is the exact compiled PHP output.
+- An optional `--DEPRECATIONS--` section between them lists, one per line, the deprecation notices the fixture raises on purpose. Any other notice fails the fixture.
 - One fixture per behavior, named descriptively (`fn-variadic.test`, `try-one-catch.test`).
 - Files live in `tests/php/Integration/Fixtures/<Category>/`; categories mirror constructs (`Def/`, `Fn/`, `Let/`, `Try/`, `Call/`).
 - PHP output uses `\Phel::` helpers such as `addDefinition`, `map`, `keyword` and `vector`.

@@ -2,6 +2,9 @@
 (ns my.cljc\mixed
   (:require first.lib)
   (:require second\other))
+--DEPRECATIONS--
+Backslash ('\') namespace separator in symbol 'my.cljc\mixed' at Ns/dot-separator-mixed.test:1; use dot ('.') instead, e.g. 'my.cljc.mixed'. The backslash form will be removed in a future release.
+Backslash ('\') namespace separator in symbol 'second\other' at Ns/dot-separator-mixed.test:3; use dot ('.') instead, e.g. 'second.other'. The backslash form will be removed in a future release.
 --PHP--
 namespace my\cljc\mixed;
 require_once __DIR__ . '/../../phel/core.php';

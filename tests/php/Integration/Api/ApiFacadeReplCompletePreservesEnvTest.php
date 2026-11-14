@@ -52,7 +52,7 @@ final class ApiFacadeReplCompletePreservesEnvTest extends TestCase
         GlobalEnvironmentSingleton::getInstance()->setNs('user');
         Phel::addDefinition('user', 'x', 1);
 
-        new ApiFacade()->getPhelFunctions(['phel\\core']);
+        new ApiFacade()->getPhelFunctions(['phel.core']);
 
         self::assertSame('user', GlobalEnvironmentSingleton::getInstance()->getNs());
         self::assertSame(1, Phel::getDefinition('user', 'x'));

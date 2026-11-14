@@ -32,7 +32,7 @@ final class RequireNamespaceTest extends TestCase
         }
 
         $facade = new CompilerFacade();
-        $result = $facade->eval('(phel\\repl/require phel\\string)', new CompileOptions());
+        $result = $facade->eval('(phel.repl/require phel.string)', new CompileOptions());
 
         self::assertInstanceOf(Symbol::class, $result);
         self::assertSame('phel.string', $result->getFullName());
@@ -56,7 +56,7 @@ final class RequireNamespaceTest extends TestCase
         $this->expectExceptionMessage("Could not locate namespace 'nonexistent.foo'");
 
         $facade = new CompilerFacade();
-        $facade->eval('(phel\\repl/require nonexistent\\foo)', new CompileOptions());
+        $facade->eval('(phel.repl/require nonexistent.foo)', new CompileOptions());
     }
 
     #[RunInSeparateProcess]
@@ -74,7 +74,7 @@ final class RequireNamespaceTest extends TestCase
         }
 
         $facade = new CompilerFacade();
-        $result = $facade->eval('(phel\\repl/require phel.string)', new CompileOptions());
+        $result = $facade->eval('(phel.repl/require phel.string)', new CompileOptions());
 
         self::assertInstanceOf(Symbol::class, $result);
         self::assertSame('phel.string', $result->getFullName());
@@ -95,7 +95,7 @@ final class RequireNamespaceTest extends TestCase
         }
 
         $facade = new CompilerFacade();
-        $result = $facade->eval('(phel\\repl/require clojure.string)', new CompileOptions());
+        $result = $facade->eval('(phel.repl/require clojure.string)', new CompileOptions());
 
         self::assertInstanceOf(Symbol::class, $result);
         self::assertSame('phel.string', $result->getFullName());
@@ -117,7 +117,7 @@ final class RequireNamespaceTest extends TestCase
 
         $facade = new CompilerFacade();
         $result = $facade->eval(
-            "(phel\\repl/require '[phel\\string :as s])",
+            "(phel.repl/require '[phel.string :as s])",
             new CompileOptions(),
         );
 

@@ -1,4 +1,4 @@
-(ns buildmode\game)
+(ns buildmode.game)
 
 ; Not `(php/constant "__DIR__")`: PHP's `constant()` reads defined constants, not
 ; compile-time magic ones, so that threw as soon as this file was really

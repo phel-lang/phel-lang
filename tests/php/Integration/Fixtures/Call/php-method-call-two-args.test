@@ -1,5 +1,5 @@
 --PHEL--
-(.setTime (new \DateTimeImmutable) 1 1)
+(.setTime (new \DateTime) 1 1)
 --PHP--
-$target_1 = (new \DateTimeImmutable());
+$target_1 = (new \DateTime());
 $target_1->setTime(1, 1);

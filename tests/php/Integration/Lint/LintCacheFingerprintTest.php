@@ -47,7 +47,7 @@ final class LintCacheFingerprintTest extends TestCase
 
         file_put_contents(
             $this->projectRoot . '/unused_binding.phel',
-            "(ns fixtures\\unused-binding)\n\n(defn demo []\n  (let [x 1\n        y 2]\n    y))\n",
+            "(ns fixtures.unused-binding)\n\n(defn demo []\n  (let [x 1\n        y 2]\n    y))\n",
         );
     }
 

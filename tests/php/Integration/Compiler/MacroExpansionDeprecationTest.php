@@ -17,6 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 use function restore_error_handler;
 use function set_error_handler;
+use function sprintf;
 
 use const E_USER_DEPRECATED;
 
@@ -153,11 +154,16 @@ final class MacroExpansionDeprecationTest extends TestCase
         self::$globalEnv->setNs($ns);
 
         $options = new CompileOptions()->setSource($macroSource);
-        $this->compilerFacade->eval(
-            '(def old-fn {:deprecated "1.4.0" :superseded-by "new-fn"} (fn [] 42))',
-            $options,
-        );
-        $this->compilerFacade->eval('(defmacro use-old [] `(old-fn))', $options);
+        $notices = $this->captureDeprecations(function () use ($options): void {
+            $this->compilerFacade->eval(
+                '(def old-fn {:deprecated "1.4.0" :superseded-by "new-fn"} (fn [] 42))',
+                $options,
+            );
+            $this->compilerFacade->eval('(defmacro use-old [] `(old-fn))', $options);
+        });
+        foreach ($notices as $notice) {
+            self::assertStringContainsString(sprintf("'%s/old-fn' used at %s:", $ns, $macroSource), $notice);
+        }
 
         DeprecationWarnings::reset();
         DeprecationWarnings::enable();
@@ -168,16 +174,33 @@ final class MacroExpansionDeprecationTest extends TestCase
      */
     private function compileCapturingDeprecations(string $phelCode): array
     {
-        $warnings = [];
-        set_error_handler(static function (int $errno, string $errstr) use (&$warnings): bool {
-            $warnings[] = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
+        return $this->captureDeprecations(function () use ($phelCode): void {
             $this->compilerFacade
                 ->compile($phelCode, new CompileOptions()->setSource('/app/user.phel'))
                 ->getPhpCode();
+        });
+    }
+
+    /**
+     * @param callable(): void $action
+     *
+     * @return list<string>
+     */
+    private function captureDeprecations(callable $action): array
+    {
+        $warnings = [];
+        $previousHandler = null;
+        $previousHandler = set_error_handler(static function (int $errno, string $errstr, string $file, int $line) use (&$warnings, &$previousHandler): bool {
+            if ($errno !== E_USER_DEPRECATED) {
+                return $previousHandler !== null && $previousHandler($errno, $errstr, $file, $line) !== false;
+            }
+
+            $warnings[] = $errstr;
+            return true;
+        });
+
+        try {
+            $action();
         } finally {
             restore_error_handler();
         }

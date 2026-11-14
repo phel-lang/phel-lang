@@ -1,5 +1,5 @@
 --PHEL--
-(ns my\ns)
+(ns my.ns)
 
 (def x 1)
 --PHP--

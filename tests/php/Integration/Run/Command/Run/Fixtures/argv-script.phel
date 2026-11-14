@@ -1,4 +1,4 @@
-(ns test\argv-script)
+(ns test.argv-script)
 
 ;; Print program and argv for testing
 (php/print (str "program:" *program* "\n"))

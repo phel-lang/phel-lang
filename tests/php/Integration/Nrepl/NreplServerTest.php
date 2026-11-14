@@ -664,7 +664,7 @@ final class NreplServerTest extends TestCase
             'op' => 'eval',
             'id' => 'e1',
             'session' => $sessionId,
-            'code' => '(ns nrepl-sample-test (:require phel\\test :refer [deftest is])) '
+            'code' => '(ns nrepl-sample-test (:require phel.test :refer [deftest is])) '
                 . '(deftest a-passing-test (is (= 1 1))) '
                 . '(deftest a-failing-test (is (= 1 2)))',
         ]));

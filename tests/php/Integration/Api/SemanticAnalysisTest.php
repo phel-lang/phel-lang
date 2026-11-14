@@ -167,17 +167,17 @@ final class SemanticAnalysisTest extends TestCase
         self::assertGreaterThanOrEqual(4, $index->countDefinitions());
         self::assertGreaterThanOrEqual(2, $index->countNamespaces());
 
-        $greet = $facade->resolveSymbol($index, 'fixtures\\foo', 'greet');
+        $greet = $facade->resolveSymbol($index, 'fixtures.foo', 'greet');
         self::assertNotNull($greet);
         self::assertSame('greet', $greet->name);
-        self::assertSame('fixtures\\foo', $greet->namespace);
+        self::assertSame('fixtures.foo', $greet->namespace);
         self::assertSame(Definition::KIND_DEFN, $greet->kind);
 
-        $noop = $facade->resolveSymbol($index, 'fixtures\\foo', 'noop');
+        $noop = $facade->resolveSymbol($index, 'fixtures.foo', 'noop');
         self::assertNotNull($noop);
         self::assertSame(Definition::KIND_DEFMACRO, $noop->kind);
 
-        $answer = $facade->resolveSymbol($index, 'fixtures\\foo', 'answer');
+        $answer = $facade->resolveSymbol($index, 'fixtures.foo', 'answer');
         self::assertNotNull($answer);
         self::assertSame(Definition::KIND_DEF, $answer->kind);
     }
@@ -191,15 +191,14 @@ final class SemanticAnalysisTest extends TestCase
 
         $index = $facade->indexProject([__DIR__ . '/Fixtures']);
 
-        // the fixture declares (ns fixtures\foo), so the source spelling is the backslash one
-        $location = $index->namespaceLocation('fixtures\\foo');
+        $location = $index->namespaceLocation('fixtures.foo');
         self::assertNotNull($location);
         self::assertStringEndsWith('foo.phel', $location->uri);
         self::assertSame(1, $location->line);
-        self::assertSame($location, $index->namespaceLocation('fixtures.foo'));
+        self::assertSame($location, $index->namespaceLocation('fixtures\\foo'));
 
-        self::assertNotContains('fixtures.foo', $index->namespaces());
-        self::assertNull($index->namespaceLocation('fixtures\\nope'));
+        self::assertContains('fixtures.foo', $index->namespaces());
+        self::assertNull($index->namespaceLocation('fixtures.nope'));
 
         // SymbolKey::resolve($ns, '') builds "$ns/", so a declaration parked under that
         // key would come back out of findReferences and reach rename as an editable range
@@ -207,7 +206,46 @@ final class SemanticAnalysisTest extends TestCase
             self::assertStringEndsNotWith('/', $key);
         }
 
-        self::assertSame([], $facade->findReferences($index, 'fixtures\\foo', ''));
+        self::assertSame([], $facade->findReferences($index, 'fixtures.foo', ''));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_backslash_declared_namespace_is_found_by_its_dotted_name(): void
+    {
+        $this->bootstrap();
+        $dir = sys_get_temp_dir() . '/phel-index-backslash-' . bin2hex(random_bytes(4));
+        mkdir($dir);
+        file_put_contents($dir . '/legacy.phel', "(ns legacy\\spelling)\n(defn f [] 1)\n");
+
+        $unexpected = [];
+        $previousHandler = null;
+        $previousHandler = set_error_handler(
+            static function (int $level, string $message, string $file, int $line) use (&$unexpected, &$previousHandler): bool {
+                if ($level !== E_USER_DEPRECATED) {
+                    return $previousHandler !== null && $previousHandler($level, $message, $file, $line) !== false;
+                }
+
+                if (!str_starts_with($message, "Backslash ('\\') namespace separator")) {
+                    $unexpected[] = $message;
+                }
+
+                return true;
+            },
+        );
+
+        try {
+            $index = new ApiFacade()->indexProject([$dir]);
+        } finally {
+            restore_error_handler();
+            unlink($dir . '/legacy.phel');
+            rmdir($dir);
+        }
+
+        self::assertSame([], $unexpected);
+        $location = $index->namespaceLocation('legacy.spelling');
+        self::assertNotNull($location);
+        self::assertStringEndsWith('legacy.phel', $location->uri);
     }
 
     #[PreserveGlobalState(false)]
@@ -219,7 +257,7 @@ final class SemanticAnalysisTest extends TestCase
 
         $index = $facade->indexProject([__DIR__ . '/Fixtures']);
 
-        $refs = $facade->findReferences($index, 'fixtures\\foo', 'greet');
+        $refs = $facade->findReferences($index, 'fixtures.foo', 'greet');
 
         self::assertNotEmpty($refs);
     }

@@ -1,4 +1,4 @@
-(in-ns loade2e\core)
+(in-ns loade2e.core)
 
 (defn greet [name]
   (format-name name))

@@ -16,7 +16,7 @@ final class PhpInteropIdentifierTest extends AbstractCompilerRuntimeTestCase
     {
         $this->expectException(CompilerException::class);
         $this->expectExceptionMessage('Invalid PHP identifier');
-        $this->compilerFacade->compile($source, new CompileOptions()->setEmitOnly(true));
+        $this->compileEmitOnly($source);
     }
 
     public static function invalidIdentifiers(): iterable
@@ -41,7 +41,7 @@ final class PhpInteropIdentifierTest extends AbstractCompilerRuntimeTestCase
     #[DataProvider('legalIdentifiers')]
     public function test_legal_identifiers_compile_to_parseable_php(string $source, string $expected): void
     {
-        $php = $this->compilerFacade->compile($source, new CompileOptions()->setEmitOnly(true))->getPhpCode();
+        $php = $this->compileEmitOnly($source);
         self::assertStringContainsString($expected, $php);
         self::assertNotEmpty(token_get_all('<?php ' . $php, TOKEN_PARSE));
     }
@@ -104,6 +104,37 @@ final class PhpInteropIdentifierTest extends AbstractCompilerRuntimeTestCase
             self::assertSame('identifier.phel', $error->getStartLocation()?->getFile());
             self::assertSame(2, $error->getStartLocation()?->getLine());
             self::assertSame(1, $error->getStartLocation()?->getColumn());
+        }
+    }
+
+    /**
+     * A few cases spell a PHP namespace with `\` on purpose: the dot form is
+     * not read as a class there. Their backslash notice is expected; any
+     * other deprecation still fails the test.
+     */
+    private function compileEmitOnly(string $source): string
+    {
+        $unexpected = [];
+        $previousHandler = null;
+        $previousHandler = set_error_handler(
+            static function (int $level, string $message, string $file, int $line) use (&$unexpected, &$previousHandler): bool {
+                if ($level !== E_USER_DEPRECATED) {
+                    return $previousHandler !== null && $previousHandler($level, $message, $file, $line) !== false;
+                }
+
+                if (!str_starts_with($message, "Backslash ('\\') namespace separator")) {
+                    $unexpected[] = $message;
+                }
+
+                return true;
+            },
+        );
+
+        try {
+            return $this->compilerFacade->compile($source, new CompileOptions()->setEmitOnly(true))->getPhpCode();
+        } finally {
+            restore_error_handler();
+            self::assertSame([], $unexpected);
         }
     }
 }

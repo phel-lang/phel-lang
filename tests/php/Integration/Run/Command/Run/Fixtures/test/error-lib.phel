@@ -1,4 +1,4 @@
-(ns test\error-lib)
+(ns test.error-lib)
 
 (defn boom-fn [x]
   (throw (new \RuntimeException "boom from error-lib")))

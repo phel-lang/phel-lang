@@ -1,6 +1,6 @@
 --PHEL--
 (ns test
-  (:require xyz\foo :as foo))
+  (:require xyz.foo :as foo))
 (def a :bar)
 (def b ::bar)
 (def c ::foo/bar)

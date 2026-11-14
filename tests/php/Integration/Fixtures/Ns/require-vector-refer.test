@@ -1,6 +1,6 @@
 --PHEL--
 (ns test
-  (:require [xyz\core :as c :refer [a b]]))
+  (:require [xyz.core :as c :refer [a b]]))
 --PHP--
 namespace test;
 require_once __DIR__ . '/phel/core.php';

@@ -19,9 +19,9 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
 {
     use DefinesClassConstantCollisionTrait;
 
-    private const string FIXTURE = '\\' . QualifiedMemberFixture::class;
+    private const string FIXTURE = 'PhelTest.Support.Fixtures.PhpInterop.QualifiedMemberFixture';
 
-    private const string STATIC_PROPERTY = '\\' . StaticPropertyTarget::class;
+    private const string STATIC_PROPERTY = 'PhelTest.Support.Fixtures.PhpInterop.StaticPropertyTarget';
 
     private const string HOST_COLLISION = 'PHEL_TEST_RUNTIME_CLASS_CONSTANT_COLLISION';
 
@@ -173,10 +173,28 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
      */
     public function test_the_constant_wins_in_value_position(): void
     {
-        $bare = $this->compilerFacade->eval(
-            '(identity ' . self::HOST_COLLISION . ')',
-            new CompileOptions(),
+        $warnings = [];
+        $previousHandler = null;
+        $previousHandler = set_error_handler(
+            static function (int $level, string $message, string $file, int $line) use (&$warnings, &$previousHandler): bool {
+                if ($level !== E_USER_WARNING) {
+                    return $previousHandler !== null && $previousHandler($level, $message, $file, $line) !== false;
+                }
+
+                $warnings[] = $message;
+
+                return true;
+            },
         );
+        try {
+            $bare = $this->compilerFacade->eval(
+                '(identity ' . self::HOST_COLLISION . ')',
+                new CompileOptions(),
+            );
+        } finally {
+            restore_error_handler();
+        }
+
         $constant = $this->compilerFacade->eval(
             'php/' . self::HOST_COLLISION,
             new CompileOptions(),
@@ -187,6 +205,8 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
         );
 
         self::assertSame(self::HOST_CONSTANT_VALUE, $bare);
+        self::assertCount(1, $warnings);
+        self::assertStringContainsString('reads as the global constant ' . self::HOST_COLLISION . ' here, but it is also a PHP class', $warnings[0]);
         self::assertSame(self::HOST_CONSTANT_VALUE, $constant);
         self::assertSame(self::HOST_COLLISION, $class);
     }

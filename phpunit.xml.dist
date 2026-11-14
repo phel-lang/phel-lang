@@ -9,6 +9,8 @@
          processIsolation="false"
          resolveDependencies="true"
          stopOnFailure="false"
+         failOnDeprecation="true"
+         failOnWarning="true"
          cacheDirectory=".phpunit.cache"
 >
     <php>

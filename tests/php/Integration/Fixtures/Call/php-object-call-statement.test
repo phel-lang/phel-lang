@@ -1,5 +1,5 @@
 --PHEL--
-(do (.modify (new \DateTimeImmutable) "+1 day") :ok)
+(do (.modify (new \DateTime) "+1 day") :ok)
 --PHP--
-$target_1 = (new \DateTimeImmutable());
+$target_1 = (new \DateTime());
 $target_1->modify("+1 day");

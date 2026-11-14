@@ -74,7 +74,7 @@ final class ReplLazyBundledNamespaceTest extends AbstractTestCommand
     {
         $io = $this->createReplTestIo();
         $io->setInputs(
-            new InputLine('user:1> ', '(phel\html/escape-html "<div>")'),
+            new InputLine('user:1> ', '(phel.html/escape-html "<div>")'),
             new InputLine('user:2> ', '(contains-value? (ns-list) "phel.html")'),
             new InputLine('user:3> ', 'exit'),
         );
@@ -95,7 +95,7 @@ final class ReplLazyBundledNamespaceTest extends AbstractTestCommand
     {
         $io = $this->createReplTestIo();
         $io->setInputs(
-            new InputLine('user:1> ', '(require [phel\html :as h])'),
+            new InputLine('user:1> ', '(require [phel.html :as h])'),
             new InputLine('user:2> ', '(h/escape-html "<div>")'),
             new InputLine('user:3> ', 'exit'),
         );
@@ -116,11 +116,11 @@ final class ReplLazyBundledNamespaceTest extends AbstractTestCommand
         $io = $this->createReplTestIo();
         $io->setInputs(
             // Load phel.html lazily.
-            new InputLine('user:1> ', '(phel\html/escape-html "<a>")'),
+            new InputLine('user:1> ', '(phel.html/escape-html "<a>")'),
             // Trigger an eval failure so the environment is restored.
             new InputLine('user:2> ', '(this-symbol-does-not-exist)'),
             // The lazily loaded bundle must survive the restore.
-            new InputLine('user:3> ', '(phel\html/escape-html "<b>")'),
+            new InputLine('user:3> ', '(phel.html/escape-html "<b>")'),
             new InputLine('user:4> ', 'exit'),
         );
         $this->prepareRunFactory($io);

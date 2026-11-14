@@ -1,5 +1,5 @@
 --PHEL--
-(in-ns target\ns)
+(in-ns target.ns)
 --PHP--
 namespace target\ns;
 \Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()->setNs("target.ns");

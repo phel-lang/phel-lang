@@ -1,4 +1,4 @@
-(ns fixtures\foo)
+(ns fixtures.foo)
 
 (defn greet
   "Greets the given name."
