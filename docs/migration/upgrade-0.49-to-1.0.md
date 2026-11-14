@@ -105,6 +105,7 @@ Each of these used to compile. The error names the file, line and code.
 | `partition` with a count that is not an integer, `2.0` included | returned chunks | returns `()`, as in Clojure | after 0.54 |
 | `compare` and `sort` on lazy seqs, maps and sets | `(compare (range 5) (range 5))` was `1`; maps and sets had an arbitrary order | seqs compare element-wise, so it is `0`; two unequal maps or sets throw. Sort them with `sort-by` and a key fn | after 0.54 |
 | `phel.http-client` URLs and redirects | `file://`, `php://` and `data://` URLs read local data; custom headers followed a redirect to another origin | only `http` and `https`; a cross-origin redirect keeps only standard headers | after 0.54 |
+| `phel.json/encode` and `decode` when PHP reports an error | `NAN`, invalid UTF-8 or too deep data encoded to `false`; malformed JSON decoded to nil, like `"null"` | both throw `JsonException` with PHP's message; wrap the call in `try` where bad input is expected | after 0.54 |
 
 ## Step 5: definitions and metadata
 
