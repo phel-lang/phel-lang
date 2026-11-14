@@ -16,9 +16,9 @@ Applies to every write under `## Unreleased`: a new entry, a merge, or a rewrite
 
 In this order, each heading at most once: `### Highlights`, `### Changed`, `### Added`, `### Removed`, `### Performance`, `### Fixed`.
 
-`### Highlights` holds at most seven one-sentence or two-sentence bullets, the changes most users must know or act on: breaking changes everyone hits, security, new guarantees. No refs; the sections below carry them. Revisit it whenever a bigger change lands.
+`### Highlights` holds at most seven one-sentence or two-sentence bullets, the changes most users must know or act on: breaking changes everyone hits, security, new guarantees. No refs or ADR numbers; the sections below carry them, so every highlight must also appear there. Revisit it whenever a bigger change lands.
 
-A section with more than four bullets across areas splits into plain sub-label lines (`Compiler:`, `Runtime:`, `Tooling:`) followed by a blank line. Not `####` headings. A caveat shared by several bullets goes once, as a sentence under the heading or label.
+Below Highlights, a section with more than four bullets across areas splits into plain sub-label lines (`Compiler:`, `Runtime:`, `Tooling:`) followed by a blank line. Not `####` headings. A caveat shared by several bullets goes once, as a sentence under the heading or label.
 
 ## Entries
 

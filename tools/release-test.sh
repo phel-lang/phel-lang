@@ -72,6 +72,12 @@ function test_validate_semver_invalid_empty() {
 # Version Comparison Tests
 # =============================================================================
 
+function test_format_release_notes_maps_highlights() {
+    local result
+    result=$(format_release_notes "### Highlights")
+    assert_same "## ✨ Highlights" "$result"
+}
+
 function test_format_release_notes_maps_performance() {
     local result
     result=$(format_release_notes "### Performance")
