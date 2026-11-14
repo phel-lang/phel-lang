@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Command\Infrastructure;
 
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\SourceMapInformation;
 use Phel\Command\Infrastructure\SourceMapExtractor;
+use Phel\Shared\SourceMap\InlineSourceMapComments;
 use Phel\Shared\SourceMap\SupersededSourceMaps;
 use PHPUnit\Framework\TestCase;
 
@@ -48,6 +49,25 @@ final class SourceMapExtractorTest extends TestCase
         self::assertSame('/src/main.phel', $info->filename());
         self::assertSame('AACA', $info->mappings());
         self::assertSame(4, $info->codeStartLine());
+    }
+
+    public function test_decodes_multiline_source_labels_without_shifting_the_body(): void
+    {
+        $source = "/line\nbreak/main.phel";
+        $file = $this->dir . '/encoded.php';
+        file_put_contents($file, "<?php\n" . InlineSourceMapComments::filenameComment($source) . "\n// ;;AACA\nbody();\n");
+        $info = $this->extractor->extractFromFile($file);
+
+        self::assertSame($source, $info->filename());
+        self::assertSame('AACA', $info->mappings());
+        self::assertSame(4, $info->codeStartLine());
+    }
+
+    public function test_ignores_a_malformed_encoded_filename(): void
+    {
+        $file = $this->dir . '/malformed.php';
+        file_put_contents($file, "<?php\n// @phel-source-base64 !invalid!\n// ;;AACA\nbody();\n");
+        self::assertEquals(SourceMapInformation::none(), $this->extractor->extractFromFile($file));
     }
 
     public function test_extracts_inline_metadata_below_declare_statement(): void

@@ -56,7 +56,7 @@ final readonly class EmitterResult
     {
         if ($this->enableSourceMaps) {
             return (
-                InlineSourceMapComments::FILENAME_PREFIX . $this->source . "\n"
+                InlineSourceMapComments::filenameComment($this->source) . "\n"
                 . InlineSourceMapComments::MAPPINGS_PREFIX . $this->sourceMap . "\n"
                 . $this->phpCode
             );

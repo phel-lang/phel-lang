@@ -68,6 +68,9 @@ Both are injected as Shared `*FacadeInterface`. One non-facade edge, **Config**:
 | `Domain/Compile/SecondaryFileHarvester` | Writes `(in-ns ...)` secondary `.php` siblings to the output tree, from the compiled-code cache, else `CompiledSecondaryStore` (a cache-off build still emits them) |
 | `Domain/Compile/SymbolMetaStripper` | Token-based removal of `\Phel::locationMeta(...)` args when `strip-symbol-meta` is on (write path only) |
 | `Domain/Compile/CompiledSecondaryStore` | In-memory hand-off of secondaries from `FileEvaluator` to `SecondaryFileHarvester` when the cache is off |
+| `Domain/Compile/ArtifactSourcePaths` | Source-to-output-copy plan and token-based relocation of compiler source-path slots |
+| `Domain/Compile/ArtifactSourcePath` | Runtime source-copy resolution, with scoped original paths during warm builds |
+| `Domain/Compile/ArtifactSourceMap` | Adjusts generated VLQ columns after path replacements |
 | `Domain/Cache/SourceFilePath` | Parent-directory normalization shared by cache keys and emitted source paths |
 | `Infrastructure/Cache/CompiledCodeCache` | Compiled-code cache policy |
 | `Infrastructure/Cache/EnvCacheFingerprint` | Hash of `cache-env-vars`, mixed into the cache key |
@@ -79,6 +82,14 @@ Both are injected as Shared `*FacadeInterface`. One non-facade edge, **Config**:
 | `Infrastructure/Command/BuildCommand` / `CacheClearCommand` | CLI |
 
 ## Key Constraints
+
+### Portable build sources
+
+- `ProjectCompiler` plans every primary and secondary source copy, then rewrites completed artifacts after harvesting. Match source-path slots, not arbitrary string values. Preserve target mtimes for incremental reuse and invalidate rewritten OPcache entries.
+- Outside a build, `ArtifactSourcePath::resolve()` names the shipped `.phel` copy beside the compiled PHP. While compiling, a scoped map restores original paths when a warm artifact supplies `*file*`, definition metadata or magic constants; restore the previous map in `finally`.
+- `SourcePathNode` keeps bare `__FILE__` / `__DIR__` out of literal folding. Compiler FILE/CACHE output carries `SourcePathMarker` comments; statement evaluation still receives the original value. The artifact pass consumes the markers.
+- Harvested secondaries use `BuiltFilePreamble` and sibling `.php.map` / `.phel` files, like primaries. Rebase generated map columns after token replacements without changing source coordinates or body line counts. Nested loads prefer compiled siblings outside build mode.
+- Rationale and limits: `docs/adr/0023-build-source-paths-follow-the-artifact.md`.
 
 ### Caching (namespace extraction and compiled code, each optional)
 

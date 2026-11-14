@@ -35,9 +35,14 @@ final class PhpStringEscapeTest extends TestCase
         self::assertSame('a\\$var', PhpStringEscape::doubleQuoted('a$var'));
     }
 
+    public function test_line_breaks_are_escaped_without_adding_generated_lines(): void
+    {
+        self::assertSame('a\\r\\nb', PhpStringEscape::doubleQuoted("a\r\nb"));
+    }
+
     public function test_round_trips_into_a_double_quoted_php_literal(): void
     {
-        $names = ["inc'", "dec'", "+'", "-'", "*'", "foo''", 'plain', 'with"quote', 'with$dollar', 'with\\backslash'];
+        $names = ["inc'", "dec'", "+'", "-'", "*'", "foo''", 'plain', 'with"quote', 'with$dollar', 'with\\backslash', "with\rreturn", "with\nnewline", "with\r\nboth"];
 
         foreach ($names as $name) {
             $literal = '"' . PhpStringEscape::doubleQuoted($name) . '"';

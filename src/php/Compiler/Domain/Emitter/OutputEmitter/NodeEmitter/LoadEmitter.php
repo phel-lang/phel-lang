@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LoadNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\LoadClasspath;
+use Phel\Shared\SourceMap\SourcePathMarker;
 
 use function assert;
 use function dirname;
@@ -96,6 +97,10 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('if ($__phelLoadPath === null) {');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('$__phelCallerSrcDir = ');
+        if (!$this->outputEmitter->getOptions()->isStatementEmitMode()) {
+            $this->outputEmitter->emitStr(SourcePathMarker::encode($callerFile, true));
+        }
+
         $this->outputEmitter->emitLiteral($callerDir);
         $this->outputEmitter->emitLine(';');
         $this->outputEmitter->emitLine('foreach ([$__phelLoadKey, $__phelFullKey ?? $__phelLoadKey] as $__phelAttempt) {');

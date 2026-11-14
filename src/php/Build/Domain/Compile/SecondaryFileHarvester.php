@@ -8,14 +8,18 @@ use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Shared\CompiledSourceHash;
 use Phel\Shared\NamespaceInformation;
+use Phel\Shared\SourceMap\BuiltFilePreamble;
+use Phel\Shared\SourceMap\InlineSourceMapComments;
 use Phel\Shared\SourceMap\SourceMapSiblings;
 use RuntimeException;
 
+use function count;
 use function dirname;
 use function file_exists;
 use function is_dir;
 use function mkdir;
 use function sprintf;
+use function strlen;
 
 /**
  * Writes a compiled `(in-ns ...)` secondary into the build output directory.
@@ -53,7 +57,7 @@ final readonly class SecondaryFileHarvester
      * @param list<string> $sourceDirectories
      * @param string|null  $primaryFile       source file of the secondary's `(ns X)`
      */
-    public function harvest(NamespaceInformation $secondary, string $destDir, array $sourceDirectories, ?string $primaryFile = null): void
+    public function harvest(NamespaceInformation $secondary, string $destDir, array $sourceDirectories, ?string $primaryFile = null, bool $enableSourceMaps = true): void
     {
         $sourceFile = $secondary->getFile();
         $sourceCode = $this->fileIo->getContents($sourceFile);
@@ -68,17 +72,45 @@ final readonly class SecondaryFileHarvester
 
         $targetPath = $destDir . '/' . $this->targetPathResolver->resolve($secondary, $sourceDirectories, $primaryFile);
         $this->ensureDir(dirname($targetPath));
+        [$phpCode, $mappings] = $this->separateSourceMap($phpCode);
         if ($this->stripSymbolMeta) {
             // Same artifact-only strip as FileCompiler: the cached/stored
             // code was evaluated with full meta during the build.
             $phpCode = SymbolMetaStripper::strip($phpCode);
+            $mappings = null;
         }
 
-        $this->fileIo->putContents($targetPath, $phpCode);
+        $this->fileIo->putContents($targetPath, BuiltFilePreamble::prepend($phpCode));
+        if ($mappings !== null && $enableSourceMaps) {
+            $this->fileIo->putContents(SourceMapSiblings::mapFile($targetPath), $mappings);
+        } else {
+            $this->fileIo->removeFile(SourceMapSiblings::mapFile($targetPath));
+        }
+
         $this->fileIo->putContents(
             SourceMapSiblings::sourceFile($targetPath),
             $sourceCode,
         );
+    }
+
+    /**
+     * @return array{string, string|null}
+     */
+    private function separateSourceMap(string $phpCode): array
+    {
+        if (str_starts_with($phpCode, "<?php\n")) {
+            $phpCode = substr($phpCode, strlen("<?php\n"));
+        }
+
+        $parts = explode("\n", $phpCode, 3);
+        if (count($parts) === 3
+            && str_starts_with($parts[0], InlineSourceMapComments::FILENAME_PREFIX)
+            && str_starts_with($parts[1], InlineSourceMapComments::MAPPINGS_PREFIX)
+        ) {
+            return [$parts[2], substr($parts[1], strlen(InlineSourceMapComments::MAPPINGS_PREFIX))];
+        }
+
+        return [$phpCode, null];
     }
 
     private function compiledPhp(string $sourceFile, string $sourceCode): ?string

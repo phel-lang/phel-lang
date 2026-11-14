@@ -57,7 +57,7 @@ PHP API:
 
 - Built entry points, exported wrappers and `\Phel::assertBuiltWith(string $version)` reject a different runtime version; rebuild after upgrading. Builds warn when their version differs from the lock file, and public `Phel\Shared\VersionResolver` reports the running version. (#3519, ADR 0020)
 - Generated PHP goes to an owner-only `<system temp>/phel-<uid>/tmp`, and Phel rejects temp directories another user owns or can replace. Public `PhelConfig::defaultTempDir()` and `Phel\Shared\CurrentUser` expose the directory and user. (#3532)
-- Public `Phel\Shared\Parser\Node\ReaderConditionalNode` exposes the selected reader-conditional branch. (#3669)
+- Public `Phel\Shared\Parser\Node\ReaderConditionalNode` exposes the selected reader-conditional branch. `Phel\Shared\SourceMap\InlineSourceMapComments` encodes and reads filename headers, and `SourcePathMarker` round-trips source paths through opaque comments. (#3669 #3882)
 
 ### Removed
 
@@ -89,7 +89,7 @@ Collections and values:
 Builds and caches:
 
 - Caches survive concurrent processes and interrupted writes, and same-second edits and macro edits refresh every dependent namespace. Relative and absolute source paths reuse one compiled cache entry, loading a bundled namespace keeps the REPL's current namespace, and warm builds keep forward declarations when a secondary file must recompile. `.phel/` ignores itself, and `phel --version`, `help` and `list` no longer create it. (#3537 #3564 #3553 #3698 #3700 #3690 #3864)
-- Builds: PHARs leave out untracked files and have reproducible checksums, built apps find `load` files and bootstrap `eval`, `future-call` and `phel.edn`, Composer installs no longer warn about duplicate namespaces, and running from a subdirectory finds the project. `phel cache:clear` refuses unsafe paths, and the Docker image installs its tagged release on amd64 and arm64. (#3697 #3528 #3542 #3527 #3549 #3701 #3532 #3702 #3536)
+- Builds: PHARs leave out untracked files and have reproducible checksums, built apps find `load` files and bootstrap `eval`, `future-call` and `phel.edn`, Composer installs no longer warn about duplicate namespaces, and running from a subdirectory finds the project. Generated source metadata and magic constants follow the artifact's source copies without storing build-host directories. `phel cache:clear` refuses unsafe paths, and the Docker image installs its tagged release on amd64 and arm64. (#3697 #3528 #3542 #3527 #3549 #3701 #3532 #3702 #3536 #3882)
 
 Commands and tests:
 

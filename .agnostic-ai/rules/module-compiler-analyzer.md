@@ -25,6 +25,8 @@ Clojure-style interop spellings expand to `php/*` forms before analysis; never r
 
 Bare values and calls resolve in this order: lexical locals, own namespace definitions or interfaces, `:use` aliases, `:refer` bindings, core definitions. A qualified name keeps its explicit namespace.
 
+Bare `__FILE__` / `__DIR__` resolve to `Ast/SourcePathNode`, preserving their source identity and path kind instead of becoming ordinary string literals. Keep these nodes outside constant folding so a concatenation cannot erase the path's provenance before Build relocates written artifacts. `LocalVarReferences` treats them as leaves.
+
 Bare host symbols read by **position**, never by probing the class table (ADR 0016). `SymbolResolver::resolveBareHostSymbol()` reads an all-caps name as a global constant; `Domain/Analyzer/BareHostClass` re-reads it as a class wherever only a class can stand (member target in `PhpObjectCallSymbol`, `PhpNewSymbol`, `PhpCallableSymbol`), so `(WP_CLI/log "x")` emits `\WP_CLI::log("x")` whether or not the class loads. `BareHostClass` also recovers declared class imports when an own definition shadows the alias, including before `QualifiedMemberExpander` reflects a qualified callable. Lexical locals remain dynamic targets. `php/NAME` stays a constant everywhere. Never reintroduce probing: emitted PHP would depend on what the process had autoloaded, and the compiled-code cache freezes whichever ran first.
 
 `Domain/Analyzer/PhpClassLike` is the single class-like existence predicate. It still answers for `:use` alias targets (asserted at compile time), lowercase-initial bare names (`stdClass`), and `Environment/AmbiguousBareHostWarner`, which warns when value position reads a constant that a loadable class shadows.

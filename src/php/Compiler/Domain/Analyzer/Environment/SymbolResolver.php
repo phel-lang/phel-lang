@@ -6,9 +6,9 @@ namespace Phel\Compiler\Domain\Analyzer\Environment;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\SourcePathNode;
 use Phel\Compiler\Domain\Analyzer\BareHostClass;
 use Phel\Compiler\Domain\Analyzer\PhpClassLike;
 use Phel\Compiler\Domain\Analyzer\PhpIdentifier;
@@ -54,16 +54,20 @@ final readonly class SymbolResolver
         $strName = $name->getName();
 
         if ($strName === '__DIR__') {
-            return new LiteralNode(
+            return new SourcePathNode(
                 $env,
                 $this->magicConstantResolver->resolveDir($name->getStartLocation()),
+                true,
+                $name->getStartLocation(),
             );
         }
 
         if ($strName === '__FILE__') {
-            return new LiteralNode(
+            return new SourcePathNode(
                 $env,
                 $this->magicConstantResolver->resolveFile($name->getStartLocation()),
+                false,
+                $name->getStartLocation(),
             );
         }
 

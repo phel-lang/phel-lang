@@ -8,6 +8,10 @@ scope: src/php/Compiler/Domain/Emitter
 
 Read `.agnostic-ai/rules/module-compiler.md` for the pipeline and constraints.
 
+## Source-path provenance
+
+`SourcePathEmitter` writes the original magic-constant value in STATEMENT mode. FILE/CACHE output tags that value with `Shared\SourceMap\SourcePathMarker`; `LoadEmitter` tags its source-directory fallback the same way. These remain ordinary values in compile-time evaluation and runtime caches. Build consumes the tags only when writing portable artifacts. Mode checks must record divergence so `CodeCompiler` cannot evaluate a relocated artifact fragment as a statement.
+
 ## Cache-mode definition registration (#3470)
 
 A cache-mode file also registers its definitions in the global environment.
