@@ -30,6 +30,18 @@ final class SharedStdlibCache
         return $dir === null ? '' : 'PHEL_CACHE_DIR=' . escapeshellarg($dir) . ' ';
     }
 
+    /**
+     * Environment for `proc_open` with `PHEL_CACHE_DIR` set, or null (inherit) outside paratest.
+     *
+     * @return array<string, string>|null
+     */
+    public static function env(): ?array
+    {
+        $dir = self::dir();
+
+        return $dir === null ? null : [...getenv(), 'PHEL_CACHE_DIR' => $dir];
+    }
+
     public static function dir(): ?string
     {
         $dir = getenv('PHEL_TEST_SHARED_CACHE_DIR');
