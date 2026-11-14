@@ -320,6 +320,14 @@ final class TestWorkerHandle
             $status = @proc_get_status($this->process);
             if ($status['running']) {
                 @proc_terminate($this->process);
+                $deadline = microtime(true) + 0.2;
+                while ($this->isAlive() && microtime(true) < $deadline) {
+                    usleep(10_000);
+                }
+
+                if ($this->isAlive()) {
+                    @proc_terminate($this->process, 9);
+                }
             }
 
             @proc_close($this->process);

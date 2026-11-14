@@ -8,7 +8,9 @@ use Phel\Run\Application\Test\TestWorkerHandle;
 use PHPUnit\Framework\TestCase;
 
 use function function_exists;
+use function microtime;
 use function proc_open;
+use function stream_get_contents;
 use function usleep;
 
 final class TestWorkerHandleTest extends TestCase
@@ -63,6 +65,31 @@ final class TestWorkerHandleTest extends TestCase
         $this->waitUntilDead($worker);
 
         self::assertSame('killed by signal 9', $worker->exitStatus());
+    }
+
+    public function test_termination_stops_a_worker_that_ignores_sigterm(): void
+    {
+        if (!function_exists('pcntl_signal')) {
+            self::markTestSkipped('ext-pcntl is needed to ignore SIGTERM');
+        }
+
+        $worker = $this->startWorker('pcntl_signal(SIGTERM, SIG_IGN); echo "ready"; usleep(5_000_000);');
+        $ready = '';
+        $deadline = microtime(true) + 5;
+        while ($ready !== 'ready' && microtime(true) < $deadline) {
+            $ready .= stream_get_contents($worker->stdoutHandle());
+            usleep(10_000);
+        }
+
+        try {
+            self::assertSame('ready', $ready);
+            $startedAt = microtime(true);
+            $worker->terminate();
+            self::assertLessThan(2, microtime(true) - $startedAt);
+            self::assertFalse($worker->isAlive());
+        } finally {
+            $worker->terminate();
+        }
     }
 
     private function startWorker(string $code): TestWorkerHandle
