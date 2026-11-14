@@ -190,6 +190,7 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
         } finally {
             restore_error_handler();
         }
+
         $constant = $this->compilerFacade->eval(
             'php/' . self::HOST_COLLISION,
             new CompileOptions(),
