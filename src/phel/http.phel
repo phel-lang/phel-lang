@@ -459,18 +459,44 @@
     (throw (new InvalidArgumentException (str "Header must be a keyword or string. Given: " header-name))))
   (assert-no-crlf (php/ucwords (name header-name) "-")))
 
-(defn- emit-headers [{:status status, :headers headers}]
+(defn- header-value [header-name value]
+  (when-not (or (string? value) (int? value) (bigint? value))
+    (throw (new InvalidArgumentException
+                (str "Header " header-name " must be a string, an integer or a list of them. Given: "
+                     (php/get_debug_type value)))))
+  (str value))
+
+(defn- header-values [values]
+  (remove nil? (if (or (indexed? values) (seq? values) (set? values)) values [values])))
+
+(defn- header-calls
+  "Returns the `[line replace? status]` arguments `emit-headers` passes to
+  `php/header`. A header replaces one PHP already set, except `Set-Cookie`,
+  every value after the first, and a second key with the same name. A nil
+  value sends nothing, as in Ring."
+  [{:status status, :headers headers}]
+  (let [status (or status 200)
+        seen   (transient #{})
+        acc    (transient [])]
+    (foreach [header values headers]
+      (let [header-name (normalize-header-name header)
+            key         (php/strtolower header-name)
+            replace     (not (or (identical? "set-cookie" key) (contains? seen key)))]
+        (conj! seen key)
+        (reduce
+         (fn [first? value]
+           (conj! acc [(php/sprintf "%s: %s" header-name (assert-no-crlf (header-value header-name value)))
+                       (and replace first?)
+                       status])
+           false)
+         true
+         (header-values values))))
+    (persistent acc)))
+
+(defn- emit-headers [response]
   (when-not (php/headers_sent)
-    (dofor [[header values] :pairs headers
-            :let [normalized-name (normalize-header-name header)
-                  replace (and (identical? 0 (php/strcasecmp normalized-name "Content-Type"))
-                               (not (identical? 0 (php/strcasecmp normalized-name "Set-Cookie"))))]]
-      (cond
-        (string? values)
-        (php/header (php/sprintf "%s: %s" normalized-name (assert-no-crlf values)) replace status)
-        (indexed? values)
-        (dofor [value :in values]
-          (php/header (php/sprintf "%s: %s" normalized-name (assert-no-crlf value)) replace status))))))
+    (foreach [[line replace status] (header-calls response)]
+      (php/header line replace status))))
 
 (defn emit-response
   "Emits the response by sending headers and outputting the body."
