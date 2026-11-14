@@ -855,3 +855,29 @@
           (is (= 2 (count results)) "returns k results")
           (is (= "east" (get (first results) :text)) "most similar first"))
         (reset! ai/config original)))))
+
+;; --- Responses that are not JSON (#3855) ---
+
+(deftest test-tool-calls-openai-invalid-arguments-read-as-nil
+  (let [call     (fn [args] {:choices [{:message {:tool_calls [{:id "c" :function {:name "t" :arguments args}}]}}]})
+        input-of (fn [args] (get (first (ai/tool-calls (call args))) :input))]
+    (is (nil? (input-of "")) "empty arguments")
+    (is (nil? (input-of "{\"city\":\"Par")) "truncated arguments")))
+
+(deftest test-extract-throws-runtime-exception-for-braces-that-are-not-json
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "{x: 1}"}]})))]
+    (binding [ai/*http-post* fake]
+      (is (thrown-with-msg? RuntimeException #"Could not extract JSON from AI response"
+                            (ai/extract {:x "integer"} "text" {:api-key "k"}))))))
+
+(deftest test-extract-many-throws-runtime-exception-for-an-invalid-array
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "[{\"id\":1},]"}]})))]
+    (binding [ai/*http-post* fake]
+      (is (thrown-with-msg? RuntimeException #"Could not extract JSON array from AI response"
+                            (ai/extract-many {:id "integer"} "text" {:api-key "k"}))))))
+
+(deftest test-complete-throws-runtime-exception-for-a-body-that-is-not-json
+  (let [fake (mock-fn (fn [_ _] {:status 200 :body "<html>gateway</html>"}))]
+    (binding [ai/*http-post* fake]
+      (is (thrown-with-msg? RuntimeException #"AI API error \(HTTP 200\): response is not JSON"
+                            (ai/complete "hi" {:api-key "k"}))))))

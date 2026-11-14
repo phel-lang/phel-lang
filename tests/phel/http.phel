@@ -499,3 +499,7 @@
       "a missing host")
   (is (= "This is not a valid uri: http://[::1]:99999/x" (uri-error "http://[::1]:99999/x"))
       "an IPv6 host with an out-of-range port"))
+
+(deftest test-json-response-throws-for-a-body-json-cannot-hold
+  (is (thrown? \JsonException (h/json-response 200 {:name (php/hex2bin "636166e9")}))
+      "no 200 with an empty body"))

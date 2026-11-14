@@ -233,7 +233,9 @@
       (for [c :in calls]
         (let [fn-def   (get c :function)
               args-str (get fn-def :arguments)
-              args     (try (json/decode args-str) (catch Throwable _e args-str))]
+              ;; Arguments that are not JSON read as nil, as they did before
+              ;; `json/decode` threw, so a handler never gets the raw string.
+              args     (try (json/decode args-str) (catch Throwable _e nil))]
           {:name (get fn-def :name)
            :id (get c :id)
            :input args}))
@@ -263,6 +265,17 @@
                     (str "AI API error (HTTP " status "): "
                          (provider-error-message parsed body))))))))
 
+(defn- decode-body
+  "Decodes a successful response body, throwing the same `RuntimeException` as a failed request when it is not JSON."
+  [response]
+  (let [body (get response :body)]
+    (try
+      (json/decode body)
+      (catch \JsonException e
+        (throw (new RuntimeException
+                    (str "AI API error (HTTP " (get response :status) "): response is not JSON: " body)
+                    0 e))))))
+
 (defn- send-request
   "Sends a prepared request map with retry + timeout."
   [cfg req]
@@ -274,7 +287,7 @@
                                       :timeout timeout}
                                      max-retries)]
     (check-response response)
-    (json/decode (get response :body))))
+    (decode-body response)))
 
 ;; Per-call option keys that override the global config when present.
 (def- carry-keys [:model :max-tokens :provider :timeout :base-url :api-key :max-retries])
@@ -404,6 +417,14 @@ Useful for building multi-turn conversations."
       (throw (new RuntimeException
                   (str error-prefix (truncate-for-error trimmed)))))))
 
+(defn- decode-extracted
+  "Decodes JSON sliced from a model response, throwing the same `RuntimeException` as when no JSON is found."
+  [what json]
+  (try
+    (json/decode json)
+    (catch \JsonException e
+      (throw (new RuntimeException (str "Could not extract " what " from AI response: " json) 0 e)))))
+
 (defn- extract-json-from-response
   "Extracts JSON from an AI response, handling markdown code blocks."
   [response]
@@ -457,7 +478,7 @@ Useful for building multi-turn conversations."
                     (schema->json-description schema) "\n\n"
                     "Text: " text "\n\n"
                     "Return ONLY valid JSON matching the schema. No explanation, no markdown, just the JSON object.")]
-    (json/decode (extract-json-from-response (run-extraction prompt opts)))))
+    (decode-extracted "JSON" (extract-json-from-response (run-extraction prompt opts)))))
 
 (defn extract-many
   "Extracts a list of structured items from text.
@@ -471,7 +492,7 @@ Similar to `extract`, but returns a vector of maps when the text contains multip
                     (schema->json-description schema) "\n\n"
                     "Text: " text "\n\n"
                     "Return ONLY a valid JSON array of objects. No explanation, no markdown, just the JSON array.")]
-    (json/decode (extract-json-array-from-response (run-extraction prompt opts)))))
+    (decode-extracted "JSON array" (extract-json-array-from-response (run-extraction prompt opts)))))
 
 ;; -----------
 ;; Tool definition & use
@@ -656,7 +677,7 @@ Similar to `extract`, but returns a vector of maps when the text contains multip
                                         :timeout timeout}
                                        max-retries)]
     (check-response response)
-    (let [body (json/decode (get response :body))
+    (let [body (decode-body response)
           data (get body :data)]
       (vec (for [item :in data]
              (get item :embedding))))))
