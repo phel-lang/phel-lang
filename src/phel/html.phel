@@ -225,6 +225,7 @@
     ;; `(apply str (map render-html element))` gave for free (#3099).
     (raw-string? element)     (str (get element :s))
     (string? element)         (escape-html element)
+    (keyword? element)        (escape-html (name element))
     (nil? element)            ""
     (escape-html (str element))))
 
