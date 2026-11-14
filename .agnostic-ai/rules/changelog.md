@@ -35,3 +35,7 @@ A section with more than four bullets across areas splits into plain sub-label l
 - Skip changes users cannot see: `chore:`, CI, test-only, internal refactors.
 
 Before committing, reread the whole `## Unreleased`, not only the new bullet: duplicate headings, siblings to merge, entries past four sentences.
+
+## Archive
+
+`CHANGELOG.md` keeps releases from the latest tenth minor (`0.50.0`, `0.60.0`) or major onward. Releasing the next one moves every older section, unchanged, to the top of `docs/CHANGELOG-archive.md`, and updates the version named in both files' intro lines. Never edit archived notes.

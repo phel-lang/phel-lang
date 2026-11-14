@@ -15,6 +15,7 @@ Put content in the file whose reader needs it. Link instead of copying.
 |---|---|---|
 | `README.md` | Phel users | What Phel is, install, first steps, links. No contributor setup. |
 | `CHANGELOG.md` | Phel users | Release notes, per `.agnostic-ai/rules/changelog.md`. |
+| `docs/CHANGELOG-archive.md` | Phel users | Release notes older than the main changelog keeps, per the archive rule in `.agnostic-ai/rules/changelog.md`. |
 | `.github/CONTRIBUTING.md` | Human contributors | Setup, commands, tests, commits, changelog, AI tooling setup. |
 | `.github/RELEASE.md` | Maintainers | How a release is cut. |
 | `docs/` | Contributors | Spec, stability policy, ADRs, internals, CLI reference, migrations. User guides live on phel-lang.org. |
