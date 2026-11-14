@@ -347,6 +347,7 @@ trim_blank_edges() {
 format_release_notes() {
     local content="$1"
     echo "$content" | sed \
+        -e 's/^### Highlights$/## ✨ Highlights/' \
         -e 's/^### Added$/## 🎉 Added/' \
         -e 's/^### Changed$/## ⚖️ Changed/' \
         -e 's/^### Fixed$/## 🐛 Fixed/' \
