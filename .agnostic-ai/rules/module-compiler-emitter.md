@@ -32,6 +32,8 @@ In build mode a call to a multi-arity global at a fixed-arity count emits `($__p
 
 ## Type-Specialized Emission
 
+`IfChainMatchLowerer` shares literal-key eligibility and operand order between `case`/`cond` match lowering and direct `if` tests. Bindable equality targets keep runtime dispatch. Strict comparison runs first; an `EqualsInterface` subject keeps value equality, including `BigInt` and noninterned keywords. A keyword literal on the left keeps its own equality method first. Match lowering captures its subject once and uses value equality only after every identity key misses, retaining PHP's match table and fast interned keywords. A bare `cond` rereads its original local between fallback comparisons; `case` keeps its captured subject. `BodyConstantScanner` reserves consumed keyword keys by value and does not reserve call slots for lowered equality tests.
+
 Tags come from the analyzer (`.agnostic-ai/rules/module-compiler-analyzer.md`, "Type Tags"). Two halves per family:
 
 - **Eligibility**, in `Domain/Emitter/OutputEmitter/`: `NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `GetInSpecialization`, `AssocInSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`, `ReduceSpecialization`, `ConstructorSpecialization`; aggregated by `CallSpecialization`.

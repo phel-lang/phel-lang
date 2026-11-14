@@ -22,7 +22,7 @@
   static $__phel_call_0;
   return ($a !== $b && ((\is_int($a) && \is_int($b)) || ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "not="))->invokeArity2($a, $b)));
 });(function($a) {
-  static $__phel_const_0, $__phel_const_1, $__phel_call_0;
-  return ((($a === 0 || (!(\is_int($a)) && ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "="))->invokeArity2($a, 0)))) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("zero")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("other")));
+  static $__phel_const_0, $__phel_const_1;
+  return (($a === 0 || ($a instanceof \Phel\Lang\EqualsInterface && $a->equals(0))) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("zero")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("other")));
 
 });

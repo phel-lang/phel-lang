@@ -7,11 +7,13 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\PhelCoreCall;
 use Phel\Lang\Keyword;
 
@@ -43,8 +45,8 @@ use function is_string;
  * inject `return …;` inside a match arm and break PHP syntax.
  */
 /**
- * @phpstan-type MatchArm array{key: mixed, expr: mixed}
- * @phpstan-type LoweredMatch array{init: AbstractNode, arms: list<MatchArm>, fallback: mixed}
+ * @phpstan-type MatchArm array{key: mixed, expr: mixed, literalFirst: bool}
+ * @phpstan-type LoweredMatch array{init: AbstractNode, arms: list<MatchArm>, fallback: mixed, comparisonLocal: LocalVarNode|null}
  *
  * @internal
  */
@@ -64,7 +66,7 @@ final readonly class IfChainMatchLowerer
      * with no outer `let`. Every test must reference the **same**
      * `LocalVarNode` shadow.
      *
-     * @return array{init: LocalVarNode, arms: list<MatchArm>, fallback: mixed}|null
+     * @return array{init: LocalVarNode, arms: list<MatchArm>, fallback: mixed, comparisonLocal: LocalVarNode}|null
      */
     public static function analyseIfChain(IfNode $root): ?array
     {
@@ -91,7 +93,7 @@ final readonly class IfChainMatchLowerer
                 return null;
             }
 
-            $arms[] = ['key' => $key, 'expr' => $then];
+            $arms[] = ['key' => $key, 'expr' => $then, 'literalFirst' => $info[2]];
             $current = $current->getElseExpr();
         }
 
@@ -104,6 +106,7 @@ final readonly class IfChainMatchLowerer
 
         return [
             'init' => $shared,
+            'comparisonLocal' => $shared,
             'arms' => $arms,
             'fallback' => $fallback,
         ];
@@ -131,8 +134,8 @@ final readonly class IfChainMatchLowerer
         $arms = [];
         while (true) {
             if ($current instanceof IfNode) {
-                $key = self::matchEqualityTest($current->getTestExpr(), $activeShadow);
-                if ($key === self::NOT_FOLDABLE) {
+                $info = self::matchEqualityTest($current->getTestExpr(), $activeShadow);
+                if ($info === null) {
                     return null;
                 }
 
@@ -141,7 +144,7 @@ final readonly class IfChainMatchLowerer
                     return null;
                 }
 
-                $arms[] = ['key' => $key, 'expr' => $then];
+                $arms[] = ['key' => $info[1], 'expr' => $then, 'literalFirst' => $info[2]];
                 $current = $current->getElseExpr();
                 continue;
             }
@@ -181,21 +184,23 @@ final readonly class IfChainMatchLowerer
 
         return [
             'init' => $binding->getInitExpr(),
+            'comparisonLocal' => null,
             'arms' => $arms,
             'fallback' => $fallback,
         ];
     }
 
     /**
-     * Parse a `(= local lit)` / `(= lit local)` equality test into its
-     * (local-var, folded-literal) pair, or `null` when the call is not an
-     * eligible equality of a local against a primitive literal.
-     *
-     * @return array{0: LocalVarNode, 1: mixed}|null
+     * @return array{0: LocalVarNode, 1: mixed, 2: bool}|null
      */
-    private static function parseEqualityCall(AbstractNode $test): ?array
+    public static function parseEqualityCall(AbstractNode $test): ?array
     {
         if (!$test instanceof CallNode) {
+            return null;
+        }
+
+        $fn = $test->getFn();
+        if ($fn instanceof GlobalVarNode && GlobalCallTarget::isBindable($fn)) {
             return null;
         }
 
@@ -213,12 +218,12 @@ final readonly class IfChainMatchLowerer
 
         if ($lhs instanceof LocalVarNode) {
             $value = self::literalValue($rhs);
-            return $value === self::NOT_FOLDABLE ? null : [$lhs, $value];
+            return $value === self::NOT_FOLDABLE ? null : [$lhs, $value, false];
         }
 
         if ($rhs instanceof LocalVarNode) {
             $value = self::literalValue($lhs);
-            return $value === self::NOT_FOLDABLE ? null : [$rhs, $value];
+            return $value === self::NOT_FOLDABLE ? null : [$rhs, $value, true];
         }
 
         return null;
@@ -239,16 +244,17 @@ final readonly class IfChainMatchLowerer
         return self::NOT_FOLDABLE;
     }
 
-    private static function matchEqualityTest(AbstractNode $test, string $activeShadow): mixed
+    /**
+     * @return array{0: LocalVarNode, 1: mixed, 2: bool}|null
+     */
+    private static function matchEqualityTest(AbstractNode $test, string $activeShadow): ?array
     {
         $parsed = self::parseEqualityCall($test);
         if ($parsed === null) {
-            return self::NOT_FOLDABLE;
+            return null;
         }
 
-        [$local, $value] = $parsed;
-
-        return $local->getName()->getName() === $activeShadow ? $value : self::NOT_FOLDABLE;
+        return $parsed[0]->getName()->getName() === $activeShadow ? $parsed : null;
     }
 
     private static function isPrimitive(mixed $value): bool

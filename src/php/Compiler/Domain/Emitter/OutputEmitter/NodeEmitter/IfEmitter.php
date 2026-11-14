@@ -114,6 +114,12 @@ final class IfEmitter implements NodeEmitterInterface
      */
     private function emitTestExpr(AbstractNode $testExpr): void
     {
+        $comparison = IfChainMatchLowerer::parseEqualityCall($testExpr);
+        if ($comparison !== null) {
+            $this->emitLiteralEquality($comparison[0]->getName(), $comparison[1], $comparison[2], $testExpr->getStartSourceLocation());
+            return;
+        }
+
         if ($this->tryEmitShortCircuitTest($testExpr, AndOrShortCircuitLowerer::extractOrChain($testExpr), '||')) {
             return;
         }

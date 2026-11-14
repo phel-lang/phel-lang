@@ -67,6 +67,7 @@ PHP API:
 ### Performance
 
 - A warm `phel run` or `phel test` skips rescanning source directories, and a file without `ns` no longer forces a full reread (about 2x faster). (#3699 #3629)
+- `case` dispatch with keyword statement arms runs about 6.5x faster. Literal-arm dispatch preserves value equality for big numbers and keywords read from cached data, with about 5% overhead in keyword dispatch. (#3884)
 
 ### Fixed
 

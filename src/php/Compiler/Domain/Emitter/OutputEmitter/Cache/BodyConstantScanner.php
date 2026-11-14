@@ -49,6 +49,8 @@ use function array_slice;
  * function boundaries (FnNode / MultiFnNode / ReifyNode method bodies)
  * because each has its own static scope.
  *
+ * @phpstan-import-type LoweredMatch from IfChainMatchLowerer
+ *
  * @internal
  */
 final readonly class BodyConstantScanner
@@ -98,6 +100,16 @@ final readonly class BodyConstantScanner
 
             $this->reserveKeywordValue($shape['fallback'], $scope);
             return;
+        }
+
+        if ($node instanceof IfNode) {
+            $comparison = IfChainMatchLowerer::parseEqualityCall($node->getTestExpr());
+            if ($comparison !== null) {
+                $this->reserveKeywordValue($comparison[1], $scope);
+                $this->walk($node->getThenExpr(), $scope, $cacheCalls);
+                $this->walk($node->getElseExpr(), $scope, $cacheCalls);
+                return;
+            }
         }
 
         if ($cacheCalls
@@ -158,7 +170,7 @@ final readonly class BodyConstantScanner
      * Only its matched init value still flows through the normal emit path;
      * the cond tests, arm keys and arm bodies are written from values.
      *
-     * @return array{init: AbstractNode, arms: list<array{key: mixed, expr: mixed}>, fallback: mixed}|null
+     * @return LoweredMatch|null
      */
     private function matchLoweredShape(AbstractNode $node): ?array
     {

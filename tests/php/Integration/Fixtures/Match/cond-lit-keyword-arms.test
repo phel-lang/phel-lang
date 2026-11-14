@@ -3,5 +3,5 @@
 --PHP--
 (function($x): int {
   static $__phel_const_0, $__phel_const_1;
-  return match ($x) { ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")) => 1, ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")) => 2, default => 99 };
+  return match (($__phel_match_1 = $x)) { ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")) => 1, ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")) => 2, default => ($__phel_match_1 instanceof \Phel\Lang\EqualsInterface ? match (true) { ($x === ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")) || ($x instanceof \Phel\Lang\EqualsInterface && $x->equals(($__phel_const_0 ??= \Phel\Lang\Keyword::create("a"))))) => 1, ($x === ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")) || ($x instanceof \Phel\Lang\EqualsInterface && $x->equals(($__phel_const_1 ??= \Phel\Lang\Keyword::create("b"))))) => 2, default => 99 } : 99) };
 });
