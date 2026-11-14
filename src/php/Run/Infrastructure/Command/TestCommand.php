@@ -175,6 +175,11 @@ HELP)
                 null,
                 ['auto', 'max'],
             )->addOption(
+                TestCommandOptionParser::OPT_TIMEOUT,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'With --parallel: seconds one namespace may run. A namespace past the limit is stopped and reported as an error naming the last test that started; the rest of the run continues. No limit by default.',
+            )->addOption(
                 TestCommandOptionParser::OPT_WATCH,
                 null,
                 InputOption::VALUE_NONE,
@@ -228,6 +233,11 @@ HELP)
                 $this->getFacade()->createCpuCountDetector(),
             );
             $options = $optionParser->collectOptions($input);
+            $timeoutSeconds = $optionParser->decideTimeout(
+                $input,
+                $workerCount,
+                $input->getOption(self::OPT_COVERAGE) !== false,
+            );
         } catch (InvalidArgumentException $invalidArgumentException) {
             return InvocationError::report($output, $invalidArgumentException->getMessage());
         }
@@ -296,7 +306,7 @@ HELP)
 
                 $outcome = $this->getFacade()
                     ->createParallelTestOrchestrator()
-                    ->run($namespacesToRun, $options, $workerCount, $output);
+                    ->run($namespacesToRun, $options, $workerCount, $output, $timeoutSeconds);
 
                 $this->writeResourceUsage($output, $options);
 

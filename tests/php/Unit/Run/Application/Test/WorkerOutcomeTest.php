@@ -17,6 +17,12 @@ final class WorkerOutcomeTest extends TestCase
         self::assertTrue(WorkerOutcome::WorkerDied->isRetryable());
     }
 
+    public function test_a_timeout_is_not_retried_because_a_hung_test_hangs_again(): void
+    {
+        self::assertFalse(WorkerOutcome::TimedOut->isRetryable());
+        self::assertSame(WorkerOutcome::TimedOut, WorkerOutcome::fromFrameValue('timed-out'));
+    }
+
     public function test_reads_the_outcome_a_worker_reported(): void
     {
         self::assertSame(WorkerOutcome::CompileError, WorkerOutcome::fromFrameValue('compile-error'));

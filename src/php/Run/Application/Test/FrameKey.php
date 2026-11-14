@@ -24,6 +24,9 @@ final class FrameKey
     /** Ordered `{ns, file}` entries the worker evaluates before running the namespace. */
     public const string LOAD_ORDER = 'load-order';
 
+    /** File the worker overwrites with the name of each test as it starts, so a timeout can name it. */
+    public const string PROGRESS_FILE = 'progress-file';
+
     public const string TYPE = 'type';
 
     public const string OK = 'ok';

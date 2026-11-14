@@ -40,6 +40,12 @@ enum WorkerOutcome: string
      */
     case WorkerDied = 'worker-died';
 
+    /**
+     * The namespace ran past `--timeout` and the parent stopped its worker.
+     * A test that hangs once hangs again, so it is not retried.
+     */
+    case TimedOut = 'timed-out';
+
     public static function fromFrameValue(mixed $raw): self
     {
         if (!is_string($raw)) {

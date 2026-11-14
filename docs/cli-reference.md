@@ -176,7 +176,7 @@ problem on stderr and leaves stdout empty. The rule and what it covers:
 | `lint` | a diagnostic is an error (warnings exit `0`) | a path is missing, an unknown `--format`, a `--config` file that is not there, no readable files, or the linter itself failed |
 | `balance` | a file is unbalanced, or `--fix` could not repair it | a path is missing |
 | `format` | `--dry-run` would change a file, or a file could not be formatted | a path is missing |
-| `test` | a test failed or errored, or a `^:focus` run under `CI` or `--fail-on-focus` | a path is missing, an unknown `--reporter`, a bad `--parallel`, `--repeat`, `--seed` or `--slowest` value, `--changed` outside a git repository |
+| `test` | a test failed or errored, or a `^:focus` run under `CI` or `--fail-on-focus` | a path is missing, an unknown `--reporter`, a bad `--parallel`, `--repeat`, `--seed`, `--slowest` or `--timeout` value, `--timeout` without a parallel run, `--changed` outside a git repository |
 | `bench` | a benchmark is slower than `--tolerance` against `--ref`, nothing to load in the given paths, or a benchmark threw | a path is missing, a `--ref` file that is not there, a bad `--ab`, `--pairs`, `--revs`, `--iterations`, `--warmup` or `--tolerance` value |
 | `mutate` | the score is below `--min-msi` or `--min-covered-msi`, the suite fails without mutants, or a worker could not load | a path or `--tests` path is missing, a bad option value, `--changed` outside a git repository |
 | `run` | the program threw | no entry point, a path or namespace that is not there |
@@ -284,6 +284,13 @@ XML document (a `<testsuite>` per namespace, a `<testcase>` per assertion with
 reporters (`default`, `testdox`, `dot`) are human text.
 `--parallel` gives the same JUnit XML document a serial run gives; `tap` and
 a custom reporter run serially.
+
+`test --parallel=N --timeout=<seconds>` limits how long one namespace may run.
+A namespace past the limit is stopped and reported as an error that names the
+last test that started; in JUnit XML it is a `<testcase>` with an `<error
+type="Timeout">`. The other namespaces still run. `--timeout` needs a parallel
+run: one PHP process cannot interrupt its own loop without `pcntl`, which
+Windows lacks, so a serial run exits 2.
 
 ### nREPL
 
