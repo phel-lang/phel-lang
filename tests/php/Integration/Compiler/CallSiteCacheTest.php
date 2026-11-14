@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler;
 
+use DateTimeImmutable;
 use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
+use PHPUnit\Framework\Attributes\DataProvider;
+
 use PHPUnit\Framework\TestCase;
 
 use function array_map;
@@ -40,6 +44,206 @@ final class CallSiteCacheTest extends TestCase
         );
 
         $this->compiler = new CompilerFacade();
+    }
+
+    #[DataProvider('bindableCoreEqualities')]
+    public function test_bindable_core_equality_keeps_runtime_dispatch(string $tag, string $source, bool $keyword): void
+    {
+        $original = Phel::getDefinition('phel.core', '=');
+        $meta = Phel::getDefinitionMetaData('phel.core', '=');
+        self::assertNotNull($meta);
+        $bindableMeta = $meta->put(Keyword::create($tag), true);
+        Phel::addDefinition('phel.core', '=', $original, $bindableMeta);
+        BuildFacade::enableBuildMode();
+
+        try {
+            $function = $this->compiler->eval($source, new CompileOptions()->setOptimizationLevel(2));
+            Phel::addDefinition('phel.core', '=', static fn(mixed ...$args): bool => false, $bindableMeta);
+
+            self::assertFalse($function($keyword ? Keyword::create('a') : 1));
+        } finally {
+            Phel::addDefinition('phel.core', '=', $original, $meta);
+            BuildFacade::disableBuildMode();
+        }
+    }
+
+    public static function bindableCoreEqualities(): iterable
+    {
+        foreach (['redef', 'dynamic'] as $tag) {
+            yield $tag . ' guarded int' => [$tag, '(fn [x] (= x 1))', false];
+            yield $tag . ' typed keyword' => [$tag, '(fn [x] (= x :a))', true];
+        }
+    }
+
+    public function test_core_function_values_use_slots_without_changing_identity(): void
+    {
+        BuildFacade::enableBuildMode();
+        try {
+            $output = $this->compileSnippet('(fn [] inc)');
+            $function = $this->compiler->eval('(fn [] inc)', new CompileOptions()->setOptimizationLevel(2));
+        } finally {
+            BuildFacade::disableBuildMode();
+        }
+
+        self::assertStringContainsString('($__phel_call_0 ??= \\' . Registry::class . '::readRoot("phel.core", "inc"))', $output);
+        self::assertStringNotContainsString('::fnSlot(', $output);
+        self::assertSame(Phel::getDefinition('phel.core', 'inc'), $function());
+        self::assertSame($function(), $function());
+    }
+
+    #[DataProvider('bindableCoreValues')]
+    public function test_bindable_core_function_values_are_not_pinned(string $tag): void
+    {
+        $original = Phel::getDefinition('phel.core', 'inc');
+        $meta = Phel::getDefinitionMetaData('phel.core', 'inc');
+        self::assertNotNull($meta);
+        $bindableMeta = $meta->put(Keyword::create($tag), true);
+        Phel::addDefinition('phel.core', 'inc', $original, $bindableMeta);
+        BuildFacade::enableBuildMode();
+
+        try {
+            $function = $this->compiler->eval('(fn [] inc)', new CompileOptions()->setOptimizationLevel(2));
+            self::assertSame($original, $function());
+            $replacement = static fn(int $x): int => $x;
+            Phel::addDefinition('phel.core', 'inc', $replacement, $bindableMeta);
+
+            self::assertSame($replacement, $function());
+        } finally {
+            Phel::addDefinition('phel.core', 'inc', $original, $meta);
+            BuildFacade::disableBuildMode();
+        }
+    }
+
+    public static function bindableCoreValues(): iterable
+    {
+        yield 'redef' => ['redef'];
+        yield 'dynamic' => ['dynamic'];
+    }
+
+    public function test_a_cached_core_function_value_keeps_foreign_callable_identity(): void
+    {
+        $original = Phel::getDefinition('phel.core', 'inc');
+        $meta = Phel::getDefinitionMetaData('phel.core', 'inc');
+        $replacement = static fn(int $x): int => $x + 1;
+        Phel::addDefinition('phel.core', 'inc', $replacement, $meta);
+        BuildFacade::enableBuildMode();
+
+        try {
+            $function = $this->compiler->eval('(fn [] inc)', new CompileOptions()->setOptimizationLevel(2));
+
+            self::assertSame($replacement, $function());
+            self::assertSame($replacement, $function());
+        } finally {
+            Phel::addDefinition('phel.core', 'inc', $original, $meta);
+            BuildFacade::disableBuildMode();
+        }
+    }
+
+    public function test_a_core_function_value_still_reads_the_root_outside_build_mode(): void
+    {
+        BuildFacade::disableBuildMode();
+        $original = Phel::getDefinition('phel.core', 'inc');
+        $meta = Phel::getDefinitionMetaData('phel.core', 'inc');
+
+        try {
+            $function = $this->compiler->eval('(fn [] inc)', new CompileOptions()->setOptimizationLevel(2));
+            self::assertSame($original, $function());
+            $replacement = static fn(int $x): int => $x;
+            Phel::addDefinition('phel.core', 'inc', $replacement, $meta);
+
+            self::assertSame($replacement, $function());
+        } finally {
+            Phel::addDefinition('phel.core', 'inc', $original, $meta);
+        }
+    }
+
+    public function test_core_function_values_passed_to_higher_order_calls_match_the_runtime(): void
+    {
+        BuildFacade::enableBuildMode();
+        try {
+            $function = $this->compiler->eval('(fn [xs] (reduce + 0 (filter odd? xs)))', new CompileOptions()->setOptimizationLevel(2));
+        } finally {
+            BuildFacade::disableBuildMode();
+        }
+
+        $values = Phel::vector([-3, -2, -1, 0, 1, 2, 3]);
+        $reduce = Phel::getDefinition('phel.core', 'reduce');
+        $filter = Phel::getDefinition('phel.core', 'filter');
+        $odd = Phel::getDefinition('phel.core', 'odd?');
+        $plus = Phel::getDefinition('phel.core', '+');
+
+        self::assertSame($reduce($plus, 0, $filter($odd, $values)), $function($values));
+    }
+
+    public function test_a_square_checks_its_local_integer_type_once(): void
+    {
+        BuildFacade::enableBuildMode();
+        try {
+            $output = $this->compileSnippet('(fn [x] (* x x))');
+            $effects = $this->compileSnippet('(fn [f] (* (f) (f)))');
+        } finally {
+            BuildFacade::disableBuildMode();
+        }
+
+        self::assertSame(1, substr_count($output, '\\is_int($x)'));
+        self::assertSame(2, substr_count($effects, '($f)()'));
+    }
+
+    public function test_parity_calls_guard_native_integer_bits(): void
+    {
+        BuildFacade::enableBuildMode();
+        try {
+            $output = $this->compileSnippet('(fn [x] [(even? x) (odd? x)])');
+        } finally {
+            BuildFacade::disableBuildMode();
+        }
+
+        self::assertStringContainsString('($x & 1) === 0', $output);
+        self::assertStringContainsString('($x & 1) === 1', $output);
+        self::assertSame(2, substr_count($output, '\\is_int($x)'));
+    }
+
+    public function test_a_caught_exception_uses_instance_method_dispatch(): void
+    {
+        $output = $this->compileSnippet('(fn [f] (try (f) (catch \\Exception e (.getMessage e))))');
+
+        self::assertStringNotContainsString('is_string', $output);
+        self::assertMatchesRegularExpression('/\$e_\d+->getMessage\(\)/', $output);
+    }
+
+    public function test_a_caught_exception_stays_known_inside_a_stable_function_argument(): void
+    {
+        $output = $this->compileSnippet('(fn [f] (try (f) (catch \\Exception e (println (.getMessage e)))))');
+
+        self::assertStringNotContainsString('is_string', $output);
+        self::assertMatchesRegularExpression('/\$e_\d+->getMessage\(\)/', $output);
+    }
+
+    #[DataProvider('mutableCatchBodies')]
+    public function test_a_mutated_catch_binding_keeps_runtime_dispatch(string $body): void
+    {
+        $this->compiler->eval('(defn replace-caught [^:by-ref x] (php/sscanf "DateTimeImmutable" "%s" (php/ref x)))');
+        Symbol::resetGen();
+        $function = $this->compiler->eval(
+            '(fn [] (try (throw (new \\Exception "caught"))'
+            . ' (catch \\Exception e ' . $body . ')))',
+            new CompileOptions()->setOptimizationLevel(2),
+        );
+
+        self::assertSame(DateTimeImmutable::getLastErrors(), $function());
+    }
+
+    public static function mutableCatchBodies(): iterable
+    {
+        yield 'explicit PHP reference' => ['(php/sscanf "DateTimeImmutable" "%s" (php/ref e)) (.getLastErrors e)'];
+        yield 'reference in a captured closure' => ['((fn [] (php/sscanf "DateTimeImmutable" "%s" (php/ref e)) (.getLastErrors e)))'];
+        yield 'Phel function with a reference parameter' => ['(replace-caught e) (.getLastErrors e)'];
+        yield 'direct PHP assignment' => ['(php/= e "DateTimeImmutable") (.getLastErrors e)'];
+        yield 'PHP eval' => ['(php/eval "$e_1 = \'DateTimeImmutable\';") (.getLastErrors e)'];
+        yield 'PHP extract' => ['(php/extract (php-associative-array "e_1" "DateTimeImmutable")) (.getLastErrors e)'];
+        yield 'vector metadata' => ['(let [v ^{:touch (php/= e "DateTimeImmutable")} []] (php/count v)) (.getLastErrors e)'];
+        yield 'set metadata' => ['(let [v ^{:touch (php/= e "DateTimeImmutable")} #{}] (php/count v)) (.getLastErrors e)'];
+        yield 'map metadata' => ['(let [v ^{:touch (php/= e "DateTimeImmutable")} {}] (php/count v)) (.getLastErrors e)'];
     }
 
     public function test_build_mode_on_hoists_call_sites_to_static_slots(): void

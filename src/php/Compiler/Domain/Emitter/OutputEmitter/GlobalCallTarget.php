@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
-use Phel\Lang\Keyword;
+use Phel\Shared\CompilerConstants;
 
 use function str_starts_with;
 
@@ -33,7 +33,7 @@ final readonly class GlobalCallTarget
             return false;
         }
 
-        return self::hasFnMeta($fn);
+        return $fn->hasFnMeta();
     }
 
     /**
@@ -51,6 +51,14 @@ final readonly class GlobalCallTarget
             && !self::isBindable($fn);
     }
 
+    public static function isCacheableCoreFnValue(GlobalVarNode $node): bool
+    {
+        return $node->getNamespace() === CompilerConstants::PHEL_CORE_NAMESPACE
+            && $node->hasFnMeta()
+            && !self::isBindable($node)
+            && !$node->useReference();
+    }
+
     /**
      * A `^:dynamic` var can be rebound with `binding`; `^:redef` asks to stay
      * interceptable (#3184). Both keep the full `\Phel::getDefinition` read,
@@ -59,12 +67,7 @@ final readonly class GlobalCallTarget
      */
     public static function isBindable(GlobalVarNode $fn): bool
     {
-        $meta = $fn->getMeta();
-
-        return array_any(
-            ['dynamic', 'redef'],
-            static fn(string $tag): bool => (bool) $meta->find($tag) || (bool) $meta->find(Keyword::create($tag)),
-        );
+        return $fn->isRebindable();
     }
 
     /**
@@ -84,18 +87,4 @@ final readonly class GlobalCallTarget
             || str_starts_with($boundTo, $expected . '.');
     }
 
-    /**
-     * `defn` / `defmacro` always set `arglists` (and `min-arity`); plain
-     * `(def x value)` does not. Using the meta map keeps the check
-     * independent of the runtime registry being populated.
-     */
-    private static function hasFnMeta(GlobalVarNode $fn): bool
-    {
-        $meta = $fn->getMeta();
-        if ($meta->find('arglists') !== null) {
-            return true;
-        }
-
-        return $meta->find(Keyword::create('arglists')) !== null;
-    }
 }

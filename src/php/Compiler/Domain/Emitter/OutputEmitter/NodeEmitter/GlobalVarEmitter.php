@@ -24,12 +24,21 @@ final class GlobalVarEmitter implements NodeEmitterInterface
         assert($node instanceof GlobalVarNode);
 
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $slot = $this->outputEmitter->callSlotFor($node);
+        if ($slot !== null) {
+            $this->outputEmitter->emitStr('($__phel_call_' . $slot . ' ??= ');
+        }
+
         $this->outputEmitter->emitStr($this->readerFor($node) . '("');
 
         $this->outputEmitter->emitStr(PhpStringEscape::doubleQuoted($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace())));
         $this->outputEmitter->emitStr('", "');
         $this->outputEmitter->emitStr(PhpStringEscape::doubleQuoted($node->getName()->getName()));
         $this->outputEmitter->emitStr('")');
+        if ($slot !== null) {
+            $this->outputEmitter->emitStr(')');
+        }
+
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 

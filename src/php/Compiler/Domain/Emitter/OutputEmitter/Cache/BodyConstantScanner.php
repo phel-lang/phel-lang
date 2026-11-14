@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
@@ -119,6 +120,14 @@ final readonly class BodyConstantScanner
         ) {
             $scope->reserveCallSlot($node);
             // Fall through so child args are still scanned for nested literals/calls.
+        }
+
+        if ($cacheCalls
+            && $node instanceof GlobalVarNode
+            && GlobalCallTarget::isCacheableCoreFnValue($node)
+            && !$node->getEnv()->isContext(NodeEnvironment::CONTEXT_STATEMENT)
+        ) {
+            $scope->reserveCallSlot($node);
         }
 
         foreach ($this->children($node) as $child) {
@@ -247,7 +256,9 @@ final readonly class BodyConstantScanner
     private function children(AbstractNode $node): array
     {
         return match (true) {
-            $node instanceof CallNode => [$node->getFn(), ...$node->getArguments()],
+            $node instanceof CallNode => $node->getFn() instanceof GlobalVarNode
+                ? $node->getArguments()
+                : [$node->getFn(), ...$node->getArguments()],
             $node instanceof ApplyNode => [$node->getFn(), ...$node->getArguments()],
             $node instanceof IfNode => [$node->getTestExpr(), $node->getThenExpr(), $node->getElseExpr()],
             $node instanceof DoNode => [...$node->getStmts(), $node->getRet()],

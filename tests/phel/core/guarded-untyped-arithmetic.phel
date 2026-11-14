@@ -32,6 +32,15 @@
     (is (same? (outcome #(apply - [-1 a])) (outcome #(- -1 a))) (str "(- -1 " (pr-str a) ")"))
     (is (same? (outcome #(apply * [a -2])) (outcome #(* a -2))) (str "(* " (pr-str a) " -2)"))))
 
+(deftest test-square-guard-keeps-runtime-results-and-promotion
+  (doseq [x numbers]
+    (is (same? (outcome #(apply * [x x])) (outcome #(* x x)))
+        (str "(* " (pr-str x) " " (pr-str x) ")")))
+  (let [calls   (atom 0)
+        operand (fn [] (swap! calls inc))]
+    (is (= 2 (* (operand) (operand))))
+    (is (= 2 @calls))))
+
 (deftest test-overflow-promotes-to-bigint
   (let [hi php/PHP_INT_MAX
         lo php/PHP_INT_MIN]

@@ -28,6 +28,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectSetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpRefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PropertyOrConstantAccessNode;
 use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
@@ -39,6 +40,11 @@ use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
+use Phel\Lang\Symbol;
+
+use function in_array;
+use function ltrim;
+use function strtolower;
 
 /**
  * Walks a subtree and returns the names of every `LocalVarNode` it
@@ -57,6 +63,57 @@ use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
  */
 final class LocalVarReferences
 {
+    public static function mayBeMutated(AbstractNode $node, Symbol $binding): bool
+    {
+        $name = $binding->getName();
+        if ($node instanceof PhpRefNode) {
+            return $node->getName()->getName() === $name;
+        }
+
+        if ($node instanceof LocalVarNode) {
+            return false;
+        }
+
+        if (($node instanceof VectorNode || $node instanceof SetNode) && $node->getMeta() instanceof MapNode
+            || $node instanceof MapNode && $node->getLiteralMeta() instanceof MapNode
+        ) {
+            return true;
+        }
+
+        if ($node instanceof CallNode || $node instanceof ApplyNode) {
+            $callee = $node->getFn();
+            if (!$callee instanceof PhpVarNode
+                && !($callee instanceof GlobalVarNode && $callee->hasFnMeta() && !$callee->isRebindable())
+            ) {
+                return true;
+            }
+
+            if ($callee instanceof PhpVarNode
+                && in_array(strtolower(ltrim($callee->getAbsoluteName(), '\\')), ['eval', 'extract', 'include', 'include_once', 'require', 'require_once'], true)
+            ) {
+                return true;
+            }
+        }
+
+        $arguments = match (true) {
+            $node instanceof CallNode, $node instanceof ApplyNode => $node->getArguments(),
+            $node instanceof MethodCallNode, $node instanceof PhpNewNode => $node->getArgs(),
+            default => [],
+        };
+        foreach ($arguments as $argument) {
+            if ($argument instanceof LocalVarNode && $argument->getName()->getName() === $name) {
+                return true;
+            }
+        }
+
+        $children = self::children($node);
+        if ($children === null) {
+            return true;
+        }
+
+        return array_any($children, static fn(AbstractNode $child): bool => self::mayBeMutated($child, $binding));
+    }
+
     /**
      * @return list<string>|null `null` means "subtree contains nodes we
      *                           don't recognise; assume worst case"

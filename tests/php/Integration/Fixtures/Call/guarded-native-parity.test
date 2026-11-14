@@ -1,0 +1,15 @@
+--PHEL--
+(fn [x] (even? x))
+(fn [x] (odd? x))
+(fn [f] (odd? (f)))
+--PHP--
+(function($x): bool {
+  static $__phel_call_0;
+  return (\is_int($x) ? (($x & 1) === 0) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "even?"))->__invoke($x));
+});(function($x): bool {
+  static $__phel_call_0;
+  return (\is_int($x) ? (($x & 1) === 1) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "odd?"))->__invoke($x));
+});(function($f): bool {
+  static $__phel_call_0;
+  return (\is_int(($__phel_guard_1 = ($f)())) ? (($__phel_guard_1 & 1) === 1) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "odd?"))->__invoke($__phel_guard_1));
+});

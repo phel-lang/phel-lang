@@ -1,0 +1,11 @@
+--PHEL--
+(fn [x] (* x x))
+(fn [f] (* (f) (f)))
+--PHP--
+(function($x) {
+  static $__phel_call_0;
+  return (\is_int($x) && \is_int($__phel_guard_1 = $x * $x) ? $__phel_guard_1 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "*"))->invokeArity2($x, $x));
+});(function($f) {
+  static $__phel_call_0;
+  return (\is_int(($__phel_guard_3 = ($f)())) & \is_int(($__phel_guard_4 = ($f)())) && \is_int($__phel_guard_5 = $__phel_guard_3 * $__phel_guard_4) ? $__phel_guard_5 : ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "*"))->invokeArity2($__phel_guard_3, $__phel_guard_4));
+});

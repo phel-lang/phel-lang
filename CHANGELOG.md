@@ -68,6 +68,7 @@ PHP API:
 
 - A warm `phel run` or `phel test` skips rescanning source directories, and a file without `ns` no longer forces a full reread (about 2x faster). (#3699 #3629)
 - `case` dispatch with keyword statement arms runs about 6.5x faster. Literal-arm dispatch preserves value equality for big numbers and keywords read from cached data, with about 5% overhead in keyword dispatch. (#3884)
+- `for` filtering native integers with `even?` takes about 9.5% less time. Built code reuses core function values, and repeated arithmetic operands and caught exception methods skip redundant type checks. (#3885)
 
 ### Fixed
 
@@ -75,7 +76,7 @@ Language:
 
 - Reader: `\é`, `\😀` and escape pairs such as `\uD83D\uDE00` read as whole characters, strings with invalid UTF-8 compile as data, float literals keep their exact value, large integer literals and arithmetic past the native range stay `BigInt` (including `^int` parameters, inferred loops and negating `PHP_INT_MIN`), and arithmetic on integer literals above 2^53 stays exact. Quasiquoted sets evaluate `~`, regex literals accept an escaped slash, symbols such as `foo#bar` round-trip, scripts may start with `#!`, and reader prefixes accept whitespace before their form. `(ns a/b)` fails with `Invalid namespace`. Constant-folded `quot`, `min`, `max` and `+` return what the runtime returns, and `(quot -9223372036854775808 -1)` no longer stops compilation. (#3708 #3711 #3664 #3522 #3665 #3676 #3706 #3799 #3800 #3801 #3714 #3713 #3668 #3852 #3854 #3853)
 - Definitions report a clear compiler error: duplicate arities, fields, interface methods and parameters, non-symbol type names, empty symbols, malformed member names, wrong interface implementations and non-var `binding` targets. `(fn foo)` reports `PHEL002`, `(try ())` works, and recursive macro expansion stops after 1,000 levels. (#3534 #3803 #3716 #3720 #3667 #3537 #3646 #3647 #3648 #3719)
-- Bindings keep their values when names repeat, share a PHP spelling or match superglobals; vector destructuring supports `:as`, and struct fields may contain an apostrophe. Function `:arglists` and documented signatures keep their source parameter names. A namespace's own definitions win over `:use` aliases in bare values and calls, same-namespace type tags work outside builds, and class names such as `PDO` no longer warn in constructor, static or callable positions. (#3534 #3576 #3666 #3721 #3722 #3717 #3654 #3537 #3886)
+- Bindings keep their values when names repeat, share a PHP spelling or match superglobals; vector destructuring supports `:as`, and struct fields may contain an apostrophe. Function `:arglists` and documented signatures keep their source parameter names. A namespace's own definitions win over `:use` aliases in bare values and calls, same-namespace type tags work outside builds, and class names such as `PDO` no longer warn in constructor, static or callable positions. `^:dynamic` and `^:redef` core functions keep runtime dispatch under optimization. (#3534 #3576 #3666 #3721 #3722 #3717 #3654 #3537 #3886 #3885)
 - Anonymous functions capture only the enclosing locals their body uses. They captured every local in scope, so a small callback could keep a large value in memory as long as it lived; creating one is also about 8% faster. (#3880)
 
 Collections and values:

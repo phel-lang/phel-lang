@@ -171,7 +171,12 @@ final readonly class GuardedCoreCallEmitter
         $this->emitFirstRead($operand);
 
         $predicate = GuardedCoreCallSpecialization::numericPredicateSuffix($name);
-        if ($predicate !== null) {
+        $parityBit = GuardedCoreCallSpecialization::parityBit($name);
+        if ($parityBit !== null) {
+            $this->outputEmitter->emitStr(') ? ((', $loc);
+            $this->emitRead($operand);
+            $this->outputEmitter->emitStr(' & 1) === ' . $parityBit . ') : ', $loc);
+        } elseif ($predicate !== null) {
             $this->outputEmitter->emitStr(') ? (', $loc);
             $this->emitRead($operand);
             $this->outputEmitter->emitStr($predicate . ') : ', $loc);
@@ -201,9 +206,19 @@ final readonly class GuardedCoreCallEmitter
     {
         $joiner = $isFirstRead && $this->hasTemporary($operands) ? ' & ' : ' && ';
         $first = true;
+        $guardedLocals = [];
         foreach ($operands as $operand) {
             if ($operand[0] instanceof LiteralNode) {
                 continue;
+            }
+
+            if ($operand[0] instanceof LocalVarNode) {
+                $name = $operand[0]->getName()->getName();
+                if (isset($guardedLocals[$name])) {
+                    continue;
+                }
+
+                $guardedLocals[$name] = true;
             }
 
             $loc = $operand[0]->getStartSourceLocation();

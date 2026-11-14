@@ -64,6 +64,21 @@
     (is (bigint? (inc hi)))
     (is (bigint? (dec lo)))))
 
+(deftest test-parity-agrees-with-the-runtime-numeric-tower
+  (doseq [x (concat values [-3 -2 2 1/2 -3/2 2M 3.5M])]
+    (is (identical? (outcome #(apply even? [x])) (outcome #(even? x)))
+        (str "(even? " (pr-str x) ")"))
+    (is (identical? (outcome #(apply odd? [x])) (outcome #(odd? x)))
+        (str "(odd? " (pr-str x) ")"))))
+
+(deftest test-parity-operands-run-once
+  (doseq [x [3 -2 2.5 1/2 (bigint 3) nil]]
+    (let [calls   (atom 0)
+          operand (fn [] (swap! calls inc) x)]
+      (outcome #(even? (operand)))
+      (outcome #(odd? (operand)))
+      (is (= 2 @calls)))))
+
 ;; An operand that is not a local or a literal is evaluated once, in order,
 ;; whichever branch the guard takes.
 (deftest test-spilled-operands-run-once-in-order

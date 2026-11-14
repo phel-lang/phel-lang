@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CatchNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Ast\Reference\LocalVarReferences;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
@@ -229,6 +230,9 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         // never overwrites a param or local that munges to the same name.
         $shadow = LocalBindingName::shadow($name);
         $catchBody = $this->analyzeCatchBody($catch, $name, $shadow, $env, $catchContext);
+        if (!LocalVarReferences::mayBeMutated($catchBody, $shadow)) {
+            $catchBody->getEnv()->publishInferredType($shadow, 'object');
+        }
 
         return new CatchNode(
             $env,
