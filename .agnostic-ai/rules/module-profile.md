@@ -41,7 +41,8 @@ Internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 
 | Path | Role |
 |------|------|
-| `Domain/ProfilerSession.php` | Hook impl; per-call stack, timing, `stop()` → `ProfileReport` |
+| `Domain/ProfilerSession.php` | Hook impl; call stacks, timing, `stop()` → `ProfileReport` |
+| `Domain/CallStack.php` | Open frames of one fiber, or of the main program |
 | `Domain/ProfilingFn.php` | Proxy `extends AbstractFn`; times `__invoke` |
 | `Domain/ProfileReport.php` | Immutable stats snapshot |
 | `Domain/Formatter/{Table,Json}Formatter.php` | Render report |
@@ -53,6 +54,6 @@ Internal CLI plumbing, outside the public PHP semver surface (ADR 0021).
 - `ProfilingFn extends AbstractFn` so downstream `instanceof` checks pass; `ProfilerSession::wrapFn()` copies the inner fn's metadata onto the proxy with `withMeta()`.
 - Fn name comes from the inner fn's `BOUND_TO` class constant (reflection); falls back to `<anonymous>`.
 - Self-recursive calls are emitted as `$this(...)`, not a registry lookup, so they bypass the proxy and stay untimed: outer entry counted, recursion depth not. This is a compiler emit detail (commit bee78ffe), not a `ProfilingFn` constraint.
-- Self time: `ProfilerSession` keeps a per-call stack and subtracts each child's inclusive time from its parent's self-time. Unmatched `exit()` on an empty stack is ignored.
+- Self time: `ProfilerSession` keeps one call stack for the main program and one per fiber (a `WeakMap`), so interleaved fibers never pop each other's frames, and subtracts each child's inclusive time from its parent's self-time. Unmatched `exit()` on an empty stack is ignored.
 - The hook is global and not reentrant; never run a profiled script inside another profiling context.
 - `ProfileCommand` installs the hook before the run and clears it (`Registry::setProfilerHook(null)`) in a `finally` block.

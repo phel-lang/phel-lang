@@ -163,6 +163,7 @@ Builds and caches:
 
 Commands and test output:
 
+- `phel profile` keeps a call stack per fiber, so calls from interleaved fibers count toward the function that made them. A fiber returning used to close another fiber's open call. (#3816)
 - `phel profile -o` exits 1 and names the path on stderr when it cannot write the JSON report. It used to exit 0 and print the error on stdout. (#3815)
 - Global options before `run`, as in `phel --no-ansi run app.phel --flag=value`, keep script arguments and a bare `--debug` working. The script's options used to fail as unknown, and `--debug` took the script path as its value. (#3814)
 - `thrown-with-msg?` matches a regex such as `#"bad"` against the exception message, as its docstring says. A string that does not look like `/.../` still needs the exact message. It used to compare the regex text with the message and fail. (#3813)

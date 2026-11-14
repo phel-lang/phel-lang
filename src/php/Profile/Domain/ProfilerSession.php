@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Profile\Domain;
 
+use Fiber;
 use Phel\Lang\AbstractFn;
 use Phel\Lang\ProfilerHookInterface;
+use WeakMap;
 
 use function array_pop;
+use function count;
 use function hrtime;
 
 /**
@@ -17,14 +20,15 @@ use function hrtime;
  */
 final class ProfilerSession implements ProfilerHookInterface
 {
+    private readonly CallStack $mainStack;
+
     /**
-     * Positional tuple per frame: [name, enterNs, childInclusiveNs]. Keyed
-     * arrays would allocate a hash slot per call; the positional layout
-     * keeps `enter` to a single push on every fn invocation.
+     * One stack per fiber: fibers interleave, so a shared stack would pop
+     * another fiber's frame when one of them returns.
      *
-     * @var list<array{0:string, 1:int, 2:int}>
+     * @var WeakMap<object, CallStack>
      */
-    private array $stack = [];
+    private WeakMap $fiberStacks;
 
     /** @var array<string, FnStat> */
     private array $fnStats = [];
@@ -32,13 +36,15 @@ final class ProfilerSession implements ProfilerHookInterface
     /** @var array<string, array<string, float>> */
     private array $phaseMs = [];
 
-    private int $depth = 0;
-
     private readonly int $startedAtNs;
 
     public function __construct()
     {
         $this->startedAtNs = hrtime(true);
+        $this->mainStack = new CallStack();
+        /** @var WeakMap<object, CallStack> $fiberStacks */
+        $fiberStacks = new WeakMap();
+        $this->fiberStacks = $fiberStacks;
     }
 
     /**
@@ -61,8 +67,9 @@ final class ProfilerSession implements ProfilerHookInterface
      */
     public function enter(string $name): void
     {
-        $this->stack[] = [$name, (int) hrtime(true), 0];
-        ++$this->depth;
+        $fiber = Fiber::getCurrent();
+        $stack = $fiber instanceof Fiber ? $this->fiberStack($fiber) : $this->mainStack;
+        $stack->frames[] = [$name, (int) hrtime(true), 0];
     }
 
     /**
@@ -72,18 +79,20 @@ final class ProfilerSession implements ProfilerHookInterface
      */
     public function exit(): void
     {
-        $frame = array_pop($this->stack);
+        $fiber = Fiber::getCurrent();
+        $stack = $fiber instanceof Fiber ? $this->fiberStack($fiber) : $this->mainStack;
+        $frame = array_pop($stack->frames);
         if ($frame === null) {
             return;
         }
 
-        --$this->depth;
         $inclusive = hrtime(true) - $frame[1];
         $this->recordCall($frame[0], $inclusive, $inclusive - $frame[2]);
 
-        if ($this->depth > 0) {
+        $depth = count($stack->frames);
+        if ($depth > 0) {
             /** @psalm-suppress PropertyTypeCoercion */
-            $this->stack[$this->depth - 1][2] += $inclusive;
+            $stack->frames[$depth - 1][2] += $inclusive;
         }
     }
 
@@ -111,6 +120,20 @@ final class ProfilerSession implements ProfilerHookInterface
             $this->phaseMs,
             (hrtime(true) - $this->startedAtNs) / 1_000_000,
         );
+    }
+
+    /**
+     * @param Fiber<mixed, mixed, mixed, mixed> $fiber
+     */
+    private function fiberStack(Fiber $fiber): CallStack
+    {
+        $stack = $this->fiberStacks[$fiber] ?? null;
+        if (!$stack instanceof CallStack) {
+            $stack = new CallStack();
+            $this->fiberStacks[$fiber] = $stack;
+        }
+
+        return $stack;
     }
 
     private function recordCall(string $name, int $inclusive, int $self): void
