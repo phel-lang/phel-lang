@@ -83,7 +83,9 @@ final class PhelCoreCall
             return null;
         }
 
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+            || GlobalCallTarget::isBindable($fn)
+        ) {
             return null;
         }
 

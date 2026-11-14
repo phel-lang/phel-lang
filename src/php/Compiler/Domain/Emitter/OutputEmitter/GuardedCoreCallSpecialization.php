@@ -74,6 +74,8 @@ final readonly class GuardedCoreCallSpecialization
         'neg?' => ' < 0',
     ];
 
+    private const array PARITY_BITS = ['even?' => 0, 'odd?' => 1];
+
     /** The guard under which the native operator agrees with the runtime fn. */
     private const array GUARDS = [
         '<' => '\\is_scalar',
@@ -83,6 +85,8 @@ final readonly class GuardedCoreCallSpecialization
         'pos?' => '\\is_scalar',
         'neg?' => '\\is_scalar',
         'zero?' => '\\is_int',
+        'even?' => '\\is_int',
+        'odd?' => '\\is_int',
         'inc' => '\\is_int',
         'dec' => '\\is_int',
         '=' => '\\is_int',
@@ -118,7 +122,7 @@ final readonly class GuardedCoreCallSpecialization
             return self::isEqualityEligible($node, $args) ? $name : null;
         }
 
-        if (isset(self::NUMERIC_PREDICATES[$name])) {
+        if (isset(self::NUMERIC_PREDICATES[$name]) || isset(self::PARITY_BITS[$name])) {
             return self::isUnaryEligible($args) && TypePredicateSpecialization::isNumericPredicate($node) === null
                 ? $name
                 : null;
@@ -170,6 +174,11 @@ final readonly class GuardedCoreCallSpecialization
     public static function numericPredicateSuffix(string $name): ?string
     {
         return self::NUMERIC_PREDICATES[$name] ?? null;
+    }
+
+    public static function parityBit(string $name): ?int
+    {
+        return self::PARITY_BITS[$name] ?? null;
     }
 
     /**

@@ -1,0 +1,10 @@
+--PHEL--
+(fn [f] (try (f) (catch \Exception e (.getMessage e))))
+--PHP--
+(function($f) {
+  try {
+    return ($f)();
+  } catch (\Exception $e_1) {
+    return ($e_1->getMessage());
+  }
+});

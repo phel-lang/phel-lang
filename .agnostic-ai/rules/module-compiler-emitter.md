@@ -21,6 +21,8 @@ A cache-mode file also registers its definitions in the global environment.
 
 In build mode a call to a multi-arity global at a fixed-arity count emits `($__phel_call_N ??= \Phel::fnSlot(ns, name))->invokeArityN(args)`. `fnSlot` wraps a non-`AbstractFn` in `Lang\ForeignFn` and leaves a missing one `null`, so callee and arguments are written once. Never add an `instanceof` guard with arguments in both arms: nested calls double the code per level. For a variadic multi-arity callee (`max-arity` `nil`), `FixedAritySlots` checks the count hits a fixed arity.
 
+Core fn values also get build-mode slots, separate from callee nodes and holding the actual registry value rather than a `fnSlot` wrapper. Reference reads and `^:dynamic`/`^:redef` vars stay uncached. `BodyConstantScanner` skips global call heads when scanning values, so a consumed callee cannot leave an orphan value slot.
+
 ## Multi-arity fn classes (#3355)
 
 `MultiFnAsClassEmitter` writes one method per arity.
@@ -41,6 +43,8 @@ Tags come from the analyzer (`.agnostic-ai/rules/module-compiler-analyzer.md`, "
 
 Predicates are disjoint, so order does not matter. To add a family: a `*Specialization` class registered in `CallSpecialization::isSpecialized()`, plus a `Specialized/*CallEmitter` in `CallEmitter`'s list.
 
+`GlobalVarNode::hasFnMeta()` and `isRebindable()` own declaration and binding flags, reading string and keyword metadata keys. `GlobalCallTarget` delegates those queries; `PhelCoreCall` rejects bindable targets before any core specialization.
+
 **Constructors.** `ConstructorSpecialization` gates on the **callee alone** (no tag, no arity): `(list …)`, `(vector …)`, `(queue …)`, `(hash-map …)`, `(array-map …)` become `\Phel::list([…])` and friends. Odd counts lower on purpose: `\Phel::map([1])` raises the same error as the runtime fn. `apply`/higher-order uses keep the runtime fn; a local shadow is a `LocalVarNode`, which `PhelCoreCall::nameOf()` declines.
 
 **Multi-key `assoc`.** On a typed map or vector, `AssocConjSpecialization::typedAssocPairs()` emits a `->put()` / `->update()` chain. Otherwise `CallEmitter` emits nested three-argument `phel.core/assoc` steps outside `isSpecialized()`, keeping the `$__phel_call_N` slot. Arguments evaluate once, left to right, each step before the next pair (#3317). `(assoc! t k1 v1 …)` takes the untyped steps (#3318), never the typed chain: `assoc!` on a persistent target must throw.
@@ -49,13 +53,16 @@ Predicates are disjoint, so order does not matter. To add a family: a `*Speciali
 
 **`assoc-in` / `update-in`.** `AssocInSpecialization` lowers a literal path whatever the target to `\Phel\Lang\AssocIn::path($m, [k1, k2], $v)` or `AssocIn::update($m, [k1, k2], $f, ...)`, sharing `get-in`'s `reserveAsPhpArray()` slot. No typed variant: `AssocIn` handles maps and vectors inline and defers other levels to `phel.core/get` / `phel.core/assoc`, so transients, lists and bad indexes behave as at runtime (#3328). A variable or metadata-carrying path, `apply` and a local shadow keep the runtime call.
 
-**Guarded core calls** (#3351). Two-argument `<` `<=` `>` `>=` `=` `not=` `+` `-` `*` and one-argument `zero?` `pos?` `neg?` `inc` `dec` that no typed family took are lowered by `Specialized/GuardedCoreCallEmitter` (eligibility: `GuardedCoreCallSpecialization`) to native PHP behind an `is_*` guard, with the runtime call as fallback: `(\is_scalar($a) && \is_scalar($b) ? ($a < $b) : <call>)`, `($a === 1 || (!(\is_int($a)) && <call>))`, `(\is_int($a) && \is_int($b) && \is_int($t = $a + $b) ? $t : <call>)`.
+**Guarded core calls** (#3351). Two-argument `<` `<=` `>` `>=` `=` `not=` `+` `-` `*` and one-argument `zero?` `pos?` `neg?` `even?` `odd?` `inc` `dec` that no typed family took are lowered by `Specialized/GuardedCoreCallEmitter` (eligibility: `GuardedCoreCallSpecialization`) to native PHP behind an `is_*` guard, with the runtime call as fallback: `(\is_scalar($a) && \is_scalar($b) ? ($a < $b) : <call>)`, `($a === 1 || (!(\is_int($a)) && <call>))`, `(\is_int($a) && \is_int($b) && \is_int($t = $a + $b) ? $t : <call>)`.
 
 - Arithmetic keeps the native result only while it is an int: PHP yields a float exactly on overflow, which the runtime promotes to `BigInt` (#3468).
+- Repeated references to the same unique local share a guard; effectful expressions never do. Integer parity tests compare the low bit with 0 or 1, preserving negative integers and falling back for every other type.
 - Each guard is the exact condition under which the runtime fn ends in the native operator (see the class docblock).
 - `CallEmitter` emits it outside `isSpecialized()`, keeping the slot; the fallback takes the arity shortcut. Bool-returning for `BooleanExprDetector`.
 - Locals and literals are read in place; other operands spill into a `$__phel_guard_N` temporary on first read, placed where PHP always evaluates it (`===` operands, `&` not `&&` between guards), so each runs once, in order.
 - Quoted forms and collection literals decline.
+
+Catch shadows gain an inferred `object` type only after body analysis and only when `LocalVarReferences::mayBeMutated()` proves the binding read-only. Direct argument/reference escapes, unknown callees or nodes, collection metadata and PHP caller-scope writers keep runtime dispatch. The shared walk includes nested functions; source symbol metadata stays untouched.
 
 **Sequential destructuring** (#3356). `VectorBindingDeconstructor` gives `[a b & r]` an indexed path: one `iv (php/instanceof v PersistentVectorInterface)` binding, then each position reads `(php/aget v i)` under `(php/=== iv true)`, else the exact `first`/`next` walk (trailing `next` included), so lazy seqs realize the same cells and scalars throw where they did.
 

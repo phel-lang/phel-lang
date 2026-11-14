@@ -53,7 +53,16 @@ final class GlobalVarNode extends AbstractNode
      */
     public function isRebindable(): bool
     {
-        return (bool) $this->meta[Keyword::create('dynamic')] || (bool) $this->meta[Keyword::create('redef')];
+        return (bool) $this->meta->find('dynamic')
+            || (bool) $this->meta->find(Keyword::create('dynamic'))
+            || (bool) $this->meta->find('redef')
+            || (bool) $this->meta->find(Keyword::create('redef'));
+    }
+
+    public function hasFnMeta(): bool
+    {
+        return $this->meta->find('arglists') !== null
+            || $this->meta->find(Keyword::create('arglists')) !== null;
     }
 
     public function isMacro(): bool
