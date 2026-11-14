@@ -5,11 +5,12 @@ description: Style and grouping for CHANGELOG.md release notes.
 targets: [claude]
 globs:
   - CHANGELOG.md
+  - docs/CHANGELOG-archive.md
 ---
 
 # Changelog Style
 
-Applies to every write under `## Unreleased`: a new entry, a merge, or a rewrite. The `0.52.0` section is the reference.
+Applies to every write under `## Unreleased`: a new entry, a merge, or a rewrite. Released sections are only moved, per Archive below. The `0.52.0` section is the reference.
 
 ## Sections
 
@@ -35,3 +36,7 @@ A section with more than four bullets across areas splits into plain sub-label l
 - Skip changes users cannot see: `chore:`, CI, test-only, internal refactors.
 
 Before committing, reread the whole `## Unreleased`, not only the new bullet: duplicate headings, siblings to merge, entries past four sentences.
+
+## Archive
+
+`CHANGELOG.md` keeps releases from the latest minor that is a multiple of ten (`0.50.0`, `0.60.0`, `1.10.0`) or major onward. After the next one ships, a follow-up PR moves every older section, unchanged, to the top of `docs/CHANGELOG-archive.md` and updates the version named in both files' intro lines. Never edit archived notes.

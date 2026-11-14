@@ -25,5 +25,6 @@ Cut a release only with `tools/release.sh`, or the `/release` skill that wraps i
 - Name: 1-3 words about the content, `--name "Floor Raised"`. Without a terminal pass `--name`, or the script prompts.
 - A pre-release (`1.0.0-rc1`) keeps `## Unreleased` and publishes as a GitHub pre-release.
 - At a major (`X.0.0`), edit two docs by hand first. In `docs/stability.md`, delete the paragraph marked `RELEASE-STEP(1.0.0)`. In `docs/migration/upgrade-0.49-to-1.0.md`, check that the version range it covers matches the releases that exist.
+- After a minor that is a multiple of ten (`0.60.0`) or a major ships, archive the older changelog sections in a follow-up PR, per the archive rule in `.agnostic-ai/rules/changelog.md`.
 
 Full guide: `.github/RELEASE.md`.
