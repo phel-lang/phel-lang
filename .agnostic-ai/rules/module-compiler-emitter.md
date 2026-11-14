@@ -28,6 +28,7 @@ In build mode a call to a multi-arity global at a fixed-arity count emits `($__p
 - An arity that can override `AbstractFn::invokeArityN` (`MethodEmitter::hasArityMethodCompatibleSignature()`: no param type, no by-ref param, return type not `void`) is emitted as it. A typed or by-ref fixed arity gets `phelArityN` plus an `invokeArityN` forwarder; the variadic arity is `phelArityVariadic`.
 - `__invoke` takes one optional param per position of the widest fixed arity (`$a0 = null, ...`) and dispatches with `match` on `func_num_args()`; the variadic arm reads `func_get_args()`. Not `...$args`: it packed every call into an array (#3469). Never test params for `null` to find the arity: `nil` is a real argument. The export wrapper forwards `...$args` (`Interop` rule).
 - Captures are constructor properties read at the top of each method. Never store arity bodies as closures in properties: each binds `$this`, so every runtime fn value (`comp`, `partial`) allocated a closure per arity plus a reference cycle.
+- A fn captures only the enclosing locals its body references (`FnSymbol` via `LocalVarReferences`, every local when the scanner returns null). The env inside the body still lists them all, so `MethodEmitter` calls `enterFnFrame()` with the left-out names and a wrap (`emitFnWrapPrefix`) skips them; a wrap that `use`s one reads an undefined variable.
 
 ## Type-Specialized Emission
 

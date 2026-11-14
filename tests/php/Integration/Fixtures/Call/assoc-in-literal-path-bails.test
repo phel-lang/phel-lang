@@ -21,7 +21,7 @@
   ))), $v);
 });(function($m, $v) {
   static $__phel_const_0;
-  $assoc_in_1 = (function($x, $ks, $v) use($m) {
+  $assoc_in_1 = (function($x, $ks, $v) {
     return $x;
   });
   return ($assoc_in_1)($m, ($__phel_const_0 ??= \Phel::vector([\Phel\Lang\Keyword::create("a")])), $v);

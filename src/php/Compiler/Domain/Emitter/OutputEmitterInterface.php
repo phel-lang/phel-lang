@@ -24,6 +24,13 @@ interface OutputEmitterInterface
 
     public function currentConstantScope(): ?ConstantScope;
 
+    /**
+     * @param list<string> $names emitted names of enclosing locals the fn did not capture
+     */
+    public function enterFnFrame(array $names): void;
+
+    public function exitFnFrame(): void;
+
     public function emitConstantSlotPrefix(AbstractNode $node, ?SourceLocation $loc = null): bool;
 
     public function emitConstantSlotSuffix(?SourceLocation $loc = null): void;

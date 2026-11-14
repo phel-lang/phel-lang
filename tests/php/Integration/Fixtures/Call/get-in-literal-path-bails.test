@@ -20,7 +20,7 @@
   ))));
 });(function($m) {
   static $__phel_const_0;
-  $get_in_1 = (function($x, $ks) use($m) {
+  $get_in_1 = (function($x, $ks) {
     return $x;
   });
   return ($get_in_1)($m, ($__phel_const_0 ??= \Phel::vector([\Phel\Lang\Keyword::create("a")])));
