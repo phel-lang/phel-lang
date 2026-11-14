@@ -68,7 +68,7 @@
         esc    [:div "<script>"]]
     (is (= "<div><span>n</span><em>m</em></div>" (h/html nested)) "sibling elements")
     (is (= "<div><div><div>d</div></div></div>" (h/html deep)) "nesting recurses")
-    (is (= "<div>t42:kw</div>" (h/html mixed)) "a nil child renders as nothing")
+    (is (= "<div>t42kw</div>" (h/html mixed)) "a nil child renders as nothing, a keyword as its name")
     (is (= "<div><b>r</b></div>" (h/html raw)) "a raw string is not escaped")
     (is (= "<div>l1l2</div>" (h/html lst)) "a list child is rendered as children")
     (is (= "<div>&lt;script&gt;</div>" (h/html esc)) "a string child is escaped")))
