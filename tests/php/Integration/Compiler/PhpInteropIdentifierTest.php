@@ -48,6 +48,17 @@ final class PhpInteropIdentifierTest extends AbstractCompilerRuntimeTestCase
 
     public static function legalIdentifiers(): iterable
     {
+        yield ['(php/strlen "x")', 'strlen("x")'];
+        yield ['php/PHP_EOL', 'PHP_EOL'];
+        yield ['php/$_SERVER', '$_SERVER'];
+        yield ['php/$GLOBALS', '$GLOBALS'];
+        yield ['(php/! false)', '!(false)'];
+        yield ['(fn [n] (php/~ n))', '~($n)'];
+        yield ['(php/+ 1 2)', '(1 + 2)'];
+        yield ['(php/Vendor.function_name "x")', '\\Vendor\\function_name("x")'];
+        yield ['(php/Vendor/function_name "x")', '\\Vendor\\function_name("x")'];
+        yield ['(php/Vendor\\function_name "x")', '\\Vendor\\function_name("x")'];
+        yield ['(php/\\strlen "x")', '\\strlen("x")'];
         yield ['(.foo_bar (new \\stdClass))', '->foo_bar('];
         yield ['(.fooé (new \\stdClass))', '->fooé('];
         yield ['(new \\Vendor\\École)', '\\Vendor\\École('];
@@ -62,6 +73,30 @@ final class PhpInteropIdentifierTest extends AbstractCompilerRuntimeTestCase
         yield ['(definterface numeric)', 'interface numeric'];
         yield ['(fn [^int n] n)', 'int $n'];
         yield ['(fn [^Vendor.Foo_bar x] x)', '\\Vendor\\Foo_bar $x'];
+    }
+
+    #[DataProvider('invalidPhpReferences')]
+    public function test_invalid_php_references_fail_at_the_symbol(string $source, string $name, int $column): void
+    {
+        try {
+            $this->compilerFacade->compile("\n" . $source, new CompileOptions()->setSource('php-reference.phel')->setEmitOnly(true));
+            self::fail('Invalid PHP reference should fail during analysis');
+        } catch (CompilerException $compilerException) {
+            $error = $compilerException->getNestedException();
+            self::assertSame(ErrorCode::INVALID_SPECIAL_FORM, $error->getErrorCode());
+            self::assertStringContainsString('Invalid PHP identifier ' . $name, $error->getMessage());
+            self::assertSame('php-reference.phel', $error->getStartLocation()?->getFile());
+            self::assertSame(2, $error->getStartLocation()?->getLine());
+            self::assertSame($column, $error->getStartLocation()?->getColumn());
+        }
+    }
+
+    public static function invalidPhpReferences(): iterable
+    {
+        yield ['(php/strlen;phpinfo "x")', 'strlen;phpinfo', 1];
+        yield ['(def x php/PHP_EOL;phpinfo)', 'PHP_EOL;phpinfo', 7];
+        yield ['(defn f [x] (php/$GLOBALS;x x))', 'GLOBALS;x', 13];
+        yield ['(def x php/E_ALL|E_STRICT)', 'E_ALL|E_STRICT', 7];
     }
 
     public function test_dashed_class_tag_is_rejected(): void

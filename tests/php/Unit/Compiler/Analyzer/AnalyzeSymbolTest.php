@@ -18,6 +18,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzeSymbol;
 use Phel\Lang\Symbol;
 use PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzeSymbolTest extends TestCase
@@ -33,13 +34,70 @@ final class AnalyzeSymbolTest extends TestCase
         Phel::clear();
     }
 
-    public function test_php_symbol(): void
+    #[DataProvider('phpReferences')]
+    public function test_php_symbol(string $name): void
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(
-            new PhpVarNode($env, 'is_array'),
-            $this->symbolAnalyzer->analyze(Symbol::createForNamespace('php', 'is_array'), $env),
+            new PhpVarNode($env, $name),
+            $this->symbolAnalyzer->analyze(Symbol::createForNamespace('php', $name), $env),
         );
+    }
+
+    public static function phpReferences(): iterable
+    {
+        foreach ([
+            'is_array',
+            'PHP_EOL',
+            '$GLOBALS',
+            '$_SERVER',
+            '$custom_global',
+            'Vendor\\function_name',
+            'Vendor.function_name',
+            'Vendor/function_name',
+            '\\strlen',
+            'école',
+            ...PhpVarNode::INFIX_OPERATORS,
+            '!',
+            '~',
+        ] as $name) {
+            yield $name => [$name];
+        }
+    }
+
+    #[DataProvider('invalidPhpReferences')]
+    public function test_invalid_php_reference_in_value_position(string $name): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Invalid PHP identifier');
+
+        $this->symbolAnalyzer->analyze(Symbol::createForNamespace('php', $name), NodeEnvironment::empty());
+    }
+
+    #[DataProvider('invalidPhpReferences')]
+    public function test_invalid_php_reference_in_call_position(string $name): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Invalid PHP identifier');
+
+        $this->analyzer->analyze(Phel::list([Symbol::createForNamespace('php', $name), 'x']), NodeEnvironment::empty());
+    }
+
+    public static function invalidPhpReferences(): iterable
+    {
+        yield ['strlen;phpinfo'];
+        yield ['PHP_EOL;phpinfo'];
+        yield ['$GLOBALS;x'];
+        yield ['E_ALL|E_STRICT'];
+        yield ['Vendor/strlen;phpinfo'];
+        yield ['foo-bar'];
+        yield ['Vendor..strlen'];
+        yield ['\\\\strlen'];
+        yield ['$GLOBALS[0]'];
+        yield ['$'];
+        yield ['$$GLOBALS'];
+        yield ['$Vendor/foo'];
+        yield ["strlen\n"];
     }
 
     public function test_local_var(): void
