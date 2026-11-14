@@ -17,6 +17,8 @@ use function chmod;
 use function count;
 use function escapeshellarg;
 use function file_put_contents;
+use function mkdir;
+use function rmdir;
 use function sys_get_temp_dir;
 use function trim;
 use function uniqid;
@@ -102,6 +104,43 @@ final class ShellWatcherIntegrationTest extends TestCase
             ['/tmp/a.phel', WatchEvent::KIND_MODIFIED],
             ['/tmp/my dir/b c.phel', WatchEvent::KIND_CREATED],
             ["/tmp/line\nbreak.phel", WatchEvent::KIND_DELETED],
+        ], array_map(static fn(WatchEvent $event): array => [$event->path, $event->kind], $events));
+    }
+
+    public function test_fswatch_kinds_follow_whether_the_file_is_still_there(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-fswatch-kinds-' . uniqid('', true);
+        mkdir($dir);
+        file_put_contents($dir . '/kept.phel', '');
+        file_put_contents($dir . '/renamed-to.phel', '');
+        $fake = $dir . '/fswatch';
+        file_put_contents($fake, "#!/bin/sh\nprintf '%s\\000' "
+            . escapeshellarg($dir . '/kept.phel Created Updated Removed IsFile') . ' '
+            . escapeshellarg($dir . '/renamed-from.phel Renamed IsFile') . ' '
+            . escapeshellarg($dir . '/renamed-to.phel Renamed IsFile') . "\n"
+            . 'printf %s ' . escapeshellarg($dir . '/last.phel Updated IsFile') . "\n");
+        chmod($fake, 0755);
+
+        $watcher = new FswatchWatcher($this->scanner(), new SystemClock(), $fake, 0);
+        $events = [];
+
+        try {
+            $watcher->watch([$dir], static function (array $batch) use (&$events): void {
+                array_push($events, ...$batch);
+            });
+        } finally {
+            foreach (['kept.phel', 'renamed-to.phel', 'fswatch'] as $file) {
+                unlink($dir . '/' . $file);
+            }
+
+            rmdir($dir);
+        }
+
+        self::assertSame([
+            [$dir . '/kept.phel', WatchEvent::KIND_CREATED],
+            [$dir . '/renamed-from.phel', WatchEvent::KIND_DELETED],
+            [$dir . '/renamed-to.phel', WatchEvent::KIND_CREATED],
+            [$dir . '/last.phel', WatchEvent::KIND_MODIFIED],
         ], array_map(static fn(WatchEvent $event): array => [$event->path, $event->kind], $events));
     }
 

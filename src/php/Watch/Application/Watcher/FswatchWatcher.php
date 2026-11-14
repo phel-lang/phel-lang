@@ -9,6 +9,7 @@ use Phel\Watch\Domain\ClockInterface;
 use Phel\Watch\Domain\FileSystemScannerInterface;
 use Phel\Watch\Transfer\WatchEvent;
 
+use function array_intersect;
 use function escapeshellarg;
 use function file_exists;
 use function implode;
@@ -105,16 +106,15 @@ final class FswatchWatcher extends AbstractShellWatcher
      */
     private function kindOf(string $path, array $flags): string
     {
-        if (in_array('Removed', $flags, true)) {
+        // FSEvents merges the flags of quick changes to one path, so a delete
+        // and re-create can arrive as one `Created Removed` record, and a
+        // rename reports both names. Whether the file is there now decides.
+        $mayBeGone = array_intersect($flags, ['Removed', 'Renamed', 'MovedFrom', 'MovedTo']) !== [];
+        if ($mayBeGone && !file_exists($path)) {
             return WatchEvent::KIND_DELETED;
         }
 
-        // A rename reports both names: the old one no longer exists.
-        if (in_array('Renamed', $flags, true) || in_array('MovedFrom', $flags, true)) {
-            return file_exists($path) ? WatchEvent::KIND_CREATED : WatchEvent::KIND_DELETED;
-        }
-
-        if (in_array('Created', $flags, true)) {
+        if (array_intersect($flags, ['Created', 'Renamed', 'MovedFrom', 'MovedTo']) !== []) {
             return WatchEvent::KIND_CREATED;
         }
 
