@@ -215,6 +215,10 @@ HELP)
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if ((bool) $input->getOption(TestCommandOptionParser::OPT_WATCH)) {
+            if ($input->getOption(TestCommandOptionParser::OPT_TIMEOUT) !== null) {
+                return InvocationError::report($output, '--timeout cannot be combined with --watch.');
+            }
+
             return $this->runWatchMode($output);
         }
 

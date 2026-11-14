@@ -13,6 +13,8 @@ use function escapeshellarg;
 use function exec;
 use function file_get_contents;
 use function file_put_contents;
+use function getenv;
+use function glob;
 use function microtime;
 use function mkdir;
 use function random_bytes;
@@ -66,8 +68,13 @@ final class ParallelTimeoutTest extends TestCase
 
     public function test_a_hung_namespace_fails_within_the_limit_and_the_others_still_run(): void
     {
+        $tempDir = self::$projectDir . '/tmp';
+        mkdir($tempDir);
         $startedAt = microtime(true);
-        $result = $this->phelTest(['--parallel=2', '--timeout=' . self::TIMEOUT_SECONDS, '--reporter=default', '--reporter=junit-xml', '-o', 'junit.xml']);
+        $result = $this->phelTest(
+            ['--parallel=2', '--timeout=' . self::TIMEOUT_SECONDS, '--reporter=default', '--reporter=junit-xml', '-o', 'junit.xml'],
+            [...getenv(), 'TMPDIR' => $tempDir],
+        );
         $elapsed = microtime(true) - $startedAt;
 
         self::assertSame(1, $result->exitCode, $result->stdout . $result->stderr);
@@ -85,6 +92,7 @@ final class ParallelTimeoutTest extends TestCase
         self::assertStringContainsString('<testcase name="spins-forever" classname="app.hang-test"', $junit);
         self::assertStringContainsString('type="Timeout"', $junit);
         self::assertStringContainsString('<testcase name="ok-passes"', $junit);
+        self::assertSame([], glob($tempDir . '/phel-junit-*') ?: [], 'the stopped worker left its JUnit file');
     }
 
     public function test_without_a_timeout_a_passing_run_behaves_as_before(): void
@@ -93,6 +101,14 @@ final class ParallelTimeoutTest extends TestCase
 
         self::assertSame(0, $result->exitCode, $result->stdout . $result->stderr);
         self::assertStringNotContainsString('Timed out', $result->stdout . $result->stderr);
+    }
+
+    public function test_a_timeout_with_watch_is_an_invocation_error(): void
+    {
+        $result = $this->phelTest(['--watch', '--parallel=2', '--timeout=5']);
+
+        self::assertSame(2, $result->exitCode);
+        self::assertStringContainsString('--timeout cannot be combined with --watch', $result->stderr);
     }
 
     public function test_a_timeout_without_parallel_is_an_invocation_error(): void
@@ -104,13 +120,15 @@ final class ParallelTimeoutTest extends TestCase
     }
 
     /**
-     * @param list<string> $arguments
+     * @param list<string>               $arguments
+     * @param array<string, string>|null $env
      */
-    private function phelTest(array $arguments): Subprocess
+    private function phelTest(array $arguments, ?array $env = null): Subprocess
     {
         return Subprocess::run(
             [PHP_BINARY, dirname(__DIR__, 7) . '/bin/phel', 'test', ...$arguments],
             self::$projectDir,
+            env: $env,
         );
     }
 }

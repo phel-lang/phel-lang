@@ -290,7 +290,9 @@ A namespace past the limit is stopped and reported as an error that names the
 last test that started; in JUnit XML it is a `<testcase>` with an `<error
 type="Timeout">`. The other namespaces still run. `--timeout` needs a parallel
 run: one PHP process cannot interrupt its own loop without `pcntl`, which
-Windows lacks, so a serial run exits 2.
+Windows lacks, so a serial run exits 2. `--watch` rejects it too. Stopping a
+namespace stops its PHP worker only: a process the test started, such as one
+from `shell_exec`, keeps running.
 
 ### nREPL
 

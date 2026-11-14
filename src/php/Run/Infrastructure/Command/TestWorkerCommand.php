@@ -124,7 +124,8 @@ final class TestWorkerCommand extends Command
     private function handleWork(array $frame): array
     {
         $request = WorkRequest::fromFrame($frame);
-        $junitFile = (string) tempnam(sys_get_temp_dir(), 'phel-junit-');
+        $ownsJunitFile = $request->junitFile === '';
+        $junitFile = $ownsJunitFile ? (string) tempnam(sys_get_temp_dir(), 'phel-junit-') : $request->junitFile;
 
         ob_start();
         try {
@@ -162,7 +163,9 @@ final class TestWorkerCommand extends Command
                 FrameKey::OUTCOME => WorkerOutcome::WorkerError->value,
             ];
         } finally {
-            @unlink($junitFile);
+            if ($ownsJunitFile) {
+                @unlink($junitFile);
+            }
         }
     }
 

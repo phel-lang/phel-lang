@@ -63,6 +63,8 @@ final class TestWorkerHandle
     /** Where the worker writes the name of each test as it starts; see {@see FrameKey::PROGRESS_FILE}. */
     private ?string $progressFile = null;
 
+    private ?string $junitFile = null;
+
     /** Captured on first sight: `proc_get_status()` reports the exit code only once. */
     private ?string $exitStatus = null;
 
@@ -224,11 +226,26 @@ final class TestWorkerHandle
      */
     public function resetProgressFile(): string
     {
-        $this->progressFile ??= (string) tempnam(sys_get_temp_dir(), 'phel-test-progress-');
+        $this->progressFile ??= $this->tempFile('phel-test-progress-');
+        if ($this->progressFile === null) {
+            return '';
+        }
 
         @file_put_contents($this->progressFile, '');
 
         return $this->progressFile;
+    }
+
+    /**
+     * Where the worker writes its JUnit report. The parent owns it, since a
+     * worker stopped mid-namespace never reaches its own cleanup. '' lets the
+     * worker pick its own file.
+     */
+    public function junitFile(): string
+    {
+        $this->junitFile ??= $this->tempFile('phel-junit-');
+
+        return $this->junitFile ?? '';
     }
 
     /**
@@ -301,10 +318,14 @@ final class TestWorkerHandle
     {
         $this->closeStdin();
 
-        if ($this->progressFile !== null) {
-            @unlink($this->progressFile);
-            $this->progressFile = null;
+        foreach ([$this->progressFile, $this->junitFile] as $file) {
+            if ($file !== null) {
+                @unlink($file);
+            }
         }
+
+        $this->progressFile = null;
+        $this->junitFile = null;
 
         if (is_resource($this->process)) {
             $deadline = microtime(true) + 0.2;
@@ -338,6 +359,13 @@ final class TestWorkerHandle
                 @fclose($pipe);
             }
         }
+    }
+
+    private function tempFile(string $prefix): ?string
+    {
+        $path = tempnam(sys_get_temp_dir(), $prefix);
+
+        return $path === false ? null : $path;
     }
 
     private function pumpReadBuffer(): void

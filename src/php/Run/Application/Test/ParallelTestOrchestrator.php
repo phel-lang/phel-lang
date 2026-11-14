@@ -421,6 +421,7 @@ final readonly class ParallelTestOrchestrator
             FrameKey::OPTIONS => $optionsPhel,
             FrameKey::LOAD_ORDER => $loadOrders->loadOrderFor($info),
             FrameKey::PROGRESS_FILE => $timeoutSeconds === null ? '' : $worker->resetProgressFile(),
+            FrameKey::JUNIT_FILE => $worker->junitFile(),
         ]);
         $worker->assign($index, $info->getNamespace(), $frame);
     }
