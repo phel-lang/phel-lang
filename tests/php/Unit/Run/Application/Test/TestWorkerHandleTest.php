@@ -99,7 +99,7 @@ final class TestWorkerHandleTest extends TestCase
     public function test_termination_removes_files_written_during_the_grace_period(): void
     {
         $worker = $this->startWorker(
-            '$paths = json_decode(trim(fgets(STDIN)), true); echo "ready"; '
+            '$paths = json_decode(trim(fgets(STDIN)), true); file_put_contents($paths[0], "ready"); '
             . 'stream_get_contents(STDIN); usleep(50_000); '
             . 'foreach ($paths as $path) { file_put_contents($path, "finished"); }',
         );
@@ -108,7 +108,7 @@ final class TestWorkerHandleTest extends TestCase
         $ready = '';
         $deadline = microtime(true) + 5;
         while ($ready !== 'ready' && microtime(true) < $deadline) {
-            $ready .= stream_get_contents($worker->stdoutHandle());
+            $ready = $worker->lastStartedTest();
             usleep(10_000);
         }
 
