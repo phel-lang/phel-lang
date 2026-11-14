@@ -8,14 +8,22 @@
 ;; --- Safe parsing ---
 
 (defn parse-long
-  "Parses a string as an integer. Returns nil if parsing fails."
+  "Parses a string as an integer. Returns nil if parsing fails or the number does not fit in a 64-bit int."
   {:example "(parse-long \"123\") ; => 123"
    :see-also ["parse-double"]}
   [s]
   (when (string? s)
     (let [trimmed (php/trim s)]
       (when (some? (re-matches "/[+-]?[0-9]+/" trimmed))
-        (php/intval trimmed)))))
+        (let [n (php/intval trimmed)]
+          ;; `intval` saturates at the int bounds, so a bound result is kept
+          ;; only when the digits spell exactly that bound.
+          (if (or (php/=== n php/PHP_INT_MAX) (php/=== n php/PHP_INT_MIN))
+            (let [negative (php/=== "-" (php/substr trimmed 0 1))
+                  digits   (php/ltrim trimmed "+-0")]
+              (when (php/=== (php/strval n) (php/. (if negative "-" "") digits))
+                n))
+            n))))))
 
 (defn parse-double
   "Parses a string as a float. Returns `nil` for non-numeric input or for inputs that are not strings. Accepts `Infinity`, `-Infinity`, and `NaN` alongside regular decimal and scientific notation."

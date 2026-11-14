@@ -58,7 +58,14 @@
   (is (= 7 (parse-long "+7")) "parse-long explicit plus sign")
   (is (nil? (parse-long "+-5")) "parse-long rejects a sign it cannot parse")
   (is (nil? (parse-long "1e5")) "parse-long rejects exponent notation")
-  (is (nil? (parse-long "12a")) "parse-long rejects trailing characters"))
+  (is (nil? (parse-long "12a")) "parse-long rejects trailing characters")
+  (is (= php/PHP_INT_MAX (parse-long "9223372036854775807")) "parse-long reads the int maximum")
+  (is (= php/PHP_INT_MIN (parse-long "-9223372036854775808")) "parse-long reads the int minimum")
+  (is (= php/PHP_INT_MAX (parse-long "+009223372036854775807")) "parse-long reads the maximum with a sign and leading zeros")
+  (is (= 0 (parse-long "-000")) "parse-long reads negative zero as zero")
+  (is (nil? (parse-long "9223372036854775808")) "parse-long rejects a value above the int range")
+  (is (nil? (parse-long "-9223372036854775809")) "parse-long rejects a value below the int range")
+  (is (nil? (parse-long "99999999999999999999999")) "parse-long rejects a long overflowing value"))
 
 (deftest test-parse-double
   (is (= 3.14 (parse-double "3.14")) "parse-double float")
