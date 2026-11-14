@@ -14,7 +14,7 @@
    "SERVER_NAME" "phel-lang.org"
    "QUERY_STRING" "id=10&user=foo"
    "HTTP_HOST" "phel-lang.org"
-   "HTTPS" "1"
+   "HTTPS" "off"
    "SERVER_PORT" "80"
    "REQUEST_URI" "/doc/article.php?id=10&user=foo"))
 
@@ -25,8 +25,8 @@
    ["secure request"
     (h/uri "https" nil "phel-lang.org" 443 "/doc/article.php" "id=10&user=foo" nil)
     (php/array_merge uri-server-default (php-associative-array "HTTPS" "on" "SERVER_PORT" "443"))]
-   ["secure request via proxy"
-    (h/uri "https" nil "phel-lang.org" 80 "/doc/article.php" "id=10&user=foo" nil)
+   ["forwarded scheme is ignored by default"
+    (h/uri "http" nil "phel-lang.org" 80 "/doc/article.php" "id=10&user=foo" nil)
     (php/array_merge uri-server-default (php-associative-array "HTTP_X_FORWARDED_PROTO" "https" "SERVER_PORT" "80"))]
    ["http host missing"
     (h/uri "http" nil "phel-lang.org" 80 "/doc/article.php" "id=10&user=foo" nil)
@@ -47,12 +47,58 @@
     (h/uri "http" nil "::1" 8081 "/doc/article.php" "id=10&user=foo" nil)
     (php/array_merge uri-server-default (php-associative-array "SERVER_PORT" "8081" "HTTP_HOST" "::1:8081"))]
    ["empty server variable"
-    (h/uri nil nil nil 0 nil nil nil)
+    (h/uri "http" nil nil 0 nil nil nil)
     (php-indexed-array)]])
 
 (deftest test-url
   (foreach [[name uri server] uri-examples]
     (is (= uri (h/uri-from-globals server)) name)))
+
+(deftest uri-scheme-requires-explicit-proxy-trust
+  (foreach [forwarded ["https" "javascript" "file" "https,http" "" nil (php-indexed-array "https")]]
+    (let [server (php/array_merge uri-server-default
+                                  (php-associative-array "HTTP_X_FORWARDED_PROTO" forwarded))]
+      (is (= "http" (:scheme (h/uri-from-globals server))))
+      (is (= "http" (:scheme (h/uri-from-globals server {:trusted-proxy? false}))))))
+  (let [server (php/array_merge uri-server-default
+                                (php-associative-array "HTTP_X_FORWARDED_PROTO" "https"))]
+    (is (= "https" (:scheme (h/uri-from-globals server {:trusted-proxy? true}))))))
+
+(deftest uri-scheme-only-accepts-http-and-https
+  (foreach [trusted? [false true]]
+    (foreach [scheme ["javascript" "file" "https,http" "" nil (php-indexed-array "https")]]
+      (let [server (php/array_merge uri-server-default
+                                    (php-associative-array "HTTP_X_FORWARDED_PROTO" scheme
+                                                           "REQUEST_SCHEME" scheme
+                                                           "HTTPS" "on"))]
+        (is (= "https" (:scheme (h/uri-from-globals server {:trusted-proxy? trusted?})))))))
+  (foreach [[value expected] [["http" "http"] ["https" "https"] [" HTTPS " "https"]]]
+    (let [server (php/array_merge uri-server-default
+                                  (php-associative-array "REQUEST_SCHEME" value))]
+      (is (= expected (:scheme (h/uri-from-globals server))))))
+  (is (= "https" (:scheme (h/uri-from-globals (php-associative-array "HTTPS" "1"))))))
+
+(deftest request-builder-forwards-proxy-trust
+  (let [server     (php-associative-array "REQUEST_METHOD" "GET"
+                                          "HTTP_HOST" "example.com"
+                                          "HTTP_X_FORWARDED_PROTO" "https"
+                                          "REQUEST_SCHEME" "http")
+        empty-args (php-indexed-array)]
+    (is (= "http" (get-in (h/request-from-globals-args server empty-args empty-args empty-args empty-args)
+                          [:uri :scheme])))
+    (is (= "https" (get-in (h/request-from-globals-args server empty-args empty-args empty-args empty-args
+                                                        nil {:trusted-proxy? true})
+                           [:uri :scheme])))))
+
+(deftest request-from-globals-forwards-proxy-trust
+  (let [server php/$_SERVER]
+    (try
+      (php/aset php/$GLOBALS "_SERVER" (php-associative-array "REQUEST_METHOD" "GET"
+                                                              "HTTP_X_FORWARDED_PROTO" "https"
+                                                              "REQUEST_SCHEME" "http"))
+      (is (= "http" (get-in (h/request-from-globals) [:uri :scheme])))
+      (is (= "https" (get-in (h/request-from-globals {:trusted-proxy? true}) [:uri :scheme])))
+      (finally (php/aset php/$GLOBALS "_SERVER" server)))))
 
 (deftest uri-to-string
   (is (= "https://user:pass@example.com:8080/path/123?q=abc#test"
