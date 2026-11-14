@@ -1,4 +1,4 @@
-(ns fixtures\unused-binding)
+(ns fixtures.unused-binding)
 
 (defn demo []
   (let [x 1

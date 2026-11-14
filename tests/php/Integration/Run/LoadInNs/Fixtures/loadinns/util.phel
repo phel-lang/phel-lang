@@ -1,4 +1,4 @@
-(in-ns loadinns\main)
+(in-ns loadinns.main)
 
 ;; This file uses in-ns to join the main namespace.
 ;; Its (load "helper") resolves from the caller namespace base

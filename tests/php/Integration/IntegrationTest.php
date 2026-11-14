@@ -57,11 +57,15 @@ final class IntegrationTest extends TestCase
         Registry::getInstance()->removeNamespace('user');
     }
 
+    /**
+     * @param list<string> $expectedDeprecations
+     */
     #[DataProvider('providerIntegration')]
     public function test_integration(
         string $filename,
         string $phelCode,
         string $expectedGeneratedCode,
+        array $expectedDeprecations,
     ): void {
         $globalEnv = self::$globalEnv;
         $globalEnv->setNs('user');
@@ -69,6 +73,16 @@ final class IntegrationTest extends TestCase
 
         $options = new CompileOptions()
             ->setSource($filename);
+
+        $deprecations = [];
+        set_error_handler(
+            static function (int $level, string $message) use (&$deprecations): bool {
+                $deprecations[] = $message;
+
+                return true;
+            },
+            E_USER_DEPRECATED,
+        );
 
         BuildFacade::enableBuildMode();
         // Phel compiles by evaluating top-level forms, so a fixture with
@@ -80,6 +94,7 @@ final class IntegrationTest extends TestCase
         } finally {
             ob_end_clean();
             BuildFacade::disableBuildMode();
+            restore_error_handler();
         }
 
         self::assertSame(
@@ -87,6 +102,7 @@ final class IntegrationTest extends TestCase
             trim($compiledCode),
             'in ' . $filename,
         );
+        self::assertSame($expectedDeprecations, $deprecations, 'deprecations in ' . $filename);
     }
 
     public static function providerIntegration(): Generator
@@ -106,11 +122,15 @@ final class IntegrationTest extends TestCase
 
             $test = file_get_contents($file->getRealpath());
 
-            if (preg_match('/--PHEL--\s*(?<phel>.*?)\s*--PHP--\s*(?<php>.*)/s', $test, $match)) {
+            // An optional --DEPRECATIONS-- section lists, one per line, the
+            // deprecation notices a fixture raises on purpose. Any other
+            // notice fails the fixture.
+            if (preg_match('/--PHEL--\s*(?<phel>.*?)\s*(?:--DEPRECATIONS--\s*(?<deprecations>.*?)\s*)?--PHP--\s*(?<php>.*)/s', $test, $match)) {
                 $filename = str_replace($fixturesDir . '/', '', $file->getRealPath());
                 ['phel' => $phelCode, 'php' => $phpCode] = $match;
+                $deprecations = $match['deprecations'] === '' ? [] : explode("\n", $match['deprecations']);
 
-                yield $filename => [$filename, $phelCode, $phpCode];
+                yield $filename => [$filename, $phelCode, $phpCode, $deprecations];
             }
         }
     }

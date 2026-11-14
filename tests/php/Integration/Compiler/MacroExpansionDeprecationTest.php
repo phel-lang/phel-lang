@@ -17,6 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 use function restore_error_handler;
 use function set_error_handler;
+use function sprintf;
 
 use const E_USER_DEPRECATED;
 
@@ -153,11 +154,16 @@ final class MacroExpansionDeprecationTest extends TestCase
         self::$globalEnv->setNs($ns);
 
         $options = new CompileOptions()->setSource($macroSource);
-        $this->compilerFacade->eval(
-            '(def old-fn {:deprecated "1.4.0" :superseded-by "new-fn"} (fn [] 42))',
-            $options,
-        );
-        $this->compilerFacade->eval('(defmacro use-old [] `(old-fn))', $options);
+        $notices = $this->captureDeprecations(function () use ($options): void {
+            $this->compilerFacade->eval(
+                '(def old-fn {:deprecated "1.4.0" :superseded-by "new-fn"} (fn [] 42))',
+                $options,
+            );
+            $this->compilerFacade->eval('(defmacro use-old [] `(old-fn))', $options);
+        });
+        foreach ($notices as $notice) {
+            self::assertStringContainsString(sprintf("'%s/old-fn' used at %s:", $ns, $macroSource), $notice);
+        }
 
         DeprecationWarnings::reset();
         DeprecationWarnings::enable();
@@ -168,6 +174,20 @@ final class MacroExpansionDeprecationTest extends TestCase
      */
     private function compileCapturingDeprecations(string $phelCode): array
     {
+        return $this->captureDeprecations(function () use ($phelCode): void {
+            $this->compilerFacade
+                ->compile($phelCode, new CompileOptions()->setSource('/app/user.phel'))
+                ->getPhpCode();
+        });
+    }
+
+    /**
+     * @param callable(): void $action
+     *
+     * @return list<string>
+     */
+    private function captureDeprecations(callable $action): array
+    {
         $warnings = [];
         set_error_handler(static function (int $errno, string $errstr) use (&$warnings): bool {
             $warnings[] = $errstr;
@@ -175,9 +195,7 @@ final class MacroExpansionDeprecationTest extends TestCase
         }, E_USER_DEPRECATED);
 
         try {
-            $this->compilerFacade
-                ->compile($phelCode, new CompileOptions()->setSource('/app/user.phel'))
-                ->getPhpCode();
+            $action();
         } finally {
             restore_error_handler();
         }

@@ -1,4 +1,4 @@
-(ns loadinns\main)
+(ns loadinns.main)
 
 (load "util")
 

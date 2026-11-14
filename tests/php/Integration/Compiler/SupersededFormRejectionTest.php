@@ -68,7 +68,7 @@ final class SupersededFormRejectionTest extends TestCase
         yield 'constructor' => ['(new \DateTime "2024-03-10")', 'new'];
         yield 'dot constructor' => ['(\DateTime. "2024-03-10")', '\C.'];
         yield 'method' => ['(let [d (new \DateTime)] (.format d "Y"))', '.m'];
-        yield 'property' => ['(let [o (new \ArrayObject)] (.-x o))', '.-f'];
+        yield 'property' => ['(let [o (new \DateInterval "P1Y")] (.-y o))', '.-f'];
         yield 'static method' => ['(\DateTimeImmutable/createFromFormat "Y-m-d" "2024-03-10")', '\C/m'];
         yield 'class constant' => ['\DateTime/ATOM', '\C/CONST'];
         yield 'method as value' => ['(map \DateTime/.format [])', '\C/.m'];

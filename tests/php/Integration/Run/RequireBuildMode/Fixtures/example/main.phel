@@ -1,2 +1,2 @@
-(ns buildmode\main
-  (:require buildmode\game))
+(ns buildmode.main
+  (:require buildmode.game))

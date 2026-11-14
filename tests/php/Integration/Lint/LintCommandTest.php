@@ -323,7 +323,7 @@ final class LintCommandTest extends TestCase
         $originalCwd = getcwd();
         $projectRoot = sys_get_temp_dir() . '/phel-lint-1541-' . uniqid('', true);
         mkdir($projectRoot . '/src', 0o777, true);
-        file_put_contents($projectRoot . '/src/clean.phel', "(ns consumer\\clean)\n(defn f [] :ok)\n");
+        file_put_contents($projectRoot . '/src/clean.phel', "(ns consumer.clean)\n(defn f [] :ok)\n");
 
         try {
             chdir($projectRoot);

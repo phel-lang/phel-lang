@@ -1,7 +1,7 @@
 --PHEL--
 (ns test
-  (:require xzy\core)
-  (:require xyz\foo :as f))
+  (:require xzy.core)
+  (:require xyz.foo :as f))
 --PHP--
 namespace test;
 require_once __DIR__ . '/phel/core.php';

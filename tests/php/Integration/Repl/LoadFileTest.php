@@ -50,7 +50,7 @@ final class LoadFileTest extends TestCase
 
         $facade = new CompilerFacade();
         $result = $facade->eval(
-            '(phel\\repl/load-file "' . addslashes($this->tempFile) . '")',
+            '(phel.repl/load-file "' . addslashes($this->tempFile) . '")',
             new CompileOptions(),
         );
 
@@ -66,7 +66,7 @@ final class LoadFileTest extends TestCase
 
         $facade = new CompilerFacade();
         $result = $facade->eval(
-            '(phel\\repl/load-file "' . addslashes($this->tempFile) . '")',
+            '(phel.repl/load-file "' . addslashes($this->tempFile) . '")',
             new CompileOptions(),
         );
 
@@ -79,7 +79,7 @@ final class LoadFileTest extends TestCase
     {
         $facade = new CompilerFacade();
         $result = @$facade->eval(
-            '(phel\\repl/load-file "/tmp/nonexistent_phel_file_' . uniqid() . '.phel")',
+            '(phel.repl/load-file "/tmp/nonexistent_phel_file_' . uniqid() . '.phel")',
             new CompileOptions(),
         );
 

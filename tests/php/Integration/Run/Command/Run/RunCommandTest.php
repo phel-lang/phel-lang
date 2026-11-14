@@ -224,7 +224,7 @@ final class RunCommandTest extends AbstractTestCommand
         // Must live outside the configured src/test dirs: parallel workers scan
         // those for namespaces and would race with this file's deletion.
         $tmpFile = sys_get_temp_dir() . '/phel-outside-script-' . bin2hex(random_bytes(4)) . '.phel';
-        file_put_contents($tmpFile, "(ns outside\script)\n(php/print \"hello world\\n\")");
+        file_put_contents($tmpFile, "(ns outside.script)\n(php/print \"hello world\\n\")");
 
         try {
             $this->expectOutputRegex('~hello world~');
@@ -429,7 +429,7 @@ final class RunCommandTest extends AbstractTestCommand
         $tmpFile = $tmpDir . '/macro-error-script.phel';
 
         file_put_contents($tmpFile, <<<'PHEL'
-(ns test\macro-error-script)
+(ns test.macro-error-script)
 
 (defmacro broken-macro [x]
   (throw (new \RuntimeException "macro exploded")))

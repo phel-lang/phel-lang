@@ -1,7 +1,7 @@
 --PHEL--
-(ns initial\ns)
+(ns initial.ns)
 
-(in-ns target\ns)
+(in-ns target.ns)
 --PHP--
 namespace initial\ns;
 require_once __DIR__ . '/../phel/core.php';

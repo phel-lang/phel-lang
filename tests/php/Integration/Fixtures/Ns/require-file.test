@@ -1,7 +1,7 @@
 --PHEL--
 (ns test
   (:require-file "vendor/autoload.php")
-  (:require xzy\core))
+  (:require xzy.core))
 --PHP--
 namespace test;
 require_once "vendor/autoload.php";

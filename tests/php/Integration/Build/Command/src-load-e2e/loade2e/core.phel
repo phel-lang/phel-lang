@@ -1,4 +1,4 @@
-(ns loade2e\core)
+(ns loade2e.core)
 
 (def- banner-prefix ">> ")
 

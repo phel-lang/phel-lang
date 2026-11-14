@@ -1,8 +1,8 @@
 --PHEL--
 (ns test
-  (:require [xyz\core :as c]
-            [xyz\foo]
-            [xyz\core2 :as c2]))
+  (:require [xyz.core :as c]
+            [xyz.foo]
+            [xyz.core2 :as c2]))
 
 (def kw ::c/f1)
 (def kw2 ::c2/f3)

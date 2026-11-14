@@ -1,5 +1,5 @@
 --PHEL--
-(map \PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture/.label [])
+(map PhelTest.Support.Fixtures.PhpInterop.QualifiedMemberFixture/.label [])
 --PHP--
 (\Phel\Lang\Registry::readRoot("phel.core", "map"))->__invoke((function($receiver_1, ...$args_2) {
   $args_2 = \Phel::vector($args_2);
