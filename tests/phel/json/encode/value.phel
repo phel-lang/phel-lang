@@ -27,6 +27,11 @@
 (deftest test-json-encode-symbol
   (is (= "\"symbol\"" (json/encode 'symbol))))
 
+(deftest test-json-encode-keeps-value-namespaces
+  (is (= "user/id" (json/decode (json/encode :user/id))))
+  (is (= "user/id" (json/decode (json/encode 'user/id))))
+  (is (= ["a/b" "c/d"] (json/decode (json/encode [:a/b 'c/d])))))
+
 (deftest test-json-encode-list
   (is (=
        "[1,2,3]"
