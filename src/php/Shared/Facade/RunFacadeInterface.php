@@ -18,6 +18,8 @@ use Throwable;
  */
 interface RunFacadeInterface
 {
+    public function prepareSourceAnalysis(): void;
+
     public function runNamespace(string $namespace): void;
 
     public function runFile(string $filename): void;

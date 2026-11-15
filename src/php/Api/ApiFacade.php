@@ -73,6 +73,14 @@ final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
     }
 
     /**
+     * @return list<Diagnostic>
+     */
+    public function analyzeDaemonSource(string $source, string $uri): array
+    {
+        return $this->getFactory()->createDaemonSourceAnalyzer()->analyze($source, $uri);
+    }
+
+    /**
      * Build a project-level symbol index from one or more source directories.
      *
      * @param list<string> $srcDirs

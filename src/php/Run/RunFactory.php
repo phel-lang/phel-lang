@@ -23,6 +23,7 @@ use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
 use Phel\Run\Application\ProjectNamespaceLister;
 use Phel\Run\Application\ReplHistoryPathResolver;
+use Phel\Run\Application\SourceAnalysisPreparer;
 use Phel\Run\Application\StructuredEvaluator;
 use Phel\Run\Application\Test\ChangedTestSelector;
 use Phel\Run\Application\Test\Coverage\CoverageAggregator;
@@ -60,6 +61,7 @@ use Phel\Shared\Process\GitChangedFiles;
 use Phel\Shared\Process\PhelBinaryLocator;
 use Phel\Shared\VersionResolver;
 
+use function dirname;
 use function extension_loaded;
 use function is_dir;
 use function mkdir;
@@ -137,6 +139,15 @@ class RunFactory extends AbstractFactory
         return new ProjectNamespaceLister(
             $this->getBuildFacade(),
             $this->getCommandFacade(),
+        );
+    }
+
+    public function createSourceAnalysisPreparer(): SourceAnalysisPreparer
+    {
+        return new SourceAnalysisPreparer(
+            $this->getBuildFacade(),
+            $this->getCompilerFacade(),
+            dirname(__DIR__, 2) . '/phel',
         );
     }
 

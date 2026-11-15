@@ -11,6 +11,7 @@ use Phel\Api\Application\Analysis\PreloadDependenciesStage;
 use Phel\Api\Application\Analysis\ReadAndAnalyzeStage;
 use Phel\Api\Application\CompletionDocFormatter;
 use Phel\Api\Application\CompletionDocResolver;
+use Phel\Api\Application\DaemonSourceAnalyzer;
 use Phel\Api\Application\DocViewFormatter;
 use Phel\Api\Application\LocalBindingResolver;
 use Phel\Api\Application\PhelFnGroupKeyGenerator;
@@ -82,6 +83,14 @@ final class ApiFactory extends AbstractFactory
             $this->createPhelFnGroupKeyGenerator(),
             $this->getConfig()->allNamespaces(),
             $this->getConfig()->githubRef(),
+        );
+    }
+
+    public function createDaemonSourceAnalyzer(): SourceAnalyzerInterface
+    {
+        return $this->singleton(
+            DaemonSourceAnalyzer::class,
+            fn(): DaemonSourceAnalyzer => new DaemonSourceAnalyzer($this->createSourceAnalyzer(), $this->getRunFacade()),
         );
     }
 

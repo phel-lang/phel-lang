@@ -57,6 +57,11 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         $this->scanIndexCache = $scanIndexCache ?? new NullScanIndexCache();
     }
 
+    public function resetDirectoryScans(): void
+    {
+        $this->directoriesScanCache = [];
+    }
+
     public function getNamespaceFromFile(string $path): NamespaceInformation
     {
         $realPath = SourcePathResolver::resolve($path);

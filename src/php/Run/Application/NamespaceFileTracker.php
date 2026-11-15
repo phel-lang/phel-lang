@@ -31,6 +31,17 @@ final class NamespaceFileTracker
         self::$loadedFiles[$file] = true;
     }
 
+    public static function retainDirectory(string $directory): void
+    {
+        $root = realpath($directory);
+        $prefix = ($root !== false ? $root : $directory) . '/';
+        self::$loadedFiles = array_filter(
+            self::$loadedFiles,
+            static fn(string $file): bool => str_starts_with($file, $prefix),
+            ARRAY_FILTER_USE_KEY,
+        );
+    }
+
     public static function reset(): void
     {
         self::$loadedFiles = [];

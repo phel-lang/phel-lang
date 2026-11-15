@@ -213,6 +213,8 @@ final readonly class FakeBuildFacade implements BuildFacadeInterface
         private array $dependencies,
     ) {}
 
+    public function refreshNamespaceScans(): void {}
+
     public function getDependenciesForNamespace(array $directories, array $ns): array
     {
         return $this->dependencies;
@@ -273,6 +275,8 @@ final class FakeRunFacade implements RunFacadeInterface
     public function __construct(
         private readonly int $throwOnCall = 0,
     ) {}
+
+    public function prepareSourceAnalysis(): void {}
 
     public function evalFile(NamespaceInformation $info): void
     {
