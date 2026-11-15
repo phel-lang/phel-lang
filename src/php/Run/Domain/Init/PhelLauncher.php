@@ -15,6 +15,8 @@ use function str_starts_with;
 use function strlen;
 use function substr;
 
+use const DIRECTORY_SEPARATOR;
+
 /**
  * How the user started Phel, so printed commands can be pasted as they are.
  *
@@ -73,9 +75,12 @@ final readonly class PhelLauncher
         return str_starts_with($relative, '-') ? './' . $relative : $relative;
     }
 
+    /**
+     * On POSIX a backslash is a valid file name character, not a separator.
+     */
     private function normalize(string $path): string
     {
-        return str_replace('\\', '/', $path);
+        return DIRECTORY_SEPARATOR === '\\' ? str_replace('\\', '/', $path) : $path;
     }
 
     private function shellQuote(string $path): string

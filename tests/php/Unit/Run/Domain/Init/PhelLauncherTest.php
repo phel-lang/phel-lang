@@ -75,6 +75,18 @@ final class PhelLauncherTest extends TestCase
         self::assertSame('php /phel.phar', PhelLauncher::fromPharPath('/phel.phar')->command('/work/app'));
     }
 
+    public function test_a_backslash_in_a_posix_directory_name_is_kept(): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            self::markTestSkipped('a backslash is a separator on Windows');
+        }
+
+        self::assertSame(
+            "php 'tools\\old/phel.phar'",
+            PhelLauncher::fromPharPath('/work/app/tools\\old/phel.phar')->command('/work/app'),
+        );
+    }
+
     public function test_a_project_reached_through_a_symlink_names_the_phar_relative_to_it(): void
     {
         $real = sys_get_temp_dir() . '/phel-launcher-' . bin2hex(random_bytes(4));
