@@ -27,6 +27,11 @@ interface GlobalEnvironmentManagerInterface
     public function initialize(): GlobalEnvironmentInterface;
 
     /**
+     * @param list<string> $retainedNamespaces
+     */
+    public function forgetProjectNamespaces(array $retainedNamespaces): void;
+
+    /**
      * Drops the global environment. Next access lazily creates a fresh one.
      */
     public function reset(): void;

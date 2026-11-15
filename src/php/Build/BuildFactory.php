@@ -16,6 +16,7 @@ use Phel\Build\Application\FileCompiler;
 use Phel\Build\Application\FileEvaluator;
 use Phel\Build\Application\MissingRequireReporter;
 use Phel\Build\Application\NamespaceExtractor;
+use Phel\Build\Application\NamespaceScanRefresher;
 use Phel\Build\Application\ProjectCompiler;
 use Phel\Build\Application\UnresolvedRequireError;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
@@ -129,6 +130,11 @@ final class BuildFactory extends AbstractFactory
                 $this->cacheEnvFingerprint(),
             ),
         );
+    }
+
+    public function createNamespaceScanRefresher(): NamespaceScanRefresher
+    {
+        return new NamespaceScanRefresher($this->createNamespaceExtractor());
     }
 
     public function createNamespaceExtractor(): NamespaceExtractorInterface

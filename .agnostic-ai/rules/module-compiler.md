@@ -21,7 +21,7 @@ Pipeline: Phel source → tokens → AST → analyzed nodes → PHP code.
 | Superseded forms | `rejectSupersededForms(mixed $form)`: for callers that read forms outside `CodeCompiler`/`EvalCompiler` (diagnostics rule) |
 | Suggestions | `findSimilarNames(typed, candidates)`: "did you mean" ranking (`SymbolSuggestionProvider`), used by Build and Lint's `phel/unresolved-namespace` |
 | Environment | `initializeGlobalEnvironment`, `resetGlobalEnvironment`, `isGlobalEnvironmentInitialized`, `getGlobalEnvironment`, `initializeNewGlobalEnvironment`, `setGlobalEnvironment` |
-| Namespace state | `getNamespaceEnvironmentData`, `restoreNamespaceEnvironmentData` |
+| Namespace state | `getNamespaceEnvironmentData`, `restoreNamespaceEnvironmentData`; `forgetProjectNamespaces(retainedNamespaces)` drops compiler and registry state outside the supplied stdlib namespace list plus the eval memo for saved-source daemon analysis |
 | Debugging | `enableDebugLineTap`, `disableDebugLineTap` |
 | Utility | `encodeNs` (via `Munge::encodePhpNs`), `hasBalancedParentheses` |
 

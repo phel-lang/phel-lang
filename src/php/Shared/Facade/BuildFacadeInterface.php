@@ -10,6 +10,8 @@ use Phel\Shared\NamespaceInformation;
 
 interface BuildFacadeInterface
 {
+    public function refreshNamespaceScans(): void;
+
     /**
      * Extracts the namespace from a given file. It expects that the
      * first statement in the file is the 'ns statement.

@@ -18,6 +18,7 @@ Namespace extraction, dependency ordering, compilation, caching.
 | `compileFile(src, dest)` / `evalFile(src)` | Compile to PHP and write; `evalFile` skips the write |
 | `flushCompiledCodeCache()` | Flush the compiled-code index and dependency graph; a parent calls it before spawning workers |
 | `compileProject(Shared\BuildOptions)` | `CompiledFile[]` |
+| `refreshNamespaceScans()` | Drop process-local directory scans and namespace restoration memo for daemon analysis, preserving disk caches |
 | `clearCache()` | `string[]` paths cleared from temp, cache and OPcache dirs |
 | `getHealthCheck()` | Cache, output, source dir checks |
 | `enableBuildMode()` / `disableBuildMode()` / `isBuildMode()` | Static; toggle `*build-mode*` by direct `Registry` write (avoids `Phel::__callStatic` on the hot `(load ...)` path) |
@@ -61,6 +62,7 @@ Both are injected as Shared `*FacadeInterface`. One non-facade edge, **Config**:
 | `Application/FileCompiler` | Compile one file to PHP |
 | `Application/DependenciesForNamespace` | Per-process memoized dependency resolution |
 | `Application/CachedNamespaceExtractor` | Skips dir walk via scan index |
+| `Application/NamespaceScanRefresher` | Drops process-local scan and namespace restoration memos |
 | `Application/CacheClearer` | Clears `<tempDir>` + `<cacheDir>`; empties `<phelDir>/opcache` in place |
 | `Domain/Extractor/TopologicalNamespaceSorter` | Dependency-order compilation |
 | `Domain/Compile/BuildReport` + `BuildReportEntry` | `--report` VO |

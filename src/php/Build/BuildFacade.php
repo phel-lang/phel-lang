@@ -93,6 +93,11 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
         ) === true;
     }
 
+    public function refreshNamespaceScans(): void
+    {
+        $this->getFactory()->createNamespaceScanRefresher()->refresh();
+    }
+
     /**
      * Extracts the namespace from a given file. It expects that the
      * first statement in the file is the 'ns statement.

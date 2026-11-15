@@ -13,6 +13,7 @@ scope: src/php/Api
 | `replComplete(string)` / `replCompleteWithTypes(string)` | REPL completion, plain or typed (nREPL) |
 | `getPhelFunctions(list<string> = [])` | Public Phel functions, optionally by ns |
 | `analyzeSource(string source, string uri): list<Diagnostic>` | Parse + analyze |
+| `analyzeDaemonSource(string source, string uri): list<Diagnostic>` | Refresh process-local dependency and project compiler state for saved source, then analyze |
 | `findSymbolMetadata(string, string currentNs = 'user'): ?PhelFunction` | Registry + static catalog lookup |
 | `completionDoc(string candidate, string currentNs = 'user'): ?string` | Doc markdown |
 | `extractDefinitions(string source, string uri)` | One source's definitions |
@@ -51,6 +52,7 @@ Everything degrades to empty/null on unknown types or reflection failure.
 ## Key Constraints
 
 - `Shared\Api\Diagnostic::fromLocatedException()` builds every analyzer diagnostic (`errorCode`, `suggestions`, catalog `fix`), so `phel analyze` and `phel lint` agree (#3464). Columns are 1-based. `phel analyze` takes files or directories, reports absolute paths, exits 1 on an error diagnostic, 2 on a missing path.
+- Saved-source daemon requests refresh project compiler and scan state; `Application/DaemonSourceAnalyzer` replays the latest unsaved buffers so cross-buffer definitions remain available. Saved secondary files preload their owning primary; unsaved secondary buffers skip it so disk signatures do not override buffer signatures.
 - `SourceAnalyzer` stages (`Application/Analysis/`, `AnalysisStageInterface`): Preload, LexAndParse, ReadAndAnalyze, wired in `ApiFactory::createSourceAnalyzer()`.
 - Literal `load` paths resolve through `Shared\LoadedSourceLocator`, also used by the lint cache.
 - `ReadAndAnalyzeStage` wraps its pass in `GlobalEnvironment::enterAnalysisMode()`/`leaveAnalysisMode()`. `PreloadDependenciesStage` really evaluates `phel.*` and the file's dependencies, so without the guard every top-level `def` raises `DuplicateDefinitionException` and kills the run. A new stage re-analyzing loaded sources needs it too.

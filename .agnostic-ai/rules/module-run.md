@@ -50,6 +50,8 @@ Non-facade edges:
 
 ## Key Constraints
 
+- `prepareSourceAnalysis()` delegates to `Application/SourceAnalysisPreparer`, which refreshes in-memory Build scans and forgets project compiler namespaces before daemon analysis. Persistent caches and namespaces from Phel's own `src/phel` stay loaded; vendor and project providers refresh regardless of their names.
+
 - **Optimization level**: `RunConfig::getOptimizationLevel()` (`PhelConfig::OPTIMIZATION_LEVEL`) feeds `EvalExecutor` and `CompileExecutor`; `phel run`/`phel test` get it via Build's `FileEvaluator`. REPL and nREPL always compile at level 0.
 - **`structuredEval`**: `StructuredEvaluator` (Application) builds `Phel\Shared\Eval\EvalResult` via `success()`/`incomplete()`/`failure()`, never throws, and owns snapshot/restore. The VOs are logic-free, in `Phel\Shared`.
 - **REPL**: env snapshot/restore on eval failure. `ReplCommandSystemIo` needs `readline`, else `ReplCommandFallbackIo`. `ReplHistoryPathResolver`: `.phel/repl-history`. `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel.core` after boot. `ReplCommand::registerDefaultTap()` adds `phel.repl/print-tap` after boot (skipped when a custom startup ns does not define it).

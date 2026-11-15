@@ -69,6 +69,11 @@ interface ApiFacadeInterface
     public function analyzeSource(string $source, string $uri): array;
 
     /**
+     * @return list<Diagnostic>
+     */
+    public function analyzeDaemonSource(string $source, string $uri): array;
+
+    /**
      * Build a project-level symbol index from one or more source directories.
      *
      * @param list<string> $srcDirs

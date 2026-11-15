@@ -200,6 +200,14 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
             ->initialize();
     }
 
+    /**
+     * @param list<string> $retainedNamespaces
+     */
+    public function forgetProjectNamespaces(array $retainedNamespaces): void
+    {
+        $this->getFactory()->createGlobalEnvironmentManager()->forgetProjectNamespaces($retainedNamespaces);
+    }
+
     public function resetGlobalEnvironment(): void
     {
         $this->getFactory()

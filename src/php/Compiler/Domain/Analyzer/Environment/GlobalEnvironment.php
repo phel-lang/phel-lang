@@ -154,6 +154,23 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->addInternalBuildModeDefinition();
     }
 
+    public function forgetNamespace(string $namespace): void
+    {
+        unset(
+            $this->definitions[$namespace],
+            $this->definitionLocations[$namespace],
+            $this->compileTimeMeta[$namespace],
+            $this->defFnNodes[$namespace],
+            $this->refers[$namespace],
+            $this->requireAliases[$namespace],
+            $this->useAliases[$namespace],
+            $this->interfaces[$namespace],
+            $this->interfaceMethods[$namespace],
+            $this->phpClasses[$namespace],
+            $this->analysisOnlyDefinitions[$namespace],
+        );
+    }
+
     public function getNs(): string
     {
         return $this->ns;

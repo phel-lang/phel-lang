@@ -14,6 +14,8 @@ use Phel\Lang\Symbol;
  */
 interface GlobalEnvironmentInterface
 {
+    public function forgetNamespace(string $namespace): void;
+
     public function getNs(): string;
 
     public function setNs(string $ns): void;

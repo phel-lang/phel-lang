@@ -33,12 +33,12 @@ final readonly class PreloadDependenciesStage implements AnalysisStageInterface
 
     public function run(string $source, string $uri, array &$context): array
     {
-        StandardError::redirectEcho(fn() => $this->preload($uri));
+        StandardError::redirectEcho(fn() => $this->preload($source, $uri));
 
         return [];
     }
 
-    private function preload(string $uri): void
+    private function preload(string $source, string $uri): void
     {
         try {
             $this->runFacade->loadPhelNamespaces();
@@ -67,8 +67,9 @@ final readonly class PreloadDependenciesStage implements AnalysisStageInterface
             return;
         }
 
+        $isSavedSource = file_get_contents($uri) === $source;
         foreach ($deps as $dep) {
-            if ($dep->getNamespace() === $namespace) {
+            if ($dep->getNamespace() === $namespace && (!$isSavedSource || $dep->getFile() === realpath($uri))) {
                 continue;
             }
 

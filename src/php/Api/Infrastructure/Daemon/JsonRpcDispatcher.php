@@ -78,7 +78,7 @@ final class JsonRpcDispatcher
         return match ($method) {
             'analyzeSource' => array_map(
                 static fn(Diagnostic $d): array => $d->toArray(),
-                $this->facade->analyzeSource(
+                $this->facade->analyzeDaemonSource(
                     ScalarCoercion::toString($params['source'] ?? null),
                     ScalarCoercion::toString($params['uri'] ?? null),
                 ),

@@ -9,6 +9,10 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentManagerInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentRegistry;
 use Phel\Compiler\Domain\Evaluator\RequireEvaluator;
+use Phel\Lang\Registry;
+use Phel\Shared\Munge;
+
+use function in_array;
 
 /**
  * @internal
@@ -23,6 +27,34 @@ final class GlobalEnvironmentManager implements GlobalEnvironmentManagerInterfac
         }
 
         return $this->initializeNew();
+    }
+
+    /**
+     * @param list<string> $retainedNamespaces
+     */
+    public function forgetProjectNamespaces(array $retainedNamespaces): void
+    {
+        $environment = $this->getInstance();
+        $registry = Registry::getInstance();
+        $snapshot = $registry->snapshot();
+        $namespaces = array_keys($environment->snapshot()['definitions']);
+        foreach ($namespaces as $namespace) {
+            if (in_array($namespace, $retainedNamespaces, true)) {
+                continue;
+            }
+
+            $environment->forgetNamespace($namespace);
+        }
+
+        $retainedRegistryKeys = array_map(new Munge()->encodeRegistryKey(...), $retainedNamespaces);
+        foreach (array_keys($snapshot['definitions']) as $namespace) {
+            if (!in_array($namespace, $retainedRegistryKeys, true)) {
+                unset($snapshot['definitions'][$namespace], $snapshot['definitionsMetaData'][$namespace]);
+            }
+        }
+
+        $registry->restore($snapshot);
+        RequireEvaluator::clearCache();
     }
 
     public function reset(): void

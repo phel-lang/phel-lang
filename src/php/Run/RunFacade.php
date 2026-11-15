@@ -33,6 +33,11 @@ use Throwable;
 #[ServiceMap(method: 'getFactory', className: RunFactory::class)]
 final class RunFacade extends AbstractFacade implements RunFacadeInterface
 {
+    public function prepareSourceAnalysis(): void
+    {
+        $this->getFactory()->createSourceAnalysisPreparer()->prepare();
+    }
+
     public function runNamespace(string $namespace): void
     {
         $this->getFactory()

@@ -145,6 +145,11 @@ interface CompilerFacadeInterface
      */
     public function initializeGlobalEnvironment(): void;
 
+    /**
+     * @param list<string> $retainedNamespaces
+     */
+    public function forgetProjectNamespaces(array $retainedNamespaces): void;
+
     public function resetGlobalEnvironment(): void;
 
     /**
