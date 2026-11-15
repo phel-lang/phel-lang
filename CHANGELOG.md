@@ -95,7 +95,7 @@ Builds and caches:
 Commands and tests:
 
 - `phel run` accepts options before the script and global options before `run`, and `--` ends options. `phel eval` rejects blank input, `phel config` shows environment overrides, and `phel profile` tracks fibers and exits 1 when it cannot write its report. (#3537 #3689 #3814 #3695 #3525 #3816 #3815)
-- `phel.phar` projects: `phel init` prints next steps that call the PHAR and writes no `composer.json`, so following them no longer installs a second Phel (`--template` projects still use Composer, since their entry points load `vendor/autoload.php`). The PHAR keeps its bundled standard library when Composer also installed `phel-lang/phel-lang`, and warns once when the versions differ. (#3899)
+- `phel.phar` projects: `phel init` prints next steps that call the PHAR and writes no `composer.json`, so following them no longer installs a second Phel (`--template` projects still use Composer, since their entry points load `vendor/autoload.php`). The PHAR keeps its bundled standard library when Composer also installed `phel-lang/phel-lang`. (#3899)
 - Test output: `thrown-with-msg?` accepts a regex, an exception outside `is` counts as an error, parallel and serial JUnit match, machine output keeps status on stderr, and mutation workers no longer hang. (#3813 #3537 #3627 #3642 #3525 #3526 #3696)
 
 Editors and diagnostics:

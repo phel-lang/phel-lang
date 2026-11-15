@@ -93,7 +93,7 @@ final class PharExecutionTest extends TestCase
         );
     }
 
-    public function test_phar_ignores_a_vendored_phel_and_says_so(): void
+    public function test_phar_ignores_a_vendored_phel_without_warning(): void
     {
         $vendored = $this->tempProjectDir . '/vendor/phel-lang/phel-lang';
         mkdir($vendored . '/src/phel', 0755, true);
@@ -110,7 +110,7 @@ final class PharExecutionTest extends TestCase
         self::assertSame(0, $result['exit'], sprintf("stdout:\n%s\nstderr:\n%s", $result['stdout'], $result['stderr']));
         self::assertStringContainsString('phar works', $result['stdout']);
         self::assertStringNotContainsString('vendored core loaded', $result['stdout']);
-        self::assertSame(1, substr_count($result['stderr'], 'ignores the phel-lang/phel-lang 0.1.0 that Composer installed in vendor/'));
+        self::assertStringNotContainsString('phel-lang/phel-lang', $result['stderr']);
     }
 
     public function test_phar_runs_from_external_directory_without_warnings(): void

@@ -7,7 +7,6 @@ namespace Phel\Command;
 use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\Config\ConfigReader\PhpConfigReader;
 use Gacela\Framework\ServiceResolver\ServiceMap;
-use Phar;
 use Phel\Command\Application\CommandExceptionWriter;
 use Phel\Command\Application\DirectoryFinder;
 use Phel\Command\Application\RuntimeErrorReportFormatter;
@@ -195,8 +194,6 @@ final class CommandFactory extends AbstractFactory
     {
         return new ComposerVendorDirectoriesFinder(
             $this->getConfig()->getAppRootDir() . '/' . $this->getConfig()->getVendorDir(),
-            runningFromPhar: Phar::running(false) !== '',
-            vendorName: $this->getConfig()->getVendorDir(),
         );
     }
 }
