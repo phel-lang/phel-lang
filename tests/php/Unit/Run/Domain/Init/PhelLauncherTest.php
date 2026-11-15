@@ -108,6 +108,48 @@ final class PhelLauncherTest extends TestCase
         }
     }
 
+    public function test_an_empty_path_entry_is_the_current_directory(): void
+    {
+        $root = sys_get_temp_dir() . '/phel-launcher-empty-' . bin2hex(random_bytes(4));
+        mkdir($root . '/bin', 0755, true);
+        mkdir($root . '/app');
+        $root = (string) realpath($root);
+        foreach (['bin', 'app'] as $dir) {
+            touch($root . '/' . $dir . '/phel');
+            chmod($root . '/' . $dir . '/phel', 0755);
+        }
+
+        try {
+            self::assertSame(
+                'php ' . $root . '/bin/phel',
+                PhelLauncher::fromPharPath($root . '/bin/phel', PATH_SEPARATOR . $root . '/bin')->command($root . '/app'),
+            );
+        } finally {
+            foreach (['bin', 'app'] as $dir) {
+                unlink($root . '/' . $dir . '/phel');
+                rmdir($root . '/' . $dir);
+            }
+
+            rmdir($root);
+        }
+    }
+
+    public function test_only_a_phar_named_phel_runs_by_its_name(): void
+    {
+        $bin = sys_get_temp_dir() . '/phel-launcher-name-' . bin2hex(random_bytes(4));
+        mkdir($bin);
+        $bin = (string) realpath($bin);
+        touch($bin . '/test');
+        chmod($bin . '/test', 0755);
+
+        try {
+            self::assertSame('php ' . $bin . '/test', PhelLauncher::fromPharPath($bin . '/test', $bin)->command('/work/app'));
+        } finally {
+            unlink($bin . '/test');
+            rmdir($bin);
+        }
+    }
+
     public function test_an_earlier_path_entry_with_the_same_name_shadows_the_phar(): void
     {
         $root = sys_get_temp_dir() . '/phel-launcher-shadow-' . bin2hex(random_bytes(4));

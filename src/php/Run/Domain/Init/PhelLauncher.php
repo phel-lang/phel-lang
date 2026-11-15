@@ -30,6 +30,8 @@ final readonly class PhelLauncher
 {
     private const string COMPOSER_BINARY = './vendor/bin/phel';
 
+    private const string PATH_COMMAND = 'phel';
+
     private function __construct(
         private string $pharPath,
         private string $pathEnv,
@@ -60,24 +62,26 @@ final readonly class PhelLauncher
             return self::COMPOSER_BINARY;
         }
 
-        return $this->commandOnPath() ?? 'php ' . $this->shellQuote($this->pharPathFrom($cwd));
+        return $this->commandOnPath($cwd) ?? 'php ' . $this->shellQuote($this->pharPathFrom($cwd));
     }
 
     /**
-     * The installation guide's `mv phel.phar /usr/local/bin/phel`: the first
-     * `PATH` match for the PHAR's name is the PHAR itself, so its name runs it.
+     * The installation guide's `mv phel.phar /usr/local/bin/phel`: when the
+     * first `PATH` match for `phel` is the PHAR itself, `phel` runs it. Only
+     * that name: another one could be a shell builtin such as `test`.
      */
-    private function commandOnPath(): ?string
+    private function commandOnPath(string $cwd): ?string
     {
-        $name = basename($this->pharPath);
         $phar = realpath($this->pharPath);
-        if ($phar === false || !is_executable($phar) || preg_match('#^[\w.][\w.-]*$#', $name) !== 1) {
+        if (basename($this->pharPath) !== self::PATH_COMMAND || $phar === false || !is_executable($phar)) {
             return null;
         }
 
         foreach (explode(PATH_SEPARATOR, $this->pathEnv) as $dir) {
-            if ($dir !== '' && is_file($dir . '/' . $name)) {
-                return realpath($dir . '/' . $name) === $phar ? $name : null;
+            // An empty entry means the current directory.
+            $candidate = ($dir === '' ? $cwd : $dir) . '/' . self::PATH_COMMAND;
+            if (is_file($candidate)) {
+                return realpath($candidate) === $phar ? self::PATH_COMMAND : null;
             }
         }
 
