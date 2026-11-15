@@ -48,7 +48,7 @@ Directory getters are `#[Cacheable]`.
 | `Domain/Exceptions/RuntimeArityMessage` | rewrites PHP's `Too few arguments to function ...::__invoke()` as `Wrong number of args (N) passed to ns/fn, expected M` |
 | `Domain/Exceptions/EvaluatedCodeLocation` | detects eval'd-code frames, names them `repl` |
 | `Infrastructure/SourceMapExtractor` | compiled PHP to Phel source locations |
-| `Infrastructure/ComposerVendorDirectoriesFinder` | vendor source dirs; skips `vendor/phel-lang/phel-lang` (the running Phel under Composer, a second stdlib under a PHAR) and warns once from a PHAR when its version differs |
+| `Infrastructure/ComposerVendorDirectoriesFinder` | vendor source dirs; skips `vendor/phel-lang/phel-lang` (the running Phel under Composer, a second stdlib under a PHAR) silently; `phel doctor` reports the vendored copy, a warning here would repeat on every command |
 | `Infrastructure/ErrorLog` | full-trace sink: strips ANSI, heads each entry `[<timestamp>] <command line>`, rotates at 1 MiB into `<log>.1` (one generation) |
 
 ## Key Constraints

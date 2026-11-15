@@ -93,24 +93,19 @@ final class PharExecutionTest extends TestCase
         );
     }
 
-    public function test_phar_ignores_a_vendored_phel_and_says_so(): void
+    public function test_phar_ignores_a_vendored_phel_without_warning(): void
     {
         $vendored = $this->tempProjectDir . '/vendor/phel-lang/phel-lang';
         mkdir($vendored . '/src/phel', 0755, true);
-        mkdir($this->tempProjectDir . '/vendor/composer', 0755, true);
         file_put_contents($vendored . '/phel-config.php', "<?php return ['src-dirs' => ['src/phel']];\n");
         file_put_contents($vendored . '/src/phel/core.phel', "(ns phel.core)\n(println \"vendored core loaded\")\n");
-        file_put_contents(
-            $this->tempProjectDir . '/vendor/composer/installed.json',
-            '{"packages":[{"name":"phel-lang/phel-lang","version":"v0.1.0"}]}',
-        );
 
         $result = $this->runPhar(['run', 'main.phel']);
 
         self::assertSame(0, $result['exit'], sprintf("stdout:\n%s\nstderr:\n%s", $result['stdout'], $result['stderr']));
         self::assertStringContainsString('phar works', $result['stdout']);
         self::assertStringNotContainsString('vendored core loaded', $result['stdout']);
-        self::assertSame(1, substr_count($result['stderr'], 'ignores the phel-lang/phel-lang 0.1.0 that Composer installed in vendor/'));
+        self::assertStringNotContainsString('phel-lang/phel-lang', $result['stderr']);
     }
 
     public function test_phar_runs_from_external_directory_without_warnings(): void
