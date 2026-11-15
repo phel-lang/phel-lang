@@ -35,7 +35,9 @@ final class SessionRegistry
             return false;
         }
 
+        $session = $this->sessions[$id];
         unset($this->sessions[$id]);
+        $session->clearInspections();
 
         return true;
     }

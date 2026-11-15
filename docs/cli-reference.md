@@ -308,6 +308,97 @@ directory and removes the file when it stops. Next to the standard nREPL ops it
 answers `reload` (param `all`: `true` or `1` reloads every namespace, else only
 the changed ones) and `run-tests` (param `ns`, optional `var` for one test).
 
+#### Incremental value inspection
+
+`describe` advertises `phel-inspect-start`, `phel-inspect-page` and `phel-inspect-release`. These operations require a live session created by `clone`. Standard `eval` replies are unchanged.
+
+| Operation | Parameters | Result |
+|-----------|------------|--------|
+| `phel-inspect-start` | `session`, `code` | Evaluates once; returns `inspection`, `root`, `ns`, bounded `out` and `output-truncated` |
+| `phel-inspect-page` | `session`, `inspection`, `handle`, optional integer `offset` (0) and `limit` (32) | Returns `children`, `next-offset`, `truncated` and `reason` |
+| `phel-inspect-release` | `session`, `inspection` | Releases every handle in the inspection; returns `released: 1` |
+
+Each value descriptor has an opaque `handle`, `kind`, byte-bounded `preview`, `preview-truncated`, `expandable`, `truncated` and `reason`. Children also have a bounded key/property/index `label` and `reference: 1` when an object already has a handle. Live resources include `resource-type` and `resource-id`. Descriptors contain no raw PHP values. Bencode represents booleans as `1`/`0`; previews are byte strings.
+
+A page visits at most 32 children. An inspection retains at most 128 handles and visits at most 128 entries across all pages, to depth 16. A session holds at most eight inspections. Each response fits within 16 KiB, previews within 96 bytes and captured output within 512 bytes. Overlong routing ids (more than 256 bytes) produce a bounded error without routing fields. Release an inspection before starting another when the session limit is reached.
+
+`next-offset: -1` ends a page stream. Otherwise pass that offset with the same handle. Offsets may revisit cached children but cannot skip unseen entries. Repeating a page reuses the visited children. No operation counts a lazy sequence; a final empty page can establish exhaustion. A sequence's own implementation may compute ahead when obtaining an element. Truncation reasons are `depth`, `items` (entry or handle budget) and `unavailable` (iteration failed). An unavailable or exhausted budget ends that stream.
+
+PHP objects expose stored, initialized public instance properties through raw reflection access. Inspection skips virtual properties, static properties and uninitialized lazy objects. It does not invoke property hooks, getters, `__debugInfo` or `__toString`. Object cycles reuse handles; recursive PHP arrays stop at the depth limit. This is a live view, so mutations can affect children not yet visited. Paging never reevaluates the expression. Inspection does not add values to eval history. Release, session close and server restart invalidate handles; unknown, released or foreign handles return `error`, `inspection-error`, `done`.
+
+Start `phel nrepl --port=0` in one terminal. Run this Python 3 client from the same directory in another terminal. It prints each request and decoded response, expands a lazy sequence, then releases the inspection and closes the session. It uses only the Python standard library.
+
+```sh
+python3 <<'PY'
+import pathlib
+import socket
+
+
+def encode(value):
+    if isinstance(value, int):
+        return b'i' + str(value).encode() + b'e'
+    if isinstance(value, dict):
+        return b'd' + b''.join(encode(k) + encode(v) for k, v in sorted(value.items())) + b'e'
+    data = value.encode()
+    return str(len(data)).encode() + b':' + data
+
+
+def decode(stream, first=None):
+    token = stream.read(1) if first is None else first
+    if not token:
+        raise EOFError('nREPL disconnected')
+    if token == b'i':
+        digits = b''
+        while (byte := stream.read(1)) != b'e':
+            if not byte:
+                raise EOFError('incomplete integer')
+            digits += byte
+        return int(digits)
+    if token in (b'l', b'd'):
+        entries = []
+        while (byte := stream.read(1)) != b'e':
+            entries.append(decode(stream, byte))
+        return entries if token == b'l' else dict(zip(entries[::2], entries[1::2]))
+    digits = token
+    while (byte := stream.read(1)) != b':':
+        if not byte:
+            raise EOFError('incomplete string')
+        digits += byte
+    return stream.read(int(digits)).decode('utf-8', errors='replace')
+
+
+port = int(pathlib.Path('.nrepl-port').read_text())
+with socket.create_connection(('127.0.0.1', port), timeout=10) as connection:
+    stream = connection.makefile('rb')
+
+    def request(op, **params):
+        message = dict(op=op, **params)
+        print('request:', message)
+        connection.sendall(encode(message))
+        response = decode(stream)
+        print('response:', response)
+        if 'error' in response.get('status', []):
+            raise RuntimeError(response)
+        return response
+
+    session = request('clone')['new-session']
+    try:
+        start = request('phel-inspect-start', session=session,
+                        code='{"vector" (vec (range 10000)) "lazy" (iterate inc 0) "object" (stdClass.)}')
+        inspection = start['inspection']
+        try:
+            page = request('phel-inspect-page', session=session, inspection=inspection,
+                           handle=start['root']['handle'], limit=3)
+            lazy = next(child for child in page['children'] if child['label'] == 'lazy')
+            request('phel-inspect-page', session=session, inspection=inspection,
+                    handle=lazy['handle'], limit=2)
+        finally:
+            request('phel-inspect-release', session=session, inspection=inspection)
+    finally:
+        request('close', session=session)
+PY
+```
+
 ## Error codes
 
 A compile or runtime failure prints a `[PHELxxx]` code in front of its message.
