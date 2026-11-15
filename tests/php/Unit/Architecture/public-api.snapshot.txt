@@ -1834,6 +1834,10 @@ final readonly class Phel\Shared\Exceptions\Hint\ExceptionHintResolver
   public function __construct(array $hints)
   public function hintFor(Throwable $e): ?string
 
+final class Phel\Shared\Exceptions\Hint\MissingLibraryHint implements Phel\Shared\Exceptions\Hint\ExceptionHintInterface
+  public function appliesTo(Throwable $e): bool
+  public function hint(Throwable $e): string
+
 final class Phel\Shared\Exceptions\Hint\MissingNsFormHint implements Phel\Shared\Exceptions\Hint\ExceptionHintInterface
   public function appliesTo(Throwable $e): bool
   public function hint(Throwable $e): string

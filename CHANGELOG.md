@@ -49,6 +49,7 @@ Compiler:
 
 Tooling:
 
+- A `(:require ...)` of a namespace that no source dir provides ends with a hint to install the library with `composer require`, naming the package for official libraries such as `phel.pdo`. (#3899)
 - `docs/stability.md` and `docs/cli-reference.md` define what changes only in major releases: commands, options, exit codes, machine output, `api-daemon` methods and environment variables, but not human-readable text. `api-daemon` and the LSP report the running version, and `phel mutate` takes `--format`, deprecating `--reporter`. (#3525, ADR 0022)
 - Security reports go through GitHub private vulnerability reporting or email, and the README explains how to verify a release PHAR. (#3533)
 - `phel test --parallel=N --timeout=<seconds>` stops a namespace that runs past the limit, reports it as an error naming the last test that started (in every reporter, JUnit XML included) and runs the rest. There is no limit by default, and `--timeout` on a serial run or with `--watch` exits 2. (#3868)

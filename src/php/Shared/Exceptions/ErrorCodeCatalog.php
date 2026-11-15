@@ -177,7 +177,7 @@ final class ErrorCodeCatalog
                 title: 'Missing namespace',
                 summary: 'A `(:require ...)` names a namespace that no source file declares on the searched directories, that is not loaded, and that Phel does not ship. The caret marks the namespace in the requiring file; the note lists the directories searched.',
                 example: "(ns app.main\n  (:require app.helpers))",
-                fix: 'Check the spelling against the `ns` form of the file you mean, or add its directory to the src, test or vendor dirs.',
+                fix: 'Check the spelling against the `ns` form of the file you mean, or add its directory to the src, test or vendor dirs. A namespace from a library needs the library installed: `composer require <vendor/package>` puts it in the vendor directory.',
             ),
             new ErrorCodeExplanation(
                 code: ErrorCode::UNTERMINATED_LIST,
