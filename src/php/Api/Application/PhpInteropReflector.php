@@ -7,6 +7,7 @@ namespace Phel\Api\Application;
 use BackedEnum;
 use Phel\Api\Transfer\PhpInteropClass;
 use Phel\Api\Transfer\PhpInteropSignature;
+use Phel\Api\Transfer\PhpInteropType;
 use Phel\Shared\Api\Completion;
 use phpDocumentor\Reflection\Fqsen;
 use phpDocumentor\Reflection\TypeResolver;
@@ -90,6 +91,10 @@ final class PhpInteropReflector
      */
     public function instanceMembers(string $class, string $prefix = ''): array
     {
+        if ($this->isComposite($class)) {
+            return $this->compositeMembers($class, $prefix);
+        }
+
         $reflection = $this->reflect($class);
         if (!$reflection instanceof ReflectionClass) {
             return [];
@@ -287,16 +292,52 @@ final class PhpInteropReflector
      */
     public function methodSignatureInfo(string $class, string $method): ?PhpInteropSignature
     {
-        $reflection = $this->reflect($class);
-        if (!$reflection instanceof ReflectionClass) {
+        $signatures = $this->methodSignatureAlternatives($class, $method);
+        if ($signatures === []) {
             return null;
         }
 
-        try {
-            return $this->methodInfo($reflection->getMethod($method));
-        } catch (ReflectionException) {
-            return null;
+        return new PhpInteropSignature(
+            implode("\n", array_column($signatures, 'label')),
+            $signatures[0]->parameters,
+            $signatures[0]->documentation,
+        );
+    }
+
+    /**
+     * @return list<PhpInteropSignature>
+     */
+    public function methodSignatureAlternatives(string $class, string $method): array
+    {
+        if ($this->isComposite($class) && !$this->hasInstanceMethod($class, $method)) {
+            return [];
         }
+
+        $signatures = [];
+        foreach ($this->objectAlternatives($class) as $classes) {
+            foreach ($classes as $name) {
+                try {
+                    $reflection = $this->reflect($name);
+                    if (!$reflection instanceof ReflectionClass || !$reflection->hasMethod($method)) {
+                        continue;
+                    }
+
+                    $reflectedMethod = $reflection->getMethod($method);
+                    if ($this->isComposite($class) && (!$reflectedMethod->isPublic() || $reflectedMethod->isStatic())) {
+                        continue;
+                    }
+
+                    $signature = $this->methodInfo($reflectedMethod);
+                    $signatures[$signature->label] = $signature;
+                } catch (ReflectionException) {
+                    continue;
+                }
+            }
+        }
+
+        ksort($signatures);
+
+        return array_values($signatures);
     }
 
     /**
@@ -318,32 +359,49 @@ final class PhpInteropReflector
         return $reflection instanceof ReflectionClass && $reflection->isInstantiable();
     }
 
-    /**
-     * The class name a method returns, for walking a `php/->` chain: `self`,
-     * `static`, and `$this` resolve to the declaring class, `parent` to its
-     * parent. For a union/intersection return (e.g. `Foo|false`, `Foo&Bar`) the
-     * first reflectable class member is used. Returns '' for scalar/unknown
-     * return types or when the method cannot be reflected.
-     */
     public function methodReturnType(string $class, string $method): string
     {
-        $reflection = $this->reflect($class);
-        if (!$reflection instanceof ReflectionClass) {
+        if ($this->isComposite($class) && !$this->hasInstanceMethod($class, $method)) {
             return '';
         }
 
-        try {
-            $reflectedMethod = $reflection->getMethod($method);
-        } catch (ReflectionException) {
-            return '';
+        $result = PhpInteropType::fromName('');
+        foreach ($this->objectAlternatives($class) as $classes) {
+            $alternative = null;
+            foreach ($classes as $name) {
+                $reflection = $this->reflect($name);
+                if (!$reflection instanceof ReflectionClass || !$reflection->hasMethod($method)) {
+                    continue;
+                }
+
+                $reflectedMethod = $reflection->getMethod($method);
+                if ($this->isComposite($class) && (!$reflectedMethod->isPublic() || $reflectedMethod->isStatic())) {
+                    continue;
+                }
+
+                $native = $reflectedMethod->getReturnType() ?? $reflectedMethod->getTentativeReturnType();
+                $type = $native instanceof ReflectionType
+                    ? $this->nativeReturnType($native, $reflection)
+                    : PhpInteropType::fromName($this->phpDocReturnClass($reflectedMethod, $reflection));
+                if ($type->alternatives === []) {
+                    return '';
+                }
+
+                $alternative = $alternative instanceof PhpInteropType ? $alternative->intersect($type) : $type;
+            }
+
+            if ($alternative instanceof PhpInteropType) {
+                $result = $result->union($alternative);
+            }
         }
 
-        // Built-in classes declare most returns only as tentative types.
-        $type = $reflectedMethod->getReturnType() ?? $reflectedMethod->getTentativeReturnType();
+        foreach ($result->objectAlternatives() as $classes) {
+            if (array_any($classes, $this->classExists(...))) {
+                return $result->name();
+            }
+        }
 
-        return $type instanceof ReflectionType
-            ? $this->returnClass($type, $reflection)
-            : $this->phpDocReturnClass($reflectedMethod, $reflection);
+        return '';
     }
 
     /**
@@ -393,20 +451,11 @@ final class PhpInteropReflector
             return $method;
         }
 
-        $reflection = $this->reflect($class);
-        if (!$reflection instanceof ReflectionClass || !$reflection->hasProperty($member)) {
-            return null;
+        if ($this->isComposite($class)) {
+            return $this->compositePropertyInfo($class, $member);
         }
 
-        $property = $reflection->getProperty($member);
-        if (!$property->isPublic() || $property->isStatic()) {
-            return null;
-        }
-
-        $type = $this->renderType($property->getType());
-        $label = ($type === '' ? '' : $type . ' ') . '$' . $property->getName();
-
-        return new PhpInteropSignature($label, [], $this->cleanDoc($property->getDocComment()));
+        return $this->instancePropertyInfo($class, $member);
     }
 
     /**
@@ -471,6 +520,24 @@ final class PhpInteropReflector
             $this->cleanDoc($reflection->getDocComment()),
             $this->methodSignatureInfo($class, '__construct'),
         );
+    }
+
+    private function instancePropertyInfo(string $class, string $member): ?PhpInteropSignature
+    {
+        $reflection = $this->reflect($class);
+        if (!$reflection instanceof ReflectionClass || !$reflection->hasProperty($member)) {
+            return null;
+        }
+
+        $property = $reflection->getProperty($member);
+        if (!$property->isPublic() || $property->isStatic()) {
+            return null;
+        }
+
+        $type = $this->renderType($property->getType());
+        $label = ($type === '' ? '' : $type . ' ') . '$' . $property->getName();
+
+        return new PhpInteropSignature($label, [], $this->cleanDoc($property->getDocComment()));
     }
 
     /**
@@ -540,22 +607,31 @@ final class PhpInteropReflector
     /**
      * @param ReflectionClass<object> $declaring
      */
-    private function returnClass(?ReflectionType $type, ReflectionClass $declaring): string
+    private function nativeReturnType(ReflectionType $type, ReflectionClass $declaring): PhpInteropType
     {
         if ($type instanceof ReflectionNamedType) {
-            return $this->namedReturnClass($type->getName(), $declaring);
+            $name = $this->namedReturnClass($type->getName(), $declaring);
+            $result = PhpInteropType::fromName($name === '' ? $type->getName() : $name);
+
+            return $type->allowsNull() && $type->getName() !== 'null'
+                ? $result->union(PhpInteropType::fromName('null'))
+                : $result;
         }
 
+        $result = null;
         if ($type instanceof ReflectionUnionType || $type instanceof ReflectionIntersectionType) {
             foreach ($type->getTypes() as $member) {
-                $resolved = $this->returnClass($member, $declaring);
-                if ($resolved !== '') {
-                    return $resolved;
+                $next = $this->nativeReturnType($member, $declaring);
+                if (!$result instanceof PhpInteropType) {
+                    $result = $next;
+                    continue;
                 }
+
+                $result = $type instanceof ReflectionUnionType ? $result->union($next) : $result->intersect($next);
             }
         }
 
-        return '';
+        return $result ?? PhpInteropType::fromName('');
     }
 
     /**
@@ -574,6 +650,89 @@ final class PhpInteropReflector
         }
 
         return $this->reflect($name) instanceof ReflectionClass ? ltrim($name, '\\') : '';
+    }
+
+    private function isComposite(string $class): bool
+    {
+        return strpbrk($class, '|&') !== false;
+    }
+
+    /**
+     * @return list<list<string>>
+     */
+    private function objectAlternatives(string $class): array
+    {
+        return PhpInteropType::fromName($class)->objectAlternatives();
+    }
+
+    private function compositePropertyInfo(string $class, string $member): ?PhpInteropSignature
+    {
+        if (!array_any($this->instanceMembers($class), static fn(Completion $completion): bool => $completion->kind === Completion::KIND_LOCAL && $completion->label === $member)) {
+            return null;
+        }
+
+        $signatures = [];
+        foreach ($this->objectAlternatives($class) as $classes) {
+            foreach ($classes as $name) {
+                $info = $this->instancePropertyInfo($name, $member);
+                if ($info instanceof PhpInteropSignature) {
+                    $signatures[$info->label] = $info;
+                }
+            }
+        }
+
+        ksort($signatures);
+        $first = array_first($signatures);
+
+        return $first instanceof PhpInteropSignature
+            ? new PhpInteropSignature(implode("\n", array_keys($signatures)), [], $first->documentation)
+            : null;
+    }
+
+    private function hasInstanceMethod(string $class, string $method): bool
+    {
+        return array_any($this->instanceMembers($class), static fn(Completion $member): bool => $member->kind === Completion::KIND_MACRO && strcasecmp($member->label, $method) === 0);
+    }
+
+    /**
+     * @return list<Completion>
+     */
+    private function compositeMembers(string $class, string $prefix): array
+    {
+        /** @var array<string, non-empty-list<Completion>>|null $common */
+        $common = null;
+        foreach ($this->objectAlternatives($class) as $classes) {
+            /** @var array<string, non-empty-list<Completion>> $members */
+            $members = [];
+            foreach ($classes as $name) {
+                foreach ($this->instanceMembers($name, $prefix) as $completion) {
+                    $key = $completion->kind . ':' . ($completion->kind === Completion::KIND_MACRO ? strtolower($completion->label) : $completion->label);
+                    $members[$key][] = $completion;
+                }
+            }
+
+            if ($common === null) {
+                $common = $members;
+                continue;
+            }
+
+            $common = array_intersect_key($common, $members);
+            foreach ($common as $key => $completions) {
+                $common[$key] = [...$completions, ...$members[$key]];
+            }
+        }
+
+        $result = [];
+        $common ??= [];
+        ksort($common);
+        foreach ($common as $completions) {
+            $first = $completions[0];
+            $details = array_values(array_unique(array_column($completions, 'detail')));
+            sort($details);
+            $result[] = new Completion($first->label, $first->kind, $class . ': ' . implode(' | ', $details), $first->documentation);
+        }
+
+        return $result;
     }
 
     private function methodCompletion(ReflectionMethod $method): Completion
@@ -723,11 +882,15 @@ final class PhpInteropReflector
     private function reflect(string $class): ?ReflectionClass
     {
         $name = ltrim($class, '\\');
-        if ($name === '' || (!class_exists($name) && !interface_exists($name))) {
+        try {
+            if ($name === '' || (!class_exists($name) && !interface_exists($name))) {
+                return null;
+            }
+
+            return new ReflectionClass($name);
+        } catch (Throwable) {
             return null;
         }
-
-        return new ReflectionClass($name);
     }
 
     private function matches(string $candidate, string $prefix): bool

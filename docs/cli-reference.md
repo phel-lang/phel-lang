@@ -267,6 +267,13 @@ failed.
 | `completeAtPoint` | `source`, `line`, `col` | a list of completions: `label`, `kind`, `detail`, `documentation` |
 | `version` | none | the running Phel version, as in `v0.54.0`; `phel --version` prints it after `Phel `, and the LSP sends it as `serverInfo.version` |
 
+PHP member completion keeps native union and intersection return types. A union
+of object types offers their common members; an intersection offers members
+from either type. The existing `detail` text includes the receiver type and
+alternative signatures. Scalar and null alternatives stay in that type text,
+so `A|false` and `A|null` do not appear as unconditional `A` values. Signature
+help uses its existing `signatures` list for differing alternatives.
+
 ### Other JSON outputs
 
 | Command | Shape |

@@ -115,11 +115,18 @@ final readonly class PhpInteropDocResolver
             return null;
         }
 
-        $info = $this->reflector->methodSignatureInfo($context->class, $call->method);
+        $signatures = $this->reflector->methodSignatureAlternatives($context->class, $call->method);
+        if ($signatures === []) {
+            return null;
+        }
 
-        return $info instanceof PhpInteropSignature
-            ? $this->signatureResponse($info, $call->activeParameter)
-            : null;
+        $response = $this->signatureResponse($signatures[0], $call->activeParameter);
+        $response['signatures'] = array_map(
+            fn(PhpInteropSignature $signature): array => $this->signatureResponse($signature, $call->activeParameter)['signatures'][0],
+            $signatures,
+        );
+
+        return $response;
     }
 
     private function memberHover(PhpInteropContext $context): ?string

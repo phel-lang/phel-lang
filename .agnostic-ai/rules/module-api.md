@@ -27,7 +27,7 @@ scope: src/php/Api
 | `createApiDaemon(): ApiDaemon` | JSON-RPC daemon |
 
 - All but `createApiDaemon` are on `Phel\Shared\Facade\ApiFacadeInterface`, injected by `Lint`, `Lsp`, `Nrepl`, `Run`, `Watch`. `ApiDaemon` is an `Infrastructure` stdio adapter used only by `ApiDaemonCommand`, so it stays off.
-- Contract transfers are in `Phel\Shared\Api`: `ProjectIndex`, `Definition`, `Location`, `Completion`, `Diagnostic`, `PhelFunction`, `CompletionResultTransfer`. `Transfer/` holds only interop reflection types (`PhpInteropCall`, `PhpInteropClass`, `PhpInteropContext`, `PhpInteropSignature`); they never cross the facade.
+- Contract transfers are in `Phel\Shared\Api`: `ProjectIndex`, `Definition`, `Location`, `Completion`, `Diagnostic`, `PhelFunction`, `CompletionResultTransfer`. `Transfer/` holds only interop reflection types (`PhpInteropCall`, `PhpInteropClass`, `PhpInteropContext`, `PhpInteropSignature`, `PhpInteropType`); they never cross the facade.
 
 ## Dependencies
 
@@ -42,7 +42,7 @@ Everything degrades to empty/null on unknown types or reflection failure.
 
 | Class | Role |
 |-------|------|
-| `PhpInteropReflector` | Reflection + composer classmap. `methodSignatureInfo`/`functionSignatureInfo` return `PhpInteropSignature`; `instanceMemberInfo`/`staticMemberInfo` give property/constant/enum-case hover (static properties with sigil `$prop`, ADR 0013); `classInfo` returns `PhpInteropClass`; `methodReturnType` walks chains; `isInstantiable` guards `php/new` help (not interfaces/abstract/enums); `classNames` includes interfaces; `staticMembers` labels enum cases, static properties sigil-first; `globalVariables` reads `PhpSymbolCatalog::SUPERGLOBALS` |
+| `PhpInteropReflector` | Reflection + composer classmap. `methodSignatureInfo`/`functionSignatureInfo` return `PhpInteropSignature`; `instanceMemberInfo`/`staticMemberInfo` give property/constant/enum-case hover (static properties with sigil `$prop`, ADR 0013); `classInfo` returns `PhpInteropClass`; `methodReturnType` walks chains with normalized disjunctive type expressions; `PhpInteropType` unions/intersects alternatives; object unions expose common members, intersections merge members, scalar/null alternatives remain in receiver detail; `methodSignatureAlternatives` feeds signature help; `isInstantiable` guards `php/new` help (not interfaces/abstract/enums); `classNames` includes interfaces; `staticMembers` labels enum cases, static properties sigil-first; `globalVariables` reads `PhpSymbolCatalog::SUPERGLOBALS` |
 | `PhpInteropContextResolver` | Receiver type from `:tag`; a construction (`(new Foo`, `(Foo.`, `(php/new \Foo`); a static factory (`(Foo/make`, `(php/:: Foo make`, by reflected or tentative return type); `(:use ...)`/`(use ...)` aliases incl. `:as`; multi-line via `CursorText::before`; multi-hop `php/->` chains; indirect `let` rebinds. A binding counts only before the cursor and while its form is open there, nearest first. A capitalised bare name with no alias or binding is a global class; `Foo.Bar` reads as `Foo\Bar`. Covers `php/*`, `C/member` (static), `(.m recv` / `(.-f recv` (instance). Dot-shorthand receivers *follow* the cursor: `CursorText::firstTokenAfter`. Match `php/$NAME` (superglobals) *before* `php/<fn>`: `$` is not a word character |
 | `PhpFormTokenizer` | Top-level token splitter for scanner + resolver |
 | `PhpInteropCallScanner` | Enclosing call + `activeParameter`; handles chained `(php/-> x (a) (b ⟂` |
