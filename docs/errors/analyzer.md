@@ -194,7 +194,7 @@ A `(:require ...)` names a namespace that no source file declares on the searche
   (:require app.helpers))
 ```
 
-**Fix:** Check the spelling against the `ns` form of the file you mean, or add its directory to the src, test or vendor dirs.
+**Fix:** Check the spelling against the `ns` form of the file you mean, or add its directory to the src, test or vendor dirs. A namespace from a library needs the library installed: `composer require <vendor/package>` puts it in `vendor/`.
 
 ---
 
