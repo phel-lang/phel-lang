@@ -128,7 +128,7 @@ HELP)
         $outputFile = $input->getOption(self::OPT_OUTPUT);
         $jsonOnStdout = $format === ReportFormat::Json && (!is_string($outputFile) || $outputFile === '');
         $report = $jsonOnStdout
-            ? StandardError::redirectEcho(fn(): ?ProfileReport => $this->runWithProfiler($path, $output))
+            ? StandardError::redirectEcho(fn(): ?ProfileReport => $this->runWithProfiler($path, StandardError::of($output)))
             : $this->runWithProfiler($path, $output);
         if (!$report instanceof ProfileReport) {
             return self::FAILURE;

@@ -15,6 +15,7 @@ use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
+use Phel\Shared\Exceptions\Hint\PhpArrayArgumentHint;
 use Phel\Shared\Exceptions\RuntimeErrorCodeResolver;
 use Phel\Shared\Printer\PrinterInterface;
 use Throwable;
@@ -203,7 +204,8 @@ final readonly class RuntimeErrorReportFormatter
         $line = $cause->getLine();
         $position = $this->filePositionExtractor->getOriginal($file, $line);
 
-        if (!$this->isInternalPosition($position)) {
+        // PHP parameter TypeErrors name the declaration rather than the Phel caller.
+        if (!$this->isInternalPosition($position) && !new PhpArrayArgumentHint()->appliesTo($cause)) {
             return new AnchorFrame($position, $file, $line);
         }
 

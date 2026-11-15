@@ -31,6 +31,7 @@ use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Exceptions\Hint\MissingLibraryHint;
 use Phel\Shared\Exceptions\Hint\MissingNsFormHint;
 use Phel\Shared\Exceptions\Hint\NotCallableHint;
+use Phel\Shared\Exceptions\Hint\PhpArrayArgumentHint;
 use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
 use Phel\Shared\Exceptions\SourceMappedErrorHandler;
 use Phel\Shared\Munge;
@@ -120,6 +121,7 @@ final class CommandFactory extends AbstractFactory
             new MissingNsFormHint(),
             new NotCallableHint(),
             new ArgumentCountHint(),
+            new PhpArrayArgumentHint(),
             new UndefinedSymbolHint(),
             new ClassNotFoundHint(),
             new MissingLibraryHint(),
