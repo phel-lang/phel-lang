@@ -87,6 +87,53 @@ final class PhelLauncherTest extends TestCase
         );
     }
 
+    public function test_a_phar_installed_on_the_path_runs_by_its_name(): void
+    {
+        $bin = sys_get_temp_dir() . '/phel-launcher-bin-' . bin2hex(random_bytes(4));
+        mkdir($bin);
+        $bin = (string) realpath($bin);
+        touch($bin . '/phel');
+        chmod($bin . '/phel', 0755);
+
+        try {
+            self::assertSame('phel', PhelLauncher::fromPharPath($bin . '/phel', '/nowhere' . PATH_SEPARATOR . $bin)->command('/work/app'));
+            self::assertSame('php ' . $bin . '/phel', PhelLauncher::fromPharPath($bin . '/phel', '/nowhere')->command('/work/app'));
+
+            chmod($bin . '/phel', 0644);
+            clearstatcache();
+            self::assertSame('php ' . $bin . '/phel', PhelLauncher::fromPharPath($bin . '/phel', $bin)->command('/work/app'));
+        } finally {
+            unlink($bin . '/phel');
+            rmdir($bin);
+        }
+    }
+
+    public function test_an_earlier_path_entry_with_the_same_name_shadows_the_phar(): void
+    {
+        $root = sys_get_temp_dir() . '/phel-launcher-shadow-' . bin2hex(random_bytes(4));
+        mkdir($root . '/first', 0755, true);
+        mkdir($root . '/second');
+        $root = (string) realpath($root);
+        foreach (['first', 'second'] as $dir) {
+            touch($root . '/' . $dir . '/phel');
+            chmod($root . '/' . $dir . '/phel', 0755);
+        }
+
+        try {
+            self::assertSame(
+                'php ' . $root . '/second/phel',
+                PhelLauncher::fromPharPath($root . '/second/phel', $root . '/first' . PATH_SEPARATOR . $root . '/second')->command('/work/app'),
+            );
+        } finally {
+            foreach (['first', 'second'] as $dir) {
+                unlink($root . '/' . $dir . '/phel');
+                rmdir($root . '/' . $dir);
+            }
+
+            rmdir($root);
+        }
+    }
+
     public function test_a_project_reached_through_a_symlink_names_the_phar_relative_to_it(): void
     {
         $real = sys_get_temp_dir() . '/phel-launcher-' . bin2hex(random_bytes(4));

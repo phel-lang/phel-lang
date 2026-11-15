@@ -99,6 +99,23 @@ final class InitCommandTest extends TestCase
         self::assertStringNotContainsString('phel completion', $text);
     }
 
+    public function test_from_a_phar_on_the_path_next_steps_use_its_name_and_offer_completion(): void
+    {
+        chdir($this->testDir);
+        $bin = $this->testDir . '/bin';
+        mkdir($bin);
+        touch($bin . '/phel');
+        chmod($bin . '/phel', 0755);
+        $output = new BufferedOutput();
+
+        new InitCommand(launcher: PhelLauncher::fromPharPath($bin . '/phel', $bin))->run(new ArrayInput(['project-name' => 'my-app']), $output);
+
+        $text = $output->fetch();
+        self::assertStringContainsString('phel run src/main.phel', $text);
+        self::assertStringNotContainsString('php ', $text);
+        self::assertStringContainsString('phel completion', $text);
+    }
+
     public function test_from_a_phar_dry_run_lists_no_composer_json(): void
     {
         chdir($this->testDir);

@@ -22,6 +22,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_keys;
 use function dirname;
+use function getenv;
 use function implode;
 use function is_dir;
 use function mkdir;
@@ -224,7 +225,7 @@ HELP)
             return Command::FAILURE;
         }
 
-        $launcher = $this->launcher ?? PhelLauncher::fromPharPath(Phar::running(false));
+        $launcher = $this->launcher ?? PhelLauncher::fromPharPath(Phar::running(false), (string) getenv('PATH'));
         if (!$launcher->isPhar() && !$this->createComposerJson($cwd, $output, $dryRun)) {
             return Command::FAILURE;
         }
@@ -489,11 +490,11 @@ HELP)
             $output->writeln('');
             $output->writeln('Add a library with <comment>composer require <vendor/package></comment>.');
             $output->writeln('phel.phar reads its Phel sources and PHP classes from vendor/.');
-
-            // Completion registers a `phel` binary on PATH, which `php phel.phar` is not.
-            return;
         }
 
-        ShellCompletionTip::writeTo($output);
+        // The completion scripts complete a binary named `phel` on PATH only.
+        if (!$fromPhar || $phel === 'phel') {
+            ShellCompletionTip::writeTo($output);
+        }
     }
 }

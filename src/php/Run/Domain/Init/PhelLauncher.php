@@ -7,6 +7,9 @@ namespace Phel\Run\Domain\Init;
 use function basename;
 use function dirname;
 use function escapeshellarg;
+use function explode;
+use function is_executable;
+use function is_file;
 use function preg_match;
 use function realpath;
 use function rtrim;
@@ -16,6 +19,7 @@ use function strlen;
 use function substr;
 
 use const DIRECTORY_SEPARATOR;
+use const PATH_SEPARATOR;
 
 /**
  * How the user started Phel, so printed commands can be pasted as they are.
@@ -28,19 +32,21 @@ final readonly class PhelLauncher
 
     private function __construct(
         private string $pharPath,
+        private string $pathEnv,
     ) {}
 
     public static function composer(): self
     {
-        return new self('');
+        return new self('', '');
     }
 
     /**
      * @param string $pharPath `Phar::running(false)`: empty outside a PHAR
+     * @param string $pathEnv  the `PATH` variable, to name a PHAR installed as a command by its name
      */
-    public static function fromPharPath(string $pharPath): self
+    public static function fromPharPath(string $pharPath, string $pathEnv = ''): self
     {
-        return new self($pharPath);
+        return new self($pharPath, $pathEnv);
     }
 
     public function isPhar(): bool
@@ -54,7 +60,28 @@ final readonly class PhelLauncher
             return self::COMPOSER_BINARY;
         }
 
-        return 'php ' . $this->shellQuote($this->pharPathFrom($cwd));
+        return $this->commandOnPath() ?? 'php ' . $this->shellQuote($this->pharPathFrom($cwd));
+    }
+
+    /**
+     * The installation guide's `mv phel.phar /usr/local/bin/phel`: the first
+     * `PATH` match for the PHAR's name is the PHAR itself, so its name runs it.
+     */
+    private function commandOnPath(): ?string
+    {
+        $name = basename($this->pharPath);
+        $phar = realpath($this->pharPath);
+        if ($phar === false || !is_executable($phar) || preg_match('#^[\w.][\w.-]*$#', $name) !== 1) {
+            return null;
+        }
+
+        foreach (explode(PATH_SEPARATOR, $this->pathEnv) as $dir) {
+            if ($dir !== '' && is_file($dir . '/' . $name)) {
+                return realpath($dir . '/' . $name) === $phar ? $name : null;
+            }
+        }
+
+        return null;
     }
 
     private function pharPathFrom(string $cwd): string
