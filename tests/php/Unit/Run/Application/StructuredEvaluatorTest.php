@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Run\Application;
 
 use DivisionByZeroError;
 use ParseError;
+use Phel;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
@@ -21,14 +22,36 @@ use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
+use PhelTest\Support\Fixtures\PhpInterop\ArrayArgumentFixture;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use TypeError;
 
 final class StructuredEvaluatorTest extends TestCase
 {
     protected function setUp(): void
     {
         GlobalEnvironmentSingleton::reset();
+    }
+
+    public function test_php_array_argument_error_keeps_the_structured_error_contract(): void
+    {
+        try {
+            new ArrayArgumentFixture()->takeOptions(Phel::map('x', 1));
+            self::fail('The PHP call must reject a Phel map.');
+        } catch (TypeError $typeError) {
+            $facade = $this->compilerFacadeMock();
+            $facade->method('eval')->willThrowException($typeError);
+            $result = $this->eval($facade, '(php/array_keys {})');
+            self::assertFalse($result->success);
+            self::assertSame('', $result->output);
+            self::assertNotNull($result->error);
+            self::assertSame('TypeError', $result->error->exceptionClass);
+            self::assertSame('PHEL402', $result->error->errorCode);
+            self::assertSame($typeError->getMessage(), $result->error->message);
+            self::assertSame('runtime', $result->error->phase);
+            self::assertSame(['exceptionClass', 'message', 'errorCode', 'file', 'line', 'column', 'endLine', 'endColumn', 'codeSnippet', 'stackTrace', 'phase', 'frames'], array_keys(get_object_vars($result->error)));
+        }
     }
 
     public function test_eval_success(): void

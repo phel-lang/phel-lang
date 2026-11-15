@@ -1846,6 +1846,10 @@ final class Phel\Shared\Exceptions\Hint\NotCallableHint implements Phel\Shared\E
   public function appliesTo(Throwable $e): bool
   public function hint(Throwable $e): string
 
+final readonly class Phel\Shared\Exceptions\Hint\PhpArrayArgumentHint implements Phel\Shared\Exceptions\Hint\ExceptionHintInterface
+  public function appliesTo(Throwable $e): bool
+  public function hint(Throwable $e): string
+
 final class Phel\Shared\Exceptions\Hint\UndefinedSymbolHint implements Phel\Shared\Exceptions\Hint\ExceptionHintInterface
   public function appliesTo(Throwable $e): bool
   public function hint(Throwable $e): string
