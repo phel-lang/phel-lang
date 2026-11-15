@@ -26,7 +26,7 @@ Contracts for Compiler, Build, Run, Command, Console, Filesystem, Formatter, Int
 
 ### Internal surface (ADR 0021)
 
-The Api and Run contracts are internal tooling; other facade contracts keep the public embedding policy. Internal Shared classes: `Performance/*`, `SourceMap/SupersededSourceMaps`, `Lint/LintRuleExplainerInterface`, `InvocationError`, `StandardError`, `EnvVar`, `Exceptions/SourceMappedErrorHandler`. Internal methods on public classes: `PhelProjectDirectory::{cacheDirOverride,dirOverride,isAbsolutePath}`, `OptimizationLevel::pin`, `NoColor::followOutput`, `ExistingPaths::reportMissing`, `CpuCountDetector::fromEnv`, `ClassNotFoundHint::javaClassHint`, `FrameworkNamespaces::{clojureTarget,isPhel}`.
+The Api and Run contracts are internal tooling; other facade contracts keep the public embedding policy. Internal Shared classes: `LoadedSourceLocator` (load paths shared by API analysis and lint caching), `Performance/*`, `SourceMap/SupersededSourceMaps`, `Lint/LintRuleExplainerInterface`, `InvocationError`, `StandardError`, `EnvVar`, `Exceptions/SourceMappedErrorHandler`. Internal methods on public classes: `PhelProjectDirectory::{cacheDirOverride,dirOverride,isAbsolutePath}`, `OptimizationLevel::pin`, `NoColor::followOutput`, `ExistingPaths::reportMissing`, `CpuCountDetector::fromEnv`, `ClassNotFoundHint::javaClassHint`, `FrameworkNamespaces::{clojureTarget,isPhel}`.
 
 ## Constants
 

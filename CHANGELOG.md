@@ -91,6 +91,7 @@ Collections and values:
 
 Builds and caches:
 
+- `phel lint` refreshes diagnostics when required namespaces or indexed definitions change, including transitive dependencies and loaded files. (#3900)
 - Caches survive concurrent processes and interrupted writes, and same-second edits and macro edits refresh every dependent namespace. Relative and absolute source paths reuse one compiled cache entry, loading a bundled namespace keeps the REPL's current namespace, and warm builds keep forward declarations when a secondary file must recompile. `.phel/` ignores itself, and `phel --version`, `help` and `list` no longer create it. Evaluated PHP is removed when a PHP host exits, later commands reclaim killed processes' files, and `phel doctor` warns about a large backlog. (#3537 #3564 #3553 #3698 #3700 #3690 #3864 #3883)
 - Builds: PHARs leave out untracked files and have reproducible checksums, built apps find `load` files and bootstrap `eval`, `future-call` and `phel.edn`, Composer installs no longer warn about duplicate namespaces, and running from a subdirectory finds the project. Generated source metadata and magic constants follow the artifact's source copies without storing build-host directories. `phel cache:clear` refuses unsafe paths, and the Docker image installs its tagged release on amd64 and arm64. (#3697 #3528 #3542 #3527 #3549 #3701 #3532 #3702 #3536 #3882)
 

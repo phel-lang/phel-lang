@@ -24,6 +24,7 @@ use Phel\Shared\FloatFormatter;
 use Phel\Shared\FrameworkNamespaces;
 use Phel\Shared\InvocationError;
 use Phel\Shared\Lint\LintRuleExplainerInterface;
+use Phel\Shared\LoadedSourceLocator;
 use Phel\Shared\NoColor;
 use Phel\Shared\NumericOption;
 use Phel\Shared\OptimizationLevel;
@@ -221,6 +222,7 @@ final readonly class PublicApiSurface
             RunFacadeInterface::class,
             SupersededSourceMaps::class,
             LintRuleExplainerInterface::class,
+            LoadedSourceLocator::class,
             InvocationError::class,
             StandardError::class,
             EnvVar::class,

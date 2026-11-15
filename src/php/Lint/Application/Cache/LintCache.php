@@ -23,7 +23,7 @@ use function mkdir;
 use const JSON_THROW_ON_ERROR;
 
 /**
- * Incremental lint cache: keyed by file hash and a {@see LintCacheFingerprint}
+ * Incremental lint cache: keyed by file and dependency hashes plus a {@see LintCacheFingerprint}
  * (Phel release, rule set, settings) so stale entries self-invalidate. Stores
  * per-file diagnostic payloads under `.phel/lint-cache/`. v1 uses a single
  * JSON index file.
@@ -32,7 +32,7 @@ use const JSON_THROW_ON_ERROR;
  * the project root + `.phel/lint-cache/`). When the directory cannot be
  * created we degrade silently — lint still works, just without caching.
  *
- * @phpstan-type IndexEntry array{hash: string, fingerprint: string, diagnostics: list<array<string, mixed>>}
+ * @phpstan-type IndexEntry array{hash: string, fingerprint: string, dependencies?: string, diagnostics: list<array<string, mixed>>}
  *
  * @internal
  */
@@ -51,7 +51,7 @@ final class LintCache
     /**
      * @return ?list<Diagnostic>
      */
-    public function get(string $filePath): ?array
+    public function get(string $filePath, string $dependencies = ''): ?array
     {
         $this->ensureLoaded();
         if (!isset($this->index[$filePath])) {
@@ -59,7 +59,7 @@ final class LintCache
         }
 
         $entry = $this->index[$filePath];
-        if ($entry['fingerprint'] !== $this->fingerprint) {
+        if ($entry['fingerprint'] !== $this->fingerprint || ($entry['dependencies'] ?? '') !== $dependencies) {
             return null;
         }
 
@@ -91,7 +91,7 @@ final class LintCache
     /**
      * @param list<Diagnostic> $diagnostics
      */
-    public function put(string $filePath, array $diagnostics): void
+    public function put(string $filePath, array $diagnostics, string $dependencies = ''): void
     {
         $this->ensureLoaded();
         $hash = $this->hashOf($filePath);
@@ -107,6 +107,7 @@ final class LintCache
         $this->index[$filePath] = [
             'hash' => $hash,
             'fingerprint' => $this->fingerprint,
+            'dependencies' => $dependencies,
             'diagnostics' => $payload,
         ];
     }

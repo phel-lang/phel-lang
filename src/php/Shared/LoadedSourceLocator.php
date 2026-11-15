@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Api\Application\Analysis;
+namespace Phel\Shared;
 
 use Phel\Lang\LoadClasspath;
-use Phel\Shared\Munge;
 
 use function array_pop;
 use function dirname;

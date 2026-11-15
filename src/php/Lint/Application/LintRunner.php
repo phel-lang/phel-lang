@@ -6,6 +6,7 @@ namespace Phel\Lint\Application;
 
 use Phel\Lang\SourceLocation;
 use Phel\Lint\Application\Cache\LintCache;
+use Phel\Lint\Application\Cache\LintCacheDependencies;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\Rule\NamespaceForm;
 use Phel\Lint\Domain\Exception\LintSourceException;
@@ -28,7 +29,7 @@ use function is_dir;
  * fetches a project index, analyses each file, runs the rule pipeline,
  * and returns a single `LintResult`.
  *
- * Caching is optional: when a `LintCache` is injected, files whose hash
+ * Caching is optional: when a `LintCache` is injected, files whose source, dependencies
  * and rule fingerprint match the cache bypass the pipeline entirely.
  *
  * @internal
@@ -41,6 +42,7 @@ final readonly class LintRunner
         private SourceReader $sourceReader,
         private RulePipeline $pipeline,
         private ?LintCache $cache = null,
+        private ?LintCacheDependencies $cacheDependencies = null,
     ) {}
 
     /**
@@ -58,10 +60,13 @@ final readonly class LintRunner
 
         $projectIndex = $this->buildProjectIndex($paths);
 
+        $cachedFiles = [];
         $allDiagnostics = [];
         foreach ($files as $file) {
-            $cached = $this->cache?->get($file);
+            $dependencies = $this->cacheDependencies instanceof LintCacheDependencies ? $this->cacheDependencies->fingerprintFor($file, $projectIndex) : '';
+            $cached = $dependencies === null ? null : $this->cache?->get($file, $dependencies);
             if ($cached !== null) {
+                $cachedFiles[$file] = true;
                 foreach ($cached as $diagnostic) {
                     $allDiagnostics[] = $diagnostic;
                 }
@@ -76,14 +81,15 @@ final readonly class LintRunner
                 throw LintSourceException::cannotRead($file);
             }
 
+            $this->restoreCachedContext($file, $projectIndex, $cachedFiles);
             $fileDiagnostics = $this->analyzeSource($source, $file, $settings, $projectIndex);
 
             // A rule crash is a fact about the linter, not about the file, and
             // fixing it changes neither the file hash nor the rule fingerprint.
             // Caching it would replay a stale internal error until the source
             // happens to change, so this file is simply re-linted next run.
-            if (!$this->hasInternalError($fileDiagnostics)) {
-                $this->cache?->put($file, $fileDiagnostics);
+            if ($dependencies !== null && !$this->hasInternalError($fileDiagnostics)) {
+                $this->cache?->put($file, $fileDiagnostics, $dependencies);
             }
 
             foreach ($fileDiagnostics as $diagnostic) {
@@ -99,6 +105,27 @@ final readonly class LintRunner
     public function runSource(string $source, string $path, RuleSettings $settings): LintResult
     {
         return new LintResult($this->analyzeSource($source, $path, $settings, new ProjectIndex([], [])));
+    }
+
+    /**
+     * @param array<string, true> $cachedFiles
+     */
+    private function restoreCachedContext(string $file, ProjectIndex $projectIndex, array &$cachedFiles): void
+    {
+        foreach (array_keys($this->cacheDependencies?->indexedSourcesFor($file, $projectIndex) ?? []) as $dependency) {
+            if (!isset($cachedFiles[$dependency])) {
+                continue;
+            }
+
+            unset($cachedFiles[$dependency]);
+            $this->restoreCachedContext($dependency, $projectIndex, $cachedFiles);
+            $source = @file_get_contents($dependency);
+            if ($source === false) {
+                throw LintSourceException::cannotRead($dependency);
+            }
+
+            $this->apiFacade->analyzeSource($source, $dependency);
+        }
     }
 
     /**
