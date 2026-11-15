@@ -122,6 +122,7 @@ Both are injected as Shared `*FacadeInterface`. One non-facade edge, **Config**:
 - Main namespace auto-detect: `core.phel` or `main.phel` in source dirs.
 - Exclude the output dir from extraction (prevents namespace shadowing).
 - Prune Phel's own `src/php` from every scan (`ExcludedScanPaths`, even `none()`): recounting its ~1,200 PHP files slows warm runs (#3467).
+- Prune `<scan root>/<vendor-dir>/` for a configured vendor dir, like `vendor/`: a root-layout scan (`withSrcDirs(['.'])`) would otherwise pick up `phel-lang/phel-lang`'s stdlib, which wins over the PHAR's bundled one. Vendor libraries are scanned as their own roots.
 
 ### Build markers in `<out>`
 

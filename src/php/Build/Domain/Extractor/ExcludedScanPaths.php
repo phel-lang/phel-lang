@@ -58,10 +58,14 @@ final readonly class ExcludedScanPaths
      * @param list<string> $excludedDirectories absolute paths whose subtree is skipped
      * @param string       $destDirBasename     when non-empty, any `<scan_root>/<basename>/`
      *                                          subtree is skipped per walk
+     * @param string       $vendorDirBasename   a configured vendor dir other than `vendor`, skipped
+     *                                          the same way: a root-layout scan must not reach its
+     *                                          libraries, which are scanned as their own roots
      */
     public function __construct(
         array $excludedDirectories = [],
         private string $destDirBasename = '',
+        private string $vendorDirBasename = '',
     ) {
         // Phel's own PHP sources (about 1,200 files, no Phel) sit under the
         // internal `src/` that every run scans and every warm run recounts.
@@ -120,13 +124,13 @@ final readonly class ExcludedScanPaths
             }
         }
 
-        if ($this->destDirBasename !== '') {
-            $destPrefix = rtrim($scanRoot, DIRECTORY_SEPARATOR)
-                . DIRECTORY_SEPARATOR
-                . $this->destDirBasename
-                . DIRECTORY_SEPARATOR;
+        foreach ([$this->destDirBasename, $this->vendorDirBasename] as $basename) {
+            if ($basename === '') {
+                continue;
+            }
 
-            if (str_starts_with($path, $destPrefix)) {
+            $prefix = rtrim($scanRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $basename . DIRECTORY_SEPARATOR;
+            if (str_starts_with($path, $prefix)) {
                 return true;
             }
         }
