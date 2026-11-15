@@ -8,6 +8,15 @@ use BackedEnum;
 use Phel\Api\Transfer\PhpInteropClass;
 use Phel\Api\Transfer\PhpInteropSignature;
 use Phel\Shared\Api\Completion;
+use phpDocumentor\Reflection\DocBlock\Tags\Return_;
+use phpDocumentor\Reflection\DocBlockFactory;
+use phpDocumentor\Reflection\Fqsen;
+use phpDocumentor\Reflection\Types\ContextFactory;
+use phpDocumentor\Reflection\Types\Object_;
+use phpDocumentor\Reflection\Types\Parent_;
+use phpDocumentor\Reflection\Types\Self_;
+use phpDocumentor\Reflection\Types\Static_;
+use phpDocumentor\Reflection\Types\This;
 use ReflectionClass;
 use ReflectionClassConstant;
 use ReflectionException;
@@ -24,6 +33,7 @@ use Throwable;
 use function array_key_exists;
 use function array_keys;
 use function class_exists;
+use function count;
 use function function_exists;
 use function get_declared_classes;
 use function get_defined_functions;
@@ -323,7 +333,9 @@ final class PhpInteropReflector
         // Built-in classes declare most returns only as tentative types.
         $type = $reflectedMethod->getReturnType() ?? $reflectedMethod->getTentativeReturnType();
 
-        return $this->returnClass($type, $reflection);
+        return $type instanceof ReflectionType
+            ? $this->returnClass($type, $reflection)
+            : $this->phpDocReturnClass($reflectedMethod, $reflection);
     }
 
     /**
@@ -451,6 +463,38 @@ final class PhpInteropReflector
             $this->cleanDoc($reflection->getDocComment()),
             $this->methodSignatureInfo($class, '__construct'),
         );
+    }
+
+    /**
+     * @param ReflectionClass<object> $receiver
+     */
+    private function phpDocReturnClass(ReflectionMethod $method, ReflectionClass $receiver): string
+    {
+        $comment = $method->getDocComment();
+        if ($comment === false) {
+            return '';
+        }
+
+        try {
+            $context = new ContextFactory()->createFromReflector($method);
+            $returns = DocBlockFactory::createInstance()->create($comment, $context)->getTagsByName('return');
+            if (count($returns) !== 1 || !$returns[0] instanceof Return_) {
+                return '';
+            }
+
+            $type = $returns[0]->getType();
+            if ($type instanceof Self_ || $type instanceof Static_ || $type instanceof This || $type instanceof Parent_) {
+                return $this->namedReturnClass((string) $type, $receiver);
+            }
+
+            if ($type instanceof Object_ && $type::class === Object_::class && $type->getFqsen() instanceof Fqsen) {
+                return $this->namedReturnClass((string) $type->getFqsen(), $method->getDeclaringClass());
+            }
+        } catch (Throwable) {
+            return '';
+        }
+
+        return '';
     }
 
     /**

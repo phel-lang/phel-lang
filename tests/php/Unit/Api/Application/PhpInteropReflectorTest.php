@@ -11,6 +11,7 @@ use PhelTest\Support\Fixtures\PhpInterop\HoverContract;
 use PhelTest\Support\Fixtures\PhpInterop\HoverEnum;
 use PhelTest\Support\Fixtures\PhpInterop\HoverFixture;
 use PhelTest\Support\Fixtures\PhpInterop\IntersectionReturnFixture;
+use PhelTest\Support\Fixtures\PhpInterop\PhpDocReturnFixture;
 use PhelTest\Support\Fixtures\PhpInterop\SignatureFixture;
 use PhelTest\Support\Fixtures\PhpInterop\StaticPropertyTarget;
 use PHPUnit\Framework\TestCase;
@@ -267,6 +268,21 @@ final class PhpInteropReflectorTest extends TestCase
         self::assertNotNull($info);
         self::assertStringContainsString('strlen(', $info->label);
         self::assertNotSame([], $info->parameters);
+    }
+
+    public function test_phpdoc_fallback_preserves_native_precedence_and_rejects_unsupported_types(): void
+    {
+        self::assertSame('DateTimeImmutable', $this->reflector->methodReturnType(PhpDocReturnFixture::class, 'response'));
+        self::assertSame('DateTime', $this->reflector->methodReturnType(PhpDocReturnFixture::class, 'qualified'));
+
+        foreach (['fluent', 'lateStatic'] as $method) {
+            self::assertSame(PhpDocReturnFixture::class, $this->reflector->methodReturnType(PhpDocReturnFixture::class, $method));
+        }
+
+        self::assertSame(ChainFixture::class, $this->reflector->methodReturnType(PhpDocReturnFixture::class, 'nativeClass'));
+        foreach (['nativeScalar', 'nativeObject', 'unsupportedUnion', 'unsupportedGeneric', 'malformed', 'missing'] as $method) {
+            self::assertSame('', $this->reflector->methodReturnType(PhpDocReturnFixture::class, $method), $method);
+        }
     }
 
     public function test_method_return_type_resolves_self_to_declaring_class(): void

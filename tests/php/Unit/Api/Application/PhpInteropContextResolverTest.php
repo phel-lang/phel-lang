@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Api\Application;
 
+use Phel\Api\Application\PhpInteropCompleter;
 use Phel\Api\Application\PhpInteropContextResolver;
+use Phel\Api\Application\PhpInteropDocResolver;
 use Phel\Api\Transfer\PhpInteropContext;
 use PhelTest\Support\Fixtures\PhpInterop\ChainFixture;
+use PhelTest\Support\Fixtures\PhpInterop\PhpDocReturnFixture;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Random\Randomizer;
@@ -21,6 +24,32 @@ final class PhpInteropContextResolverTest extends TestCase
     protected function setUp(): void
     {
         $this->resolver = new PhpInteropContextResolver();
+    }
+
+    #[DataProvider('phpdocMethods')]
+    public function test_phpdoc_return_types_drive_completion_hover_and_signature(string $method, string $expectedClass): void
+    {
+        $prefix = '(php/-> (new \\' . PhpDocReturnFixture::class . ') (' . $method . ') ';
+        $source = $prefix . 'for';
+        $context = $this->resolveAtEnd($source);
+        self::assertSame($expectedClass, $context->class);
+        $completions = new PhpInteropCompleter()->completeAtPoint($source, 1, strlen($source) + 1);
+        self::assertNotNull($completions);
+        self::assertContains('format', array_column($completions, 'label'));
+        $docs = new PhpInteropDocResolver();
+        $hover = $docs->hoverAt($prefix . '(format "Y"))', 1, strlen($prefix) + 4);
+        self::assertNotNull($hover);
+        self::assertStringContainsString('format(', $hover);
+        $call = $prefix . '(format ';
+        $signature = $docs->signatureAt($call, 1, strlen($call) + 1);
+        self::assertNotNull($signature);
+        self::assertStringContainsString('format(', $signature['signatures'][0]['label']);
+    }
+
+    public static function phpdocMethods(): iterable
+    {
+        yield 'imported alias' => ['response', 'DateTimeImmutable'];
+        yield 'fully qualified name' => ['qualified', 'DateTime'];
     }
 
     public function test_instance_member_after_reader_tag_binding(): void

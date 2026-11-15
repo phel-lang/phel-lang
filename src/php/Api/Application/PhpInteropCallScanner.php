@@ -6,6 +6,7 @@ namespace Phel\Api\Application;
 
 use Phel\Api\Transfer\PhpInteropCall;
 
+use function array_slice;
 use function count;
 use function max;
 use function preg_match;
@@ -87,7 +88,9 @@ final readonly class PhpInteropCallScanner
             return PhpInteropCall::none();
         }
 
-        $receiver = $parentTokens[1] ?? '';
+        $receiver = $parentHead === 'php/->'
+            ? implode(' ', array_slice($parentTokens, 1, -1))
+            : ($parentTokens[1] ?? '');
         if ($receiver === '') {
             return PhpInteropCall::none();
         }
