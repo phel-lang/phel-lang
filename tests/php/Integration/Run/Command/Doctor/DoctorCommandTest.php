@@ -80,6 +80,21 @@ final class DoctorCommandTest extends GacelaTestCase
         self::assertStringContainsString('Checking configuration:', $output->fetch());
     }
 
+    public function test_doctor_reports_an_installation_section(): void
+    {
+        $output = new BufferedOutput();
+
+        new DoctorCommand()->run(
+            $this->createStub(InputInterface::class),
+            $output,
+        );
+
+        $text = $output->fetch();
+        self::assertStringContainsString('Checking installation:', $text);
+        self::assertStringContainsString(' - Phel: ', $text);
+        self::assertStringContainsString(' - Phel libraries in vendor/:', $text);
+    }
+
     public function test_doctor_fails_when_configuration_has_an_error(): void
     {
         $this->bootstrapGacelaWithConfig(__DIR__, [
