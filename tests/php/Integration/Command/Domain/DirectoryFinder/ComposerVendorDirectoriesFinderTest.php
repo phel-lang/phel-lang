@@ -89,6 +89,19 @@ final class ComposerVendorDirectoriesFinderTest extends TestCase
         self::assertStringContainsString('phel-lang/phel-lang 0.53.0', $warnings[0]);
     }
 
+    public function test_the_warning_names_a_custom_vendor_dir(): void
+    {
+        $this->createVendorWithPhel('0.53.0');
+        $warnings = [];
+
+        new ComposerVendorDirectoriesFinder($this->vendorDir, true, 'v1.0.0', static function (string $m) use (&$warnings): void {
+            $warnings[] = $m;
+        }, 'deps')->findPhelSourceDirectories();
+
+        self::assertStringContainsString('installed in deps/', $warnings[0]);
+        self::assertStringContainsString('Run ./deps/bin/phel', $warnings[0]);
+    }
+
     public function test_from_a_phar_stays_silent_when_the_vendored_version_matches(): void
     {
         $this->createVendorWithPhel('1.0.0');

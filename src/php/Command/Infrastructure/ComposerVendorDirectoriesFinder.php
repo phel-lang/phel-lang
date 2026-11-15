@@ -54,6 +54,7 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
         private readonly bool $runningFromPhar = false,
         private readonly string $runningVersion = '',
         ?Closure $warningWriter = null,
+        private readonly string $vendorName = 'vendor',
     ) {
         $this->warningWriter = $warningWriter ?? static function (string $message): void {
             fwrite(STDERR, $message);
@@ -124,10 +125,12 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
         }
 
         ($this->warningWriter)(sprintf(
-            "warning: phel.phar %s ignores the %s %s that Composer installed in vendor/, often as a dependency of a Phel library. Run ./vendor/bin/phel to use that version instead.\n",
+            "warning: phel.phar %s ignores the %s %s that Composer installed in %s/, often as a dependency of a Phel library. Run ./%s/bin/phel to use that version instead.\n",
             $runningVersion,
             self::PHEL_PACKAGE,
             $vendoredVersion ?? '(unknown version)',
+            $this->vendorName,
+            $this->vendorName,
         ));
     }
 

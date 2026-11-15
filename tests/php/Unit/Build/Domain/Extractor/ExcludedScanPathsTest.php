@@ -31,6 +31,14 @@ final class ExcludedScanPathsTest extends TestCase
         self::assertFalse($paths->contains('/other/out/phel/core.phel', '/repo'));
     }
 
+    public function test_a_custom_vendor_dir_is_pruned_below_the_scan_root_only(): void
+    {
+        $paths = new ExcludedScanPaths(vendorDirBasename: 'deps');
+
+        self::assertTrue($paths->shouldPruneDirectory('deps', '/project/deps', '/project'));
+        self::assertFalse($paths->contains('/project/deps/acme/lib/src/lib.phel', '/project/deps/acme/lib/src'));
+    }
+
     public function test_absolute_excluded_directory_is_matched_regardless_of_scan_root(): void
     {
         $dir = sys_get_temp_dir() . '/phel-excluded-' . uniqid();

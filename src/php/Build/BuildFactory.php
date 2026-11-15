@@ -314,6 +314,7 @@ final class BuildFactory extends AbstractFactory
         return new ExcludedScanPaths(
             excludedDirectories: $containsScanRoot ? [$outputDirectory] : [$outputDirectory, $cacheDirectory],
             destDirBasename: basename($outputDirectory),
+            vendorDirBasename: basename($this->getConfig()->getVendorDir()),
         );
     }
 

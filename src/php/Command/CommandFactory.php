@@ -196,6 +196,7 @@ final class CommandFactory extends AbstractFactory
         return new ComposerVendorDirectoriesFinder(
             $this->getConfig()->getAppRootDir() . '/' . $this->getConfig()->getVendorDir(),
             runningFromPhar: Phar::running(false) !== '',
+            vendorName: $this->getConfig()->getVendorDir(),
         );
     }
 }
