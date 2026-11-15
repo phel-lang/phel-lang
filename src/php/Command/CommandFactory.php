@@ -28,6 +28,7 @@ use Phel\Shared\Exceptions\Hint\ArgumentCountHint;
 use Phel\Shared\Exceptions\Hint\ClassNotFoundHint;
 use Phel\Shared\Exceptions\Hint\ExceptionHintInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
+use Phel\Shared\Exceptions\Hint\MissingLibraryHint;
 use Phel\Shared\Exceptions\Hint\MissingNsFormHint;
 use Phel\Shared\Exceptions\Hint\NotCallableHint;
 use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
@@ -121,6 +122,7 @@ final class CommandFactory extends AbstractFactory
             new ArgumentCountHint(),
             new UndefinedSymbolHint(),
             new ClassNotFoundHint(),
+            new MissingLibraryHint(),
         ];
     }
 
