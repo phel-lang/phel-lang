@@ -125,12 +125,12 @@ For user-facing changes (`feat:`, `fix:`), update `CHANGELOG.md` under `## Unrel
 
 ## AI Tooling
 
-[.agnostic-ai/](../.agnostic-ai/) is the single source for the agent config used on this repository. [agnostic-ai](https://github.com/Chemaclass/agnostic-ai) generates Claude Code (`.claude/`, `CLAUDE.md`) and Codex (`.codex/`, `.agents/`, `AGENTS.md`) from it. The generated files are gitignored, so run `sync` after cloning and after every spec change. `agnostic-ai.yaml` pins stable 0.90.0 to match CI; `agnostic-ai upgrade --version v0.90.0` installs it.
+[.agnostic-ai/](../.agnostic-ai/) is the single source for the agent config used on this repository. [agnostic-ai](https://github.com/Chemaclass/agnostic-ai) generates Claude Code (`.claude/`, `CLAUDE.md`) and Codex (`.codex/`, `.agents/`, `AGENTS.md`) from it. The generated files are gitignored, so run `sync` after cloning and after every spec change. `agnostic-ai.yaml` requires 0.94.0 or later, the version CI runs; `agnostic-ai upgrade` installs the latest.
 
 Each PHP module is documented by a rule scoped to its directory, `.agnostic-ai/rules/module-<name>.md`. Sync emits it as `src/php/<Module>/AGENTS.md` for Codex and as a path-scoped rule under `.claude/rules/` for Claude Code. Edit the rule, not the output.
 
 ```bash
-brew install Chemaclass/tap/agnostic-ai   # or: go install github.com/chemaclass/agnostic-ai/cmd/agnostic-ai@v0.90.0
+brew install Chemaclass/tap/agnostic-ai   # or: go install github.com/chemaclass/agnostic-ai/cmd/agnostic-ai@latest
 agnostic-ai sync
 ```
 
