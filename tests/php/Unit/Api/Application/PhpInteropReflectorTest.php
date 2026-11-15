@@ -280,7 +280,7 @@ final class PhpInteropReflectorTest extends TestCase
         }
 
         self::assertSame(ChainFixture::class, $this->reflector->methodReturnType(PhpDocReturnFixture::class, 'nativeClass'));
-        foreach (['nativeScalar', 'nativeObject', 'unsupportedUnion', 'unsupportedGeneric', 'malformed', 'missing'] as $method) {
+        foreach (['nativeScalar', 'nativeObject', 'unsupportedUnion', 'unsupportedGeneric', 'malformed', 'missing', 'conflictingReturns', 'invalidThenValidReturn'] as $method) {
             self::assertSame('', $this->reflector->methodReturnType(PhpDocReturnFixture::class, $method), $method);
         }
     }

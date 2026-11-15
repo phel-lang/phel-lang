@@ -60,4 +60,16 @@ abstract class PhpDocReturnFixture
      * @return MissingClass
      */
     abstract public function missing();
+
+    /**
+     * @return Response
+     * @return array{broken
+     */
+    abstract public function conflictingReturns();
+
+    /**
+     * @return array{broken
+     * @return Response
+     */
+    abstract public function invalidThenValidReturn();
 }

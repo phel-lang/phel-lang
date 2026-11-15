@@ -8,15 +8,23 @@ use BackedEnum;
 use Phel\Api\Transfer\PhpInteropClass;
 use Phel\Api\Transfer\PhpInteropSignature;
 use Phel\Shared\Api\Completion;
-use phpDocumentor\Reflection\DocBlock\Tags\Return_;
-use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\Fqsen;
+use phpDocumentor\Reflection\TypeResolver;
 use phpDocumentor\Reflection\Types\ContextFactory;
 use phpDocumentor\Reflection\Types\Object_;
 use phpDocumentor\Reflection\Types\Parent_;
 use phpDocumentor\Reflection\Types\Self_;
 use phpDocumentor\Reflection\Types\Static_;
 use phpDocumentor\Reflection\Types\This;
+use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
+use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\ThisTypeNode;
+use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\PhpDocParser\Parser\ConstExprParser;
+use PHPStan\PhpDocParser\Parser\PhpDocParser;
+use PHPStan\PhpDocParser\Parser\TokenIterator;
+use PHPStan\PhpDocParser\Parser\TypeParser;
+use PHPStan\PhpDocParser\ParserConfig;
 use ReflectionClass;
 use ReflectionClassConstant;
 use ReflectionException;
@@ -477,12 +485,20 @@ final class PhpInteropReflector
 
         try {
             $context = new ContextFactory()->createFromReflector($method);
-            $returns = DocBlockFactory::createInstance()->create($comment, $context)->getTagsByName('return');
-            if (count($returns) !== 1 || !$returns[0] instanceof Return_) {
+            $config = new ParserConfig([]);
+            $constants = new ConstExprParser($config);
+            $parser = new PhpDocParser($config, new TypeParser($config, $constants), $constants);
+            $returns = $parser->parse(new TokenIterator(new Lexer($config)->tokenize($comment)))->getTagsByName('@return');
+            if (count($returns) !== 1) {
                 return '';
             }
 
-            $type = $returns[0]->getType();
+            $return = array_first($returns)->value;
+            if (!$return instanceof ReturnTagValueNode || (!$return->type instanceof IdentifierTypeNode && !$return->type instanceof ThisTypeNode)) {
+                return '';
+            }
+
+            $type = new TypeResolver()->resolve((string) $return->type, $context);
             if ($type instanceof Self_ || $type instanceof Static_ || $type instanceof This || $type instanceof Parent_) {
                 return $this->namedReturnClass((string) $type, $receiver);
             }
