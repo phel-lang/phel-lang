@@ -97,13 +97,8 @@ final class PharExecutionTest extends TestCase
     {
         $vendored = $this->tempProjectDir . '/vendor/phel-lang/phel-lang';
         mkdir($vendored . '/src/phel', 0755, true);
-        mkdir($this->tempProjectDir . '/vendor/composer', 0755, true);
         file_put_contents($vendored . '/phel-config.php', "<?php return ['src-dirs' => ['src/phel']];\n");
         file_put_contents($vendored . '/src/phel/core.phel', "(ns phel.core)\n(println \"vendored core loaded\")\n");
-        file_put_contents(
-            $this->tempProjectDir . '/vendor/composer/installed.json',
-            '{"packages":[{"name":"phel-lang/phel-lang","version":"v0.1.0"}]}',
-        );
 
         $result = $this->runPhar(['run', 'main.phel']);
 
