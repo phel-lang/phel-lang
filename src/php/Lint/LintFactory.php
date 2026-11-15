@@ -8,7 +8,9 @@ use Composer\InstalledVersions;
 use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lint\Application\Cache\LintCache;
+use Phel\Lint\Application\Cache\LintCacheDependencies;
 use Phel\Lint\Application\Cache\LintCacheFingerprint;
+use Phel\Lint\Application\Cache\LintCacheLoadedSources;
 use Phel\Lint\Application\Config\ConfigLoader;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\FileCollector;
@@ -66,6 +68,11 @@ final class LintFactory extends AbstractFactory
             $this->createSourceReader(),
             $this->createRulePipeline(),
             $cache,
+            $cache instanceof LintCache ? new LintCacheDependencies(
+                $this->getRunFacade(),
+                $this->getCommandFacade()->getAllPhelDirectories(),
+                new LintCacheLoadedSources($this->getCompilerFacade()),
+            ) : null,
         );
     }
 

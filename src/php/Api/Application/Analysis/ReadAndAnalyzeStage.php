@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Api\Application\Analysis;
 
 use Phel\Api\Domain\AnalysisStageInterface;
+
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\Exceptions\UnevaluatedDefinitionException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
@@ -13,6 +14,7 @@ use Phel\Lang\Symbol;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\LoadedSourceLocator;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Throwable;
 

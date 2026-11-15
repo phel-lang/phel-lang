@@ -104,6 +104,7 @@ These Shared classes are internal despite their namespace:
 - `Phel\Shared\Performance\*`
 - `Phel\Shared\SourceMap\SupersededSourceMaps`
 - `Phel\Shared\Lint\LintRuleExplainerInterface`
+- `Phel\Shared\LoadedSourceLocator`
 - `Phel\Shared\InvocationError`
 - `Phel\Shared\StandardError`
 - `Phel\Shared\EnvVar`

@@ -29,7 +29,7 @@ Internal plumbing, outside the public semver surface (ADR 0021).
 | Api | `ApiFacadeInterface` | `analyzeSource` (semantic diagnostics), `indexProject` |
 | Compiler | `CompilerFacadeInterface` | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `CommentStyleRule`: both must report failures, not swallow them) |
 | Command | `CommandFacadeInterface` | default source directories |
-| Run | `RunFacadeInterface` | `loadPhelNamespaces()` so symbols resolve |
+| Run | `RunFacadeInterface` | namespace resolution and dependency metadata |
 
 Getters return the Shared contract, never a concrete facade (`SatelliteFactoryFacadeInjectionTest`). Rules use Shared value objects (`Phel\Shared\Api\Diagnostic`, `ProjectIndex`, `Definition`, `Location`), never a `Phel\Api` class.
 
@@ -141,7 +141,7 @@ Warns on a static call `(Foo/bar ...)` whose class cannot be autoloaded, after r
 - `LintRunner::runSource()` uses the same reader, analysis and rule pipeline for supplied text, keeping path-based settings without collecting or reading source files, indexing the workspace, or using the lint disk cache. Dependency preparation may still inspect saved-path context.
 - Open/closed: `LintFactory::createRules()` and `FormatterRegistry` are the ONLY edit points for new rules/formatters.
 - A repeated key in a map or set literal is the reader's `PHEL203`; no lint rule repeats it. `LintRuleCodes::DUPLICATE_KEY` stays as a deprecated constant because the class is public API.
-- Cache (default on, `.phel/lint-cache/index.json`): keyed by MD5(file hash) + `LintCacheFingerprint` (Phel release + all rule codes + severities + exclude patterns), so upgrading Phel or editing rules or `phel-lint.phel` invalidates it.
+- Cache (default on, `.phel/lint-cache/index.json`): keyed by file hash, transitive dependency file hashes and `LintCacheFingerprint` (Phel release + all rule codes + severities + exclude patterns). `LintCacheDependencies` reuses Run's namespace dependency resolver; `LintCacheLoadedSources` follows literal `load` paths through `Shared\LoadedSourceLocator`. A failed walk, unreadable source or computed load path bypasses the cache.
 - `CommentStyleRule`'s `catch (Throwable)` is for unlexable sources, not for swallowing rule bugs; it wraps all of `apply()`, so a bug there bypasses `RulePipeline`'s guard. Narrowing it to lexer/parser exceptions is open work.
 - A file that does not lex or parse fails the run under the analyzer's code (`PHEL310`, `PHEL100`, ...): `readFormsBestEffort`'s `Generator::getReturn()` flags dropped forms, `SourceReader` exposes it as `SourceRead::$failed`, and `LintRunner` emits the `analyzeSource` diagnostics. Rules still see the forms that read (#3292).
 - A superseded form (`PHEL012`: `php/new`, `php/->`, `php/::`, `set-var`) is passed through by `LintRunner` under the analyzer's code, like a syntax error: it stops `phel run`, so no rule can switch it off (#3456).

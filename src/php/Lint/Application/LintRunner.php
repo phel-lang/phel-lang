@@ -6,6 +6,7 @@ namespace Phel\Lint\Application;
 
 use Phel\Lang\SourceLocation;
 use Phel\Lint\Application\Cache\LintCache;
+use Phel\Lint\Application\Cache\LintCacheDependencies;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\Rule\NamespaceForm;
 use Phel\Lint\Domain\Exception\LintSourceException;
@@ -28,7 +29,7 @@ use function is_dir;
  * fetches a project index, analyses each file, runs the rule pipeline,
  * and returns a single `LintResult`.
  *
- * Caching is optional: when a `LintCache` is injected, files whose hash
+ * Caching is optional: when a `LintCache` is injected, files whose source, dependencies
  * and rule fingerprint match the cache bypass the pipeline entirely.
  *
  * @internal
@@ -41,6 +42,7 @@ final readonly class LintRunner
         private SourceReader $sourceReader,
         private RulePipeline $pipeline,
         private ?LintCache $cache = null,
+        private ?LintCacheDependencies $cacheDependencies = null,
     ) {}
 
     /**
@@ -60,7 +62,8 @@ final readonly class LintRunner
 
         $allDiagnostics = [];
         foreach ($files as $file) {
-            $cached = $this->cache?->get($file);
+            $dependencies = $this->cacheDependencies instanceof LintCacheDependencies ? $this->cacheDependencies->fingerprintFor($file) : '';
+            $cached = $dependencies === null ? null : $this->cache?->get($file, $dependencies);
             if ($cached !== null) {
                 foreach ($cached as $diagnostic) {
                     $allDiagnostics[] = $diagnostic;
@@ -82,8 +85,8 @@ final readonly class LintRunner
             // fixing it changes neither the file hash nor the rule fingerprint.
             // Caching it would replay a stale internal error until the source
             // happens to change, so this file is simply re-linted next run.
-            if (!$this->hasInternalError($fileDiagnostics)) {
-                $this->cache?->put($file, $fileDiagnostics);
+            if ($dependencies !== null && !$this->hasInternalError($fileDiagnostics)) {
+                $this->cache?->put($file, $fileDiagnostics, $dependencies);
             }
 
             foreach ($fileDiagnostics as $diagnostic) {
