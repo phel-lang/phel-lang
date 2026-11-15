@@ -29,27 +29,31 @@ final class PhpInteropContextResolverTest extends TestCase
     #[DataProvider('phpdocMethods')]
     public function test_phpdoc_return_types_drive_completion_hover_and_signature(string $method, string $expectedClass): void
     {
-        $prefix = '(php/-> (new \\' . PhpDocReturnFixture::class . ') (' . $method . ') ';
-        $source = $prefix . 'for';
-        $context = $this->resolveAtEnd($source);
-        self::assertSame($expectedClass, $context->class);
-        $completions = new PhpInteropCompleter()->completeAtPoint($source, 1, strlen($source) + 1);
-        self::assertNotNull($completions);
-        self::assertContains('format', array_column($completions, 'label'));
-        $docs = new PhpInteropDocResolver();
-        $hover = $docs->hoverAt($prefix . '(format "Y"))', 1, strlen($prefix) + 4);
-        self::assertNotNull($hover);
-        self::assertStringContainsString('format(', $hover);
-        $call = $prefix . '(format ';
-        $signature = $docs->signatureAt($call, 1, strlen($call) + 1);
-        self::assertNotNull($signature);
-        self::assertStringContainsString('format(', $signature['signatures'][0]['label']);
+        $this->assertPhpDocReturn(PhpDocReturnFixture::class, $method, $expectedClass);
+    }
+
+    public function test_fully_qualified_phpdoc_return_drives_completion_hover_and_signature(): void
+    {
+        $class = 'PhelTest\\Support\\Fixtures\\PhpInterop\\QualifiedPhpDocClient';
+        if (!class_exists($class, false)) {
+            // Keep the spelling in a string so the formatter cannot replace it with an import.
+            eval(<<<'PHP'
+namespace PhelTest\Support\Fixtures\PhpInterop;
+abstract class QualifiedPhpDocClient
+{
+    /** @return \DateTimeImmutable */
+    abstract public function response();
+}
+PHP);
+        }
+
+        $this->assertPhpDocReturn($class, 'response', 'DateTimeImmutable');
     }
 
     public static function phpdocMethods(): iterable
     {
         yield 'imported alias' => ['response', 'DateTimeImmutable'];
-        yield 'fully qualified name' => ['qualified', 'DateTime'];
+        yield 'unaliased import' => ['qualified', 'DateTime'];
     }
 
     public function test_instance_member_after_reader_tag_binding(): void
@@ -616,6 +620,25 @@ final class PhpInteropContextResolverTest extends TestCase
         $context = $this->resolver->resolve($source . ' d))', 1, strlen($source) + 1);
 
         self::assertTrue($context->isNone());
+    }
+
+    private function assertPhpDocReturn(string $class, string $method, string $expectedClass): void
+    {
+        $prefix = '(php/-> (new \\' . $class . ') (' . $method . ') ';
+        $source = $prefix . 'for';
+        $context = $this->resolveAtEnd($source);
+        self::assertSame($expectedClass, $context->class);
+        $completions = new PhpInteropCompleter()->completeAtPoint($source, 1, strlen($source) + 1);
+        self::assertNotNull($completions);
+        self::assertContains('format', array_column($completions, 'label'));
+        $docs = new PhpInteropDocResolver();
+        $hover = $docs->hoverAt($prefix . '(format "Y"))', 1, strlen($prefix) + 4);
+        self::assertNotNull($hover);
+        self::assertStringContainsString('format(', $hover);
+        $call = $prefix . '(format ';
+        $signature = $docs->signatureAt($call, 1, strlen($call) + 1);
+        self::assertNotNull($signature);
+        self::assertStringContainsString('format(', $signature['signatures'][0]['label']);
     }
 
     private function resolveAtEnd(string $source): PhpInteropContext
