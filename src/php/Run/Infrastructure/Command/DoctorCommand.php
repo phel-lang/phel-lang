@@ -9,22 +9,37 @@ use Gacela\Framework\Health\HealthStatus;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phar;
+use Phel\Config\PhelConfig;
 use Phel\Run\Domain\Config\ConfigDiagnostics;
 use Phel\Run\Domain\Config\EffectiveConfigResult;
+use Phel\Run\Domain\Doctor\InstallationReport;
+use Phel\Run\Domain\Doctor\InstalledPackages;
+use Phel\Run\Domain\Doctor\InstallMode;
+use Phel\Run\Domain\Doctor\VendorPhelLibraries;
 use Phel\Run\RunFacade;
 use Phel\Shared\ByteSize;
 use Phel\Shared\Performance\OpcacheAdvisor;
 use Phel\Shared\Performance\OpcacheFileCache;
 use Phel\Shared\PhelProjectDirectory;
+use Phel\Shared\ScalarCoercion;
+use Phel\Shared\VersionResolver;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 use function count;
 use function dirname;
 use function extension_loaded;
+use function file_get_contents;
+use function get_included_files;
+use function in_array;
 use function ini_get;
+use function is_file;
+use function realpath;
 use function sprintf;
+use function str_contains;
+use function str_replace;
 
 /**
  * @method RunFacade getFacade()
@@ -41,7 +56,8 @@ final class DoctorCommand extends Command
         $this->setName('doctor')
             ->setDescription('Check system requirements for running the Phel CLI')
             ->setHelp(<<<'HELP'
-Checks PHP version/extensions, module health, project configuration, and
+Checks PHP version/extensions, how Phel is installed and what the project
+loads from vendor/, module health, project configuration, and
 cold-start performance (OPcache CLI caching), printing actionable fixes for
 anything missing.
 
@@ -55,6 +71,7 @@ HELP);
         $effectiveConfig = $this->getFacade()->readEffectiveConfig();
 
         $systemOk = $this->checkSystemRequirements($output);
+        $this->checkInstallation($output, $effectiveConfig);
         $modulesOk = $this->checkModuleHealth($output);
         $configOk = $this->checkConfiguration($output, $effectiveConfig);
         $this->checkPerformance($output);
@@ -92,6 +109,75 @@ HELP);
         }
 
         return $success;
+    }
+
+    /**
+     * Informational only: a second Phel or a shadowed PHP package warns, it
+     * never fails the command.
+     */
+    private function checkInstallation(OutputInterface $output, EffectiveConfigResult $effective): void
+    {
+        $output->writeln('');
+        $output->writeln('Checking installation:');
+
+        $vendorName = ScalarCoercion::toString($effective->configuredValues[PhelConfig::VENDOR_DIR] ?? null, 'vendor');
+        $vendorDir = $effective->projectRoot . '/' . $vendorName;
+        $autoload = $vendorDir . '/autoload.php';
+        $pharPath = Phar::running(false);
+
+        // A broken vendor phel-config.php must not stop the remaining checks.
+        $libraryScanError = null;
+        try {
+            $libraries = VendorPhelLibraries::group(
+                $this->getFacade()->getAllPhelDirectories(),
+                $vendorDir,
+                realpath($vendorDir) ?: $vendorDir,
+                $vendorName,
+            );
+        } catch (Throwable $throwable) {
+            $libraries = [];
+            $libraryScanError = $throwable->getMessage();
+        }
+
+        $report = new InstallationReport(
+            mode: $this->installMode($pharPath),
+            location: $pharPath !== '' ? $pharPath : dirname(__DIR__, 5),
+            version: VersionResolver::current(),
+            autoloaderPresent: is_file($autoload),
+            autoloaderLoaded: in_array(realpath($autoload), get_included_files(), true),
+            phelLibraries: $libraries,
+            vendoredPackages: $this->installedPackages($vendorDir . '/composer/installed.json'),
+            bundledPackages: $pharPath !== '' ? $this->installedPackages(Phar::running() . '/vendor/composer/installed.json') : [],
+            vendorName: $vendorName,
+            libraryScanError: $libraryScanError,
+        );
+
+        foreach ($report->lines() as $line) {
+            $output->writeln($line);
+        }
+    }
+
+    private function installMode(string $pharPath): InstallMode
+    {
+        if ($pharPath !== '') {
+            return InstallMode::Phar;
+        }
+
+        return str_contains(str_replace('\\', '/', dirname(__DIR__, 5)), '/vendor/phel-lang/phel-lang')
+            ? InstallMode::Composer
+            : InstallMode::SourceCheckout;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function installedPackages(string $installedJson): array
+    {
+        if (!is_file($installedJson)) {
+            return [];
+        }
+
+        return InstalledPackages::fromJson((string) file_get_contents($installedJson));
     }
 
     private function checkModuleHealth(OutputInterface $output): bool
