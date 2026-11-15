@@ -156,6 +156,9 @@ final class PharExecutionTest extends TestCase
         self::assertFileExists($projectDir . '/phel-config.php');
         self::assertDirectoryExists($projectDir . '/src');
         self::assertDirectoryExists($projectDir . '/tests');
+        self::assertFileDoesNotExist($projectDir . '/composer.json', 'a PHAR project must not require a second Phel');
+        self::assertMatchesRegularExpression('/php \\S*phel\\.phar\\S* test/', $init['stdout']);
+        self::assertStringNotContainsString('vendor/bin/phel', $init['stdout']);
 
         $test = $this->runPharInDir($projectDir, ['test']);
         self::assertSame(
