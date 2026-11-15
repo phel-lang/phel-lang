@@ -233,9 +233,58 @@ PHP);
         self::assertSame($this->runProjectLint(true)->getOutput(), $second->getOutput());
     }
 
-    private function runProjectLint(bool $noCache = false): Process
+    public function test_switching_namespaces_before_load_does_not_replay_cached_diagnostics(): void
     {
-        $args = [PHP_BINARY, __DIR__ . '/../../../../bin/phel', 'lint', 'src', '--format=json'];
+        mkdir($this->projectRoot . '/src/a', 0777, true);
+        mkdir($this->projectRoot . '/src/b');
+        file_put_contents($this->projectRoot . '/phel-config.php', <<<'PHP'
+<?php
+return \Phel\Config\PhelConfig::forProject()->withSrcDirs(['src']);
+PHP);
+        $root = $this->projectRoot . '/src/root.phel';
+        $helper = $this->projectRoot . '/src/b/helper.phel';
+        file_put_contents($root, "(ns a.root)\n(in-ns b.root)\n(load \"helper\")\n(defn result [] (helper))\n");
+        file_put_contents($this->projectRoot . '/src/a/helper.phel', "(in-ns a.root)\n(defn helper [] 3)\n");
+        file_put_contents($helper, "(in-ns b.root)\n(defn helper [] 3)\n");
+
+        $first = $this->runProjectLint(path: $root);
+        self::assertSame(0, $first->getExitCode(), $first->getErrorOutput() . $first->getOutput());
+        file_put_contents($helper, "(in-ns b.root)\n(defn helper [x] x)\n");
+        $second = $this->runProjectLint(path: $root);
+        self::assertSame(1, $second->getExitCode(), $second->getErrorOutput() . $second->getOutput());
+        self::assertStringContainsString('phel/arity-mismatch', $second->getOutput());
+        self::assertSame($this->runProjectLint(true, $root)->getOutput(), $second->getOutput());
+    }
+
+    public function test_a_changed_indexed_definition_invalidates_a_fully_qualified_reference(): void
+    {
+        mkdir($this->projectRoot . '/src');
+        file_put_contents($this->projectRoot . '/phel-config.php', <<<'PHP'
+<?php
+return \Phel\Config\PhelConfig::forProject()->withSrcDirs(['src']);
+PHP);
+        file_put_contents($this->projectRoot . '/phel-lint.phel', "{:rules {:phel/discouraged-var :error}}\n");
+        $dependency = $this->projectRoot . '/src/aaa_dep.phel';
+        file_put_contents($dependency, "(ns repro.dep)\n(defn value [] 3)\n");
+        file_put_contents($this->projectRoot . '/src/consumer.phel', "(ns repro.consumer)\n(defn result [] (repro.dep/value))\n");
+
+        $first = $this->runProjectLint();
+        self::assertSame(0, $first->getExitCode(), $first->getErrorOutput() . $first->getOutput());
+        file_put_contents($dependency, "(ns repro.dep)\n(defn value {:deprecated true} [] 3)\n");
+        $second = $this->runProjectLint();
+        self::assertSame(1, $second->getExitCode(), $second->getErrorOutput() . $second->getOutput());
+        self::assertStringContainsString('phel/discouraged-var', $second->getOutput());
+        self::assertSame($this->runProjectLint(true)->getOutput(), $second->getOutput());
+
+        $consumer = $this->projectRoot . '/src/consumer.phel';
+        file_put_contents($consumer, file_get_contents($consumer) . "\n");
+        $refreshed = $this->runProjectLint();
+        self::assertSame($this->runProjectLint(true)->getOutput(), $refreshed->getOutput());
+    }
+
+    private function runProjectLint(bool $noCache = false, ?string $path = null): Process
+    {
+        $args = [PHP_BINARY, __DIR__ . '/../../../../bin/phel', 'lint', $path ?? 'src', '--format=json'];
         if (is_dir($this->projectRoot . '/tests')) {
             $args[] = 'tests';
         }

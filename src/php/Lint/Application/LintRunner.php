@@ -60,11 +60,13 @@ final readonly class LintRunner
 
         $projectIndex = $this->buildProjectIndex($paths);
 
+        $cachedFiles = [];
         $allDiagnostics = [];
         foreach ($files as $file) {
-            $dependencies = $this->cacheDependencies instanceof LintCacheDependencies ? $this->cacheDependencies->fingerprintFor($file) : '';
+            $dependencies = $this->cacheDependencies instanceof LintCacheDependencies ? $this->cacheDependencies->fingerprintFor($file, $projectIndex) : '';
             $cached = $dependencies === null ? null : $this->cache?->get($file, $dependencies);
             if ($cached !== null) {
+                $cachedFiles[$file] = true;
                 foreach ($cached as $diagnostic) {
                     $allDiagnostics[] = $diagnostic;
                 }
@@ -79,6 +81,7 @@ final readonly class LintRunner
                 throw LintSourceException::cannotRead($file);
             }
 
+            $this->restoreCachedContext($file, $projectIndex, $cachedFiles);
             $fileDiagnostics = $this->analyzeSource($source, $file, $settings, $projectIndex);
 
             // A rule crash is a fact about the linter, not about the file, and
@@ -102,6 +105,27 @@ final readonly class LintRunner
     public function runSource(string $source, string $path, RuleSettings $settings): LintResult
     {
         return new LintResult($this->analyzeSource($source, $path, $settings, new ProjectIndex([], [])));
+    }
+
+    /**
+     * @param array<string, true> $cachedFiles
+     */
+    private function restoreCachedContext(string $file, ProjectIndex $projectIndex, array &$cachedFiles): void
+    {
+        foreach (array_keys($this->cacheDependencies?->indexedSourcesFor($file, $projectIndex) ?? []) as $dependency) {
+            if (!isset($cachedFiles[$dependency])) {
+                continue;
+            }
+
+            unset($cachedFiles[$dependency]);
+            $this->restoreCachedContext($dependency, $projectIndex, $cachedFiles);
+            $source = @file_get_contents($dependency);
+            if ($source === false) {
+                throw LintSourceException::cannotRead($dependency);
+            }
+
+            $this->apiFacade->analyzeSource($source, $dependency);
+        }
     }
 
     /**

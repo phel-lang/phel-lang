@@ -10,9 +10,11 @@ use Phel\Lang\Symbol;
 use Phel\Lint\Application\Rule\FormWalker;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\LoadedSourceLocator;
+use Phel\Shared\Munge;
 use Throwable;
 
 use function array_key_exists;
+use function in_array;
 use function is_string;
 
 /**
@@ -84,6 +86,10 @@ final class LintCacheLoadedSources
         try {
             $forms = $this->compilerFacade->readFormsBestEffort($source, $file);
             foreach ($forms as $form) {
+                if ($this->changesNamespace($form, $namespace)) {
+                    return null;
+                }
+
                 $this->collectLoads($form, $file, $namespace, $paths, $complete);
             }
 
@@ -91,6 +97,21 @@ final class LintCacheLoadedSources
         } catch (Throwable) {
             return null;
         }
+    }
+
+    private function changesNamespace(mixed $form, string $namespace): bool
+    {
+        if (!$form instanceof PersistentListInterface) {
+            return false;
+        }
+
+        $head = $form->first();
+        $target = $form->get(1);
+
+        return $head instanceof Symbol
+            && in_array($head->getName(), [Symbol::NAME_NS, Symbol::NAME_IN_NS], true)
+            && $target instanceof Symbol
+            && Munge::canonicalNs($target->getFullName()) !== Munge::canonicalNs($namespace);
     }
 
     /**
