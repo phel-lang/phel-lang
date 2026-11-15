@@ -36,7 +36,7 @@ final class ApiDaemonCommandTest extends TestCase
         $project = sys_get_temp_dir() . '/phel-diagnostic-parity-' . uniqid('', true);
         mkdir($project . '/src', 0o777, true);
         $project = (string) realpath($project);
-        $provider = $project . '/src/provider.phel';
+        $provider = $project . '/src/aaa_provider.phel';
         $consumer = $project . '/src/consumer.phel';
         file_put_contents($project . '/phel-config.php', <<<'PHP'
 <?php
@@ -66,6 +66,7 @@ PHP);
                 'deleted provider' => [null, $validConsumer, 'PHEL001'],
                 'recreated provider' => [$validProvider, $validConsumer, null],
                 'consumer edit with cached provider' => [$validProvider, str_replace('(value)', '(value 1)', $validConsumer), 'PHEL002'],
+                'lint-only warning' => [$validProvider, str_replace('(value)', '(let [unused 1] (value))', $validConsumer), null],
                 'fixed consumer' => [$validProvider, $validConsumer, null],
             ];
             foreach ($steps as $id => [$providerSource, $consumerSource, $expectedCode]) {
@@ -78,12 +79,42 @@ PHP);
                 file_put_contents($consumer, $consumerSource);
                 $analyzed = $this->commandDiagnostics($project, ['analyze', $consumer]);
                 self::assertSame($expectedCode === null ? [] : (array) $expectedCode, array_column($analyzed, 'errorCode'), $id);
+                if ($expectedCode === 'PHEL002') {
+                    $call = str_contains($consumerSource, '(value 1)') ? '(value 1)' : '(value)';
+                    $line = explode("\n", $consumerSource)[1];
+                    $column = mb_strpos($line, $call, encoding: 'UTF-8') + 1;
+                    self::assertSame(
+                        ['severity' => 'error', 'uri' => $consumer, 'startLine' => 2, 'startCol' => $column, 'endLine' => 2, 'endCol' => $column + mb_strlen($call, 'UTF-8'), 'errorCode' => 'PHEL002'],
+                        $analyzed[0],
+                        $id . ': character columns after the non-ASCII prefix',
+                    );
+                }
+
                 $response = $this->requestAnalysis($daemon, $input, $id, $consumer, $consumerSource);
                 self::assertSame($analyzed, $response, $id . ': persistent daemon ' . $daemon->getErrorOutput());
-                $cached = $this->commandDiagnostics($project, ['lint', $consumer, '--format=json']);
-                self::assertSame($analyzed, $cached, $id . ': cached lint');
-                self::assertSame($cached, $this->commandDiagnostics($project, ['lint', $consumer, '--format=json']), $id . ': warm lint');
-                self::assertSame($cached, $this->commandDiagnostics($project, ['lint', $consumer, '--format=json', '--no-cache']), $id . ': uncached lint');
+                $lintPath = $expectedCode === null || $expectedCode === 'PHEL002' ? $project . '/src' : $consumer;
+                $cached = $this->commandDiagnosticPayload($project, ['lint', $lintPath, '--format=json']);
+                $lintedConsumer = array_values(array_filter($cached, static fn(array $diagnostic): bool => $diagnostic['uri'] === $consumer));
+                self::assertSame($analyzed, $this->semanticDiagnostics($lintedConsumer), $id . ': cached lint');
+                self::assertSame($cached, $this->commandDiagnosticPayload($project, ['lint', $lintPath, '--format=json']), $id . ': warm lint');
+                self::assertSame($cached, $this->commandDiagnosticPayload($project, ['lint', $lintPath, '--format=json', '--no-cache']), $id . ': uncached lint');
+                if ($expectedCode === 'PHEL002') {
+                    self::assertSame(['phel/arity-mismatch'], array_column($lintedConsumer, 'code'), $id . ': lint rule code');
+                }
+
+                if ($id === 'lint-only warning') {
+                    self::assertCount(1, $cached);
+                    self::assertSame('phel/unused-binding', $cached[0]['code']);
+                    self::assertNull($cached[0]['errorCode']);
+                    self::assertSame('warning', $cached[0]['severity']);
+                }
+
+                if ($expectedCode === null || $expectedCode === 'PHEL002') {
+                    $index = json_decode((string) file_get_contents($project . '/.phel/lint-cache/index.json'), true, 512, JSON_THROW_ON_ERROR);
+                    self::assertIsArray($index);
+                    self::assertArrayHasKey($consumer, $index, $id . ': consumer cache entry');
+                    self::assertArrayHasKey($provider, $index, $id . ': provider cache entry');
+                }
             }
 
             $unsaved = str_replace('(value)', '(value 1)', $validConsumer);
@@ -152,6 +183,11 @@ PHP);
 
     private function commandDiagnostics(string $project, array $args): array
     {
+        return $this->semanticDiagnostics($this->commandDiagnosticPayload($project, $args));
+    }
+
+    private function commandDiagnosticPayload(string $project, array $args): array
+    {
         $process = $this->phelProcess($project, $args);
         $process->run();
         self::assertContains($process->getExitCode(), [0, 1], $process->getErrorOutput());
@@ -159,7 +195,7 @@ PHP);
         self::assertIsArray($diagnostics);
         self::assertSame(array_any($diagnostics, static fn(array $d): bool => $d['severity'] === 'error') ? 1 : 0, $process->getExitCode());
 
-        return $this->semanticDiagnostics($diagnostics);
+        return $diagnostics;
     }
 
     private function requestAnalysis(Process $daemon, InputStream $input, string $id, string $uri, string $source): array
