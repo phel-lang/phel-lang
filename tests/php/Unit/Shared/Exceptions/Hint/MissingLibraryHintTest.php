@@ -19,7 +19,7 @@ final class MissingLibraryHintTest extends TestCase
 
         self::assertTrue($hint->appliesTo($e));
         self::assertSame(
-            "if 'acme.http' comes from a library, install it with composer require <vendor/package>. Phel reads libraries from vendor/.",
+            "if 'acme.http' comes from a library, install it with composer require <vendor/package>. Phel reads libraries from the vendor directory.",
             $hint->hint($e),
         );
     }
@@ -46,6 +46,13 @@ final class MissingLibraryHintTest extends TestCase
 
         self::assertTrue($hint->appliesTo($e));
         self::assertSame("'phel.pdo' comes from phel-lang/phel-pdo. Install it with composer require phel-lang/phel-pdo.", $hint->hint($e));
+    }
+
+    public function test_a_missing_child_of_an_official_library_keeps_the_spelling_suggestion(): void
+    {
+        self::assertFalse(new MissingLibraryHint()->appliesTo(
+            $this->missing("Cannot find namespace 'phel.sql.x' required by 'app.main'. Did you mean 'phel.sql'?"),
+        ));
     }
 
     public function test_applies_without_a_located_error_as_in_the_repl(): void

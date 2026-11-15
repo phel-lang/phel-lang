@@ -10,7 +10,6 @@ use Throwable;
 use function preg_match;
 use function sprintf;
 use function str_contains;
-use function str_starts_with;
 
 /**
  * A `(:require ...)` with no source file and no close spelling is most often a
@@ -54,7 +53,7 @@ final class MissingLibraryHint implements ExceptionHintInterface
         }
 
         return sprintf(
-            "if '%s' comes from a library, install it with composer require <vendor/package>. Phel reads libraries from vendor/.",
+            "if '%s' comes from a library, install it with composer require <vendor/package>. Phel reads libraries from the vendor directory.",
             $namespace,
         );
     }
@@ -66,12 +65,6 @@ final class MissingLibraryHint implements ExceptionHintInterface
 
     private function knownPackage(string $namespace): ?string
     {
-        foreach (self::KNOWN_PACKAGES as $prefix => $package) {
-            if ($namespace === $prefix || str_starts_with($namespace, $prefix . '.')) {
-                return $package;
-            }
-        }
-
-        return null;
+        return self::KNOWN_PACKAGES[$namespace] ?? null;
     }
 }

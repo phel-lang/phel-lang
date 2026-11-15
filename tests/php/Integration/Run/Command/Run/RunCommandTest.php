@@ -66,7 +66,7 @@ final class RunCommandTest extends AbstractTestCommand
         self::assertStringContainsString("required by 'missing-require-script'", $output);
         self::assertStringContainsString('missing-require-script.phel:2', $output);
         self::assertStringContainsString('searched: ', $output);
-        self::assertStringContainsString("hint: if 'some.nonexistent.ns' comes from a library, install it with composer require <vendor/package>. Phel reads libraries from vendor/.", $output);
+        self::assertStringContainsString("hint: if 'some.nonexistent.ns' comes from a library, install it with composer require <vendor/package>. Phel reads libraries from the vendor directory.", $output);
         self::assertStringNotContainsString('must not reach here', $output);
     }
 
