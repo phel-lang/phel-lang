@@ -41,6 +41,81 @@ final class NreplServerTest extends TestCase
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
+    public function test_inspection_pages_mixed_values_and_releases_session_handles(): void
+    {
+        Phel::bootstrap(__DIR__);
+        $facade = new NreplFacade();
+        $facade->loadPhelNamespaces();
+
+        $server = $facade->createSocketServer(0, '127.0.0.1');
+        $server->start();
+
+        $client = $this->connect($server);
+        try {
+            $encoder = new BencodeEncoder();
+            $decoder = new BencodeStreamDecoder();
+            $send = function (array $request) use ($client, $encoder, $decoder, $server): array {
+                $this->writeMessage($client, $encoder->encode($request));
+                return $this->readUntilDone($client, $decoder, $server);
+            };
+            $description = $send(['op' => 'describe'])[0];
+            foreach (['phel-inspect-start', 'phel-inspect-page', 'phel-inspect-release'] as $op) {
+                self::assertArrayHasKey($op, $description['ops']);
+            }
+
+            $session = $send(['op' => 'clone'])[0]['new-session'];
+            $send(['op' => 'eval', 'session' => $session, 'code' => '(def inspection-count (atom 0))']);
+            $start = $send([
+                'op' => 'phel-inspect-start', 'session' => $session,
+                'code' => '(do (swap! inspection-count inc) {"vector" (vec (range 10000)) "lazy" (iterate inc 0) "object" (stdClass.)})',
+            ])[0];
+            self::assertArrayHasKey('root', $start, json_encode($start));
+            $pageRequest = ['op' => 'phel-inspect-page', 'session' => $session, 'inspection' => $start['inspection'], 'handle' => $start['root']['handle'], 'limit' => 3];
+            $page = $send($pageRequest)[0];
+            self::assertCount(3, $page['children']);
+            self::assertSame($page, $send($pageRequest)[0]);
+            $children = array_column($page['children'], null, 'label');
+            $pageRequest['handle'] = $children['lazy']['handle'];
+            $pageRequest['limit'] = 2;
+            $lazy = $send($pageRequest)[0];
+            self::assertSame(['0', '1'], array_column($lazy['children'], 'preview'));
+            self::assertSame(2, $lazy['next-offset']);
+            self::assertLessThanOrEqual(16384, strlen($encoder->encode($lazy)));
+            for ($i = 0; $i < 5 && $lazy['next-offset'] !== -1; ++$i) {
+                $pageRequest['offset'] = $lazy['next-offset'];
+                $pageRequest['limit'] = 32;
+                $lazy = $send($pageRequest)[0];
+            }
+
+            self::assertSame(-1, $lazy['next-offset']);
+            self::assertSame('items', $lazy['reason']);
+            self::assertSame(1, $lazy['truncated']);
+            $cycle = $send(['op' => 'phel-inspect-start', 'session' => $session, 'code' => '(let [o (stdClass.)] (php/oset (.-self o) o) o)'])[0];
+            $cyclePage = $send(['op' => 'phel-inspect-page', 'session' => $session, 'inspection' => $cycle['inspection'], 'handle' => $cycle['root']['handle']])[0];
+            self::assertSame($cycle['root']['handle'], $cyclePage['children'][0]['handle']);
+            self::assertSame(1, $cyclePage['children'][0]['reference']);
+            $send(['op' => 'phel-inspect-release', 'session' => $session, 'inspection' => $cycle['inspection']]);
+            $value = $this->firstWithKey($send(['op' => 'eval', 'session' => $session, 'code' => '(deref inspection-count)']), 'value');
+            self::assertSame('1', $value['value']);
+            $released = $send(['op' => 'phel-inspect-release', 'session' => $session, 'inspection' => $start['inspection']])[0];
+            self::assertSame(1, $released['released']);
+            self::assertContains('inspection-error', $send($pageRequest)[0]['status']);
+            $start = $send(['op' => 'phel-inspect-start', 'session' => $session, 'code' => '[1 2]'])[0];
+            $send(['op' => 'close', 'session' => $session]);
+            $pageRequest['inspection'] = $start['inspection'];
+            $pageRequest['handle'] = $start['root']['handle'];
+            self::assertContains('inspection-error', $send($pageRequest)[0]['status']);
+            $newSession = $send(['op' => 'clone'])[0]['new-session'];
+            $pageRequest['session'] = $newSession;
+            self::assertContains('inspection-error', $send($pageRequest)[0]['status']);
+        } finally {
+            fclose($client);
+            $server->stop();
+        }
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_slow_reader_receives_a_complete_large_eval_while_another_client_is_served(): void
     {
         Phel::bootstrap(__DIR__);

@@ -12,6 +12,7 @@ use Phel\Nrepl\Application\Op\CompletionsOp;
 use Phel\Nrepl\Application\Op\DescribeOp;
 use Phel\Nrepl\Application\Op\EvalOp;
 use Phel\Nrepl\Application\Op\EvalResultResponder;
+use Phel\Nrepl\Application\Op\InspectOp;
 use Phel\Nrepl\Application\Op\InterruptOp;
 use Phel\Nrepl\Application\Op\LoadFileOp;
 use Phel\Nrepl\Application\Op\LookupOp;
@@ -70,6 +71,10 @@ final class NreplFactory extends AbstractFactory
         $dispatcher->register(new LoadFileOp($this->getRunFacade(), $responder, $namespaceBinder));
         $dispatcher->register(new ReloadOp($this->getRunFacade(), $responder));
         $dispatcher->register(new RunTestsOp($this->getRunFacade(), $responder));
+        foreach ([InspectOp::START, InspectOp::PAGE, InspectOp::RELEASE] as $operation) {
+            $dispatcher->register(new InspectOp($operation, $this->getRunFacade(), $namespaceBinder));
+        }
+
         $dispatcher->register(new InterruptOp());
         $dispatcher->register(new CompletionsOp($this->getApiFacade()));
         $dispatcher->register(new LookupOp($this->getApiFacade(), 'lookup', $sessions));

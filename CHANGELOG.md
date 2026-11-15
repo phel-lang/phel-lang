@@ -49,6 +49,7 @@ Compiler:
 
 Tooling:
 
+- nREPL clients can inspect results with session-owned handles, bounded child pages and explicit release, including lazy sequences and PHP objects without invoking getters. `describe` advertises the three `phel-inspect-*` operations. (#3911)
 - PHP array-argument errors point at the Phel map or vector call site, including built projects, and suggest `to-array` for shallow conversion or `phel->php` for nested conversion. (#3910)
 - PHP interop completion, hover and signature help follow methods with a single class in PHPDoc `@return`, including imported names. Native return types take precedence. Union returns offer members common to the object alternatives, intersections offer members from either type, and nullable or scalar alternatives remain visible in receiver details. (#3908 #3909)
 - `phel doctor` shows how Phel is installed (PHAR, Composer or source checkout) and its version, whether the project's `vendor/autoload.php` loaded, and each Phel library in `vendor/` with its source dirs. Under `phel.phar` it warns about a vendored `phel-lang/phel-lang` and PHP packages the PHAR bundles at another version. (#3899)

@@ -25,6 +25,7 @@ nREPL server: bencode over TCP for Cursive, Calva, CIDER, Conjure. `NreplConfig`
 | `completions` | Api `replCompleteWithTypes` |
 | `lookup` / `info` / `eldoc` | Api `findSymbolMetadata` (three `LookupOp` instances differing by name) |
 | `reload` | Run `structuredEval` to `phel.repl/reload!`; `all` param (`1`/`true`) to `reload-all!` |
+| `phel-inspect-start` / `phel-inspect-page` / `phel-inspect-release` | `InspectOp`: evaluate once, page session-owned handles, release |
 | `run-tests` | Run `structuredEval` to `phel.repl/run-tests` (required `ns`); `var` param to `phel.repl/run-test` |
 
 ## Dependencies (NreplProvider)
@@ -40,6 +41,7 @@ nREPL server: bencode over TCP for Cursive, Calva, CIDER, Conjure. `NreplConfig`
 - `Domain/BindAddress`: host validation
 - `Domain/Bencode/`: codec (encoder, decoder, stream-decoder, exception)
 - `Domain/Op/`: `OpDispatcher`, `OpHandlerInterface`, `OpRequest`, `OpResponse`, `OpStatus`
+- `Domain/Inspection/`: `ValueInspection` bounded graph, `InspectionNode` cursor and visited children
 - `Domain/Session/`: `Session`, `SessionRegistry`
 - `Domain/Transport/`: `ClientConnection`
 - `Application/Op/`: one class per op (+ `EvalResultResponder`)
@@ -48,6 +50,7 @@ nREPL server: bencode over TCP for Cursive, Calva, CIDER, Conjure. `NreplConfig`
 
 ## Key Constraints
 
+- Inspection limits and wire contract live in `docs/cli-reference.md#incremental-value-inspection`. `Session` owns up to eight inspections and clears them explicitly on close. Inspection bypasses the printer and eval history; PHP properties use raw access, lazy sequences are never counted.
 - The bencode codec has zero dependencies.
 - Each op implements `OpHandlerInterface`; the dispatcher maps op name to handler.
 - One PHP Fiber per connection (`ClientFiberPool`, cooperative suspend).
