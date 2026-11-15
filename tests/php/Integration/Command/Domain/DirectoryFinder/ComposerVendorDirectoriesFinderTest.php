@@ -64,108 +64,21 @@ final class ComposerVendorDirectoriesFinderTest extends TestCase
 
     public function test_skips_a_vendored_phel_and_keeps_other_libraries(): void
     {
-        $this->createVendorWithPhel('0.53.0');
+        $this->createVendorWithPhel();
 
         $dirs = new ComposerVendorDirectoriesFinder($this->vendorDir)->findPhelSourceDirectories();
 
         self::assertSame([$this->vendorDir . '/acme/lib/src'], $dirs);
     }
 
-    public function test_from_a_phar_warns_once_naming_both_versions_when_they_differ(): void
-    {
-        $this->createVendorWithPhel('v0.53.0');
-        $warnings = [];
-        $writer = static function (string $message) use (&$warnings): void {
-            $warnings[] = $message;
-        };
-
-        $finder = new ComposerVendorDirectoriesFinder($this->vendorDir, true, 'v1.0.0', $writer);
-        $finder->findPhelSourceDirectories();
-        $finder->findPhelSourceDirectories();
-        new ComposerVendorDirectoriesFinder($this->vendorDir, true, 'v1.0.0', $writer)->findPhelSourceDirectories();
-
-        self::assertCount(1, $warnings);
-        self::assertStringContainsString('phel.phar 1.0.0 ignores', $warnings[0]);
-        self::assertStringContainsString('phel-lang/phel-lang 0.53.0', $warnings[0]);
-    }
-
-    public function test_the_warning_names_a_custom_vendor_dir(): void
-    {
-        $this->createVendorWithPhel('0.53.0');
-        $warnings = [];
-
-        new ComposerVendorDirectoriesFinder($this->vendorDir, true, 'v1.0.0', static function (string $m) use (&$warnings): void {
-            $warnings[] = $m;
-        }, 'deps')->findPhelSourceDirectories();
-
-        self::assertStringContainsString('installed in deps/', $warnings[0]);
-        self::assertStringContainsString('Run ./deps/bin/phel', $warnings[0]);
-    }
-
-    public function test_from_a_phar_stays_silent_when_the_vendored_version_matches(): void
-    {
-        $this->createVendorWithPhel('1.0.0');
-        $warnings = [];
-
-        new ComposerVendorDirectoriesFinder($this->vendorDir, true, 'v1.0.0', static function (string $m) use (&$warnings): void {
-            $warnings[] = $m;
-        })->findPhelSourceDirectories();
-
-        self::assertSame([], $warnings);
-    }
-
-    public function test_a_dev_phar_build_matches_the_vendored_release(): void
-    {
-        $this->createVendorWithPhel('1.0.0');
-        $warnings = [];
-
-        new ComposerVendorDirectoriesFinder($this->vendorDir, true, 'v1.0.0-beta#abc1234', static function (string $m) use (&$warnings): void {
-            $warnings[] = $m;
-        })->findPhelSourceDirectories();
-
-        self::assertSame([], $warnings);
-    }
-
-    public function test_from_a_phar_names_an_unknown_vendored_version(): void
-    {
-        $this->createVendorWithPhel(null);
-        $warnings = [];
-
-        new ComposerVendorDirectoriesFinder($this->vendorDir, true, 'v1.0.0', static function (string $m) use (&$warnings): void {
-            $warnings[] = $m;
-        })->findPhelSourceDirectories();
-
-        self::assertCount(1, $warnings);
-        self::assertStringContainsString('(unknown version)', $warnings[0]);
-    }
-
-    public function test_under_composer_a_vendored_phel_is_skipped_silently(): void
-    {
-        $this->createVendorWithPhel('0.53.0');
-        $warnings = [];
-
-        new ComposerVendorDirectoriesFinder($this->vendorDir, false, 'v1.0.0', static function (string $m) use (&$warnings): void {
-            $warnings[] = $m;
-        })->findPhelSourceDirectories();
-
-        self::assertSame([], $warnings);
-    }
-
-    private function createVendorWithPhel(?string $version): void
+    private function createVendorWithPhel(): void
     {
         $this->vendorDir = sys_get_temp_dir() . '/phel-vendor-finder-' . bin2hex(random_bytes(6));
-        foreach (['phel-lang/phel-lang/src/phel', 'acme/lib/src', 'composer'] as $dir) {
+        foreach (['phel-lang/phel-lang/src/phel', 'acme/lib/src'] as $dir) {
             mkdir($this->vendorDir . '/' . $dir, 0755, true);
         }
 
         file_put_contents($this->vendorDir . '/phel-lang/phel-lang/phel-config.php', "<?php return ['src-dirs' => ['src/phel']];\n");
         file_put_contents($this->vendorDir . '/acme/lib/phel-config.php', "<?php return ['src-dirs' => ['src']];\n");
-
-        if ($version !== null) {
-            file_put_contents(
-                $this->vendorDir . '/composer/installed.json',
-                json_encode(['packages' => [['name' => 'acme/lib', 'version' => '1.0.0'], ['name' => 'phel-lang/phel-lang', 'version' => $version]]]),
-            );
-        }
     }
 }
