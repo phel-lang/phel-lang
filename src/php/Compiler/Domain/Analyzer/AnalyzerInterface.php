@@ -29,6 +29,8 @@ interface AnalyzerInterface
 
     public function setNamespace(string $ns): void;
 
+    public function rejectNamespace(): void;
+
     public function addUseAlias(string $ns, Symbol $alias, Symbol $nsSymbol): void;
 
     public function addRequireAlias(string $ns, Symbol $alias, Symbol $nsSymbol): void;

@@ -25,6 +25,17 @@ use function array_values;
 use function strtolower;
 
 /**
+ * @phpstan-import-type EnvironmentSnapshot from GlobalEnvironmentInterface
+ *
+ * @phpstan-type AnalysisSnapshot array{
+ *     environment: EnvironmentSnapshot,
+ *     definitionLocations: array<string, array<string, SourceLocation>>,
+ *     compileTimeMeta: array<string, array<string, PersistentMapInterface<mixed, mixed>>>,
+ *     defFnNodes: array<string, array<string, FnNodeInterface>>,
+ *     interfaceMethods: array<string, array<string, list<string>>>,
+ *     analysisOnlyDefinitions: array<string, array<string, int>>,
+ * }
+ *
  * @internal
  */
 final class GlobalEnvironment implements GlobalEnvironmentInterface
@@ -115,6 +126,11 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private int $analysisModeCounter = 0;
 
     private int $analysisPass = 0;
+
+    /** @var AnalysisSnapshot|null */
+    private ?array $analysisSnapshot = null;
+
+    private bool $namespaceRejected = false;
 
     /**
      * Names each open compile defined that had no runtime value yet, innermost
@@ -419,6 +435,8 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     {
         if ($this->analysisModeCounter === 0) {
             ++$this->analysisPass;
+            $this->analysisSnapshot = $this->snapshotForAnalysis();
+            $this->namespaceRejected = false;
         }
 
         ++$this->analysisModeCounter;
@@ -426,8 +444,28 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     public function leaveAnalysisMode(): void
     {
+        if ($this->analysisModeCounter === 0) {
+            return;
+        }
+
+        --$this->analysisModeCounter;
         if ($this->analysisModeCounter > 0) {
-            --$this->analysisModeCounter;
+            return;
+        }
+
+        $snapshot = $this->analysisSnapshot;
+        $this->analysisSnapshot = null;
+        $rejected = $this->namespaceRejected;
+        $this->namespaceRejected = false;
+        if ($rejected && $snapshot !== null) {
+            $this->restoreAnalysisSnapshot($snapshot);
+        }
+    }
+
+    public function rejectNamespace(): void
+    {
+        if ($this->isAnalysisMode()) {
+            $this->namespaceRejected = true;
         }
     }
 
@@ -486,6 +524,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return array_values($this->phpClasses[$namespace] ?? []);
     }
 
+    /**
+     * @return EnvironmentSnapshot
+     */
     public function snapshot(): array
     {
         return [
@@ -499,6 +540,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         ];
     }
 
+    /**
+     * @param EnvironmentSnapshot $snapshot
+     */
     public function restore(array $snapshot): void
     {
         $this->ns = $snapshot['ns'];
@@ -556,12 +600,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * A `:tag` written as a bare imported class name (`(:use Phel.Lang.Symbol)`
-     * then `^Symbol s`) resolves through the current namespace's `:use`
-     * table, the same way the head of a call does. Before this hook the bare
-     * name reached the generated PHP unqualified and failed at call time.
-     */
-    /**
      * Folds the compile-time-only `:param-tags` static-checker channel
      * into the registry meta read at call sites, leaving every other
      * key on the registry side untouched.
@@ -582,6 +620,34 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         return $registryMeta;
+    }
+
+    /**
+     * @return AnalysisSnapshot
+     */
+    private function snapshotForAnalysis(): array
+    {
+        return [
+            'environment' => $this->snapshot(),
+            'definitionLocations' => $this->definitionLocations,
+            'compileTimeMeta' => $this->compileTimeMeta,
+            'defFnNodes' => $this->defFnNodes,
+            'interfaceMethods' => $this->interfaceMethods,
+            'analysisOnlyDefinitions' => $this->analysisOnlyDefinitions,
+        ];
+    }
+
+    /**
+     * @param AnalysisSnapshot $snapshot
+     */
+    private function restoreAnalysisSnapshot(array $snapshot): void
+    {
+        $this->restore($snapshot['environment']);
+        $this->definitionLocations = $snapshot['definitionLocations'];
+        $this->compileTimeMeta = $snapshot['compileTimeMeta'];
+        $this->defFnNodes = $snapshot['defFnNodes'];
+        $this->interfaceMethods = $snapshot['interfaceMethods'];
+        $this->analysisOnlyDefinitions = $snapshot['analysisOnlyDefinitions'];
     }
 
     private function forgetMacrosOfEarlierPasses(string $namespace): void

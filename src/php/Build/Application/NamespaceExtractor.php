@@ -125,9 +125,12 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
             $readerResult = $this->compilerFacade->read($parseTree);
             $ast = $readerResult->getAst();
+            $globalEnvironment = $this->compilerFacade->getGlobalEnvironment();
+            $snapshot = $globalEnvironment->snapshot();
             try {
                 $node = $this->compilerFacade->analyze($ast, $this->compilerFacade->emptyNodeEnvironment());
             } catch (AnalyzerException $analyzerException) {
+                $globalEnvironment->restore($snapshot);
                 if (!$this->isNsForm($ast)) {
                     if ($analyzerException->isUnresolvedSymbol()) {
                         throw MissingNsFormException::inFile($path, $analyzerException);

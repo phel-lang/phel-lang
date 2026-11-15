@@ -10,6 +10,16 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
 
 /**
+ * @phpstan-type EnvironmentSnapshot array{
+ *     ns: string,
+ *     definitions: array<string, array<string, bool>>,
+ *     refers: array<string, array<string, Symbol>>,
+ *     requireAliases: array<string, array<string, Symbol>>,
+ *     useAliases: array<string, array<string, Symbol>>,
+ *     interfaces: array<string, array<string, Symbol>>,
+ *     phpClasses: array<string, array<string, Symbol>>,
+ * }
+ *
  * @internal
  */
 interface GlobalEnvironmentInterface
@@ -37,6 +47,8 @@ interface GlobalEnvironmentInterface
     public function leaveAnalysisMode(): void;
 
     public function isAnalysisMode(): bool;
+
+    public function rejectNamespace(): void;
 
     /**
      * Open the compile of one source. A build recompiles namespaces this
@@ -162,33 +174,12 @@ interface GlobalEnvironmentInterface
     public function getPublicDefinitionNames(string $namespace): array;
 
     /**
-     * Takes a snapshot of the current environment state.
-     * Used by the REPL to rollback on eval errors.
-     *
-     * @return array{
-     *     ns: string,
-     *     definitions: array<string, array<string, bool>>,
-     *     refers: array<string, array<string, Symbol>>,
-     *     requireAliases: array<string, array<string, Symbol>>,
-     *     useAliases: array<string, array<string, Symbol>>,
-     *     interfaces: array<string, array<string, Symbol>>,
-     *     phpClasses: array<string, array<string, Symbol>>,
-     * }
+     * @return EnvironmentSnapshot
      */
     public function snapshot(): array;
 
     /**
-     * Restores the environment state from a previously taken snapshot.
-     *
-     * @param array{
-     *     ns: string,
-     *     definitions: array<string, array<string, bool>>,
-     *     refers: array<string, array<string, Symbol>>,
-     *     requireAliases: array<string, array<string, Symbol>>,
-     *     useAliases: array<string, array<string, Symbol>>,
-     *     interfaces: array<string, array<string, Symbol>>,
-     *     phpClasses: array<string, array<string, Symbol>>,
-     * } $snapshot
+     * @param EnvironmentSnapshot $snapshot
      */
     public function restore(array $snapshot): void;
 }

@@ -6,7 +6,6 @@ namespace Phel\Run\Application;
 
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
-use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Eval\EvalError;
 use Phel\Shared\Eval\EvalResult;
@@ -23,6 +22,8 @@ use function ob_get_clean;
 use function ob_start;
 
 /**
+ * @phpstan-import-type EnvironmentSnapshot from GlobalEnvironmentInterface
+ *
  * @internal
  */
 final readonly class StructuredEvaluator
@@ -147,15 +148,7 @@ final readonly class StructuredEvaluator
     }
 
     /**
-     * @param array{
-     *     ns: string,
-     *     definitions: array<string, array<string, bool>>,
-     *     refers: array<string, array<string, Symbol>>,
-     *     requireAliases: array<string, array<string, Symbol>>,
-     *     useAliases: array<string, array<string, Symbol>>,
-     *     interfaces: array<string, array<string, Symbol>>,
-     *     phpClasses: array<string, array<string, Symbol>>,
-     * }|null $snapshot
+     * @param EnvironmentSnapshot|null $snapshot
      */
     private function restoreIfNeeded(?GlobalEnvironmentInterface $env, ?array $snapshot): void
     {

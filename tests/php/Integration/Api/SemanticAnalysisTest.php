@@ -8,10 +8,14 @@ use Phel;
 use Phel\Api\ApiFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
+use Phel\Run\RunFacade;
 use Phel\Shared\Api\Completion;
 use Phel\Shared\Api\Definition;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Api\ProjectIndex;
+use Phel\Shared\CompilerConstants;
+use Phel\Shared\ReplConstants;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -19,6 +23,8 @@ use PHPUnit\Framework\TestCase;
 
 final class SemanticAnalysisTest extends TestCase
 {
+    use RemoveDirTrait;
+
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_it_reports_an_arity_diagnostic_for_if_with_too_many_args(): void
@@ -326,6 +332,94 @@ PHEL;
         // The trailing element of either head is the collection, not a local.
         self::assertNotContains('coll', $labels);
         self::assertNotContains('other', $labels);
+    }
+
+    public static function invalidNamespaceForms(): iterable
+    {
+        $invalidNamespace = '(ns recovery.provider (:require phel.string :as clash) (:require phel.json :as clash))';
+        yield 'literal' => [$invalidNamespace, ['PHEL004', 'PHEL001']];
+        yield 'nested' => ['(do ' . $invalidNamespace . ')', ['PHEL004', 'PHEL001']];
+        yield 'macro' => ["(ns recovery.provider (:require recovery.macros :refer [broken-ns]))\n(broken-ns)", ['PHEL004', 'PHEL001']];
+        yield 'loaded' => ["(ns recovery.provider)\n(load \"fragment\")", ['PHEL001']];
+    }
+
+    #[DataProvider('invalidNamespaceForms')]
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_an_invalid_namespace_keeps_local_diagnostics_without_publishing_its_definitions(string $namespaceForm, array $expectedCodes): void
+    {
+        $this->bootstrap();
+        $run = new RunFacade();
+        $run->loadPhelNamespaces();
+        $run->eval("(ns recovery.macros) (defmacro broken-ns [] '(ns recovery.provider (:require phel.string :as clash) (:require phel.json :as clash)))");
+
+        $project = sys_get_temp_dir() . '/phel-namespace-recovery-' . uniqid('', true);
+        mkdir($project);
+
+        try {
+            $uri = $project . '/provider.phel';
+            file_put_contents($project . '/fragment.phel', "(in-ns recovery.provider)\n(ns recovery.provider (:require phel.string :as clash) (:require phel.json :as clash))\n");
+            $facade = new ApiFacade();
+            self::assertSame([], $facade->analyzeSource("(ns recovery.provider)\n(defn stable [] 1)\n", $uri));
+
+            $diagnostics = $facade->analyzeSource(
+                $namespaceForm . "\n(defn stable [x] x)\n(defn leaked [] 1)\n(defn broken [] (missing))\n",
+                $uri,
+            );
+
+            self::assertSame($expectedCodes, array_map(static fn(Diagnostic $d): ?string => $d->errorCode, $diagnostics));
+            self::assertSame(substr_count($namespaceForm, "\n") + 4, array_last($diagnostics)->startLine);
+            self::assertSame([], $facade->analyzeSource('(ns recovery.consumer) (recovery.provider/stable)', 'consumer.phel'));
+            self::assertSame(
+                ['PHEL001'],
+                array_map(static fn(Diagnostic $d): ?string => $d->errorCode, $facade->analyzeSource('(ns recovery.consumer) (recovery.provider/leaked)', 'consumer.phel')),
+            );
+        } finally {
+            $this->removeDir($project);
+        }
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_rejected_saved_namespace_preserves_previous_aliases(): void
+    {
+        $this->bootstrap();
+        $facade = new ApiFacade();
+        self::assertSame([], $facade->analyzeSource('(ns recovery.saved (:require phel.string :as text)) (text/trim "abc")', 'provider.phel'));
+        $project = sys_get_temp_dir() . '/phel-saved-namespace-' . uniqid('', true);
+        mkdir($project);
+
+        try {
+            $uri = $project . '/provider.phel';
+            $source = '(ns recovery.saved (:require phel.json :as text) (:require phel.string :as clash) (:require phel.json :as clash))';
+            file_put_contents($uri, $source);
+            $diagnostics = $facade->analyzeSource($source, $uri);
+
+            self::assertSame(['PHEL004'], array_map(static fn(Diagnostic $d): ?string => $d->errorCode, $diagnostics));
+            self::assertSame([], $facade->analyzeSource('(in-ns recovery.saved) (text/trim "abc")', 'consumer.phel'));
+        } finally {
+            $this->removeDir($project);
+        }
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_interactive_eval_keeps_a_redefinition_that_ran_before_a_runtime_error(): void
+    {
+        $this->bootstrap();
+        $run = new RunFacade();
+        $run->loadPhelNamespaces();
+        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::INTERACTIVE_MODE, true);
+        self::assertTrue($run->structuredEval('(ns recovery.interactive) (defn value [^int x] x)')->success);
+
+        $failure = $run->structuredEval('(defn value [^string x] x) (throw (RuntimeException. "boom"))');
+        self::assertFalse($failure->success);
+        self::assertNotNull($failure->error);
+        self::assertSame('boom', $failure->error->message);
+
+        $result = $run->structuredEval('(value "ok")');
+        self::assertTrue($result->success, $result->error?->message ?? '');
+        self::assertSame('ok', $result->value);
     }
 
     private function bootstrap(): void

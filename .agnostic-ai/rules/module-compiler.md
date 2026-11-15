@@ -79,6 +79,8 @@ Opt-in, off by default (`CompilerConfig::isIntermediateCacheEnabled()`). Wired o
 
 Process-wide singleton in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry`; `GlobalEnvironmentManager` (Application) and `GlobalEnvironmentSingleton` (Infrastructure) share its slot.
 
+Analysis mode is reentrant. Its outermost scope restores compiler state when `NsSymbol` rejects a namespace, including declarations inside macros or loaded files. Valid passes retain definitions for other files; runtime evaluation keeps its existing snapshot recovery.
+
 ### Duplicate-definition reporting
 
 `definitionLocations` records first definitions, so `DuplicateDefinitionException` carries the redefinition's location, `ErrorCode::DUPLICATE_DEFINITION` and a `first defined at …` note (#3267). It gets a snippet because `CodeCompiler`/`EvalCompiler` wrap every `AbstractLocatedException` from analysis (`AnalyzerException` is `final`).

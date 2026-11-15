@@ -28,6 +28,7 @@ Namespace extraction, dependency ordering, compilation, caching.
 ### Namespace extraction errors
 
 - First form not `ns`/`in-ns` and fails on an unresolved symbol: asking for that file throws `Shared\Exceptions\MissingNsFormException`; `phel run <file>` still gets the hint.
+- Rejected namespace analysis restores the compiler environment, so a failed saved declaration cannot replace aliases before source analysis starts.
 - An `ns` form the analyzer rejects (`(:require [x :refer :all])`) throws `Shared\Exceptions\CompilerException` with its snippet. `ProjectCompiler` passes `failOnInvalidNsForm: true`, so `build` fails naming the file (#3457).
 - A directory scan (`NamespaceExtractor`, `CachedNamespaceExtractor`) skips both cases and unparseable files: one stray `.cljc` or bad file must not stop `phel eval`, `run`, `lint` or the REPL (#3484). The scan index stamps a skipped file's mtime, so it is reread only after a change (#3629).
 

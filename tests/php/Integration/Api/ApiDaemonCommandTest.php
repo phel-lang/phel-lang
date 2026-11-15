@@ -92,12 +92,16 @@ PHP);
 
                 $response = $this->requestAnalysis($daemon, $input, $id, $consumer, $consumerSource);
                 self::assertSame($analyzed, $response, $id . ': persistent daemon ' . $daemon->getErrorOutput());
-                $lintPath = $expectedCode === null || $expectedCode === 'PHEL002' ? $project . '/src' : $consumer;
+                $lintPath = $project . '/src';
                 $cached = $this->commandDiagnosticPayload($project, ['lint', $lintPath, '--format=json']);
                 $lintedConsumer = array_values(array_filter($cached, static fn(array $diagnostic): bool => $diagnostic['uri'] === $consumer));
                 self::assertSame($analyzed, $this->semanticDiagnostics($lintedConsumer), $id . ': cached lint');
                 self::assertSame($cached, $this->commandDiagnosticPayload($project, ['lint', $lintPath, '--format=json']), $id . ': warm lint');
                 self::assertSame($cached, $this->commandDiagnosticPayload($project, ['lint', $lintPath, '--format=json', '--no-cache']), $id . ': uncached lint');
+                if ($id === 'invalid provider') {
+                    $this->assertConsumerDiagnosticsIgnoreProviderOrder($project, $provider, $consumer, $analyzed);
+                }
+
                 if ($expectedCode === 'PHEL002') {
                     self::assertSame(['phel/arity-mismatch'], array_column($lintedConsumer, 'code'), $id . ': lint rule code');
                 }
@@ -174,6 +178,20 @@ PHP);
         self::assertSame(1, $exitCode);
         self::assertSame('', $tester->getDisplay());
         self::assertStringContainsString('daemon broke', $tester->getErrorOutput());
+    }
+
+    private function assertConsumerDiagnosticsIgnoreProviderOrder(string $project, string $provider, string $consumer, array $expected): void
+    {
+        self::assertSame($expected, $this->commandDiagnostics($project, ['lint', $consumer, '--format=json', '--no-cache']));
+        $lastProvider = $project . '/src/zzz_provider.phel';
+        rename($provider, $lastProvider);
+        try {
+            $reordered = $this->commandDiagnosticPayload($project, ['lint', $project . '/src', '--format=json', '--no-cache']);
+            $consumerDiagnostics = array_values(array_filter($reordered, static fn(array $diagnostic): bool => $diagnostic['uri'] === $consumer));
+            self::assertSame($expected, $this->semanticDiagnostics($consumerDiagnostics), 'provider sorted after consumer');
+        } finally {
+            rename($lastProvider, $provider);
+        }
     }
 
     private function phelProcess(string $project, array $args): Process
