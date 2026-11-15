@@ -13,6 +13,7 @@ use Phel\Config\PhelConfig;
 use Phel\Run\Domain\Config\ConfigDiagnostics;
 use Phel\Run\Domain\Config\EffectiveConfigResult;
 use Phel\Run\Domain\Doctor\InstallationReport;
+use Phel\Run\Domain\Doctor\InstalledPackage;
 use Phel\Run\Domain\Doctor\InstalledPackages;
 use Phel\Run\Domain\Doctor\InstallMode;
 use Phel\Run\Domain\Doctor\VendorPhelLibraries;
@@ -38,8 +39,6 @@ use function ini_get;
 use function is_file;
 use function realpath;
 use function sprintf;
-use function str_contains;
-use function str_replace;
 
 /**
  * @method RunFacade getFacade()
@@ -140,7 +139,7 @@ HELP);
         }
 
         $report = new InstallationReport(
-            mode: $this->installMode($pharPath),
+            mode: InstallMode::detect($pharPath, dirname(__DIR__, 5)),
             location: $pharPath !== '' ? $pharPath : dirname(__DIR__, 5),
             version: VersionResolver::current(),
             autoloaderPresent: is_file($autoload),
@@ -157,19 +156,8 @@ HELP);
         }
     }
 
-    private function installMode(string $pharPath): InstallMode
-    {
-        if ($pharPath !== '') {
-            return InstallMode::Phar;
-        }
-
-        return str_contains(str_replace('\\', '/', dirname(__DIR__, 5)), '/vendor/phel-lang/phel-lang')
-            ? InstallMode::Composer
-            : InstallMode::SourceCheckout;
-    }
-
     /**
-     * @return array<string, string>
+     * @return array<string, InstalledPackage>
      */
     private function installedPackages(string $installedJson): array
     {

@@ -17,7 +17,7 @@ use function json_decode;
 final class InstalledPackages
 {
     /**
-     * @return array<string, string> package name => version
+     * @return array<string, InstalledPackage> package name => package
      */
     public static function fromJson(string $json): array
     {
@@ -36,10 +36,25 @@ final class InstalledPackages
             $name = $package['name'] ?? null;
             $version = $package['version'] ?? null;
             if (is_string($name) && is_string($version)) {
-                $result[$name] = $version;
+                $result[$name] = new InstalledPackage($version, self::reference($package));
             }
         }
 
         return $result;
+    }
+
+    /**
+     * @param array<array-key, mixed> $package
+     */
+    private static function reference(array $package): string
+    {
+        foreach (['source', 'dist'] as $origin) {
+            $reference = is_array($package[$origin] ?? null) ? ($package[$origin]['reference'] ?? null) : null;
+            if (is_string($reference) && $reference !== '') {
+                return $reference;
+            }
+        }
+
+        return '';
     }
 }

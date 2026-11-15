@@ -20,9 +20,9 @@ final readonly class InstallationReport
     private const string PHEL_PACKAGE = 'phel-lang/phel-lang';
 
     /**
-     * @param array<string, list<string>> $phelLibraries    vendor package name => its Phel source dirs
-     * @param array<string, string>       $vendoredPackages package name => version, from the project's vendor/
-     * @param array<string, string>       $bundledPackages  package name => version, bundled in the PHAR
+     * @param array<string, list<string>>     $phelLibraries    vendor package name => its Phel source dirs
+     * @param array<string, InstalledPackage> $vendoredPackages from the project's vendor/
+     * @param array<string, InstalledPackage> $bundledPackages  bundled in the PHAR
      */
     public function __construct(
         private InstallMode $mode,
@@ -98,26 +98,26 @@ final readonly class InstallationReport
                 ' - <comment>WARN</comment> %s/ also holds %s %s, often as a dependency of a Phel library. phel.phar ignores it; run ./%s/bin/phel to use it.',
                 $this->vendorName,
                 self::PHEL_PACKAGE,
-                ltrim($vendoredPhel, 'v'),
+                $vendoredPhel->label(),
                 $this->vendorName,
             );
         }
 
         $vendored = $this->vendoredPackages;
         ksort($vendored);
-        foreach ($vendored as $name => $version) {
+        foreach ($vendored as $name => $package) {
             $bundled = $this->bundledPackages[$name] ?? null;
-            if ($name === self::PHEL_PACKAGE || $bundled === null || ltrim($bundled, 'v') === ltrim($version, 'v')) {
+            if ($name === self::PHEL_PACKAGE || $bundled === null || $package->sameCodeAs($bundled)) {
                 continue;
             }
 
             $lines[] = sprintf(
                 ' - <comment>WARN</comment> %s %s in %s/ differs from the %s bundled in phel.phar. Classes load from phel.phar first, so your code gets %s.',
                 $name,
-                ltrim($version, 'v'),
+                $package->labelAgainst($bundled),
                 $this->vendorName,
-                ltrim($bundled, 'v'),
-                ltrim($bundled, 'v'),
+                $bundled->labelAgainst($package),
+                $bundled->labelAgainst($package),
             );
         }
 

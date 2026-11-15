@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Run\Domain\Doctor;
 
 use Phel\Run\Domain\Doctor\InstallationReport;
+use Phel\Run\Domain\Doctor\InstalledPackage;
 use Phel\Run\Domain\Doctor\InstallMode;
 use PHPUnit\Framework\TestCase;
 
@@ -52,14 +53,14 @@ final class InstallationReportTest extends TestCase
 
     public function test_from_a_phar_warns_about_a_vendored_phel(): void
     {
-        $text = $this->render(new InstallationReport(InstallMode::Phar, '/p', '1.0.0', true, true, [], ['phel-lang/phel-lang' => 'v0.53.0']));
+        $text = $this->render(new InstallationReport(InstallMode::Phar, '/p', '1.0.0', true, true, [], ['phel-lang/phel-lang' => new InstalledPackage('v0.53.0')]));
 
         self::assertStringContainsString('vendor/ also holds phel-lang/phel-lang 0.53.0', $text);
     }
 
     public function test_under_composer_the_vendored_phel_is_the_running_one(): void
     {
-        $text = $this->render(new InstallationReport(InstallMode::Composer, '/p', '1.0.0', true, true, [], ['phel-lang/phel-lang' => '1.0.0']));
+        $text = $this->render(new InstallationReport(InstallMode::Composer, '/p', '1.0.0', true, true, [], ['phel-lang/phel-lang' => new InstalledPackage('1.0.0')]));
 
         self::assertStringNotContainsString('WARN', $text);
     }
@@ -73,13 +74,45 @@ final class InstallationReportTest extends TestCase
             true,
             true,
             [],
-            ['symfony/console' => 'v7.1.0', 'psr/log' => '3.0.0', 'acme/only-here' => '1.0.0'],
-            ['symfony/console' => 'v7.3.0', 'psr/log' => '3.0.0'],
+            ['symfony/console' => new InstalledPackage('v7.1.0'), 'psr/log' => new InstalledPackage('3.0.0'), 'acme/only-here' => new InstalledPackage('1.0.0')],
+            ['symfony/console' => new InstalledPackage('v7.3.0'), 'psr/log' => new InstalledPackage('3.0.0')],
         ));
 
         self::assertStringContainsString('symfony/console 7.1.0 in vendor/ differs from the 7.3.0 bundled in phel.phar', $text);
         self::assertStringNotContainsString('psr/log', $text);
         self::assertStringNotContainsString('acme/only-here', $text);
+    }
+
+    public function test_the_same_dev_branch_at_different_commits_conflicts(): void
+    {
+        $text = $this->render(new InstallationReport(
+            InstallMode::Phar,
+            '/p',
+            '1.0.0',
+            true,
+            true,
+            [],
+            ['symfony/console' => new InstalledPackage('dev-main', 'aaaaaaaa11')],
+            ['symfony/console' => new InstalledPackage('dev-main', 'bbbbbbbb22')],
+        ));
+
+        self::assertStringContainsString('symfony/console dev-main (aaaaaaa) in vendor/ differs from the dev-main (bbbbbbb) bundled', $text);
+    }
+
+    public function test_two_labels_for_the_same_commit_do_not_conflict(): void
+    {
+        $text = $this->render(new InstallationReport(
+            InstallMode::Phar,
+            '/p',
+            '1.0.0',
+            true,
+            true,
+            [],
+            ['symfony/console' => new InstalledPackage('dev-main', 'aaaaaaaa11')],
+            ['symfony/console' => new InstalledPackage('v7.3.0', 'aaaaaaaa11')],
+        ));
+
+        self::assertStringNotContainsString('symfony/console', $text);
     }
 
     public function test_names_a_custom_vendor_dir(): void
