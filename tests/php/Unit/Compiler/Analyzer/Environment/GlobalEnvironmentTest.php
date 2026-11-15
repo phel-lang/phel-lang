@@ -608,6 +608,45 @@ final class GlobalEnvironmentTest extends TestCase
         $this->assertFalse($env->isAnalysisMode());
     }
 
+    public function test_rejected_namespaces_roll_back_at_the_outer_analysis_exit(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->setNs('original');
+
+        $symbol = Symbol::create('value');
+
+        $env->enterAnalysisMode();
+        $env->setNs('rejected');
+        $env->addDefinition('rejected', $symbol);
+        $env->enterAnalysisMode();
+        $env->rejectNamespace();
+        $env->leaveAnalysisMode();
+        $this->assertTrue($env->hasDefinition('rejected', $symbol));
+        $this->assertSame('rejected', $env->getNs());
+
+        $env->leaveAnalysisMode();
+        $this->assertFalse($env->hasDefinition('rejected', $symbol));
+        $this->assertSame('original', $env->getNs());
+
+        $env->enterAnalysisMode();
+        $env->addDefinition('valid', $symbol);
+        $env->leaveAnalysisMode();
+        $this->assertTrue($env->hasDefinition('valid', $symbol));
+    }
+
+    public function test_rejecting_a_namespace_outside_analysis_does_not_taint_the_next_pass(): void
+    {
+        $env = new GlobalEnvironment();
+        $symbol = Symbol::create('value');
+
+        $env->rejectNamespace();
+        $env->enterAnalysisMode();
+        $env->addDefinition('valid', $symbol);
+        $env->leaveAnalysisMode();
+
+        $this->assertTrue($env->hasDefinition('valid', $symbol));
+    }
+
     public function test_interface_methods_round_trip(): void
     {
         $env = new GlobalEnvironment();

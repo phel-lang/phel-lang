@@ -96,6 +96,11 @@ final class Analyzer implements AnalyzerInterface
         $this->globalEnvironment->setNs($ns);
     }
 
+    public function rejectNamespace(): void
+    {
+        $this->globalEnvironment->rejectNamespace();
+    }
+
     public function addUseAlias(string $ns, Symbol $alias, Symbol $nsSymbol): void
     {
         $this->globalEnvironment->addUseAlias($ns, $alias, $nsSymbol);

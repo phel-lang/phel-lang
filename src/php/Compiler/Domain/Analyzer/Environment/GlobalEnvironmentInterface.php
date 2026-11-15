@@ -7,10 +7,19 @@ namespace Phel\Compiler\Domain\Analyzer\Environment;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNodeInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
 /**
+ * @phpstan-type EnvironmentSnapshot array{
+ *     ns: string,
+ *     definitions: array<string, array<string, bool>>,
+ *     refers: array<string, array<string, Symbol>>,
+ *     requireAliases: array<string, array<string, Symbol>>,
+ *     useAliases: array<string, array<string, Symbol>>,
+ *     interfaces: array<string, array<string, Symbol>>,
+ *     phpClasses: array<string, array<string, Symbol>>,
+ * }
+ *
  * @internal
  */
 interface GlobalEnvironmentInterface
@@ -38,6 +47,8 @@ interface GlobalEnvironmentInterface
     public function leaveAnalysisMode(): void;
 
     public function isAnalysisMode(): bool;
+
+    public function rejectNamespace(): void;
 
     /**
      * Open the compile of one source. A build recompiles namespaces this
@@ -163,43 +174,12 @@ interface GlobalEnvironmentInterface
     public function getPublicDefinitionNames(string $namespace): array;
 
     /**
-     * Takes a snapshot of the current environment state.
-     * Analysis snapshots also roll back metadata; runtime eval keeps completed definitions.
-     *
-     * @return array{
-     *     ns: string,
-     *     definitions: array<string, array<string, bool>>,
-     *     refers: array<string, array<string, Symbol>>,
-     *     requireAliases: array<string, array<string, Symbol>>,
-     *     useAliases: array<string, array<string, Symbol>>,
-     *     interfaces: array<string, array<string, Symbol>>,
-     *     definitionLocations?: array<string, array<string, SourceLocation>>,
-     *     compileTimeMeta?: array<string, array<string, PersistentMapInterface<mixed, mixed>>>,
-     *     defFnNodes?: array<string, array<string, FnNodeInterface>>,
-     *     interfaceMethods?: array<string, array<string, list<string>>>,
-     *     analysisOnlyDefinitions?: array<string, array<string, int>>,
-     *     phpClasses: array<string, array<string, Symbol>>,
-     * }
+     * @return EnvironmentSnapshot
      */
-    public function snapshot(bool $includeAnalysisState = false): array;
+    public function snapshot(): array;
 
     /**
-     * Restores the environment state from a previously taken snapshot.
-     *
-     * @param array{
-     *     ns: string,
-     *     definitions: array<string, array<string, bool>>,
-     *     refers: array<string, array<string, Symbol>>,
-     *     requireAliases: array<string, array<string, Symbol>>,
-     *     useAliases: array<string, array<string, Symbol>>,
-     *     interfaces: array<string, array<string, Symbol>>,
-     *     definitionLocations?: array<string, array<string, SourceLocation>>,
-     *     compileTimeMeta?: array<string, array<string, PersistentMapInterface<mixed, mixed>>>,
-     *     defFnNodes?: array<string, array<string, FnNodeInterface>>,
-     *     interfaceMethods?: array<string, array<string, list<string>>>,
-     *     analysisOnlyDefinitions?: array<string, array<string, int>>,
-     *     phpClasses: array<string, array<string, Symbol>>,
-     * } $snapshot
+     * @param EnvironmentSnapshot $snapshot
      */
     public function restore(array $snapshot): void;
 }

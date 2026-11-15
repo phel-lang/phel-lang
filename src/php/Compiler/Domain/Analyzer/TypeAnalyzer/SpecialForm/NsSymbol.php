@@ -63,6 +63,19 @@ TXT;
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): NsNode
     {
+        try {
+            return $this->analyzeNamespace($list);
+        } catch (AnalyzerException $analyzerException) {
+            $this->analyzer->rejectNamespace();
+            throw $analyzerException;
+        }
+    }
+
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
+    private function analyzeNamespace(PersistentListInterface $list): NsNode
+    {
         $this->assertArityAtLeast($list, 2, '(ns name)');
 
         $nsSymbol = $list->get(1);
