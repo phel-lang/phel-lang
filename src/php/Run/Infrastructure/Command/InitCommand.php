@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
+use Phar;
 use Phel\Config\ProjectLayout;
 use Phel\Run\Domain\Init\NamespaceNormalizer;
+use Phel\Run\Domain\Init\PhelLauncher;
 use Phel\Run\Domain\Init\ProjectTemplateGenerator;
 use Phel\Run\Domain\Init\ProjectTemplateScaffolder;
 use Phel\Shared\InvocationError;
 use Phel\Shared\ScalarCoercion;
 use Phel\Shared\VersionFinder;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -19,6 +22,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_keys;
 use function dirname;
+use function getenv;
 use function implode;
 use function is_dir;
 use function mkdir;
@@ -55,6 +59,7 @@ final class InitCommand extends Command
         private readonly ProjectTemplateGenerator $templateGenerator = new ProjectTemplateGenerator(),
         private readonly NamespaceNormalizer $namespaceNormalizer = new NamespaceNormalizer(),
         private readonly ProjectTemplateScaffolder $templateScaffolder = new ProjectTemplateScaffolder(),
+        private readonly ?PhelLauncher $launcher = null,
     ) {
         parent::__construct();
     }
@@ -65,7 +70,8 @@ final class InitCommand extends Command
             ->setDescription('Initialize a new Phel project with minimal configuration')
             ->setHelp(<<<'HELP'
 Scaffolds phel-config.php, a main namespace, a test, .gitignore and, when
-there is none, composer.json in the current directory. Use --template to start from a bundled example.
+there is none, composer.json in the current directory (not when run from
+phel.phar, which already holds Phel). Use --template to start from a bundled example.
 
 <info>Examples:</info>
   <comment>phel init my-app</comment>                Flat layout in the current directory
@@ -219,7 +225,8 @@ HELP)
             return Command::FAILURE;
         }
 
-        if (!$this->createComposerJson($cwd, $output, $dryRun)) {
+        $launcher = $this->launcher ?? PhelLauncher::fromPharPath(Phar::running(false), (string) getenv('PATH'));
+        if (!$launcher->isPhar() && !$this->createComposerJson($cwd, $output, $dryRun)) {
             return Command::FAILURE;
         }
 
@@ -236,7 +243,7 @@ HELP)
         }
 
         if (!$dryRun) {
-            $this->printNextSteps($output, $mainFilename, $noTests);
+            $this->printNextSteps($output, $launcher->command($cwd), $launcher->isPhar(), $mainFilename, $noTests);
         }
 
         return Command::SUCCESS;
@@ -453,23 +460,41 @@ HELP)
         ShellCompletionTip::writeTo($output);
     }
 
-    private function printNextSteps(OutputInterface $output, string $mainFilename, bool $noTests): void
-    {
+    private function printNextSteps(
+        OutputInterface $output,
+        string $phel,
+        bool $fromPhar,
+        string $mainFilename,
+        bool $noTests,
+    ): void {
         $output->writeln('');
         $output->writeln('<info>Phel project initialized successfully!</info>');
         $output->writeln('');
         $output->writeln('Next steps:');
 
+        $phel = OutputFormatter::escape($phel);
         $step = 1;
-        $output->writeln(sprintf('  %d. Install dependencies: <comment>composer install</comment>', $step++));
-        $output->writeln(sprintf('  %d. Run your code:  <comment>./vendor/bin/phel run %s</comment>', $step++, $mainFilename));
-        if (!$noTests) {
-            $output->writeln(sprintf('  %d. Run the tests: <comment>./vendor/bin/phel test</comment>', $step++));
+        if (!$fromPhar) {
+            $output->writeln(sprintf('  %d. Install dependencies: <comment>composer install</comment>', $step++));
         }
 
-        $output->writeln(sprintf('  %d. Start the REPL: <comment>./vendor/bin/phel repl</comment>', $step++));
-        $output->writeln(sprintf('  %d. Build for production: <comment>./vendor/bin/phel build</comment>', $step));
+        $output->writeln(sprintf('  %d. Run your code:  <comment>%s run %s</comment>', $step++, $phel, $mainFilename));
+        if (!$noTests) {
+            $output->writeln(sprintf('  %d. Run the tests: <comment>%s test</comment>', $step++, $phel));
+        }
 
-        ShellCompletionTip::writeTo($output);
+        $output->writeln(sprintf('  %d. Start the REPL: <comment>%s repl</comment>', $step++, $phel));
+        $output->writeln(sprintf('  %d. Build for production: <comment>%s build</comment>', $step, $phel));
+
+        if ($fromPhar) {
+            $output->writeln('');
+            $output->writeln('Add a library with <comment>composer require <vendor/package></comment>.');
+            $output->writeln('phel.phar reads its Phel sources and PHP classes from vendor/.');
+        }
+
+        // The completion scripts complete a binary named `phel` on PATH only.
+        if (!$fromPhar || $phel === 'phel') {
+            ShellCompletionTip::writeTo($output);
+        }
     }
 }
