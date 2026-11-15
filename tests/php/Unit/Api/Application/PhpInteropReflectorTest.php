@@ -299,11 +299,17 @@ final class PhpInteropReflectorTest extends TestCase
         self::assertSame('', $this->reflector->methodReturnType('\\Nope', 'foo'));
     }
 
+    public function test_intersection_property_hover_keeps_the_contributed_property(): void
+    {
+        $info = $this->reflector->instanceMemberInfo(ChainFixture::class . '&Stringable', 'name');
+        self::assertNotNull($info);
+        self::assertSame('string $name', $info->label);
+    }
+
     public function test_method_return_type_resolves_class_from_union_and_intersection(): void
     {
-        // `self|int` and `ChainFixture&Stringable`: the class member drives chain walking.
-        self::assertSame(ChainFixture::class, $this->reflector->methodReturnType(ChainFixture::class, 'orInt'));
-        self::assertSame(ChainFixture::class, $this->reflector->methodReturnType(IntersectionReturnFixture::class, 'andStringable'));
+        self::assertSame(ChainFixture::class . '|int', $this->reflector->methodReturnType(ChainFixture::class, 'orInt'));
+        self::assertSame(ChainFixture::class . '&Stringable', $this->reflector->methodReturnType(IntersectionReturnFixture::class, 'andStringable'));
     }
 
     public function test_class_names_include_interfaces(): void

@@ -8,13 +8,16 @@ use Phel\Api\Application\PhpInteropCompleter;
 use Phel\Api\Application\PhpInteropContextResolver;
 use Phel\Api\Application\PhpInteropDocResolver;
 use Phel\Api\Transfer\PhpInteropContext;
+use Phel\Shared\Api\Completion;
 use PhelTest\Support\Fixtures\PhpInterop\ChainFixture;
+use PhelTest\Support\Fixtures\PhpInterop\NativeReturnFixture;
 use PhelTest\Support\Fixtures\PhpInterop\PhpDocReturnFixture;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Random\Randomizer;
 use Symfony\Component\Console\Command\Command;
 
+use function in_array;
 use function strlen;
 
 final class PhpInteropContextResolverTest extends TestCase
@@ -24,6 +27,91 @@ final class PhpInteropContextResolverTest extends TestCase
     protected function setUp(): void
     {
         $this->resolver = new PhpInteropContextResolver();
+    }
+
+    public function test_native_union_and_intersection_receivers_keep_their_member_contracts(): void
+    {
+        $completer = new PhpInteropCompleter();
+        $docs = new PhpInteropDocResolver();
+        $results = [];
+        foreach (['either', 'reversed', 'compound', 'both', 'maybeFalse', 'maybeNull'] as $method) {
+            $prefix = '(php/-> (new \\' . NativeReturnFixture::class . ') (' . $method . ') ';
+            $members = $completer->completeAtPoint($prefix, 1, strlen($prefix) + 1);
+            self::assertNotNull($members);
+            $labels = array_column($members, 'label');
+            sort($labels);
+            self::assertSame(match ($method) {
+                'both' => ['Label', 'common', 'generic', 'label', 'next', 'onlyA', 'onlyB'],
+                'either', 'reversed', 'compound' => ['common', 'generic', 'next'],
+                default => ['common', 'generic', 'label', 'next', 'onlyA'],
+            }, $labels, $method);
+            $results[$method] = array_map(static fn(Completion $member): array => $member->toArray(), $members);
+            if (in_array($method, ['either', 'reversed', 'compound', 'both'], true)) {
+                $next = $prefix . '(common 1) ';
+                $nextMembers = $completer->completeAtPoint($next, 1, strlen($next) + 1);
+                self::assertNotNull($nextMembers);
+                $nextLabels = array_column($nextMembers, 'label');
+                sort($nextLabels);
+                self::assertSame($labels, $nextLabels, $method . ': next hop');
+            }
+
+            $call = $prefix . '(common ';
+            $signature = $docs->signatureAt($call, 1, strlen($call) + 1);
+            self::assertNotNull($signature, $method);
+            self::assertCount(in_array($method, ['either', 'reversed', 'compound', 'both'], true) ? 2 : 1, $signature['signatures'], $method);
+            $hover = $docs->hoverAt($prefix . 'common)', 1, strlen($prefix) + 3);
+            self::assertNotNull($hover);
+            if (in_array($method, ['either', 'reversed', 'compound', 'both'], true)) {
+                self::assertStringContainsString('int $value', $hover);
+                self::assertStringContainsString('string $value', $hover);
+            } else {
+                $possibility = $method === 'maybeFalse' ? 'false' : 'null';
+                self::assertStringContainsString($possibility, $members[0]->detail);
+                self::assertStringContainsString($possibility, $hover);
+            }
+        }
+
+        self::assertSame($results['either'], $results['reversed']);
+    }
+
+    public function test_nullable_intersection_returns_keep_all_object_members_after_another_hop(): void
+    {
+        $source = '(php/-> (new \\' . NativeReturnFixture::class . ') (both) (next) ';
+        $members = new PhpInteropCompleter()->completeAtPoint($source, 1, strlen($source) + 1);
+        self::assertNotNull($members);
+        $labels = array_column($members, 'label');
+        self::assertContains('onlyA', $labels);
+        self::assertContains('onlyB', $labels);
+        self::assertStringContainsString('null', $members[0]->detail);
+    }
+
+    public function test_a_generic_object_alternative_does_not_claim_known_class_members(): void
+    {
+        $source = '(php/-> (new \\' . NativeReturnFixture::class . ') (either) (generic) ';
+        self::assertSame([], new PhpInteropCompleter()->completeAtPoint($source, 1, strlen($source) + 1));
+    }
+
+    public function test_private_methods_do_not_contribute_intersection_signatures_or_return_types(): void
+    {
+        $prefix = '(php/-> (new \\' . NativeReturnFixture::class . ') (withPrivate) ';
+        $call = $prefix . '(common ';
+        $signature = new PhpInteropDocResolver()->signatureAt($call, 1, strlen($call) + 1);
+        self::assertNotNull($signature);
+        self::assertCount(1, $signature['signatures']);
+        $hover = new PhpInteropDocResolver()->hoverAt($prefix . 'label)', 1, strlen($prefix) + 3);
+        self::assertNotNull($hover);
+        self::assertStringContainsString('string $label', $hover);
+        self::assertStringNotContainsString('DateTimeImmutable', $hover);
+        $next = $prefix . '(common 1) ';
+        $members = new PhpInteropCompleter()->completeAtPoint($next, 1, strlen($next) + 1);
+        self::assertNotNull($members);
+        self::assertNotContains('getTimestamp', array_column($members, 'label'));
+    }
+
+    public function test_an_unknown_union_alternative_does_not_offer_the_known_branch_members(): void
+    {
+        $source = '(php/-> (new \\' . NativeReturnFixture::class . ') (unknown) ';
+        self::assertSame([], new PhpInteropCompleter()->completeAtPoint($source, 1, strlen($source) + 1));
     }
 
     #[DataProvider('phpdocMethods')]
@@ -273,12 +361,11 @@ PHP);
 
     public function test_instance_member_through_union_returning_hop(): void
     {
-        // `orInt` returns `self|int`; the class member advances the chain.
         $source = '(php/-> (php/new \\' . ChainFixture::class . ') (orInt) siz';
         $context = $this->resolveAtEnd($source);
 
         self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
-        self::assertSame(ChainFixture::class, $context->class);
+        self::assertSame(ChainFixture::class . '|int', $context->class);
     }
 
     public function test_factory_static_return_binding_resolves_receiver(): void
@@ -447,7 +534,7 @@ PHP);
         yield 'constructor shorthand' => ['(DateTimeImmutable. "2026")', 'DateTimeImmutable'];
         yield 'new through :use' => ['(new Randomizer)', Randomizer::class];
         yield 'new, dotted' => ['(new Random.Randomizer)', Randomizer::class];
-        yield 'static factory' => ['(DateTimeImmutable/createFromFormat "Y" "2026")', 'DateTimeImmutable'];
+        yield 'static factory' => ['(DateTimeImmutable/createFromFormat "Y" "2026")', 'DateTimeImmutable|false'];
         yield 'php/new from macro output' => ['(php/new \\DateTimeImmutable)', 'DateTimeImmutable'];
     }
 
