@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Init;
 
 use Iterator;
+use Phel\Run\Domain\Init\PhelLauncher;
 use Phel\Run\Infrastructure\Command\InitCommand;
 use Phel\Shared\VersionFinder;
 use PhelTest\Support\RemoveDirTrait;
@@ -66,6 +67,76 @@ final class InitCommandTest extends TestCase
             ['phel-lang/phel-lang' => '^' . ltrim(VersionFinder::LATEST_VERSION, 'v')],
             $composer['require'] ?? null,
         );
+    }
+
+    public function test_from_a_phar_writes_no_composer_json(): void
+    {
+        chdir($this->testDir);
+        $output = new BufferedOutput();
+
+        $result = $this->pharInitCommand()->run(new ArrayInput(['project-name' => 'my-app']), $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        self::assertFileDoesNotExist($this->testDir . '/composer.json');
+        self::assertStringNotContainsString('composer.json', $output->fetch());
+    }
+
+    public function test_from_a_phar_next_steps_run_the_phar(): void
+    {
+        chdir($this->testDir);
+        $output = new BufferedOutput();
+
+        $this->pharInitCommand()->run(new ArrayInput(['project-name' => 'my-app']), $output);
+
+        $text = $output->fetch();
+        self::assertStringContainsString('php phel.phar run src/main.phel', $text);
+        self::assertStringContainsString('php phel.phar test', $text);
+        self::assertStringContainsString('php phel.phar repl', $text);
+        self::assertStringContainsString('php phel.phar build', $text);
+        self::assertStringContainsString('composer require', $text);
+        self::assertStringNotContainsString('composer install', $text);
+        self::assertStringNotContainsString('vendor/bin/phel', $text);
+        self::assertStringNotContainsString('phel completion', $text);
+    }
+
+    public function test_from_a_phar_on_the_path_next_steps_use_its_name_and_offer_completion(): void
+    {
+        chdir($this->testDir);
+        $bin = $this->testDir . '/bin';
+        mkdir($bin);
+        touch($bin . '/phel');
+        chmod($bin . '/phel', 0755);
+        $output = new BufferedOutput();
+
+        new InitCommand(launcher: PhelLauncher::fromPharPath($bin . '/phel', $bin))->run(new ArrayInput(['project-name' => 'my-app']), $output);
+
+        $text = $output->fetch();
+        self::assertStringContainsString('phel run src/main.phel', $text);
+        self::assertStringNotContainsString('php ', $text);
+        self::assertStringContainsString('phel completion', $text);
+    }
+
+    public function test_from_a_phar_dry_run_lists_no_composer_json(): void
+    {
+        chdir($this->testDir);
+        $output = new BufferedOutput();
+
+        $this->pharInitCommand()->run(new ArrayInput(['project-name' => 'my-app', '--dry-run' => true]), $output);
+
+        self::assertStringNotContainsString('composer.json', $output->fetch());
+    }
+
+    public function test_composer_next_steps_are_unchanged(): void
+    {
+        chdir($this->testDir);
+        $output = new BufferedOutput();
+
+        new InitCommand()->run(new ArrayInput(['project-name' => 'my-app']), $output);
+
+        $text = $output->fetch();
+        self::assertStringContainsString('composer install', $text);
+        self::assertStringContainsString('./vendor/bin/phel run src/main.phel', $text);
+        self::assertStringNotContainsString('phel.phar', $text);
     }
 
     public function test_keeps_an_existing_composer_json_even_with_force(): void
@@ -588,4 +659,8 @@ final class InitCommandTest extends TestCase
         self::assertStringContainsString('phel-examples/my-api', (string) file_get_contents($this->testDir . '/composer.json'));
     }
 
+    private function pharInitCommand(): InitCommand
+    {
+        return new InitCommand(launcher: PhelLauncher::fromPharPath($this->testDir . '/phel.phar'));
+    }
 }
