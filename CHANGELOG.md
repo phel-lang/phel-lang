@@ -49,6 +49,7 @@ Compiler:
 
 Tooling:
 
+- `phel doctor` shows how Phel is installed (PHAR, Composer or source checkout) and its version, whether the project's `vendor/autoload.php` loaded, and each Phel library in `vendor/` with its source dirs. Under `phel.phar` it warns about a vendored `phel-lang/phel-lang` and PHP packages the PHAR bundles at another version. (#3899)
 - A `(:require ...)` of a namespace that no source dir provides ends with a hint to install the library with `composer require`, naming the package for official libraries such as `phel.pdo`. (#3899)
 - `docs/stability.md` and `docs/cli-reference.md` define what changes only in major releases: commands, options, exit codes, machine output, `api-daemon` methods and environment variables, but not human-readable text. `api-daemon` and the LSP report the running version, and `phel mutate` takes `--format`, deprecating `--reporter`. (#3525, ADR 0022)
 - Security reports go through GitHub private vulnerability reporting or email, and the README explains how to verify a release PHAR. (#3533)

@@ -344,6 +344,29 @@ final class PharExecutionTest extends TestCase
         self::assertStringNotContainsString('phar://', $result['stdout']);
     }
 
+    public function test_phar_doctor_reports_the_install_and_vendored_libraries(): void
+    {
+        $vendor = $this->tempProjectDir . '/vendor';
+        mkdir($vendor . '/acme/lib/src', 0755, true);
+        mkdir($vendor . '/phel-lang/phel-lang/src/phel', 0755, true);
+        mkdir($vendor . '/composer', 0755, true);
+        file_put_contents($vendor . '/acme/lib/phel-config.php', "<?php return ['src-dirs' => ['src']];\n");
+        file_put_contents($vendor . '/phel-lang/phel-lang/phel-config.php', "<?php return ['src-dirs' => ['src/phel']];\n");
+        file_put_contents(
+            $vendor . '/composer/installed.json',
+            '{"packages":[{"name":"acme/lib","version":"1.0.0"},{"name":"phel-lang/phel-lang","version":"v0.1.0"},{"name":"symfony/console","version":"v2.0.0"}]}',
+        );
+
+        $result = $this->runPhar(['doctor']);
+
+        self::assertSame(0, $result['exit'], sprintf("stdout:\n%s\nstderr:\n%s", $result['stdout'], $result['stderr']));
+        self::assertStringContainsString(sprintf('from phel.phar (%s)', $this->pharPath), $result['stdout']);
+        self::assertStringContainsString('- acme/lib (vendor/acme/lib/src)', $result['stdout']);
+        self::assertStringContainsString('vendor/ also holds phel-lang/phel-lang 0.1.0', $result['stdout']);
+        self::assertStringNotContainsString('- phel-lang/phel-lang (', $result['stdout']);
+        self::assertMatchesRegularExpression('#symfony/console 2\.0\.0 in vendor/ differs from the \S+ bundled in phel\.phar#', $result['stdout']);
+    }
+
     public function test_phar_reports_a_broken_config_file_cleanly(): void
     {
         // A phel-config.php that does not return a PhelConfig must produce the

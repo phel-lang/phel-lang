@@ -155,6 +155,8 @@ echo "$expected  phel.phar" | shasum -a 256 -c -   # or: sha256sum -c -
 
 Release tags are GPG-signed. In a clone, `git tag -v "$tag"` checks the signature once you import the maintainer's public key.
 
+The PHAR runs Phel; Composer still installs libraries. `composer require <vendor/package>` puts a library in `vendor/`, and `php phel.phar` reads its Phel sources and PHP classes from there. `php phel.phar doctor` shows what it found.
+
 ## Documentation
 
 - [Getting started](https://phel-lang.org/documentation/getting-started/): install, REPL and a first script
