@@ -92,12 +92,25 @@ PHP);
 
                 $response = $this->requestAnalysis($daemon, $input, $id, $consumer, $consumerSource);
                 self::assertSame($analyzed, $response, $id . ': persistent daemon ' . $daemon->getErrorOutput());
-                $lintPath = $expectedCode === null || $expectedCode === 'PHEL002' ? $project . '/src' : $consumer;
+                $lintPath = $project . '/src';
                 $cached = $this->commandDiagnosticPayload($project, ['lint', $lintPath, '--format=json']);
                 $lintedConsumer = array_values(array_filter($cached, static fn(array $diagnostic): bool => $diagnostic['uri'] === $consumer));
                 self::assertSame($analyzed, $this->semanticDiagnostics($lintedConsumer), $id . ': cached lint');
                 self::assertSame($cached, $this->commandDiagnosticPayload($project, ['lint', $lintPath, '--format=json']), $id . ': warm lint');
                 self::assertSame($cached, $this->commandDiagnosticPayload($project, ['lint', $lintPath, '--format=json', '--no-cache']), $id . ': uncached lint');
+                if ($id === 'invalid provider') {
+                    self::assertSame($analyzed, $this->commandDiagnostics($project, ['lint', $consumer, '--format=json', '--no-cache']));
+                    $lastProvider = $project . '/src/zzz_provider.phel';
+                    rename($provider, $lastProvider);
+                    try {
+                        $reordered = $this->commandDiagnosticPayload($project, ['lint', $lintPath, '--format=json', '--no-cache']);
+                        $reorderedConsumer = array_values(array_filter($reordered, static fn(array $diagnostic): bool => $diagnostic['uri'] === $consumer));
+                        self::assertSame($analyzed, $this->semanticDiagnostics($reorderedConsumer), 'provider sorted after consumer');
+                    } finally {
+                        rename($lastProvider, $provider);
+                    }
+                }
+
                 if ($expectedCode === 'PHEL002') {
                     self::assertSame(['phel/arity-mismatch'], array_column($lintedConsumer, 'code'), $id . ': lint rule code');
                 }

@@ -66,28 +66,43 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
             $parseTrees = [];
         }
 
-        foreach ($parseTrees as $parseTree) {
-            if (!$parseTree instanceof NodeInterface) {
-                continue;
-            }
-
-            try {
-                $readerResult = $this->compilerFacade->read($parseTree);
-                $ast = $readerResult->getAst();
-                $this->compilerFacade->rejectSupersededForms($ast);
-                $this->analyzeForm($ast, $uri);
-            } catch (ReaderException $e) {
-                $diagnostics[] = Diagnostic::fromLocatedException($e, ErrorCode::READER_ERROR, $uri);
-            } catch (AnalyzerException $e) {
-                if ($this->isAnalysisArtefact($e)) {
+        $globalEnv = $this->compilerFacade->getGlobalEnvironment();
+        $snapshot = $globalEnv->snapshot(includeAnalysisState: true);
+        $invalidNamespace = false;
+        try {
+            foreach ($parseTrees as $parseTree) {
+                if (!$parseTree instanceof NodeInterface) {
                     continue;
                 }
 
-                $diagnostics[] = Diagnostic::fromLocatedException($e, ErrorCode::INVALID_SPECIAL_FORM, $uri);
+                $ast = null;
+                try {
+                    $readerResult = $this->compilerFacade->read($parseTree);
+                    $ast = $readerResult->getAst();
+                    $this->compilerFacade->rejectSupersededForms($ast);
+                    $this->analyzeForm($ast, $uri);
+                } catch (ReaderException $e) {
+                    $diagnostics[] = Diagnostic::fromLocatedException($e, ErrorCode::READER_ERROR, $uri);
+                } catch (AnalyzerException $e) {
+                    $head = $ast instanceof PersistentListInterface ? $ast->first() : null;
+                    if ($head instanceof Symbol && $head->getFullName() === Symbol::NAME_NS) {
+                        $invalidNamespace = true;
+                    }
+
+                    if ($this->isAnalysisArtefact($e)) {
+                        continue;
+                    }
+
+                    $diagnostics[] = Diagnostic::fromLocatedException($e, ErrorCode::INVALID_SPECIAL_FORM, $uri);
+                }
+            }
+
+            return $diagnostics;
+        } finally {
+            if ($invalidNamespace) {
+                $globalEnv->restore($snapshot);
             }
         }
-
-        return $diagnostics;
     }
 
     /**

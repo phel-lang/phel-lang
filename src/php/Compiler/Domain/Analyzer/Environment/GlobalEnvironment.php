@@ -486,9 +486,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return array_values($this->phpClasses[$namespace] ?? []);
     }
 
-    public function snapshot(): array
+    public function snapshot(bool $includeAnalysisState = false): array
     {
-        return [
+        $snapshot = [
             'ns' => $this->ns,
             'definitions' => $this->definitions,
             'refers' => $this->refers,
@@ -496,6 +496,19 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             'useAliases' => $this->useAliases,
             'interfaces' => $this->interfaces,
             'phpClasses' => $this->phpClasses,
+        ];
+
+        if (!$includeAnalysisState) {
+            return $snapshot;
+        }
+
+        return [
+            ...$snapshot,
+            'definitionLocations' => $this->definitionLocations,
+            'compileTimeMeta' => $this->compileTimeMeta,
+            'defFnNodes' => $this->defFnNodes,
+            'interfaceMethods' => $this->interfaceMethods,
+            'analysisOnlyDefinitions' => $this->analysisOnlyDefinitions,
         ];
     }
 
@@ -507,6 +520,11 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->requireAliases = $snapshot['requireAliases'];
         $this->useAliases = $snapshot['useAliases'];
         $this->interfaces = $snapshot['interfaces'];
+        $this->definitionLocations = $snapshot['definitionLocations'] ?? $this->definitionLocations;
+        $this->compileTimeMeta = $snapshot['compileTimeMeta'] ?? $this->compileTimeMeta;
+        $this->defFnNodes = $snapshot['defFnNodes'] ?? $this->defFnNodes;
+        $this->interfaceMethods = $snapshot['interfaceMethods'] ?? $this->interfaceMethods;
+        $this->analysisOnlyDefinitions = $snapshot['analysisOnlyDefinitions'] ?? $this->analysisOnlyDefinitions;
         $this->phpClasses = $snapshot['phpClasses'];
     }
 

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application;
 
+use Phel\Compiler\Domain\Analyzer\Ast\FnNodeInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Eval\EvalError;
@@ -154,6 +157,11 @@ final readonly class StructuredEvaluator
      *     requireAliases: array<string, array<string, Symbol>>,
      *     useAliases: array<string, array<string, Symbol>>,
      *     interfaces: array<string, array<string, Symbol>>,
+     *     definitionLocations?: array<string, array<string, SourceLocation>>,
+     *     compileTimeMeta?: array<string, array<string, PersistentMapInterface<mixed, mixed>>>,
+     *     defFnNodes?: array<string, array<string, FnNodeInterface>>,
+     *     interfaceMethods?: array<string, array<string, list<string>>>,
+     *     analysisOnlyDefinitions?: array<string, array<string, int>>,
      *     phpClasses: array<string, array<string, Symbol>>,
      * }|null $snapshot
      */

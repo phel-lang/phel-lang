@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\Environment;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNodeInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
 /**
@@ -163,7 +164,7 @@ interface GlobalEnvironmentInterface
 
     /**
      * Takes a snapshot of the current environment state.
-     * Used by the REPL to rollback on eval errors.
+     * Analysis snapshots also roll back metadata; runtime eval keeps completed definitions.
      *
      * @return array{
      *     ns: string,
@@ -172,10 +173,15 @@ interface GlobalEnvironmentInterface
      *     requireAliases: array<string, array<string, Symbol>>,
      *     useAliases: array<string, array<string, Symbol>>,
      *     interfaces: array<string, array<string, Symbol>>,
+     *     definitionLocations?: array<string, array<string, SourceLocation>>,
+     *     compileTimeMeta?: array<string, array<string, PersistentMapInterface<mixed, mixed>>>,
+     *     defFnNodes?: array<string, array<string, FnNodeInterface>>,
+     *     interfaceMethods?: array<string, array<string, list<string>>>,
+     *     analysisOnlyDefinitions?: array<string, array<string, int>>,
      *     phpClasses: array<string, array<string, Symbol>>,
      * }
      */
-    public function snapshot(): array;
+    public function snapshot(bool $includeAnalysisState = false): array;
 
     /**
      * Restores the environment state from a previously taken snapshot.
@@ -187,6 +193,11 @@ interface GlobalEnvironmentInterface
      *     requireAliases: array<string, array<string, Symbol>>,
      *     useAliases: array<string, array<string, Symbol>>,
      *     interfaces: array<string, array<string, Symbol>>,
+     *     definitionLocations?: array<string, array<string, SourceLocation>>,
+     *     compileTimeMeta?: array<string, array<string, PersistentMapInterface<mixed, mixed>>>,
+     *     defFnNodes?: array<string, array<string, FnNodeInterface>>,
+     *     interfaceMethods?: array<string, array<string, list<string>>>,
+     *     analysisOnlyDefinitions?: array<string, array<string, int>>,
      *     phpClasses: array<string, array<string, Symbol>>,
      * } $snapshot
      */
