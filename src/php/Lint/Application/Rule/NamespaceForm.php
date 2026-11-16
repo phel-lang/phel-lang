@@ -6,10 +6,15 @@ namespace Phel\Lint\Application\Rule;
 
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lint\Domain\FileAnalysis;
 
 use function count;
+use function str_ends_with;
+use function strlen;
+use function substr;
 
 /**
  * Shared helpers for rules that need to introspect the `(ns ...)` form.
@@ -85,11 +90,18 @@ final class NamespaceForm
     }
 
     /**
+     * Type tags (`^Foo x`) live in metadata, and `(Foo. x)` names the class
+     * `Foo` through a symbol ending in a dot.
+     *
      * @param array<string, true> $seen
      */
     private static function collectSymbols(mixed $form, array &$seen): void
     {
         FormWalker::walk($form, static function (mixed $value) use (&$seen): void {
+            if ($value instanceof MetaInterface && $value->getMeta() instanceof PersistentMapInterface) {
+                self::collectSymbols($value->getMeta(), $seen);
+            }
+
             if ($value instanceof PersistentHashSetInterface) {
                 foreach ($value as $item) {
                     self::collectSymbols($item, $seen);
@@ -102,7 +114,12 @@ final class NamespaceForm
                 return;
             }
 
-            $seen[$value->getName()] = true;
+            $name = $value->getName();
+            $seen[$name] = true;
+            if (strlen($name) > 1 && str_ends_with($name, '.')) {
+                $seen[substr($name, 0, -1)] = true;
+            }
+
             $ns = $value->getNamespace();
             if ($ns !== null && $ns !== '') {
                 $seen[$ns] = true;

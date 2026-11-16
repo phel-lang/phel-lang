@@ -1,0 +1,10 @@
+(ns fixtures.class-shorthand
+  (:use DateTimeImmutable)
+  (:use DateTimeZone)
+  (:use DateInterval))
+
+(defn now [] (DateTimeImmutable. "now"))
+
+(defn zone-name [^DateTimeZone zone] (.getName zone))
+
+(defn ^DateInterval one-day [] (new DateInterval "P1D"))
