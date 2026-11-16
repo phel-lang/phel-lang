@@ -1,5 +1,5 @@
 (ns phel-test.core.numeric-seq-counts
-  (:require phel.test :refer [deftest is testing]))
+  (:require phel.test :refer [deftest is testing thrown?]))
 
 (deftest test-take-counts-down-a-non-int-count
   (is (= '(0 1 2) (take 5/2 (range 10))))
@@ -42,3 +42,18 @@
            (is (= '() (partition 2.5 (range 10))))
            (is (= '() (partition 2.5 2 (range 10)))))
   (is (= '([0 1] [2 3]) (partition 2N (range 5)))))
+
+(deftest test-repeatedly-counts-down-a-non-int-count
+  (is (= '(0 0) (repeatedly 1.5 +)))
+  (is (= '(0) (repeatedly 1/2 +)))
+  (is (= '() (repeatedly -1 +))))
+
+(def- non-number-counts ["" "a" [] {} #{} '() (atom 0) (fn []) :k true])
+
+(deftest test-a-non-number-count-throws
+  (doseq [n non-number-counts]
+    (is (thrown? \InvalidArgumentException (first (repeatedly n +))) (str "repeatedly " (pr-str n)))
+    (is (thrown? \InvalidArgumentException (drop n [1 2])) (str "drop " (pr-str n)))
+    (is (thrown? \InvalidArgumentException (drop-last n [1 2])) (str "drop-last " (pr-str n)))
+    (is (thrown? \InvalidArgumentException (take-nth n [1 2])) (str "take-nth " (pr-str n)))
+    (is (thrown? \InvalidArgumentException (nthnext [1 2] n)) (str "nthnext " (pr-str n)))))

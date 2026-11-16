@@ -531,10 +531,9 @@ Creates intermediate maps if they don't exist."
 (defn- seq-count
   "Clojure counts a non-int `n` down with `pos?` and `dec`, so it covers `(ceil n)` items."
   [n]
-  (if (number? n)
-    (let [f (php/ceil (NumericCoercion/toFloat n))]
-      (if (php/< f php/PHP_INT_MAX) (php/intval f) php/PHP_INT_MAX))
-    n))
+  (NumericCoercion/ensureNumeric n)
+  (let [f (php/ceil (NumericCoercion/toFloat n))]
+    (if (php/< f php/PHP_INT_MAX) (php/intval f) php/PHP_INT_MAX)))
 
 (defn drop
   "Drops the first `n` elements of `coll`. Returns a lazy sequence. When called with n only, returns a transducer."
@@ -1352,11 +1351,11 @@ With one argument returns an infinite lazy sequence of calls to f."
         (new Equalizer)
         (fn [] (cons (f) (repeatedly f)))))
   ([n f]
-   ;; Math helpers load after this file.
-   (new Phel.Lang.Collections.LazySeq.LazySeq
-        (new Hasher)
-        (new Equalizer)
-        (fn [] (when (> n 0) (cons (f) (repeatedly (Phel.Lang.NumericOperations/subtract n 1) f)))))))
+   (let [n (if (php/is_int n) n (seq-count n))]
+     (new Phel.Lang.Collections.LazySeq.LazySeq
+          (new Hasher)
+          (new Equalizer)
+          (fn [] (when (php/> n 0) (cons (f) (repeatedly (php/- n 1) f))))))))
 
 (defmacro lazy-seq
   "Creates a lazy sequence that evaluates the body only when accessed."
