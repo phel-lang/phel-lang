@@ -60,11 +60,27 @@
   (is (= '(2 3) (nthnext [1 2 3] 1N)))
   (is (= '(3) (nthnext [1 2 3] 1.5M))))
 
+(deftest test-repeatedly-keeps-an-exact-count-exact
+  (is (= 2 (count (repeatedly 100000000000000000001/100000000000000000000 +))))
+  (is (= 2 (count (repeatedly 1.0000000000000000001M +)))))
+
+(deftest test-nthnext-with-a-nan-count-drops-nothing
+  (is (= '(1 2 3) (nthnext [1 2 3] ##NaN))))
+
+(deftest test-count-transducers-round-up-a-non-int-count
+  (is (= [2 3] (into [] (drop 1/2) [1 2 3])))
+  (is (= [1] (into [] (take 1/2) [1 2 3])))
+  (is (= [0 3 6] (into [] (take-nth 2.5M) [0 1 2 3 4 5 6])))
+  (is (= [0 3 6] (into [] (take-nth 2.5) [0 1 2 3 4 5 6]))))
+
+(deftest test-bounded-count-counts-down-a-non-int-bound
+  (is (= 3 (bounded-count 5/2 (map identity [1 2 3 4])))))
+
 (deftest test-a-nan-count-means-zero
   (is (= [1 2] (drop ##NaN [1 2])))
   (is (= [] (take ##NaN [1 2]))))
 
-(def- non-number-counts ["" "a" [] {} #{} '() (atom 0) (fn []) :k true])
+(def- non-number-counts ["" "a" [] {} #{} '() (atom 0) (fn []) :k true false nil])
 
 (deftest test-a-non-number-count-throws
   (doseq [n non-number-counts]
@@ -73,6 +89,9 @@
     (is (thrown? \InvalidArgumentException (drop-last n [1 2])) (str "drop-last " (pr-str n)))
     (is (thrown? \InvalidArgumentException (take-nth n [1 2])) (str "take-nth " (pr-str n)))
     (is (thrown? \InvalidArgumentException (nthnext [1 2] n)) (str "nthnext " (pr-str n)))
+    (is (thrown? \InvalidArgumentException (drop n nil)) (str "drop on nil " (pr-str n)))
+    (is (thrown? \InvalidArgumentException (drop-last n nil)) (str "drop-last on nil " (pr-str n)))
+    (is (thrown? \InvalidArgumentException (bounded-count n (map identity [1 2]))) (str "bounded-count " (pr-str n)))
     (is (thrown? \InvalidArgumentException (drop n)) (str "drop transducer " (pr-str n)))
     (is (thrown? \InvalidArgumentException (take n)) (str "take transducer " (pr-str n)))
     (is (thrown? \InvalidArgumentException (take-nth n)) (str "take-nth transducer " (pr-str n)))))

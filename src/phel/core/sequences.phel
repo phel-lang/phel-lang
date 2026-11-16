@@ -11,6 +11,7 @@
 (use Phel.Lang.Collections.Queue.PersistentQueue)
 (use Phel.Lang.Collections.Vector.PersistentVectorInterface)
 (use Phel.Lang.Collections.Vector.TransientVectorInterface)
+(use Phel.Lang.NumericCoercion)
 (use Phel.Lang.NumericOperations)
 (use Phel.Lang.PopInterface)
 
@@ -270,9 +271,10 @@
   {:example "(nthnext [1 2 3 4 5] 2) ; => (3 4 5)\n(nthnext [1 2] 5) ; => nil"
    :see-also ["nth" "nthrest" "drop"]}
   [coll n]
+  (NumericCoercion/ensureNumeric n)
   (loop [i n
          s (seq coll)]
-    (if (and (php/> (NumericOperations/compare i 0) 0) s)
+    (if (and (> i 0) s)
       (recur (NumericOperations/subtract i 1) (next s))
       s)))
 
