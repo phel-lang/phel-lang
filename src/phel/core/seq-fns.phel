@@ -533,7 +533,11 @@ Creates intermediate maps if they don't exist."
   [n]
   (NumericCoercion/ensureNumeric n)
   (let [f (php/ceil (NumericCoercion/toFloat n))]
-    (if (php/< f php/PHP_INT_MAX) (php/intval f) php/PHP_INT_MAX)))
+    (cond
+      (php/is_nan f)              0
+      (php/<= f 0)                0
+      (php/>= f php/PHP_INT_MAX)  php/PHP_INT_MAX
+      :else                       (php/intval f))))
 
 (defn drop
   "Drops the first `n` elements of `coll`. Returns a lazy sequence. When called with n only, returns a transducer."
@@ -542,6 +546,7 @@ Creates intermediate maps if they don't exist."
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
   ([n]
+   (NumericCoercion/ensureNumeric n)
    (fn [rf]
      (let [nv (volatile! n)]
        (xf-step rf (fn [result input]
@@ -616,6 +621,7 @@ Creates intermediate maps if they don't exist."
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
   ([n]
+   (NumericCoercion/ensureNumeric n)
    (fn [rf]
      (let [nv (volatile! n)]
        (xf-step rf (fn [result input]
@@ -681,6 +687,7 @@ Creates intermediate maps if they don't exist."
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
   ([n]
+   (NumericCoercion/ensureNumeric n)
    (fn [rf]
      (let [iv (volatile! -1)]
        (xf-step rf (fn [result input]

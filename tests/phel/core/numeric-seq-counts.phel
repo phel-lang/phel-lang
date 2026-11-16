@@ -46,7 +46,23 @@
 (deftest test-repeatedly-counts-down-a-non-int-count
   (is (= '(0 0) (repeatedly 1.5 +)))
   (is (= '(0) (repeatedly 1/2 +)))
-  (is (= '() (repeatedly -1 +))))
+  (is (= '() (repeatedly -1 +)))
+  (is (= '(0 0) (repeatedly 2N +)))
+  (is (= '(0 0 0) (repeatedly 2.5M +)))
+  (is (= '() (repeatedly -10000000000000000000N +)))
+  (is (= '() (repeatedly ##NaN +)))
+  (is (= '() (repeatedly ##-Inf +)))
+  (is (= '(0 0) (take 2 (repeatedly ##Inf +)))))
+
+(deftest test-nthnext-counts-down-a-non-int-count
+  (is (nil? (nthnext [1 2 3] 5/2)))
+  (is (= '(3) (nthnext [1 2 3] 1.5)))
+  (is (= '(2 3) (nthnext [1 2 3] 1N)))
+  (is (= '(3) (nthnext [1 2 3] 1.5M))))
+
+(deftest test-a-nan-count-means-zero
+  (is (= [1 2] (drop ##NaN [1 2])))
+  (is (= [] (take ##NaN [1 2]))))
 
 (def- non-number-counts ["" "a" [] {} #{} '() (atom 0) (fn []) :k true])
 
@@ -56,4 +72,7 @@
     (is (thrown? \InvalidArgumentException (drop n [1 2])) (str "drop " (pr-str n)))
     (is (thrown? \InvalidArgumentException (drop-last n [1 2])) (str "drop-last " (pr-str n)))
     (is (thrown? \InvalidArgumentException (take-nth n [1 2])) (str "take-nth " (pr-str n)))
-    (is (thrown? \InvalidArgumentException (nthnext [1 2] n)) (str "nthnext " (pr-str n)))))
+    (is (thrown? \InvalidArgumentException (nthnext [1 2] n)) (str "nthnext " (pr-str n)))
+    (is (thrown? \InvalidArgumentException (drop n)) (str "drop transducer " (pr-str n)))
+    (is (thrown? \InvalidArgumentException (take n)) (str "take transducer " (pr-str n)))
+    (is (thrown? \InvalidArgumentException (take-nth n)) (str "take-nth transducer " (pr-str n)))))
