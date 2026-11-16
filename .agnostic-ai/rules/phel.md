@@ -16,16 +16,11 @@ globs:
 
 ## Docstrings
 
-Every public function should have metadata:
-- `:doc`: description of what the function does
-- `:see-also`: related functions as strings, e.g. `["map" "filter"]`
-- `:example`: inline usage example
+Every public function has `:doc`, `:see-also` (names as strings, `["map" "filter"]`) and `:example` metadata.
 
 ## Comments
 
-- Use `;` for line comments
-- `;;` for standalone line comments, `;` for inline comments after code
-- `#_` to comment out the next form
+- `;;` for a standalone comment line, `;` after code, `#_` to drop the next form.
 
 ## Tests
 

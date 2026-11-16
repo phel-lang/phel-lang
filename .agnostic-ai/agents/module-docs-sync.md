@@ -11,28 +11,19 @@ x-codex:
 
 # Module Docs Sync
 
-Audits module rules, `.agnostic-ai/rules/module-<name>.md` (scoped to `src/php/<Module>`), against the actual module code and fixes drift. Edit the rule, never the generated `src/php/<Module>/AGENTS.md` or `.claude/rules/` copy. Return touched source paths to the parent; it owns validation and sync after collecting edits.
+Audits each assigned module rule, `.agnostic-ai/rules/module-<name>.md`, against the module code and fixes drift. Edit the rule, never a generated copy. Audit all modules only when asked. Return touched paths; the parent owns validation and sync.
 
-Read `.agnostic-ai/rules/agent-tooling.md` before editing. Audit only the assigned modules; scan all modules when explicitly requested.
+Read `.agnostic-ai/rules/module-map.md` (what belongs in a module rule) and `.agnostic-ai/rules/agent-tooling.md` before editing.
 
-## Audit Checklist (per module)
+## Checklist per module
 
-For each assigned module directory in `src/php/`:
-
-1. **Rule exists**: if not, create `.agnostic-ai/rules/module-<name>.md` in the format given in `.agnostic-ai/rules/module-map.md`
-2. **Purpose line**: still accurate?
-3. **Gacela pattern**: Facade, Factory, Config, Provider class names match actual files
-4. **Public API**: every public method on the Facade is listed; removed methods are gone
-5. **Dependencies**: `#[Provides(...)]` keys and factory `getProvidedDependency(...)` calls match what's actually injected
-6. **Structure tree**: subdirectories and key classes match reality
-7. **Key constraints**: still accurate, no stale references
-
-## How to check
-
-- Read the Facade class → compare methods against the rule's "Public API" section
-- Read the Provider class → compare `#[Provides(...)]` entries against "Dependencies" section
-- Glob the module directory → compare structure against "Structure" section
-- Read the Factory → verify key classes mentioned still exist
+1. **Rule exists**: if not, create it in the format in `.agnostic-ai/rules/module-map.md`.
+2. **Purpose line** is still accurate.
+3. **Gacela pattern**: Facade, Factory, Config and Provider names match the files.
+4. **Public API**: every public Facade method is listed; removed ones are gone.
+5. **Dependencies**: Provider `#[Provides(...)]` keys and Factory `getProvidedDependency(...)` calls match the rule.
+6. **Structure**: subdirectories and key classes match a glob of the module.
+7. **Key constraints**: no stale references.
 
 ## Output format
 

@@ -8,7 +8,7 @@ scope: src/php
 
 Each directory under `src/php/` is a module (roles: `docs/internals/architecture.md`). These conventions apply to all; a module's own rule documents only deviations and what the code cannot tell you.
 
-Paths in a module rule are relative to the module directory, except those starting with `src/`, `tests/`, `docs/`, `.agnostic-ai/` or naming a root file.
+Paths in a module rule are relative to its `scope:` directory (the module directory unless the rule is split by folder), except those starting with `src/`, `tests/`, `docs/`, `.agnostic-ai/` or naming a root file.
 
 ## Gacela Convention
 
@@ -30,11 +30,11 @@ Unless a module says "No Gacela Pattern":
 
 ## Keeping module rules current
 
-Each module has `.agnostic-ai/rules/module-<name>.md` scoped to its directory; a large module adds `module-<name>-<part>.md` scoped to a subdirectory. Edit these sources, never the generated copies, then run `agnostic-ai sync`.
+Each module has `.agnostic-ai/rules/module-<name>.md` scoped to its directory; a large module adds `module-<name>-<part>.md` scoped to a subdirectory.
 
 Update the rule when a change adds, removes or re-signs a Facade method, adds or drops a Provider dependency, adds or removes a subdirectory or key class, or changes a constraint. Skip internal refactors, fixes inside existing classes and private methods.
 
-Format: flat in `.agnostic-ai/rules/` with an explicit `scope:` (a subdirectory would override it). Sections: one-line purpose, Gacela pattern (or "No Gacela Pattern"), public API, dependencies, structure, key constraints. Scannable facts, not prose.
+Format: flat in `.agnostic-ai/rules/` with an explicit `scope:`. Sections: one-line purpose, Gacela pattern (or "No Gacela Pattern"), public API, dependencies, structure, key constraints. Scannable facts, not prose.
 
 ```markdown
 ---

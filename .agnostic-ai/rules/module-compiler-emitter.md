@@ -1,6 +1,6 @@
 ---
 name: module-compiler-emitter
-description: 'Load when changing the compiler emitter: definition registration, arity dispatch, specialization or generated classes.'
+description: 'Load when changing the compiler emitter: definition registration, arity dispatch, call specialization or generated classes.'
 scope: src/php/Compiler/Domain/Emitter
 ---
 
@@ -10,105 +10,63 @@ Read `.agnostic-ai/rules/module-compiler.md` for the pipeline and constraints.
 
 ## Source-path provenance
 
-`SourcePathEmitter` writes the original magic-constant value in STATEMENT mode. FILE/CACHE output tags that value with `Shared\SourceMap\SourcePathMarker`; `LoadEmitter` tags its source-directory fallback the same way. These remain ordinary values in compile-time evaluation and runtime caches. Build consumes the tags only when writing portable artifacts. Mode checks must record divergence so `CodeCompiler` cannot evaluate a relocated artifact fragment as a statement.
+`SourcePathEmitter` writes the original magic-constant value in STATEMENT mode. FILE/CACHE output tags it with `Shared\SourceMap\SourcePathMarker`; `LoadEmitter` tags its source-directory fallback the same way. The tags stay ordinary values in compile-time evaluation and runtime caches; Build consumes them only when writing portable artifacts. Mode checks must record divergence so `CodeCompiler` cannot evaluate a relocated fragment as a statement.
 
-## Cache-mode definition registration (#3470)
+## Cache-mode definition registration
 
 A cache-mode file also registers its definitions in the global environment.
 
-- A top-level `def` of a fn or constant goes into an `addCompiledDefinitions([...])` batch (`OutputEmitter/DeferredDefinitionRegistrations`, fed by `FileEmitter`), emitted before any other top-level form (it may `(load ...)` or throw).
-- Any other `def` keeps the inline `hasDefinition` guard.
+- A top-level `def` of a fn or constant joins an `addCompiledDefinitions([...])` batch (`OutputEmitter/DeferredDefinitionRegistrations`, fed by `FileEmitter`), emitted before any other top-level form, since one may `(load ...)` or throw. Any other `def` keeps the inline `hasDefinition` guard.
 - Never prepend a line: it shifts source map mappings, and `namespace` must come first.
 - The batch marks only absent names and never raises duplicate-definition, so reloading a cached file is safe.
 
-## Call-site arity shortcut (#3354)
+## Call-site arity shortcut
 
-In build mode a call to a multi-arity global at a fixed-arity count emits `($__phel_call_N ??= \Phel::fnSlot(ns, name))->invokeArityN(args)`. `fnSlot` wraps a non-`AbstractFn` in `Lang\ForeignFn` and leaves a missing one `null`, so callee and arguments are written once. Never add an `instanceof` guard with arguments in both arms: nested calls double the code per level. For a variadic multi-arity callee (`max-arity` `nil`), `FixedAritySlots` checks the count hits a fixed arity.
+In build mode a call to a multi-arity global at a fixed arity emits `($__phel_call_N ??= \Phel::fnSlot(ns, name))->invokeArityN(args)`. `fnSlot` wraps a non-`AbstractFn` in `Lang\ForeignFn` and leaves a missing one `null`, so callee and arguments are written once. Never add an `instanceof` guard with arguments in both arms: nested calls double the code per level. For a variadic callee, `FixedAritySlots` checks that the count hits a fixed arity.
 
-Core fn values also get build-mode slots, separate from callee nodes and holding the actual registry value rather than a `fnSlot` wrapper. Reference reads and `^:dynamic`/`^:redef` vars stay uncached. `BodyConstantScanner` skips global call heads when scanning values, so a consumed callee cannot leave an orphan value slot.
+Core fn values also get build-mode slots holding the registry value, not a `fnSlot` wrapper. Reference reads and `^:dynamic`/`^:redef` vars stay uncached. `BodyConstantScanner` skips global call heads when scanning values, so a consumed callee leaves no orphan value slot (`OrphanCallSlotAuditTest`).
 
-## Multi-arity fn classes (#3355)
+## Multi-arity fn classes
 
 `MultiFnAsClassEmitter` writes one method per arity.
 
-- An arity that can override `AbstractFn::invokeArityN` (`MethodEmitter::hasArityMethodCompatibleSignature()`: no param type, no by-ref param, return type not `void`) is emitted as it. A typed or by-ref fixed arity gets `phelArityN` plus an `invokeArityN` forwarder; the variadic arity is `phelArityVariadic`.
-- `__invoke` takes one optional param per position of the widest fixed arity (`$a0 = null, ...`) and dispatches with `match` on `func_num_args()`; the variadic arm reads `func_get_args()`. Not `...$args`: it packed every call into an array (#3469). Never test params for `null` to find the arity: `nil` is a real argument. The export wrapper forwards `...$args` (`Interop` rule).
+- An arity whose signature can override `AbstractFn::invokeArityN` (`MethodEmitter::hasArityMethodCompatibleSignature()`) is emitted as it. A typed or by-ref fixed arity gets `phelArityN` plus an `invokeArityN` forwarder; the variadic arity is `phelArityVariadic`.
+- `__invoke` takes one optional param per position of the widest fixed arity (`$a0 = null, ...`) and dispatches with `match` on `func_num_args()`; the variadic arm reads `func_get_args()`. Not `...$args`: that packed every call into an array. Never test params for `null` to find the arity: `nil` is a real argument. The export wrapper depends on this shape (`.agnostic-ai/rules/module-interop.md`).
 - Captures are constructor properties read at the top of each method. Never store arity bodies as closures in properties: each binds `$this`, so every runtime fn value (`comp`, `partial`) allocated a closure per arity plus a reference cycle.
-- A fn captures only the enclosing locals its body references (`FnSymbol` via `LocalVarReferences`, every local when the scanner returns null). The env inside the body still lists them all, so `MethodEmitter` calls `enterFnFrame()` with the left-out names and a wrap (`emitFnWrapPrefix`) skips them; a wrap that `use`s one reads an undefined variable.
+- A fn captures only the enclosing locals its body references (`FnSymbol` via `LocalVarReferences`; all locals when the scanner returns null). The env inside the body still lists them all, so `MethodEmitter` calls `enterFnFrame()` with the left-out names and `emitFnWrapPrefix` skips them; a wrap that `use`s one reads an undefined variable.
 
-## Type-Specialized Emission
+## Call specialization
 
-`IfChainMatchLowerer` shares literal-key eligibility and operand order between `case`/`cond` match lowering and direct `if` tests. Bindable equality targets keep runtime dispatch. Strict comparison runs first; an `EqualsInterface` subject keeps value equality, including `BigInt` and noninterned keywords. A keyword literal on the left keeps its own equality method first. Match lowering captures its subject once and uses value equality only after every identity key misses, retaining PHP's match table and fast interned keywords. A bare `cond` rereads its original local between fallback comparisons; `case` keeps its captured subject. `BodyConstantScanner` reserves consumed keyword keys by value and does not reserve call slots for lowered equality tests.
+Tags come from the analyzer (`.agnostic-ai/rules/module-compiler-analyzer.md`, "Type tags"). Each family has two halves:
 
-Tags come from the analyzer (`.agnostic-ai/rules/module-compiler-analyzer.md`, "Type Tags"). Two halves per family:
+- Eligibility: a `OutputEmitter/*Specialization` class, aggregated by `CallSpecialization::isSpecialized()`.
+- Emission: a `OutputEmitter/NodeEmitter/Specialized/*CallEmitter implements SpecializedCallEmitterInterface`, listed in `CallEmitter`, which loops `tryEmit()` before the generic path.
 
-- **Eligibility**, in `Domain/Emitter/OutputEmitter/`: `NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `GetInSpecialization`, `AssocInSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`, `ReduceSpecialization`, `ConstructorSpecialization`; aggregated by `CallSpecialization`.
-- **Emission**: one `Specialized/*CallEmitter implements SpecializedCallEmitterInterface` per family under `NodeEmitter/Specialized/`. `CallEmitter` builds them once and loops `tryEmit()` before the generic path.
+Predicates are disjoint, so order does not matter. A new family needs both halves registered.
 
-Predicates are disjoint, so order does not matter. To add a family: a `*Specialization` class registered in `CallSpecialization::isSpecialized()`, plus a `Specialized/*CallEmitter` in `CallEmitter`'s list.
+`GlobalVarNode::hasFnMeta()` and `isRebindable()` own declaration and binding flags; `GlobalCallTarget` delegates to them, and `PhelCoreCall` rejects bindable targets before any core specialization. A local shadow is a `LocalVarNode`, which `PhelCoreCall::nameOf()` declines; `apply` and higher-order uses keep the runtime fn.
 
-`GlobalVarNode::hasFnMeta()` and `isRebindable()` own declaration and binding flags, reading string and keyword metadata keys. `GlobalCallTarget` delegates those queries; `PhelCoreCall` rejects bindable targets before any core specialization.
+- Constructors: `ConstructorSpecialization` gates on the callee alone. `(vector …)`, `(hash-map …)` and friends become `\Phel::vector([…])` and so on. Odd counts lower on purpose: `\Phel::map([1])` raises the runtime fn's error.
+- Multi-key `assoc`: on a typed map or vector, `AssocConjSpecialization::typedAssocPairs()` emits a `->put()` / `->update()` chain. Otherwise `CallEmitter` emits nested three-argument `assoc` steps outside `isSpecialized()`, keeping the call slot. Arguments evaluate once, left to right. `assoc!` always takes the untyped steps: on a persistent target it must throw.
+- `get-in`: `GetInSpecialization` lowers any literal path. A tagged map or vector with two arguments unrolls to `($m[k] ?? null)`; otherwise `\Phel\Lang\GetIn::path(...)`, with an all-literal key array hoisted by `ConstantScope::reserveAsPhpArray()`. Never share that slot with an equal vector literal (a `PersistentVector`). A path with metadata keeps the runtime call.
+- `assoc-in` / `update-in`: `AssocInSpecialization` lowers any literal path to `\Phel\Lang\AssocIn::path` or `::update`, sharing the same slot kind. No typed variant: `AssocIn` defers non-map, non-vector levels to `phel.core/get`/`assoc`, so transients, lists and bad indexes behave as at runtime.
+- Guarded core calls: two-argument `<` `<=` `>` `>=` `=` `not=` `+` `-` `*` and one-argument `zero?` `pos?` `neg?` `even?` `odd?` `inc` `dec` that no typed family took become native PHP behind an `is_*` guard, runtime call as fallback (`GuardedCoreCallSpecialization`, `GuardedCoreCallEmitter`, run by `CallEmitter` outside `isSpecialized()`; the fallback takes the arity shortcut).
+  - Each guard is the exact condition under which the runtime fn ends in the native operator.
+  - Arithmetic keeps the native result only while it is an int: PHP yields a float exactly on overflow, which the runtime promotes to `BigInt`.
+  - Locals and literals are read in place; other operands spill into a `$__phel_guard_N` temporary where PHP always evaluates it (`===` operands, `&` not `&&` between guards), so each runs once, in order. Only repeated reads of one local share a guard.
+  - Quoted forms and collection literals decline.
+- Only eager core fns lower to a native loop. `reduce` (3-arity) qualifies; `map`/`filter` do NOT: they return a `LazySeq` and copy the source's metadata, so a `foreach` would change the return type, break infinite seqs and shift side effects.
 
-**Constructors.** `ConstructorSpecialization` gates on the **callee alone** (no tag, no arity): `(list …)`, `(vector …)`, `(queue …)`, `(hash-map …)`, `(array-map …)` become `\Phel::list([…])` and friends. Odd counts lower on purpose: `\Phel::map([1])` raises the same error as the runtime fn. `apply`/higher-order uses keep the runtime fn; a local shadow is a `LocalVarNode`, which `PhelCoreCall::nameOf()` declines.
+`IfChainMatchLowerer` shares literal-key eligibility and operand order between `case`/`cond` match lowering and direct `if` tests. Bindable equality targets keep runtime dispatch. Strict comparison runs first; an `EqualsInterface` subject keeps value equality (`BigInt`, noninterned keywords), and a keyword literal on the left keeps its own equality method. Match lowering captures its subject once and uses value equality only after every identity key misses. A bare `cond` rereads its local between fallback comparisons; `case` keeps its captured subject. `BodyConstantScanner` reserves consumed keyword keys by value and reserves no call slots for lowered equality tests.
 
-**Multi-key `assoc`.** On a typed map or vector, `AssocConjSpecialization::typedAssocPairs()` emits a `->put()` / `->update()` chain. Otherwise `CallEmitter` emits nested three-argument `phel.core/assoc` steps outside `isSpecialized()`, keeping the `$__phel_call_N` slot. Arguments evaluate once, left to right, each step before the next pair (#3317). `(assoc! t k1 v1 …)` takes the untyped steps (#3318), never the typed chain: `assoc!` on a persistent target must throw.
+`OutputEmitter/NodeEmitter/PhpObjectSetEmitter` shares `PhpObjectCallDispatchResolver` with the read path, so a class-name target is static however written, and prefixes a bare static member with `$`: a class constant is not assignable.
 
-**`get-in`.** `GetInSpecialization` lowers a literal path whatever the target. A tagged map/vector with two arguments unrolls to `($m[k] ?? null)`; otherwise `\Phel\Lang\GetIn::path($m, [k1, k2], nf)`, with an all-literal key array hoisted to a `$__phel_const_N` slot from `ConstantScope::reserveAsPhpArray()`. Never share that slot with an equal vector literal (a `PersistentVector`). Each argument is written once, so nesting stays linear (#3320). A path with metadata keeps the runtime call.
+## Generated classes
 
-**`assoc-in` / `update-in`.** `AssocInSpecialization` lowers a literal path whatever the target to `\Phel\Lang\AssocIn::path($m, [k1, k2], $v)` or `AssocIn::update($m, [k1, k2], $f, ...)`, sharing `get-in`'s `reserveAsPhpArray()` slot. No typed variant: `AssocIn` handles maps and vectors inline and defers other levels to `phel.core/get` / `phel.core/assoc`, so transients, lists and bad indexes behave as at runtime (#3328). A variable or metadata-carrying path, `apply` and a local shadow keep the runtime call.
+`DefStructEmitter`, `DefInterfaceEmitter` and `DefEnumEmitter` read per-symbol metadata through `PhpAttributeEmitterTrait` (`:tag`, `:php/attr`, `:php/doc`, `^:php/override`) and the pure `Shared\PhpAttributeRenderer`. All opt-in: untagged forms emit unchanged. A list `:tag` is a union, a vector an intersection.
 
-**Guarded core calls** (#3351). Two-argument `<` `<=` `>` `>=` `=` `not=` `+` `-` `*` and one-argument `zero?` `pos?` `neg?` `even?` `odd?` `inc` `dec` that no typed family took are lowered by `Specialized/GuardedCoreCallEmitter` (eligibility: `GuardedCoreCallSpecialization`) to native PHP behind an `is_*` guard, with the runtime call as fallback: `(\is_scalar($a) && \is_scalar($b) ? ($a < $b) : <call>)`, `($a === 1 || (!(\is_int($a)) && <call>))`, `(\is_int($a) && \is_int($b) && \is_int($t = $a + $b) ? $t : <call>)`.
-
-- Arithmetic keeps the native result only while it is an int: PHP yields a float exactly on overflow, which the runtime promotes to `BigInt` (#3468).
-- Repeated references to the same unique local share a guard; effectful expressions never do. Integer parity tests compare the low bit with 0 or 1, preserving negative integers and falling back for every other type.
-- Each guard is the exact condition under which the runtime fn ends in the native operator (see the class docblock).
-- `CallEmitter` emits it outside `isSpecialized()`, keeping the slot; the fallback takes the arity shortcut. Bool-returning for `BooleanExprDetector`.
-- Locals and literals are read in place; other operands spill into a `$__phel_guard_N` temporary on first read, placed where PHP always evaluates it (`===` operands, `&` not `&&` between guards), so each runs once, in order.
-- Quoted forms and collection literals decline.
-
-Catch shadows gain an inferred `object` type only after body analysis and only when `LocalVarReferences::mayBeMutated()` proves the binding read-only. Direct argument/reference escapes, unknown callees or nodes, collection metadata and PHP caller-scope writers keep runtime dispatch. The shared walk includes nested functions; source symbol metadata stays untouched.
-
-**Sequential destructuring** (#3356). `VectorBindingDeconstructor` gives `[a b & r]` an indexed path: one `iv (php/instanceof v PersistentVectorInterface)` binding, then each position reads `(php/aget v i)` under `(php/=== iv true)`, else the exact `first`/`next` walk (trailing `next` included), so lazy seqs realize the same cells and scalars throw where they did.
-
-- A vector's `& r` is `(.cdr v)` after one position, `Destructure::nthNext(v, i)` after more.
-- Use `(php/=== iv true)`, not bare `iv`: it skips the truthiness adapter, which costs the list walk more than the fast path saves.
-- Added bindings except `v` carry `ReturnTypeInferrer::SYNTHETIC_BINDING`, so `(fn [[x y]] 1)` stays unannotated.
-- `[]` and `[& r]` get no test.
-
-GOTCHA: only eager core fns lower to a native loop. `reduce` (3-arity) qualifies; `map`/`filter` do NOT: they return a `LazySeq` over a `Seq::map`/`Seq::filter` generator and `copy-meta` the source, so a `foreach` would change the return type, break infinite seqs and shift side effects.
-
-## Generated-Class Attributes & Typed Signatures
-
-`DefStructEmitter`, `DefInterfaceEmitter` and `DefEnumEmitter` read per-symbol metadata via `PhpAttributeEmitterTrait` (tag + `:php/attr`) and the pure `Phel\Shared\PhpAttributeRenderer`. All opt-in; untagged forms emit unchanged.
-
-`:tag` values: bare symbol/string verbatim (`?int`, `self`, `DateTime`); list = union (`a|b`); vector = intersection (`a&b`).
-
-### defstruct (`DefStructEmitter`)
-
-- Field `^{:tag <type>}` → typed property (`protected int $id;`).
-- `^{:php/attr [...]}` on struct name or field → class- or property-level PHP 8 attributes.
-- `^{:php/json true}` on name → `\JsonSerializable` (`jsonSerialize()` returns the field map).
-- `^{:php/stringable true}` on name → `\Stringable`.
-- `^:php/readonly` on name → `readonly` typed properties (untagged default `readonly mixed`) + a constructor-rebuilding `put()` override. Stays a plain `final class`: `AbstractPersistentStruct` is not readonly.
-- A `:php` marker opens a block of bare magic methods (`__invoke`/`__toString`/`__get`), carried by `PhpBlockAnalyzer` as a `DefStructInterface` with empty name that `DefStructEmitter` drops from `implements`. Custom `__invoke` must be 1-arg or variadic.
-
-### definterface (`DefInterfaceEmitter`)
-
-- Method arg `^{:tag <type>}` → typed param; method name `:tag` → return type.
-- `^{:php/attr [...]}` on interface name, method or **parameter** (inlined: `show(#[\Autowire] string $repo)`).
-- Trailing `:php/const` block → typed constants: `:php/const (^{:tag int} MAX 100)` → `const int MAX = 100;` (int/float/string/bool/nil literal only; `DefInterfaceSymbol`/`PhpClassConst`/`DefInterfaceEmitter`).
-- The `definterface` macro wraps only method forms; the const block passes through to `definterface*`.
-
-### defenum (`defenum*`, `DefEnumSymbol`/`DefEnumNode`/`DefEnumEmitter`)
-
-- Native PHP `enum` guarded by `enum_exists`; keyword-named cases with optional `int`/`string` values (all or none: backed vs pure).
-- `^{:php/attr [...]}` on name → class-level attributes.
-- The tail after cases (interfaces + methods, `:php` block) is parsed by `InterfaceImplementationsAnalyzer`, emitted via `MethodEmitter`.
-
-### Shared across constructs
-
-- `InterfaceImplementationsAnalyzer` (`defstruct`, `defenum`) parses reflection-validated interface symbols and `:php` blocks.
-- `PhpBlockAnalyzer::analyze` takes `enforceInvokeArity` (true only for structs, whose map `__invoke` constrains arity).
-- `^{:php/doc <str|[str...]>}` on any name/field/method → PHPDoc block (phpstan/psalm see typed generated classes).
-- `^:php/override` on a method → `#[\Override]` (PHP 8.3), rendered by `PhpAttributeEmitterTrait::phpAttributeLines` ahead of `:php/attr` lines. Struct/enum inline methods emit `:php/attr`/`:php/doc`/`^:php/override` too.
-- Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (`.agnostic-ai/rules/module-interop.md`).
+- `^:php/readonly` on a struct gives `readonly` typed properties (untagged: `readonly mixed`) and a constructor-rebuilding `put()`. The class stays a plain `final class`: `AbstractPersistentStruct` is not readonly.
+- A `:php` marker opens a block of bare magic methods. `PhpBlockAnalyzer` carries it as a `DefStructInterface` with an empty name, which `DefStructEmitter` drops from `implements`. `enforceInvokeArity` is true only for structs: a custom `__invoke` must be 1-arg or variadic because a struct is a callable map.
+- A trailing `:php/const` block in `definterface` emits typed constants (literal values only). The `definterface` macro wraps only method forms; the const block passes through to `definterface*`.
+- `defenum` emits a native `enum` guarded by `enum_exists`; case values are all or none (backed vs pure). `InterfaceImplementationsAnalyzer` parses the tail (interfaces, methods, `:php` block) for `defstruct` and `defenum`.
+- Export wrappers carry the same `:php/attr` via Interop's `CompiledPhpMethodBuilder`.

@@ -1,6 +1,6 @@
 ---
 name: phel-benchmark
-description: Measures a change with PHPBench or phel bench.
+description: Measures a performance change with PHPBench or phel bench.
 model: balanced
 can: [read, Glob, Grep, shell]
 x-codex:

@@ -1,5 +1,5 @@
 ---
-description: Run the narrowest test scope for a change.
+description: Run the narrowest tests and checks for a change.
 argument-hint: "[scope-or-filter]"
 disable-model-invocation: true
 allowed-tools:
@@ -10,14 +10,14 @@ allowed-tools:
 
 # Test Runner
 
-Follow `.agnostic-ai/rules/build-test-and-development-commands.md` for gate timing and required hooks.
+Gate timing, reuse and hooks: `.agnostic-ai/rules/build-test-and-development-commands.md`.
 
 ## Select the scope
 
-1. Honor an explicit file, filter or suite. With no argument, or `quick`, inspect `git status --short`, `git diff` and `git diff --cached`; choose checks for the changed behavior rather than defaulting to every suite.
-2. Cover the behavior and its affected integration boundary. For a compiler change, include the relevant compilation fixture or runtime path; for PHP/Phel interop, exercise the Phel caller too. Broaden for failures or effects that a focused run cannot cover.
-3. Run affected quality checks on the final diff. Formatter and Rector dry runs accept changed PHP paths; static analysis accepts affected `src/` paths, never tests (ADR 0010). Coordinate expensive checks across workers and never overlap typechecks.
-4. Reuse passing results on unchanged code, including a commit hook's gate. After a fix, repeat the affected checks. Report exact commands, counts and any coverage limit.
+1. Honor an explicit file, filter or suite. Otherwise read `git status --short`, `git diff` and `git diff --cached`, and pick checks for the changed behavior.
+2. Cover its integration boundary: a compiler change runs the matching fixture or runtime path; PHP/Phel interop exercises the Phel caller too.
+3. Run quality checks on the final diff. Formatter and Rector dry runs take changed PHP paths; static analysis takes affected `src/` paths.
+4. Report exact commands, counts and any coverage limit.
 
 ## Commands
 
@@ -37,5 +37,9 @@ Install dependencies with `composer install` before PHP/Phel tooling if `vendor/
 | Formatting fixes | `composer fix`: Rector then CS Fixer; prefer explicit changed paths when isolating a change |
 | `bench` | `composer phpbench`; select affected subjects and follow `.agnostic-ai/skills/benchmark/SKILL.md` |
 | PHAR packaging | `./build/phar.sh`: builds `build/out/phel.phar` |
+| Shell tooling (`tools/*.sh`) | `composer test-tools` |
+| Agent specs (`.agnostic-ai/`) | the gate in `.agnostic-ai/rules/agent-tooling.md` |
+| Downstream agent package (`resources/agents/`) | `composer test-agents` |
+| Prose only | review the diff and check every link |
 
-An explicit `all`, or a change whose effects cannot be covered by narrower checks, uses the full gate. Do not repeat a completed full gate unless subsequent changes affect its results.
+Use `all` only when asked or when narrower checks cannot cover the change.

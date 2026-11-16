@@ -1,5 +1,5 @@
 ---
-description: Run, baseline or compare benchmarks.
+description: Run, baseline or compare PHPBench and phel bench results.
 argument-hint: "[run|baseline|compare|filter]"
 disable-model-invocation: true
 allowed-tools:

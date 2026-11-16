@@ -1,15 +1,13 @@
 ---
 name: workflow
-description: Commit, changelog, pull request, and public writing requirements.
+description: Commits, changelog, pull requests, releases and public text.
 ---
 
-# Contribution Workflow
+# Workflow
 
-- Use conventional commit prefixes: `feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`, or `perf:`.
-- Keep the subject terse and imperative. Include an issue reference when applicable.
-- Update `CHANGELOG.md` under `## Unreleased` for user-facing `feat:`, `fix:` and `perf:` changes, following `.agnostic-ai/rules/changelog.md`.
-- Follow `.github/PULL_REQUEST_TEMPLATE.md` exactly, including its emoji-prefixed headings.
-- Link related issues with `Closes #X` when the pull request resolves them.
-- When adding changes to an open pull request, create a new commit. Do not amend or force push unless requested.
-- Write public GitHub text in the maintainer's voice. Mention AI tooling only when it is the subject. Never add a Co-authored-by trailer or a "Generated with" line.
-- Releases: only `tools/release.sh`, `--dry-run` first, and an explicit human go before the real run. Details: `.agnostic-ai/rules/releases.md`.
+- Conventional commits: `feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`, `perf:`. Terse imperative subject, issue ref when one applies.
+- A user-facing `feat:`, `fix:` or `perf:` adds a `CHANGELOG.md` entry under `## Unreleased`, per `.agnostic-ai/rules/changelog.md`.
+- PR bodies follow `.github/PULL_REQUEST_TEMPLATE.md` exactly, emoji headings included. `Closes #X` only when the PR resolves the issue.
+- On an open PR, add a new commit. Amend or force push only when asked.
+- Write public GitHub text in the maintainer's voice. Mention AI tooling only when it is the subject; no Co-authored-by trailer or "Generated with" line.
+- Release only through `tools/release.sh`: `--dry-run` first, a human go before the real run. Details: `.agnostic-ai/rules/releases.md`.

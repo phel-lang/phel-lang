@@ -1,5 +1,5 @@
 ---
-description: Push the branch and open a PR from the template.
+description: Review, push and open a PR from the template. Use to ship a branch.
 argument-hint: "[issue-number]"
 allowed-tools:
   - "read"
@@ -22,7 +22,7 @@ Run first: `git branch --show-current`, `git log main..HEAD --oneline`, `git dif
 
 1. **Prepare**: review the complete diff against the PR's base and the working tree. Preserve unrelated work. Add a `CHANGELOG.md` entry only for user-facing changes, per `.agnostic-ai/rules/changelog.md`.
 
-2. **Review, gate and commit**: have `phel-reviewer` review the diff and resolve actionable findings before the final gate. Follow `.agnostic-ai/skills/commit/SKILL.md` for pending changes: stage the complete intended change, pass the applicable gate, then commit. Let a successful pre-commit hook supply the gate only when staged PHP or Phel files trigger it. If there is nothing to commit, run the applicable gate in `.agnostic-ai/rules/build-test-and-development-commands.md` or reuse a successful run for the same change set. Rerun affected checks after fixes. Do not commit or push with failing checks or unresolved defects.
+2. **Review, gate and commit**: have `phel-reviewer` review the diff and resolve actionable findings. Commit pending changes per `.agnostic-ai/skills/commit/SKILL.md`. With nothing to commit, run the gate in `.agnostic-ai/rules/build-test-and-development-commands.md` or reuse a passing run on the same change set. Never push with failing checks or unresolved defects.
 
 3. **Push branch**:
    ```bash

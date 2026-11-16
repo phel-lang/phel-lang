@@ -19,8 +19,8 @@ Put content in the file whose reader needs it. Link instead of copying.
 | `.github/CONTRIBUTING.md` | Human contributors | Setup, commands, tests, commits, changelog, AI tooling setup. |
 | `.github/RELEASE.md` | Maintainers | How a release is cut. |
 | `docs/` | Contributors | Spec, stability policy, ADRs, internals, CLI reference, migrations. User guides live on phel-lang.org. |
-| `docs/adr/` | Contributors | One record per decision, per `.agnostic-ai/rules/architecture-decisions.md`. |
-| `.agnostic-ai/rules/module-*.md` | Agents and contributors | Gacela conventions, public API, dependencies, constraints. Each is scoped to its module directory; a large module adds `module-<name>-<part>.md` per subdirectory. |
+| `docs/adr/` | Contributors | One record per decision, per `docs/adr/README.md`. |
+| `.agnostic-ai/rules/module-*.md` | Agents and contributors | One module's API, dependencies and constraints, per `.agnostic-ai/rules/module-map.md`. |
 | `.agnostic-ai/` | Agents | Repository policy, skills, agents. Generates `AGENTS.md` and the root `CLAUDE.md`. |
 | `resources/agents/` | Agents in user projects | How to build apps with Phel. Shipped by `phel agent-install`. |
 

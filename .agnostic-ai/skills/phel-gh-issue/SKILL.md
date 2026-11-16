@@ -1,5 +1,5 @@
 ---
-description: phel-lang rules read by /gh-issue.
+description: phel-lang branch, ship and merge rules for /gh-issue.
 disable-model-invocation: true
 ---
 
@@ -13,7 +13,7 @@ Prefix from the issue's label: `bug` gives `fix/`, `enhancement` gives `feat/`, 
 
 ## Verify
 
-Before the final gate, reread the diff for duplication, dead code, naming drift and module boundary violations. Make any needed fixes as part of the change; do not create an extra refactor commit without a concrete improvement. Verify each acceptance criterion and run the applicable gate once, per `.agnostic-ai/rules/build-test-and-development-commands.md`. Fix every failure before shipping.
+Reread the diff for duplication, dead code, naming drift and module boundary violations, and fix them in the same change. Verify each acceptance criterion, then run the gate once per `.agnostic-ai/rules/build-test-and-development-commands.md`. Fix every failure before shipping.
 
 ## Ship
 

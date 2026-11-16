@@ -6,46 +6,16 @@ scope: src/php/Config
 
 # Config Module
 
-Pure data/model layer defining configuration structure for Phel projects. Leaf module, **no Gacela pattern**: other modules' `*Config` classes consume these directly via Gacela's `AbstractConfig`.
-
-## Structure
-
-| File | Role |
-|------|------|
-| `PhelConfig.php` | Immutable `final readonly` config model; `with*()` builder API |
-| `PhelBuildConfig.php` | Value object for build settings (key `out`) |
-| `PhelExportConfig.php` | Value object for export settings (key `export`) |
-| `ProjectLayout.php` | Backed enum: `Flat` / `Nested` / `Root` |
-| `PhelConfigValidator.php` | Validates src/test/vendor dirs; backs `PhelConfig::validate()` |
-| `ConfigLoadException.php` | `wrapIfConfigError()` rethrows errors originating from `phel-config.php` |
-| `StrictPhpConfigReader.php` | Gacela `ConfigReaderInterface` that rejects a `null`-returning `phel-config.php` instead of coercing to `[]`; wired in `Phel::configFn()` |
-
-## PhelConfig API
-
-- `forProject(ProjectLayout = Flat, string $mainNamespace = '')`: convenience constructor; sets layout, optionally main phel namespace.
-- `with*()` setters: directory, layout, build, export, cache, flag mutations. Each returns a NEW instance.
-- `withOptimizationLevel(int)`: key `optimization-level`, clamped `>= 0`; used by Build/Run (REPL/nREPL ignore it).
-- `withPhelDir(string)`: state directory (`.phel/` default); `PHEL_DIR` env var overrides.
-- `withAppModulePaths(list<string>)`: key `app-module-paths`; scopes Gacela's module discovery, which otherwise `class_exists()`-walks the whole project root and fatals on any file that cannot load standalone (e.g. under `tests/`). Default `[]` keeps the whole-root walk. `Phel::bootstrap()` reads it *before* the merged config exists, so it is parsed straight from `phel-config.php`, not via `AbstractConfig::get()`.
-- `validate(): list<string>`: empty if valid.
-- `jsonSerialize(): array`.
-
-PhelBuildConfig: `withMainPhelNamespace` / `withMainPhpPath` / `withDestDir`.
-PhelExportConfig: `withFromDirectories` / `withNamespacePrefix` / `withTargetDirectory`.
-
-## ProjectLayout
-
-| Case | src / test dirs |
-|------|-----------------|
-| `Flat` (default) | `src`, `tests` |
-| `Nested` | `src/phel`, `tests/phel` (PHP lives under `src/php/`) |
-| `Root` | `.`, `.` (single-file / scratch) |
-
-`withLayout(ProjectLayout)` resets src/test/format/export-from dirs per layout.
+Configuration data model for `phel-config.php`. Shared kernel, **No Gacela Pattern**: other modules' `*Config` classes read it through Gacela's `AbstractConfig`.
 
 ## Key Constraints
 
-- Config constants (e.g. `PhelConfig::SRC_DIRS = 'src-dirs'`) are Gacela config keys; never rename.
-- `jsonSerialize()` wire keys and casing (all three classes) are Gacela's `AbstractConfig::get()` contract; never change.
-- `with*()` returns a new instance; callers MUST capture: `$config = $config->withX(...)`.
-- **Removed (breaking, deprecated since 0.37):** `setX()` setters, `useLayout()`/`useNestedLayout()`/`useFlatLayout()` aliases and the `PhelConfigDeprecations` trait. Use `with*()`.
+- Config constants (`PhelConfig::SRC_DIRS = 'src-dirs'`) are Gacela config keys; never rename.
+- `jsonSerialize()` wire keys and casing (`PhelConfig`, `PhelBuildConfig`, `PhelExportConfig`) are the `AbstractConfig::get()` contract; never change.
+- `PhelConfig` is `final readonly`. `with*()` returns a new instance; callers MUST capture it: `$config = $config->withX(...)`. The old `setX()` setters and `use*Layout()` aliases are gone.
+- `withLayout(ProjectLayout)` resets src, test, format and export-from dirs per layout: `Flat` (default) `src`/`tests`, `Nested` `src/phel`/`tests/phel`, `Root` `.`/`.`.
+- `withOptimizationLevel(int)` clamps to `>= 0`; REPL and nREPL ignore it.
+- `withPhelDir(string)`: state directory, `.phel/` by default; the `PHEL_DIR` env var overrides it.
+- `withAppModulePaths(list<string>)` scopes Gacela's module discovery, which otherwise `class_exists()`-walks the whole project root and fatals on any file that cannot load standalone (under `tests/`, say). `Phel::bootstrap()` reads it before the merged config exists, so it is parsed straight from `phel-config.php`, not via `AbstractConfig::get()`.
+- `PhelConfigValidator` backs `validate()` (empty list when valid). Its relative-dirs rule is advisory: only `Run\Domain\Config\ConfigDiagnostics` reports it, and nothing blocks on it.
+- `StrictPhpConfigReader` rejects a `phel-config.php` returning `null` instead of coercing it to `[]`; wired in `Phel::configFn()`. `ConfigLoadException::wrapIfConfigError()` rethrows errors that originate in `phel-config.php`.

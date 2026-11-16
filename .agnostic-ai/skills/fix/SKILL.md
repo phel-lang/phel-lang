@@ -1,5 +1,5 @@
 ---
-description: Fix PHP style and verify the affected scope.
+description: Fix PHP style with Rector and CS Fixer, then verify.
 argument-hint: "[file-path]"
 disable-model-invocation: true
 allowed-tools:

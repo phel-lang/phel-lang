@@ -1,6 +1,6 @@
 ---
 name: integration-tests
-description: Find the format for compiler and REPL fixtures.
+description: 'Load when editing integration tests: where the compiler and REPL fixture formats are documented.'
 scope: tests/php/Integration
 ---
 

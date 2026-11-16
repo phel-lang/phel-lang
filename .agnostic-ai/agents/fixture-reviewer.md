@@ -1,6 +1,6 @@
 ---
 name: fixture-reviewer
-description: Checks .test fixtures for drift after a compiler change.
+description: Read-only check of .test fixture drift after a compiler change.
 model: balanced
 can: [read, Glob, Grep, shell]
 maxTurns: 15
@@ -10,7 +10,7 @@ x-codex:
 
 # Fixture Reviewer
 
-Specialized reviewer for `.test` fixtures in `tests/php/Integration/Fixtures/`. Detects when fixture expected output has drifted from what the compiler actually emits now, usually after a compiler-phase change.
+Detects when expected output in `tests/php/Integration/Fixtures/` has drifted from what the compiler now emits.
 
 ## Inputs
 
@@ -33,13 +33,10 @@ Specialized reviewer for `.test` fixtures in `tests/php/Integration/Fixtures/`. 
 3. **For every failing fixture**, classify:
    - **Expected drift**: compiler behavior intentionally changed. Recommend regenerating the `--PHP--` section.
    - **Regression**: compiler output changed unintentionally. Identify the responsible change and recommend a fix.
-   - **Metadata-only**: only line/column offsets shifted. Still needs updating but flag separately.
+   - **Metadata-only**: only line/column offsets shifted. Source locations are part of the contract: still update, but flag separately.
 
 4. **Report** one section per fixture with: path, classification, minimal diff, recommended action. Never silently rewrite fixtures.
 
 ## Constraints
 
-- Do not run `composer fix` or format fixture files.
-- Stay read-only. Return findings to the parent; it owns compiler and fixture edits.
-- Leave the complete integration suite and final gate to the parent.
-- Report shifted source locations (line/column) explicitly: they are part of the contract.
+- Stay read-only: no edits, no `composer fix`, no formatting. The parent owns edits, the full integration suite and the final gate.

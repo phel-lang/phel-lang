@@ -1,9 +1,8 @@
 ---
 name: project-structure-module-organization
-description: Where the PHP compiler, the Phel stdlib, tests and build output live.
+description: Where the compiler, stdlib, tests and tooling live.
 ---
 
-- `src/php/`: PHP runtime and compiler, PSR-4 `Phel\`. One module per directory (`Compiler`, `Lang`, `Run`, `Console`, `Build`, `Shared`, ...), each documented by a rule scoped to its directory, `.agnostic-ai/rules/module-<name>.md`. `.agnostic-ai/rules/module-map.md` holds the Gacela conventions; `docs/internals/architecture.md` lists the modules.
-- `src/phel/`: the standard library written in Phel (`core`, `test`, `string`, `json`, `http`, ...).
-- `tests/php/{Unit,Integration,Benchmark}` and `tests/phel/`.
-- Entry points: `Phel.php`, `bin/`. PHAR build: `build/`. Maintainer scripts: `tools/`. Contributor docs: `docs/`. Scratch output: `data/`, `var/`.
+- `src/php/`: compiler and runtime, PSR-4 `Phel\`, one Gacela module per directory. Shared module conventions: `.agnostic-ai/rules/module-map.md`.
+- `src/phel/`: the standard library in Phel. `src/Phel.php`: the public `\Phel` embedding class.
+- Tests: `tests/php/{Unit,Integration,Benchmark}`, `tests/phel/`. CLI: `bin/phel`. PHAR build: `build/`. Maintainer scripts: `tools/`.

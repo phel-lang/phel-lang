@@ -1,15 +1,12 @@
 # Phel Repository
 
-Phel is a Lisp that compiles to PHP and follows Clojure-aligned semantics where practical.
+Phel is a Lisp that compiles to PHP, with Clojure-aligned semantics where practical.
 
-Edit shared policy in `.agnostic-ai/` and run `agnostic-ai sync`, never edit generated instructions. Keep Codex mechanics
-in `.codex/`, Claude Code mechanics in `.claude/`, and downstream user assets in `resources/agents/`.
+Paths are relative to the repository root unless stated otherwise. Before editing a file, read the instructions scoped to its directory.
+Agent config is generated from `.agnostic-ai/`: edit there, never the output, and read
+`.agnostic-ai/rules/agent-tooling.md` first (also for `agnostic-ai.yaml`). Before writing docs, read
+`.agnostic-ai/rules/docs-placement.md`.
 
-Paths in these instructions are relative to the repository root unless stated otherwise. Before editing, read the
-directory-scoped instructions for the file. Architectural decisions are indexed in `docs/adr/README.md`.
-Before writing documentation, read `.agnostic-ai/rules/docs-placement.md` for its destination and link rules.
-Before changing agent configuration (including `agnostic-ai.yaml`), read `.agnostic-ai/rules/agent-tooling.md`.
-
-Start with one observable acceptance scenario. Trace the existing behavior, implement the smallest complete change,
-then review the diff and run the applicable gate in `.agnostic-ai/rules/build-test-and-development-commands.md`.
-Report what changed, the verification results, and any unresolved limit. Keep unrelated changes out of the diff.
+Start from one observable acceptance scenario. Trace the current behavior, make the smallest complete change, review
+the diff, then run the gate in `.agnostic-ai/rules/build-test-and-development-commands.md`. Report what changed, the
+checks run and any open limit. Keep unrelated changes out of the diff.

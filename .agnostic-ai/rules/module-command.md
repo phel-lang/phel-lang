@@ -6,62 +6,32 @@ scope: src/php/Command
 
 # Command Module
 
-## Facade
+Error reporting, exception formatting, hints, error log and directory discovery for CLI commands.
 
-| Method | Returns |
-|--------|---------|
-| `writeLocatedException(output, e, snippet)` | located exception + hint |
-| `writeStackTrace(output, e, showInternalFrames)` | runtime error report to console, full trace to error log |
-| `getRuntimeErrorReport(e, showInternalFrames)` | same report as a string (REPL, `eval`) |
-| `logStackTrace(e)` | full trace to error log only (REPL, `eval`) |
-| `getExceptionString(e, snippet)` / `getStackTraceString(e)` | strings |
-| `getExceptionPrinter()` | `ExceptionPrinterInterface` |
-| `getExceptionHintResolver()` | `Phel\Shared\Exceptions\Hint\ExceptionHintResolver` |
-| `getCompiledFileLineMap(compiledFile)` | `[phpLine => phelLine]` + originating `.phel` filename |
-| `getAllPhelDirectories()` | internal phel + project + vendor |
-| `getSourceDirectories()` | project + vendor |
-| `getProjectSourceDirectories()` | user-configured only |
-| `getTestDirectories()` / `getVendorSourceDirectories()` / `getOutputDirectory()` | per name |
-| `readPhelConfig(absolutePath)` | parsed `phel-config.php` |
-| `reportWarningsAtPhelSource()` | installs `Shared\Exceptions\SourceMappedErrorHandler` so a PHP warning from the eval temp file or compiled cache names the `.phel` line; called once by `bin/phel` (#3537) |
+## Facade notes
 
-Directory getters are `#[Cacheable]`.
+- `writeStackTrace()` prints the runtime error report and sends the full trace to the error log. `getRuntimeErrorReport()` returns the same report as a string (REPL, `eval`); pair it with `logStackTrace()`.
+- `getCompiledFileLineMap()` returns `[phpLine => phelLine]` plus the originating `.phel` filename; `phel test --coverage` depends on that shape.
+- Directory getters are `#[Cacheable]`. `getAllPhelDirectories()` is internal + project + vendor, `getSourceDirectories()` project + vendor, `getProjectSourceDirectories()` user-configured only.
+- `reportWarningsAtPhelSource()` installs `Shared\Exceptions\SourceMappedErrorHandler`, so a PHP warning from the eval temp file or compiled cache names the `.phel` line. `bin/phel` calls it once.
 
 ## Dependencies
 
-- No facade dependencies. `CommandProvider` exposes `PHP_CONFIG_READER` (Gacela `PhpConfigReader`).
-- Shared: `AbstractLocatedException`, `CodeSnippet`, `Printer`, `ColorStyle`, `Munge`, `Exceptions\Hint\*`, `SourceMap\SourceMapConsumer`.
+- No facades. `CommandProvider` exposes `PHP_CONFIG_READER` (Gacela `PhpConfigReader`).
 - Config: `PhelConfig`, `PhelBuildConfig`.
-- Compiler: one type-only import, `Domain\Evaluator\Exceptions\EvaluatedCodeException` (`instanceof` in `TextExceptionPrinter`). No compiler facade or calls.
-
-## Structure
-
-| Path | Role |
-|------|------|
-| `Application/DirectoryFinder` | resolves paths, handles PHAR, caches |
-| `Application/CommandExceptionWriter` | writes located exceptions + reports; appends hints |
-| `Application/RuntimeErrorReportFormatter` | builds the runtime error report |
-| `Application/TextExceptionPrinter` | highlighted render with source pointers |
-| `Domain/Exceptions/Extractor/FilePositionExtractor` | compiled-to-Phel line map |
-| `Domain/Exceptions/InternalPathDetector` | Phel's own source and compiled artifacts vs the user's project |
-| `Domain/Exceptions/CompiledFnName` | compiled fn class to its Phel var (`app.main/add-it`) via `BOUND_TO` + registry; used by trace frames and `RuntimeArityMessage` (#3460) |
-| `Domain/Exceptions/RuntimeArityMessage` | rewrites PHP's `Too few arguments to function ...::__invoke()` as `Wrong number of args (N) passed to ns/fn, expected M` |
-| `Domain/Exceptions/EvaluatedCodeLocation` | detects eval'd-code frames, names them `repl` |
-| `Infrastructure/SourceMapExtractor` | compiled PHP to Phel source locations |
-| `Infrastructure/ComposerVendorDirectoriesFinder` | vendor source dirs; skips `vendor/phel-lang/phel-lang` (the running Phel under Composer, a second stdlib under a PHAR) silently; `phel doctor` reports the vendored copy, a warning here would repeat on every command |
-| `Infrastructure/ErrorLog` | full-trace sink: strips ANSI, heads each entry `[<timestamp>] <command line>`, rotates at 1 MiB into `<log>.1` (one generation) |
+- Compiler: one type-only import, `EvaluatedCodeException` (`instanceof` in `TextExceptionPrinter`). No compiler facade or calls.
 
 ## Key Constraints
 
-- `SourceMapExtractor` reads inline `// ` / `// ;;` header comments (eval temp files) OR sibling `<file>.map` + `<file>.phel` (built output). A header kept by `Shared\SourceMap\SupersededSourceMaps` wins over the file on disk.
-- `phel test --coverage` enumerates coverable lines via `FilePositionExtractor::getFileLineMap()`; keep its return shape (`[phpLine => phelLine]` + filename) stable.
-- `RuntimeErrorReportFormatter` is the ONE report for an uncaught runtime error in `phel run` (`writeStackTrace()`), `phel eval` and the REPL (`getRuntimeErrorReport()`) (#3264). Fixed order: message, `at`, `data:` (an `ex-info` data map), frames, collapse marker, `hint:`.
-- The message starts `[PHELxxx] ` when coded: a located exception's own code, else what `RuntimeErrorCodeResolver` recognises (#3266). Unrecognised exceptions, user `ex-info` included, stay uncoded.
-- `TextExceptionPrinter::getUserFacingTraceString()` is the ONE trace filter. It keeps Phel fn frames (as `.phel:line` or `repl`) and counts PHP-native ones into a SINGLE trailing marker. `$showInternalFrames` (`--stack-trace`) shows all. The full trace still goes to the log.
-- The marker carries `CommandConfig::getCollapsedTraceHint()` (`--stack-trace to show, full trace in <log>`). One per report, never at the top.
+- `RuntimeErrorReportFormatter` is the ONE report for an uncaught runtime error in `phel run`, `phel eval` and the REPL. Fixed order: message, `at`, `data:` (an `ex-info` data map), frames, collapse marker, `hint:`.
+- The message starts `[PHELxxx] ` when coded: a located exception's own code, else what `RuntimeErrorCodeResolver` recognises. Unrecognised exceptions, user `ex-info` included, stay uncoded.
+- `TextExceptionPrinter::getUserFacingTraceString()` is the ONE trace filter. It keeps Phel fn frames (as `.phel:line` or `repl`, via `EvaluatedCodeLocation`) and counts PHP-native ones into a SINGLE trailing marker carrying `CommandConfig::getCollapsedTraceHint()`. Never at the top. `$showInternalFrames` (`--stack-trace`) shows all.
+- `CompiledFnName` maps a compiled fn class to its Phel var via `BOUND_TO` and the registry, for trace frames and `RuntimeArityMessage` (which rewrites PHP's `Too few arguments ... __invoke()`).
 - The report ends on one `hint:` line: an `ExceptionHintResolver` match, else the stale-output hint when anchored on generated PHP with no Phel source to map. `writeLocatedException()` appends the same line.
-- `at` anchors on the throw site only if it is the user's. Errors inside `phel\core` walk out to the innermost user `.phel` frame (or `repl`), else the innermost Phel frame, else the throw site. PHP array-parameter errors receiving Phel maps/vectors prefer the mapped Phel caller over the PHP declaration. Print the compiled path only for a persistent build artifact, never the eval temp file or compiled cache (`InternalPathDetector`). Stdlib frames stay in the numbered trace.
-- Hints are pure utilities in `Phel\Shared\Exceptions\Hint\`, registered in `CommandFactory::createExceptionHints()` (`MissingNsFormHint`, `NotCallableHint`, `ArgumentCountHint`, `UndefinedSymbolHint`, `ClassNotFoundHint`, `MissingLibraryHint`, `PhpArrayArgumentHint`). `MissingNsFormHint` stays first: `UndefinedSymbolHint` also matches its message.
+- `at` anchors on the throw site only if it is the user's. Errors inside `phel\core` walk out to the innermost user `.phel` frame (or `repl`), else the innermost Phel frame, else the throw site. PHP array-parameter errors receiving Phel collections prefer the mapped Phel caller. Print the compiled path only for a persistent build artifact, never the eval temp file or compiled cache (`InternalPathDetector`). Stdlib frames stay in the numbered trace.
+- Hints are pure utilities in `Shared\Exceptions\Hint\`, registered in `CommandFactory::createExceptionHints()`. `MissingNsFormHint` stays first: `UndefinedSymbolHint` also matches its message.
 - Every error path feeds the log: `writeStackTrace()` directly, REPL and `eval` via `logStackTrace()`. Otherwise the marker points at a log without the trace.
-- Every writer goes through `ErrorLog::writeln()`, which owns the file shape; writers never strip colour or separate entries. Build it with `CommandFactory::createErrorLog()`.
-- `CommandConfig::getStaleOutputHint()` (corrupted build state recovery) uses `getCacheDir()`, which shares `PhelProjectDirectory::resolveCacheDir()` with the build and compiler configs.
+- Every writer goes through `ErrorLog::writeln()`, which owns the file shape (ANSI stripped, `[<timestamp>] <command line>` heading, one rotation at 1 MiB into `<log>.1`). Build it with `CommandFactory::createErrorLog()`.
+- `SourceMapExtractor` reads inline `// ` / `// ;;` header comments (eval temp files) OR sibling `<file>.map` + `<file>.phel` (built output). A header kept by `Shared\SourceMap\SupersededSourceMaps` wins over the file on disk.
+- `ComposerVendorDirectoriesFinder` silently skips `vendor/phel-lang/phel-lang` (the running Phel under Composer, a second stdlib under a PHAR). `phel doctor` reports the vendored copy; a warning here would repeat on every command.
+- `CommandConfig::getStaleOutputHint()` uses `getCacheDir()`, which shares `PhelProjectDirectory::resolveCacheDir()` with the build and compiler configs.
