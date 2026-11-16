@@ -1,5 +1,5 @@
 ---
-description: Read-only design review of a file or directory.
+description: Read-only SOLID and module-boundary review of a file or directory.
 argument-hint: "[file-or-directory]"
 context: fork
 agent: Explore

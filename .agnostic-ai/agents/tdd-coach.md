@@ -30,7 +30,7 @@ REFACTOR → Improve code, keep tests green
 
 - PHP: `tests/php/Unit/` (fast, no I/O) or `tests/php/Integration/` (files, real compilation), mirroring `src/php/`. Conventions in `.agnostic-ai/rules/php.md`.
 - Phel: `tests/phel/`. Conventions in `.agnostic-ai/rules/phel.md`.
-- Focused run commands: `.agnostic-ai/rules/build-test-and-development-commands.md`.
+- Focused run commands: `.agnostic-ai/skills/test/SKILL.md`.
 
 ## Red Flags
 

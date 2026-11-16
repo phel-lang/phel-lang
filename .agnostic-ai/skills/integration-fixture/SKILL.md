@@ -1,5 +1,5 @@
 ---
-description: Add a .test integration fixture for one behavior.
+description: Add a compiler .test fixture for one behavior.
 argument-hint: "[category] [name]"
 disable-model-invocation: true
 allowed-tools:
@@ -43,7 +43,7 @@ Run first: `ls tests/php/Integration/Fixtures/`.
    ./vendor/bin/phpunit --testsuite=integration --filter=<Category>
    ```
 
-6. If the fixture fails, trace the mismatch against the intended behavior. Regenerate expected PHP only for an intentional behavior or source-location change; otherwise fix the compiler within the assigned scope or report the defect. After reviewing the completed change, select verification per `.agnostic-ai/rules/build-test-and-development-commands.md`, including for fixture-only changes. Reuse passing fixture checks on unchanged code.
+6. If the fixture fails, trace the mismatch against the intended behavior. Regenerate expected PHP only for an intentional behavior or source-location change; otherwise fix the compiler within scope or report the defect. Then run the gate in `.agnostic-ai/rules/build-test-and-development-commands.md`, fixture-only changes included.
 
 ## Constraints
 

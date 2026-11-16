@@ -1,5 +1,5 @@
 ---
-description: Draft or tidy the Unreleased changelog section.
+description: Draft or tidy the CHANGELOG.md Unreleased section.
 argument-hint: "[entry text | --optimize]"
 disable-model-invocation: true
 allowed-tools:

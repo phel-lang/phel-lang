@@ -6,143 +6,68 @@ scope: src/php/Lint
 
 # Lint Module
 
-Read-only semantic linter.
-
-## Internal tooling API (Facade)
-
-Internal plumbing, outside the public semver surface (ADR 0021).
-
-| Method | Returns |
-|--------|---------|
-| `lint(list<string> $paths, RuleSettings $settings, ?LintCache $cache)` | `LintResult`; throws `LintSourceException` on an unreadable file or directory |
-| `lintSource(string $source, string $path, RuleSettings $settings)` | `LintResult` for supplied buffer text, including a nonexistent path |
-| `loadSettings(string $configPath, RuleSettings $defaults)` | `RuleSettings` |
-| `defaultSettings()` | `RuleSettings` |
-| `formatters()` | `FormatterRegistry` |
-| `createCache(string $baseDir, RuleSettings $settings)` | `LintCache` |
-| `ruleExplainer()` | `Shared\Lint\LintRuleExplainerInterface`, implemented by `Domain\LintRuleCatalog`, for `phel explain` |
+Read-only semantic linter (`phel lint`). Facade is internal tooling, outside public semver (ADR 0021); no Shared contract, so Lsp holds the one concrete binding (`.agnostic-ai/rules/module-map.md`).
 
 ## Dependencies
 
-| Facade | Injected as | Used for |
-|--------|-------------|----------|
-| Api | `ApiFacadeInterface` | `analyzeSource` (semantic diagnostics), `indexProject` |
-| Compiler | `CompilerFacadeInterface` | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `CommentStyleRule`: both must report failures, not swallow them) |
-| Command | `CommandFacadeInterface` | default source directories |
-| Run | `RunFacadeInterface` | namespace resolution and dependency metadata |
+| Facade | Used for |
+|--------|----------|
+| `ApiFacadeInterface` | `analyzeSource` (semantic diagnostics), `indexProject` |
+| `CompilerFacadeInterface` | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `CommentStyleRule`: both must report failures, not swallow them) |
+| `CommandFacadeInterface` | default source directories |
+| `RunFacadeInterface` | namespace resolution and dependency metadata |
 
-Getters return the Shared contract, never a concrete facade (`SatelliteFactoryFacadeInjectionTest`). Rules use Shared value objects (`Phel\Shared\Api\Diagnostic`, `ProjectIndex`, `Definition`, `Location`), never a `Phel\Api` class.
+Rules use Shared value objects (`Phel\Shared\Api\*`), never a `Phel\Api` class.
 
-## CLI
+## CLI and config
 
-`./bin/phel lint [paths]... [--format=text|json|github] [--config=path] [--no-cache]`
+- Exit codes: `0` clean or warnings only, `1` errors (including `phel/internal-error`), `2` invocation or config error.
+- `phel-lint.phel` (or `--config`) is a Phel map: `{:rules {:phel/x :off} :exclude {:phel/x ["src/a.phel" "phel.experimental.*"]}}`. Severities `:error :warning :info :hint :off`. An exclude pattern matches the file path when it contains `/` or `.phel`, else the namespace, via `fnmatch`.
+- A missing config means defaults. An unreadable, unparseable or non-map config raises `LintConfigException` (exit 2), never a silent fallback.
+- An unreadable `.phel` file, or a listed directory that cannot be walked, raises `LintSourceException`. Never skip either: it would report clean and exit 0.
 
-Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`), `2` invocation error.
+## Adding rules and formatters
 
-## Rule Set (v1)
+- `LintFactory::createRules()` and `FormatterRegistry` are the ONLY edit points.
+- New rule: implement `LintRuleInterface` in `Application/Rule/`, add a constant to `Shared\LintRuleCodes`, register it, add its default severity. A rule is on by default only with an entry in `LintConfig::defaultSeverities()`.
+- A rule that promotes an analyzer code implements `Domain\PromotingRuleInterface`; `CompileErrorRule::besides()` reads the promoted codes off `createRules()`, so it cannot double-report.
+- Build diagnostics through `DiagnosticBuilder` or `Diagnostic::fromSourceSpan()`, the one place a 0-based `SourceLocation` column gains its `+ 1`.
+- Output: `json` fields are public API (#3315), only add fields. A new cached field bumps `LintCacheFingerprint::ENTRY_FORMAT`. `RulePipeline` fills `suggestions` and `fix` from `ErrorCodeCatalog`, or `Domain\LintRuleCatalog` for lint-only rules. `text` still accepts the old name `human`; `github` writes `file=` relative to the working directory.
 
-- Errors: `phel/unresolved-symbol`, `phel/unresolved-namespace`, `phel/unresolved-refer`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-def`, `phel/compile-error`
-- Warnings: `phel/unused-binding`, `phel/unused-require`, `phel/unused-import`, `phel/shadowed-binding`, `phel/shadowed-core-fn`, `phel/redundant-do`, `phel/discouraged-var`, `phel/comment-style`, `phel/unknown-class`
+## `phel/internal-error` (not a rule)
 
-A rule is on by default only with an entry in `LintConfig::defaultSeverities()`; otherwise a config must opt it in.
+`RulePipeline` reports it when a rule's `apply()` throws.
 
-Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a constant to `Shared\LintRuleCodes`, register it in `LintFactory::createRules()`, add its default severity. Do not edit existing rules.
+- Always `error`, never `RuleSettings::severityFor()`: a configured `:warning` would exit 0 with findings missing.
+- Not in `allCodes()` or `defaultSeverities()`: not configurable, not fingerprinted. Escape hatch: set the crashing rule to `:off`. Other rules still run for that file.
+- Anchored at 1:1; `LintRuleException::ruleCrashed()` owns the wording.
+- Never cached (`LintRunner`): fixing a rule changes neither file hash nor fingerprint.
+- `CommentStyleRule`'s `catch (Throwable)` wraps all of `apply()` (meant for unlexable sources), so a bug there bypasses this guard. Narrowing it is open work.
 
-### `phel/internal-error` (not a rule)
+## Analyzer pass-through
 
-`RulePipeline` reports it when a rule's `apply()` throws: a finding about the linter, not the code.
+- The analyzer runs once per file: `analyzeSource` results are shared via `FileAnalysis::$semanticDiagnostics`.
+- A file that does not lex or parse fails the run under the analyzer's code (`PHEL310`, `PHEL100`, ...): `readFormsBestEffort`'s `Generator::getReturn()` flags dropped forms, `SourceRead::$failed` exposes it, `LintRunner` emits the diagnostics. Rules still see the forms that read (#3292).
+- A superseded form (`PHEL012`: `php/new`, `php/->`, `php/::`, `set-var`) and an `ns` form the analyzer rejects (`PHEL007` for `:refer :all`) pass through the same way: they stop `phel run`, so no rule can switch them off.
+- `phel/compile-error` reports every other error-severity analyzer diagnostic, so a file `phel run` rejects never lints clean. `LintRunner` drops it when a pass-through or another rule's error starts inside its span (the analyzer stops at a form's first error): `(let [a] a)` is reported once, by `phel/invalid-destructuring`.
+- Analysis cannot expand a macro the file itself defines; see `.agnostic-ai/rules/module-api.md`.
+- `LintCommand` loads namespaces inside its `try`, so a failure is a `Lint failed:` line.
+- `LintRunner::runSource()` lints supplied text (LSP buffers) with the same pipeline and path-based settings, but without collecting files, indexing the workspace or using the disk cache.
 
-- **Always `error`**, never `RuleSettings::severityFor()`: a configured `:warning` would exit 0 with findings missing.
-- **Not in `LintRuleCodes::allCodes()` or `defaultSeverities()`**: not configurable, not fingerprinted, cannot be switched off.
-- **Anchored at 1:1**. `Domain\Exception\LintRuleException::ruleCrashed()` owns the wording, names the rule, chains the throwable.
-- **Never cached** (`LintRunner`): fixing a rule changes neither file hash nor fingerprint, so a cached one would outlive the bug.
+## Rule notes
 
-Other rules still run for that file. Escape hatch: set the crashing rule to `:off`.
+- `unresolved-namespace`: only `phel.*` requires, or `clojure.*` ones via `FrameworkNamespaces::clojureTarget`. Known set from `RunFacadeInterface::getAllNamespaces()`, read once per run. User namespaces are out of scope (a file outside the configured dirs would flag its siblings).
+- `unresolved-refer`: promotes the analyzer's `PHEL013`, which checks only loaded namespaces, so the Api analysis loads the file's dependencies first. `definterface`/`defstruct` names count as defined via their PHP class.
+- `duplicate-def`: uses the file's read forms, never the runtime registry; the analyzer's `DuplicateDefinitionException` fires only on evaluation. `declare` then definition is clean; `defonce`/`defmethod` are excluded.
+- `shadowed-core-fn`: plain symbols only, not destructured names. Core names from the runtime registry (`RegistryCoreFunctionNames`); nothing loaded means an empty set, never a crash. The repo's `phel-lint.phel` excludes `*/src/phel/*`: stdlib arglists (`name`, `key`, `val`, `rest`) mirror Clojure's and are what `phel doc` prints. Do not rename them.
+- `comment-style`: flags only a line-starting comment with exactly one `;` (`.agnostic-ai/rules/phel.md`); `;;;`+ is clean. Scans the token stream, so a `;` inside a string or regex is never flagged.
+- `discouraged-var`: `:deprecated` metadata from `ProjectIndex` for the project and from the file's own forms for the linted file (the index does not cover it). Docstring prose is never a marker.
+- `unknown-class`: a warning because a class can load at runtime. Skips lowercase namespaces without a leading `\`, `:require` aliases and classes the file declares. A Java class adds its Phel replacement from `ClassNotFoundHint::javaClassHint()`.
+- `SymbolAlias`: the implicit alias of a `(:use ...)` / `(:require ...)` entry with no `:as` splits on both `.` and `\`.
+- A repeated map or set key is the reader's `PHEL203`; no lint rule repeats it. `LintRuleCodes::DUPLICATE_KEY` stays deprecated because the class is public API.
 
-### Shared rule helpers (`Application/Rule/`)
+## Cache
 
-`FormWalker`, `FnParamVectors`, `NamespaceForm`, `NsClauseIterator`, plus `SymbolAlias`: the implicit alias of a `(:use ...)` / `(:require ...)` entry with no `:as`; splits on both `.` and `\`.
+Default on, `.phel/lint-cache/index.json`. Keyed by file hash, transitive dependency and referenced project-index source hashes, and `LintCacheFingerprint` (Phel release, rule codes, severities, exclude patterns). `LintCacheDependencies` reuses Run's dependency resolver; `LintCacheLoadedSources` follows literal `load` paths via `Shared\LoadedSourceLocator`. A failed walk, unreadable source, computed load path or namespace switch bypasses the cache. A miss replays semantic analysis for its cached indexed providers before running rules; cached diagnostics bypass the rule pipeline.
 
-`Phel\Shared\Binding\IterationHead` parses `for`/`dofor`/`foreach` heads; it lives in Shared because Api's `PointCompleter` reads them too.
-
-### `phel/unresolved-namespace`
-
-Flags a `(:require ...)` of a `phel.*` namespace, or a `clojure.*` one whose `phel.*` target (`FrameworkNamespaces::clojureTarget`), that no source, test or vendor directory declares; suggests the closest name. Known set: `RunFacadeInterface::getAllNamespaces()` via `Infrastructure\ProjectKnownNamespaces`, read once per run. User namespaces are out of scope (a file outside the configured dirs would flag its siblings).
-
-### `phel/unresolved-refer`
-
-Promotes the analyzer's `PHEL013` (`NsSymbol`: a `:refer` names something the required namespace does not define or keeps private). The analyzer checks only loaded namespaces, so the Api analysis stage loads the file's dependencies first. `definterface`/`defstruct` names count as defined via their PHP class.
-
-### `phel/compile-error`
-
-Reports every error-severity analyzer diagnostic no dedicated rule promotes, so a file `phel run` rejects never lints clean. `errorCode` keeps the `PHELxxx` code.
-
-- A rule that promotes an analyzer code implements `Domain\PromotingRuleInterface`; `CompileErrorRule::besides()` reads the promoted codes off `LintFactory::createRules()`, so a new promoting rule cannot double-report.
-- `LintRunner` drops a `phel/compile-error` when an error from a pass-through (syntax error, `PHEL012`, rejected `ns` form) or another rule starts inside its span: the analyzer stops at a form's first error, so it is the same mistake. `(let [a] a)` is reported once, by `phel/invalid-destructuring`.
-- The analysis never evaluates a `def`, so it cannot expand a call to a macro the file defines, and a macro that runs the caller's code while expanding meets a fn that is still `null`. `ReadAndAnalyzeStage` drops those errors rather than report a `PHEL005` the compiler would not raise (see `.agnostic-ai/rules/module-api.md`).
-
-### `phel/duplicate-def`
-
-Flags a top-level symbol defined twice in a file. Uses the file's read forms, never the runtime registry. `declare` then definition is clean; `defonce`/`defmethod` are excluded by design. The analyzer's `DuplicateDefinitionException` cannot replace it: it fires only on evaluation, which lint never does.
-
-### `phel/shadowed-core-fn`
-
-Flags a `let`/`loop`/`if-let`/`when-let`, `fn`/`defn`/`defmacro` parameter or `for`/`dofor`/`foreach` binding named after a public, non-macro `phel.core` function. Only plain symbols count, not destructured names.
-
-Core names come from the runtime registry (`Infrastructure\RegistryCoreFunctionNames`), read once per run; nothing loaded means an empty set, never a crash.
-
-The repo's `phel-lint.phel` excludes `*/src/phel/*`: stdlib arglists (`name`, `key`, `val`, `rest`, ...) mirror Clojure's and are what `phel doc` prints. Do not rename them.
-
-### `phel/comment-style`
-
-Positional comments (`.agnostic-ai/rules/phel.md`): flags only a line-starting comment opening with exactly one `;`.
-
-- `;;;`+ is clean (Clojure section headers).
-- Scans the **token stream**, not source text, so a `;` in a string, regex, or `#| ... |#` block is never flagged.
-- Bare `#` comments are out of scope; the lexer deprecates them.
-
-### `phel/discouraged-var`
-
-Flags uses of definitions with `:deprecated` metadata, read from `ProjectIndex` (`Definition::isDeprecated()`, filled by `SymbolExtractor`) for the project and from the file's own forms for the linted file (the index does not cover it).
-
-Docstring prose is never a marker. The defining form's own name is not flagged.
-
-### `phel/unknown-class`
-
-Warns on a static call `(Foo/bar ...)` whose class cannot be autoloaded, after resolving `\Foo`, `Foo.Bar` and `:use` aliases. A warning because a class can load at runtime. Skipped: lowercase namespaces without a leading `\` (`\vendor\Foo/run` is checked), `:require` aliases, and classes the file declares (`defstruct`, `definterface`, ...). A Java class adds its Phel replacement from `ClassNotFoundHint::javaClassHint()` (#3465).
-
-## Config File
-
-`phel-lint.phel` (override via `--config`), a Phel map parsed by the reader:
-
-```phel
-{:rules {:phel/unused-binding :off
-         :phel/arity-mismatch :error}
- :exclude {:phel/unused-binding ["src/phel/local.phel" "phel.experimental.*"]}}
-```
-
-- Severities: `:error`, `:warning`, `:info`, `:hint`, `:off`
-- Exclude patterns match the file path (when they contain `/` or `.phel`) or the namespace, via `fnmatch`
-- Missing file means defaults; an unreadable, unparseable or non-map file raises `Domain\Exception\LintConfigException` (exit 2), never a silent fallback
-- An unreadable `.phel` file, or a listed **directory** that cannot be walked (`cannotWalkDirectory`, chaining `UnexpectedValueException`), raises `Domain\Exception\LintSourceException`. Never skip either: it would report clean and exit 0
-
-## Output Formats
-
-- `text`: `file:line:col [severity] code message` + summary; `human` is still accepted. `json`: stable array of `Diagnostic`. `github`: workflow annotations, `file=` relative to the working directory.
-- Lines and columns are 1-based: build diagnostics through `DiagnosticBuilder` or `Diagnostic::fromSourceSpan()`, the one place a 0-based `SourceLocation` column gains its `+ 1`.
-- `json` adds `errorCode` (promoted `PHELxxx`, else `null`), `suggestions` and `fix` (`RulePipeline` fills these from `ErrorCodeCatalog`, or `Domain\LintRuleCatalog` for lint-only rules).
-- Only add fields: the codes are public API (#3315). A new cached field bumps `LintCacheFingerprint::ENTRY_FORMAT`.
-- Add a formatter: implement `DiagnosticFormatterInterface`, register on `FormatterRegistry`.
-
-## Key Constraints
-
-- Never rewrite source; the Formatter module owns whitespace/indent.
-- Semantic diagnostics (`unresolved-symbol`, `arity-mismatch`) come from `ApiFacadeInterface::analyzeSource`, shared via `FileAnalysis::$semanticDiagnostics`, so the analyzer runs once per file.
-- `LintRunner::runSource()` uses the same reader, analysis and rule pipeline for supplied text, keeping path-based settings without collecting or reading source files, indexing the workspace, or using the lint disk cache. Dependency preparation may still inspect saved-path context.
-- Open/closed: `LintFactory::createRules()` and `FormatterRegistry` are the ONLY edit points for new rules/formatters.
-- A repeated key in a map or set literal is the reader's `PHEL203`; no lint rule repeats it. `LintRuleCodes::DUPLICATE_KEY` stays as a deprecated constant because the class is public API.
-- Cache (default on, `.phel/lint-cache/index.json`): keyed by file hash, transitive dependency and referenced project-index source hashes, and `LintCacheFingerprint` (Phel release + all rule codes + severities + exclude patterns). `LintCacheDependencies` reuses Run's namespace dependency resolver; `LintCacheLoadedSources` follows literal `load` paths through `Shared\LoadedSourceLocator`. A failed walk, unreadable source, computed load path or namespace switch bypasses the cache. A cache miss replays semantic analysis for its cached indexed providers before running rules; cached diagnostics still bypass the rule pipeline.
-- `CommentStyleRule`'s `catch (Throwable)` is for unlexable sources, not for swallowing rule bugs; it wraps all of `apply()`, so a bug there bypasses `RulePipeline`'s guard. Narrowing it to lexer/parser exceptions is open work.
-- A file that does not lex or parse fails the run under the analyzer's code (`PHEL310`, `PHEL100`, ...): `readFormsBestEffort`'s `Generator::getReturn()` flags dropped forms, `SourceReader` exposes it as `SourceRead::$failed`, and `LintRunner` emits the `analyzeSource` diagnostics. Rules still see the forms that read (#3292).
-- A superseded form (`PHEL012`: `php/new`, `php/->`, `php/::`, `set-var`) is passed through by `LintRunner` under the analyzer's code, like a syntax error: it stops `phel run`, so no rule can switch it off (#3456).
-- An `ns` form the analyzer rejects is reported the same way (`PHEL007` for `:refer :all`): `LintRunner` keeps the `analyzeSource` diagnostics inside the `ns` form that no dedicated rule reported; `phel/compile-error` yields to them. `LintCommand` loads namespaces inside its `try`, so a failure is a `Lint failed:` line (#3457).
+Never rewrite source: the Formatter owns whitespace and indent.

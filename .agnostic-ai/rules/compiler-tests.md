@@ -1,6 +1,6 @@
 ---
 name: compiler-tests
-description: Compiler module constraints also govern behavior tests.
+description: 'Load when editing compiler unit tests: the compiler module constraints apply to them.'
 scope: tests/php/Unit/Compiler
 ---
 

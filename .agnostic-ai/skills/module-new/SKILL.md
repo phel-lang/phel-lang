@@ -1,5 +1,5 @@
 ---
-description: Scaffold a new Gacela module with its scoped rule.
+description: Scaffold a new Gacela module and its scoped rule.
 argument-hint: "<ModuleName>"
 disable-model-invocation: true
 allowed-tools:
@@ -55,8 +55,6 @@ Run first: `ls src/php/`.
 
 ## Constraints
 
-- No classes instantiated across module boundaries: always go through another module's Facade.
-- Do not rely on Gacela's deprecated source/docblock service-resolution fallback; every inherited pillar accessor has an explicit `#[ServiceMap]`.
-- Provider entries use Gacela 2.0 `#[Provides(...)]`; key facade dependencies by the consumer-facing interface when one exists.
-- Mark classes `final` unless inheritance is explicitly justified.
-- Use `readonly` properties where possible (per `.agnostic-ai/rules/php.md`).
+- Never instantiate another module's class: go through its Facade, keyed by its Shared contract when one exists.
+- Every inherited pillar accessor has an explicit `#[ServiceMap]`; never rely on Gacela's docblock fallback.
+- Classes are `final` and properties `readonly` where possible, per `.agnostic-ai/rules/php.md`.

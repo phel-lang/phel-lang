@@ -1,5 +1,5 @@
 ---
-description: Fix, gate and commit the current change.
+description: Review, gate and commit the current change.
 argument-hint: "[optional commit message]"
 disable-model-invocation: true
 allowed-tools:
@@ -20,7 +20,7 @@ Run first: `git diff --stat`, `git diff --cached --stat`, `git status --short`.
 
 ## Instructions
 
-1. **Review** the diff and run `composer fix` for PHP changes that need style fixes. Review what it changed. For agent specs, use the gate in `.agnostic-ai/rules/build-test-and-development-commands.md`.
+1. **Review** the diff and run `composer fix` for PHP changes that need style fixes. Review what it changed. For agent specs, run the gate in `.agnostic-ai/rules/agent-tooling.md`.
 
 2. **Changelog**: add the entry for a user-facing change, per `.agnostic-ai/rules/workflow.md`, before staging.
 
@@ -28,6 +28,6 @@ Run first: `git diff --stat`, `git diff --cached --stat`, `git status --short`.
 
 4. **Message**: use the argument when given; otherwise write one from the staged diff, per `.agnostic-ai/rules/workflow.md`. Add `(<scope>)` when the change stays in one module. No emojis.
 
-5. **Gate**: follow `.agnostic-ai/rules/build-test-and-development-commands.md`. Check the active pre-commit hook through `git rev-parse --git-path hooks/pre-commit`, which also works in worktrees. When it supplies the final gate, commit with `COMPOSER_PROCESS_TIMEOUT=0` so long runs complete. Otherwise run the applicable gate yourself. Fix any failure; never commit past it.
+5. **Gate**: per `.agnostic-ai/rules/build-test-and-development-commands.md`. Find the active pre-commit hook with `git rev-parse --git-path hooks/pre-commit` (works in worktrees). If it does not run for this change, run the gate yourself. Fix any failure; never commit past it.
 
 6. **Commit** with `git commit -m "<message>"`, then report the hash, message and files.

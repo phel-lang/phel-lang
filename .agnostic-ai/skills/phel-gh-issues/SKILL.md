@@ -1,5 +1,5 @@
 ---
-description: phel-lang rules read by /gh-issues.
+description: phel-lang queue rules for /gh-issues.
 disable-model-invocation: true
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: macro-hygiene
-description: Macro-hygiene pitfalls for quasiquote, gensym, and expand-time evaluation
+description: 'Load when writing or changing a Phel macro: quasiquote, gensym and expand-time evaluation pitfalls.'
 scope: src/phel
 globs:
   - tests/phel/**
@@ -8,39 +8,37 @@ globs:
 
 # Macro Hygiene
 
-Phel macros non-hygienic. `let`/`binding` names in macro body silently shadow homonymous globals when unquoted in `` ` ``. No error. The expansion is wrong.
+Phel macros are not hygienic. A `let` or `binding` name in a macro body silently shadows a global of the same name wherever the quasiquoted template refers to it. There is no error; the expansion is just wrong.
 
-## 1. Local names must not collide with referenced globals
+## Local names must not collide with referenced globals
 
-Canonical bug (`defn-builder`, fixed in `c1aec277`):
+From `defn-builder` in `src/phel/core/defs.phel`:
 
 ```phel
-;; bad: local `memoize-lru` shadows global `memoize-lru` fn
+;; bad: the local `memoize-lru` shadows the global fn the template calls
 (let [memoize-lru (php/aget meta :memoize-lru)]
   `(def ~name ~meta (memoize-lru (fn ~@fdecl) ~memoize-lru)))
 
-;; good: role suffix avoids shadow
+;; good: a role suffix avoids the shadow
 (let [memoize-lru-arg (php/aget meta :memoize-lru)]
   `(def ~name ~meta (memoize-lru (fn ~@fdecl) ~memoize-lru-arg)))
 ```
 
-Convention: suffix macro-local bindings with role (`-arg`, `-flag`, `-val`, `-sym`, `-form`).
+Suffix macro-local bindings with their role: `-arg`, `-flag`, `-val`, `-sym`, `-form`.
 
-## 2. New symbols introduced into expansion need auto-gensym
+## Symbols the expansion introduces need auto-gensym
 
 ```phel
-`(let [acc 0] ~@body)    ; bad: captures user's `acc`
+`(let [acc 0] ~@body)    ; bad: captures the caller's `acc`
 `(let [acc# 0] ~@body)   ; good
 ```
 
-## 3. Expand-time vs runtime
+## Expand time vs runtime
 
-Macro body runs expand-time. Only forms inside `` ` `` reach runtime. Splice computed values via `~`; identifiers must still resolve in caller's ns.
+The macro body runs at expand time; only forms inside `` ` `` reach runtime. Splice computed values with `~`. Identifiers in the template must still resolve in the caller's namespace.
 
 ## Checklist
 
-- List every `let`-binding name in body
-- Grep each against in-scope globals (own ns, `phel.core`, `use`d modules)
-- Collision → suffix or `name#`
-- New scope-introduced symbol → `name#`
-- Add test exercising recursion / self-reference (where shadow diverges from global)
+- Check every `let` name in the body against globals in scope (own namespace, `phel.core`, required namespaces). On a collision, add a suffix or use `name#`.
+- Give every symbol the expansion binds a `name#`.
+- Add a test where the shadow would diverge from the global, such as recursion or self-reference.

@@ -6,37 +6,13 @@ scope: src/php/Shared/Printer
 
 # Printer
 
-Converts Phel/PHP values into strings. Stateless strategy pattern, no I/O, no Gacela boundary; consumers instantiate via factories.
-
-## Public API (`Printer`, `final readonly`)
-
-| Member | Purpose |
-|--------|---------|
-| `Printer::readable()` | reader literals where supported, opaque markers for host values |
-| `Printer::readableWithColor()` | readable + ANSI color |
-| `Printer::nonReadable()` | human-facing output (e.g. `str`) |
-| `print(mixed $form): string` | instance method; dispatches by type |
-
-## Structure
-
-- `TypePrinter/`: 27 strategy classes, each implements `TypePrinterInterface<T>`. Dispatch in `Printer::createObjectTypePrinter()` (`instanceof` match) and `createScalarTypePrinter()` (`gettype()` match).
-- `PrinterInterface`: contract for `Printer`.
-- `TypePrinter/WithColorTrait`: `__construct(private bool $withColor = false)`; mixed into color-aware printers. `TypePrinter/ColorizeTrait`: `colorize($str, $code)` wraps in an ANSI escape when `$withColor`; each printer keeps its own `COLOR` code.
-
-## Dependencies
-
-- `Phel\Lang` types only (`Keyword`, `Symbol`, `PhelVar`, `BigDecimal`, `UUID`, `Ratio`, persistent collections, …).
-
-## Non-obvious renderings
-
-- `BigDecimalPrinter` appends `M` for reader round-trip; `UUIDPrinter` → `#uuid "..."`; `VarPrinter` → `#'ns/name`; `PersistentQueuePrinter` → `<-(...)-<` to show FIFO direction.
-- Plain-object fallback order: `__toString` → `ToStringPrinter`; anonymous class → `AnonymousClassPrinter`; else `NonPrintableClassPrinter` → `#<Fully\Qualified\Class>`. Other scalar fallbacks use `ObjectPrinter` only in non-readable mode.
-- Live PHP resources use `ResourcePrinter` in both modes, nested values included, and render the opaque `#<PHP Resource id #N>` marker.
+Part of the Shared module. Converts Phel/PHP values to strings: one `TypePrinter/` strategy per type, no I/O. `Printer::readable()` gives reader literals where supported, `nonReadable()` human output (`str`), `readableWithColor()` adds ANSI.
 
 ## Key Constraints
 
-- Recursive printers (collections, struct, atom, array) receive `$this` Printer and re-enter dispatch for children; never construct a fresh `Printer`.
-- `createScalarTypePrinter` throws `RuntimeException` for an unprintable type in readable mode; missing object cases fall through `match` to `NonPrintableClassPrinter`.
-- Each printer owns its color output (gated by `$withColor`); there is no central color pass.
-- `NonPrintableClassPrinter` renders one whitespace-free token on purpose: `ExceptionArgsPrinter` joins a stack-trace frame's arguments with spaces, so a multi-word rendering reads as several arguments (#3265).
-- Extend only by adding a `TypePrinter` strategy + a branch in `Printer`; `Printer` is `final readonly`, do not subclass.
+- Dispatch lives in `Printer::createObjectTypePrinter()` (`instanceof` match) and `createScalarTypePrinter()` (`gettype()` match). Extend only by adding a strategy plus a branch there; `Printer` is `final readonly`.
+- Recursive printers (collections, struct, atom, array) receive `$this` and re-enter dispatch for children; never construct a fresh `Printer`. The instance tracks atoms being printed (`WeakMap`) and prints a self-containing atom as `#<cycle>`; a fresh printer loses that guard.
+- Object fallback order: `__toString` -> `ToStringPrinter`; anonymous class -> `AnonymousClassPrinter`; else `NonPrintableClassPrinter` (`#<Fully\Qualified\Class>`). An unknown scalar type uses `ObjectPrinter` in non-readable mode and throws `RuntimeException` in readable mode. Resources print `#<PHP Resource id #N>` in both modes.
+- `NonPrintableClassPrinter` renders one whitespace-free token on purpose: Command's `ExceptionArgsPrinter` joins stack-frame arguments with spaces, so a multi-word rendering reads as several arguments (#3265).
+- Each printer owns its color (`WithColorTrait`, `ColorizeTrait`, own `COLOR` code); there is no central color pass.
+- Readable forms must round-trip through the reader: `BigDecimalPrinter` appends `M`, `UUIDPrinter` prints `#uuid "..."`, `VarPrinter` `#'ns/name`. `PersistentQueuePrinter` prints `<-(...)-<` to show FIFO direction.

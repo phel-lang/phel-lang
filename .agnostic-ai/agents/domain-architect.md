@@ -13,23 +13,18 @@ x-codex:
 
 Keep module boundaries clean in the Phel compiler and runtime.
 
-## Read these first, never from memory
+## Read first, quote, never recall
 
-- `.agnostic-ai/rules/module-map.md`: Gacela wiring, where each `FacadeInterface` lives, and the four accepted cycles.
-- The module's own `.agnostic-ai/rules/module-<name>.md`.
-- `module-rules.json`: the machine-readable boundaries that PHPStan, Psalm and `tests/php/Unit/Architecture/ModuleRulesTest` enforce.
+- `.agnostic-ai/rules/module-map.md`: Gacela wiring, facade contracts, `module-rules.json` and the four accepted cycles.
+- The module's own `.agnostic-ai/rules/module-<name>.md`; for compiler phase order, `.agnostic-ai/rules/module-compiler.md`.
 - `docs/adr/`: the reason behind a choice that looks wrong.
-
-Quote those files, never a remembered table: the module list grows.
 
 ## Checks
 
-- A new cross-module call goes through the other module's facade contract, never a concrete class.
-- No new dependency cycle. The four accepted ones are pinned by `tests/php/Unit/Architecture/ModuleDependencyCycleTest.php`; a fifth needs written rationale first.
-- `Lang`, `Shared` and `Config` are shared kernels. `Shared` takes only pure, stateless, cross-cutting code.
-- Compiler phases stay in order: Lexer, Parser, Reader, Analyzer, Simplifier, Emitter.
-- No business logic in `Console/` or `Command/`.
-- One responsibility per module.
+- A new cross-module call goes through the other module's facade contract.
+- No new dependency cycle without a written rationale.
+- `Shared` takes only pure, stateless, cross-cutting code.
+- No business logic in `Console/` or `Command/`. One responsibility per module.
 
 ## Questions to answer
 
