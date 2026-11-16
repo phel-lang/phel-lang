@@ -118,16 +118,44 @@ final class PhpInteropIdentifierTest extends AbstractCompilerRuntimeTestCase
         yield 'constant' => ['php/PDO::ATTR_ERRMODE', 'Write a class member as PDO/ATTR_ERRMODE, not php/PDO::ATTR_ERRMODE.'];
         yield 'static method call' => ['(php/DateTime::createFromFormat "U" "0")', 'Write a class member as DateTime/createFromFormat,'];
         yield 'static property' => ['php/Foo::$bar', 'Write a class member as Foo/$bar,'];
-        yield 'global class' => ['php/\\Unknown_Host::BAR', 'Write a class member as \\Unknown_Host/BAR,'];
-        yield 'namespaced class' => ['php/Vendor\\Foo::BAR', 'Write a class member as \\Vendor\\Foo/BAR,'];
-        yield 'dotted class' => ['php/Vendor.Foo::BAR', 'Write a class member as \\Vendor.Foo/BAR,'];
+        yield 'global class' => ['php/\\Unknown_Host::BAR', 'Write a class member as Unknown_Host/BAR,'];
+        yield 'namespaced class' => ['php/Vendor\\Foo::BAR', 'Write a class member as Vendor.Foo/BAR,'];
+        yield 'dotted class' => ['php/Vendor.Foo::BAR', 'Write a class member as Vendor.Foo/BAR,'];
+        yield 'lower-case class' => ['php/stdClass::FOO', 'Write a class member as \\stdClass/FOO,'];
+        yield 'slash-separated class' => ['php/Vendor/Foo::BAR', 'Write a class member as Vendor.Foo/BAR,'];
     }
 
-    public function test_a_bare_double_colon_keeps_the_identifier_message(): void
+    #[DataProvider('suggestedSpellings')]
+    public function test_the_suggested_spelling_compiles(string $source, string $expected): void
+    {
+        self::assertStringContainsString($expected, $this->compileEmitOnly($source));
+    }
+
+    public static function suggestedSpellings(): iterable
+    {
+        yield ['Unknown_Host/ATTR_ERRMODE', '\\Unknown_Host::ATTR_ERRMODE'];
+        yield ['Vendor.Foo/BAR', '\\Vendor\\Foo::BAR'];
+        yield ['Vendor.Foo/$bar', '\\Vendor\\Foo::$bar'];
+        yield ['\\unknown_host/FOO', '\\unknown_host::FOO'];
+    }
+
+    #[DataProvider('nonMemberDoubleColons')]
+    public function test_a_double_colon_that_names_no_class_member_keeps_the_identifier_message(string $source): void
     {
         $this->expectException(CompilerException::class);
-        $this->expectExceptionMessageMatches('/Invalid PHP identifier ::\\. Use letters/');
-        $this->compilerFacade->compile('php/::', new CompileOptions()->setEmitOnly(true));
+        $this->expectExceptionMessageMatches('/Invalid PHP identifier .*\\. Use letters/');
+        $this->compilerFacade->compile($source, new CompileOptions()->setEmitOnly(true));
+    }
+
+    public static function nonMemberDoubleColons(): iterable
+    {
+        yield ['php/::'];
+        yield ['php/Foo::'];
+        yield ['php/::BAR'];
+        yield ['php/Foo::bar-baz'];
+        yield ['php/self::BAR'];
+        yield ['php/PDO::class::ATTR_ERRMODE'];
+        yield ['php/$class::ATTR_ERRMODE'];
     }
 
     public function test_dashed_class_tag_is_rejected(): void
