@@ -5,7 +5,7 @@ disable-model-invocation: true
 
 # GitHub Issues: phel-lang specifics
 
-Run the generic issue queue with these phel-lang rules on top. Where they differ, this file wins.
+These rules add to the maintainer's home `chema-gh-issues` skill when it is installed: follow both, and this file wins where they differ.
 
 - Queue unassigned issues and those assigned to `@me`. Follow the user's priority and concurrency; otherwise use oldest first, one at a time. Re-check assignees before starting; skip issues taken by someone else.
 - Branch each issue from current `origin/main`, using separate worktrees for authorized parallel work. Never stash another change or reuse its dirty tree. Start dependent work only after its prerequisite PR merged.
