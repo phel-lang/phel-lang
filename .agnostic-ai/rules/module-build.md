@@ -77,7 +77,7 @@ Non-facade edge, **Config**: `BuildConfig` and `Domain/Compile/Output/EntryPoint
 
 ## OPcache file cache
 
-- `bin/phel` re-execs with `opcache.file_cache=<phel-dir>/opcache` (`PhelProjectDirectory::opcachePath()`; ignores configured `phel-dir` because the CLI resolves it before config loads). It prunes on start, in the re-exec'd child only: foreign system-id subtrees and orphaned `.bin` files. The system id is probed (`OpcacheFileCache::detectSystemId()`); userland cannot compute it.
+- `bin/phel` re-execs with `opcache.file_cache=<phel-dir>/opcache` (`PhelProjectDirectory::opcachePath()`; ignores configured `phel-dir` because the CLI resolves it before config loads). It prunes on start, in the re-exec'd child only: foreign system-id subtrees and orphaned `.bin` files below the system temp root. The system id is probed (`OpcacheFileCache::detectSystemId()`); userland cannot compute it.
 - `CacheClearer` empties it in place via `OpcacheFileCachePruner::clearContents()`, never `deleteDirectory()`: PHP aborts at startup when `opcache.file_cache` points at a missing path.
 - `opcache_invalidate()` cannot drop a deleted file's `.bin` under `opcache.file_cache_only=1` (the CLI's mode): delete the `.bin`.
 

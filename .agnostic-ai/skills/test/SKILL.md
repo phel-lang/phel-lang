@@ -38,7 +38,8 @@ Install dependencies with `composer install` before PHP/Phel tooling if `vendor/
 | `bench` | `composer phpbench`; select affected subjects and follow `.agnostic-ai/skills/benchmark/SKILL.md` |
 | PHAR packaging | `./build/phar.sh`: builds `build/out/phel.phar` |
 | Shell tooling (`tools/*.sh`) | `composer test-tools` |
-| Agent specs, `resources/agents/` | the gate in `.agnostic-ai/rules/agent-tooling.md` |
+| Agent specs (`.agnostic-ai/`) | the gate in `.agnostic-ai/rules/agent-tooling.md` |
+| Downstream agent package (`resources/agents/`) | `composer test-agents` |
 | Prose only | review the diff and check every link |
 
 Use `all` only when asked or when narrower checks cannot cover the change.

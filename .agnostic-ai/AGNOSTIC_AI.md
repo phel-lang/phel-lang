@@ -2,7 +2,7 @@
 
 Phel is a Lisp that compiles to PHP, with Clojure-aligned semantics where practical.
 
-Paths are relative to the repository root. Before editing a file, read the instructions scoped to its directory.
+Paths are relative to the repository root unless stated otherwise. Before editing a file, read the instructions scoped to its directory.
 Agent config is generated from `.agnostic-ai/`: edit there, never the output, and read
 `.agnostic-ai/rules/agent-tooling.md` first (also for `agnostic-ai.yaml`). Before writing docs, read
 `.agnostic-ai/rules/docs-placement.md`.
