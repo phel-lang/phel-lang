@@ -63,6 +63,7 @@ Rules use Shared value objects (`Phel\Shared\Api\*`), never a `Phel\Api` class.
 - `comment-style`: flags only a line-starting comment with exactly one `;` (`.agnostic-ai/rules/phel.md`); `;;;`+ is clean. Scans the token stream, so a `;` inside a string or regex is never flagged.
 - `discouraged-var`: `:deprecated` metadata from `ProjectIndex` for the project and from the file's own forms for the linted file (the index does not cover it). Docstring prose is never a marker.
 - `unknown-class`: a warning because a class can load at runtime. Skips lowercase namespaces without a leading `\`, `:require` aliases and classes the file declares. A Java class adds its Phel replacement from `ClassNotFoundHint::javaClassHint()`.
+- `unused-require`, `unused-import`: a use in a file the namespace `load`s counts (`LoadedFormsReader`; `LoadForms` finds unquoted literal paths for it and the cache, resolved via `Shared\LoadedSourceLocator`). Main-file loads after a switch to another namespace are skipped. A load it cannot follow (computed path, missing or unreadable file, a loaded file that switches namespace) silences both rules for that file. The LSP reads loaded files from disk, so unsaved edits there are not seen.
 - `SymbolAlias`: the implicit alias of a `(:use ...)` / `(:require ...)` entry with no `:as` splits on both `.` and `\`.
 - A repeated map or set key is the reader's `PHEL203`; no lint rule repeats it. `LintRuleCodes::DUPLICATE_KEY` stays deprecated because the class is public API.
 

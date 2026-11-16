@@ -1,0 +1,5 @@
+(in-ns fixtures.loaded-alias.app.main)
+
+(defn shout [s] (str/upper-case s))
+
+(defn stamp [] (encode (DateTimeImmutable/createFromFormat "U" "0")))

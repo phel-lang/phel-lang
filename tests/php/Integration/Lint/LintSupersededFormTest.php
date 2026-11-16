@@ -12,6 +12,7 @@ use Phel\Lang\Symbol;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\FileCollector;
 use Phel\Lint\Application\LintRunner;
+use Phel\Lint\Application\LoadedFormsReader;
 use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Application\SourceReader;
 use Phel\Shared\Api\Diagnostic;
@@ -41,7 +42,7 @@ final class LintSupersededFormTest extends TestCase
         $runner = new LintRunner(
             new ApiFacade(),
             new FileCollector(),
-            new SourceReader(new CompilerFacade()),
+            new SourceReader($compiler = new CompilerFacade(), new LoadedFormsReader($compiler)),
             new RulePipeline([]),
         );
 

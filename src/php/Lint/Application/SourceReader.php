@@ -13,6 +13,7 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 use Throwable;
 
 use function count;
+use function preg_match;
 
 /**
  * Lex, parse and read a Phel source string into a list of top-level forms
@@ -29,6 +30,7 @@ final readonly class SourceReader
 {
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
+        private LoadedFormsReader $loadedFormsReader,
     ) {}
 
     public function read(string $source, string $uri): SourceRead
@@ -58,7 +60,11 @@ final readonly class SourceReader
             $failed = true;
         }
 
-        return new SourceRead($namespace, $forms, $failed);
+        $loadedForms = preg_match('/\bload\b/', $source) === 1
+            ? $this->loadedFormsReader->read($forms, $uri, $namespace)
+            : [];
+
+        return new SourceRead($namespace, $forms, $failed, $loadedForms);
     }
 
     private function maybeNamespace(mixed $form): string

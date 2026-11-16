@@ -46,6 +46,20 @@ final class LintLoadedFileTest extends TestCase
         $this->assertLintsClean(__DIR__ . '/Fixtures/SelfLoad/self_load.phel');
     }
 
+    #[DataProvider('providerLoadedAliasPaths')]
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_counts_requires_and_imports_used_only_in_a_loaded_file(string $path): void
+    {
+        $this->assertLintsClean($path);
+    }
+
+    public static function providerLoadedAliasPaths(): iterable
+    {
+        yield 'the loading file alone' => [__DIR__ . '/Fixtures/LoadedAlias/app/main.phel'];
+        yield 'the directory holding both files' => [__DIR__ . '/Fixtures/LoadedAlias'];
+    }
+
     private function assertLintsClean(string $path): void
     {
         Phel::bootstrap(__DIR__);

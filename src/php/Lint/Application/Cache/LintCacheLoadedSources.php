@@ -4,18 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Cache;
 
-use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
-use Phel\Lang\Collections\LinkedList\PersistentListInterface;
-use Phel\Lang\Symbol;
-use Phel\Lint\Application\Rule\FormWalker;
+use Phel\Lint\Application\LoadForms;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\LoadedSourceLocator;
-use Phel\Shared\Munge;
 use Throwable;
 
 use function array_key_exists;
-use function in_array;
-use function is_string;
 
 /**
  * @internal
@@ -81,69 +75,27 @@ final class LintCacheLoadedSources
     private function findLoads(string $source, string $file, string $namespace): ?array
     {
         $paths = [];
-        $complete = true;
 
         try {
             $forms = $this->compilerFacade->readFormsBestEffort($source, $file);
             foreach ($forms as $form) {
-                if ($this->changesNamespace($form, $namespace)) {
+                if (LoadForms::switchesNamespace($form, $namespace)) {
                     return null;
                 }
 
-                $this->collectLoads($form, $file, $namespace, $paths, $complete);
+                foreach (LoadForms::pathsIn($form) as $pathArg) {
+                    $path = $pathArg === null ? null : $this->locator->locate($namespace, $pathArg, $file);
+                    if ($path === null) {
+                        return null;
+                    }
+
+                    $paths[] = $path;
+                }
             }
 
-            return $complete && !$forms->getReturn() ? $paths : null;
+            return $forms->getReturn() ? null : $paths;
         } catch (Throwable) {
             return null;
         }
-    }
-
-    private function changesNamespace(mixed $form, string $namespace): bool
-    {
-        if (!$form instanceof PersistentListInterface) {
-            return false;
-        }
-
-        $head = $form->first();
-        $target = $form->get(1);
-
-        return $head instanceof Symbol
-            && in_array($head->getName(), [Symbol::NAME_NS, Symbol::NAME_IN_NS], true)
-            && $target instanceof Symbol
-            && Munge::canonicalNs($target->getFullName()) !== Munge::canonicalNs($namespace);
-    }
-
-    /**
-     * @param list<string> $paths
-     */
-    private function collectLoads(mixed $form, string $file, string $namespace, array &$paths, bool &$complete): void
-    {
-        FormWalker::walk($form, function (mixed $node) use (&$paths, &$complete, $file, $namespace): void {
-            if ($node instanceof PersistentHashSetInterface) {
-                foreach ($node as $item) {
-                    $this->collectLoads($item, $file, $namespace, $paths, $complete);
-                }
-
-                return;
-            }
-
-            if (!$node instanceof PersistentListInterface) {
-                return;
-            }
-
-            $head = $node->first();
-            if (!$head instanceof Symbol || $head->getName() !== Symbol::NAME_LOAD) {
-                return;
-            }
-
-            $argument = $node->get(1);
-            $path = is_string($argument) ? $this->locator->locate($namespace, $argument, $file) : null;
-            if ($path === null) {
-                $complete = false;
-            } else {
-                $paths[] = $path;
-            }
-        });
     }
 }

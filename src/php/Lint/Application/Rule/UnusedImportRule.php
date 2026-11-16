@@ -42,7 +42,10 @@ final readonly class UnusedImportRule implements LintRuleInterface
             return [];
         }
 
-        $used = NamespaceForm::collectSymbolUses($analysis->forms, $nsForm);
+        $used = NamespaceForm::collectNamespaceSymbolUses($analysis, $nsForm);
+        if ($used === null) {
+            return [];
+        }
 
         $result = [];
         foreach ($imports as $entry) {

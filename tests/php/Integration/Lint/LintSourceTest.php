@@ -11,6 +11,7 @@ use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\FileCollector;
 use Phel\Lint\Application\LintRunner;
+use Phel\Lint\Application\LoadedFormsReader;
 use Phel\Lint\Application\Rule\UnusedBindingRule;
 use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Application\SourceReader;
@@ -79,7 +80,7 @@ final class LintSourceTest extends TestCase
             $cache->put($path, []);
             $api = $this->createStub(ApiFacadeInterface::class);
             $api->method('analyzeSource')->willReturn([]);
-            $runner = new LintRunner($api, new FileCollector(), new SourceReader(new CompilerFacade()), new RulePipeline([new UnusedBindingRule()]), $cache);
+            $runner = new LintRunner($api, new FileCollector(), new SourceReader($compiler = new CompilerFacade(), new LoadedFormsReader($compiler)), new RulePipeline([new UnusedBindingRule()]), $cache);
             $settings = new RuleSettings([LintRuleCodes::UNUSED_BINDING => Diagnostic::SEVERITY_WARNING]);
             $result = $runner->runSource("(ns cached)\n(let [unsaved 1] :ok)", $path, $settings);
             self::assertCount(1, $result->diagnostics);

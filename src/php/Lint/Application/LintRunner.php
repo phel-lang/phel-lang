@@ -143,6 +143,7 @@ final readonly class LintRunner
             forms: $read->forms,
             projectIndex: $projectIndex,
             semanticDiagnostics: $semantic,
+            loadedForms: $read->loadedForms,
         );
 
         $ruleDiagnostics = $this->pipeline->run($analysis, $settings);

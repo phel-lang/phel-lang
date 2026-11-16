@@ -19,6 +19,7 @@ use Phel\Lint\Application\Formatter\GithubFormatter;
 use Phel\Lint\Application\Formatter\JsonFormatter;
 use Phel\Lint\Application\Formatter\TextFormatter;
 use Phel\Lint\Application\LintRunner;
+use Phel\Lint\Application\LoadedFormsReader;
 use Phel\Lint\Application\Rule\ArityMismatchRule;
 use Phel\Lint\Application\Rule\CommentStyleRule;
 use Phel\Lint\Application\Rule\CompileErrorRule;
@@ -129,7 +130,7 @@ final class LintFactory extends AbstractFactory
 
     public function createSourceReader(): SourceReader
     {
-        return new SourceReader($this->getCompilerFacade());
+        return new SourceReader($this->getCompilerFacade(), new LoadedFormsReader($this->getCompilerFacade()));
     }
 
     public function createFileCollector(): FileCollector

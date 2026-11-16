@@ -21,8 +21,9 @@ use Phel\Shared\Api\ProjectIndex;
 final readonly class FileAnalysis
 {
     /**
-     * @param list<bool|float|int|string|TypeInterface|null> $forms               top-level read forms
-     * @param list<Diagnostic>                               $semanticDiagnostics analyzer output
+     * @param list<bool|float|int|string|TypeInterface|null>      $forms               top-level read forms
+     * @param list<Diagnostic>                                    $semanticDiagnostics analyzer output
+     * @param list<bool|float|int|string|TypeInterface|null>|null $loadedForms         forms `load` pulls into the namespace, null when a load cannot be followed
      */
     public function __construct(
         public string $uri,
@@ -31,5 +32,6 @@ final readonly class FileAnalysis
         public array $forms,
         public ProjectIndex $projectIndex,
         public array $semanticDiagnostics = [],
+        public ?array $loadedForms = [],
     ) {}
 }

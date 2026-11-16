@@ -12,6 +12,7 @@ use Phel\Lang\Symbol;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\FileCollector;
 use Phel\Lint\Application\LintRunner;
+use Phel\Lint\Application\LoadedFormsReader;
 use Phel\Lint\Application\Rule\CommentStyleRule;
 use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Application\SourceReader;
@@ -88,7 +89,7 @@ final class LintSyntaxErrorTest extends TestCase
         $runner = new LintRunner(
             new ApiFacade(),
             new FileCollector(),
-            new SourceReader($compilerFacade),
+            new SourceReader($compilerFacade, new LoadedFormsReader($compilerFacade)),
             new RulePipeline([new CommentStyleRule($compilerFacade)]),
         );
 
