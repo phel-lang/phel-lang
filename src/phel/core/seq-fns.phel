@@ -897,13 +897,16 @@ Creates intermediate maps if they don't exist."
   [n coll]
   (if (counted? coll)
     (count coll)
-    (do
-      (NumericCoercion/ensureNumeric n)
-      (loop [i 0
-             s (seq coll)]
-        (if (and s (< i n))
-          (recur (php/+ i 1) (next s))
-          i)))))
+    (let [s (seq coll)]
+      (if s
+        (do
+          (NumericCoercion/ensureNumeric n)
+          (loop [i 0
+                 s s]
+            (if (and s (< i n))
+              (recur (php/+ i 1) (next s))
+              i)))
+        0))))
 
 (defn reverse
   "Reverses the order of the elements in the given sequence."

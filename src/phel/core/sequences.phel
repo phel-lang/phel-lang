@@ -271,12 +271,15 @@
   {:example "(nthnext [1 2 3 4 5] 2) ; => (3 4 5)\n(nthnext [1 2] 5) ; => nil"
    :see-also ["nth" "nthrest" "drop"]}
   [coll n]
-  (NumericCoercion/ensureNumeric n)
-  (loop [i n
-         s (seq coll)]
-    (if (and (> i 0) s)
-      (recur (NumericOperations/subtract i 1) (next s))
-      s)))
+  ;; As in Clojure, an empty coll returns before the count is checked.
+  (let [s (seq coll)]
+    (when s
+      (NumericCoercion/ensureNumeric n)
+      (loop [i n
+             s s]
+        (if (and (> i 0) s)
+          (recur (NumericOperations/subtract i 1) (next s))
+          s)))))
 
 (defn- transient-set?
   [coll]

@@ -76,6 +76,11 @@
 (deftest test-bounded-count-counts-down-a-non-int-bound
   (is (= 3 (bounded-count 5/2 (map identity [1 2 3 4])))))
 
+(deftest test-an-empty-coll-returns-before-the-count-is-checked
+  (is (nil? (nthnext nil nil)))
+  (is (nil? (nthnext [] "")))
+  (is (= 0 (bounded-count nil (map identity [])))))
+
 (deftest test-a-nan-count-means-zero
   (is (= [1 2] (drop ##NaN [1 2])))
   (is (= [] (take ##NaN [1 2]))))
