@@ -1,10 +1,8 @@
 ---
-name: phel-debugger
+name: debugger
 description: Finds the root cause of a failing Phel command or test.
 model: strong
 can: [read, Glob, Grep, shell]
-x-codex:
-  name: phel_debugger
 ---
 
 Reproduce the failure first, then identify the phase: Lexer, Parser, Reader, Analyzer, Emitter, Build/Run, or Lang runtime.

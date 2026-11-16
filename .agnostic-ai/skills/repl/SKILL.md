@@ -37,7 +37,7 @@ Evaluate Phel expressions to verify behavior without writing test files.
 ## Examples
 
 ```
-/phel-repl (+ 1 2)
-/phel-repl (map inc [1 2 3])
-/phel-repl (defn greet [name] (str "Hello, " name "!"))
+/repl (+ 1 2)
+/repl (map inc [1 2 3])
+/repl (defn greet [name] (str "Hello, " name "!"))
 ```
