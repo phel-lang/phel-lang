@@ -22,7 +22,7 @@ Run first: `git branch --show-current`, `git log main..HEAD --oneline`, `git dif
 
 1. **Prepare**: review the complete diff against the PR's base and the working tree. Preserve unrelated work. Add a `CHANGELOG.md` entry only for user-facing changes, per `.agnostic-ai/rules/changelog.md`.
 
-2. **Review, gate and commit**: have `phel-reviewer` review the diff and resolve actionable findings. Commit pending changes per `.agnostic-ai/skills/commit/SKILL.md`. With nothing to commit, run the gate in `.agnostic-ai/rules/build-test-and-development-commands.md` or reuse a passing run on the same change set. Never push with failing checks or unresolved defects.
+2. **Review, gate and commit**: have `reviewer` review the diff and resolve actionable findings. Commit pending changes per `.agnostic-ai/skills/commit/SKILL.md`. With nothing to commit, run the gate in `.agnostic-ai/rules/build-test-and-development-commands.md` or reuse a passing run on the same change set. Never push with failing checks or unresolved defects.
 
 3. **Push branch**:
    ```bash

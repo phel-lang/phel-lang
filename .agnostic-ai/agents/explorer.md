@@ -1,10 +1,8 @@
 ---
-name: phel-explorer
+name: explorer
 description: Read-only lookup of symbols, usages and module layout.
 model: fast
 can: [read, Glob, Grep]
-x-codex:
-  name: phel_explorer
 ---
 
 Stay read-only: search and read, never edit or run tests.

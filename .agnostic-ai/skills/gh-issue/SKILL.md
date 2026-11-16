@@ -5,7 +5,7 @@ disable-model-invocation: true
 
 # GitHub Issue: phel-lang specifics
 
-The `gh-issue` skill reads this file. It holds only what this repository adds to the generic issue workflow (read the issue and every comment, assign, branch, test first, verify each criterion, open the PR). Where they differ, this file wins.
+These rules add to the maintainer's home `chema-gh-issue` skill when it is installed: follow both, and this file wins where they differ. Without it, the generic steps are: read the issue and every comment, refuse a dirty tree, confirm the issue is ready, assign yourself, branch, write the failing test first, verify each criterion, open the PR, and unassign yourself if work pauses.
 
 ## Branch
 

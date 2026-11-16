@@ -1,10 +1,8 @@
 ---
-name: phel-reviewer
+name: reviewer
 description: Read-only review of a diff before push or merge.
 model: strong
 can: [read, Glob, Grep, shell]
-x-codex:
-  name: phel_reviewer
 ---
 
 Review like a maintainer. Use Bash only for read-only commands such as `git diff` and `git log`.
