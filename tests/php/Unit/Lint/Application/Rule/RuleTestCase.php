@@ -35,6 +35,31 @@ abstract class RuleTestCase extends TestCase
 
     protected function buildAnalysis(string $source, string $uri = 'test.phel'): FileAnalysis
     {
+        return $this->buildAnalysisWithLoadedSource($source, '', $uri);
+    }
+
+    /**
+     * @param string|null $loadedSource what the file's `load` forms pull in, null when a load cannot be followed
+     */
+    protected function buildAnalysisWithLoadedSource(string $source, ?string $loadedSource, string $uri = 'test.phel'): FileAnalysis
+    {
+        [$forms, $namespace] = $this->readForms($source, $uri);
+
+        return new FileAnalysis(
+            uri: $uri,
+            namespace: $namespace,
+            source: $source,
+            forms: $forms,
+            projectIndex: new ProjectIndex([], []),
+            loadedForms: $loadedSource === null ? null : $this->readForms($loadedSource, 'loaded.phel')[0],
+        );
+    }
+
+    /**
+     * @return array{0: list<bool|float|int|string|TypeInterface|null>, 1: string}
+     */
+    private function readForms(string $source, string $uri): array
+    {
         $compiler = $this->compilerFacade();
         $forms = [];
         $namespace = '';
@@ -63,13 +88,7 @@ abstract class RuleTestCase extends TestCase
             $forms[] = $form;
         }
 
-        return new FileAnalysis(
-            uri: $uri,
-            namespace: $namespace,
-            source: $source,
-            forms: $forms,
-            projectIndex: new ProjectIndex([], []),
-        );
+        return [$forms, $namespace];
     }
 
     /**

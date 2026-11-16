@@ -8,6 +8,7 @@ use Phel\Api\ApiFacade;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\FileCollector;
 use Phel\Lint\Application\LintRunner;
+use Phel\Lint\Application\LoadedFormsReader;
 use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Application\SourceReader;
 use Phel\Lint\Domain\Exception\LintSourceException;
@@ -63,7 +64,7 @@ final class LintRunnerTest extends TestCase
         return new LintRunner(
             new ApiFacade(),
             new FileCollector(),
-            new SourceReader($this->createStub(CompilerFacadeInterface::class)),
+            new SourceReader($compiler = $this->createStub(CompilerFacadeInterface::class), new LoadedFormsReader($compiler)),
             new RulePipeline([]),
         );
     }

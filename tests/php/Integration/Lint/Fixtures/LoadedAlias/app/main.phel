@@ -1,0 +1,8 @@
+(ns fixtures.loaded-alias.app.main
+  (:require phel.string :as str)
+  (:require phel.json :refer [encode])
+  (:use DateTimeImmutable))
+
+(load "main/helpers")
+
+(defn run [] (shout "hi"))

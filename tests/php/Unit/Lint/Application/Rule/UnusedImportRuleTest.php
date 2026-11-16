@@ -98,4 +98,37 @@ PHEL;
 
         self::assertSame([], $rule->apply($analysis));
     }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_flag_import_used_only_in_a_loaded_file(): void
+    {
+        $source = <<<PHEL
+(ns user
+  (:use DateTimeImmutable))
+
+(load "user/helpers")
+PHEL;
+        $loaded = <<<PHEL
+(in-ns user)
+
+(defn epoch [] (DateTimeImmutable/createFromFormat "U" "0"))
+PHEL;
+
+        self::assertSame([], new UnusedImportRule()->apply($this->buildAnalysisWithLoadedSource($source, $loaded)));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_flag_when_a_load_cannot_be_followed(): void
+    {
+        $source = <<<PHEL
+(ns user
+  (:use DateTimeImmutable))
+
+(load (str "user/" "helpers"))
+PHEL;
+
+        self::assertSame([], new UnusedImportRule()->apply($this->buildAnalysisWithLoadedSource($source, null)));
+    }
 }

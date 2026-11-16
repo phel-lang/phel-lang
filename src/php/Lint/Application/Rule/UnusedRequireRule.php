@@ -18,7 +18,8 @@ use function sprintf;
 
 /**
  * Flags `(:require foo)` or `(:require foo :refer [bar])` entries whose
- * alias and referred symbols are never mentioned anywhere else in the file.
+ * alias and referred symbols are never mentioned anywhere else in the file
+ * or in the files it loads into its namespace.
  *
  * @phpstan-type RequireEntry array{alias:string, refers:list<string>, display:string, anchor: bool|float|int|string|TypeInterface|null}
  *
@@ -43,7 +44,10 @@ final readonly class UnusedRequireRule implements LintRuleInterface
             return [];
         }
 
-        $usedSymbols = NamespaceForm::collectSymbolUses($analysis->forms, $nsForm);
+        $usedSymbols = NamespaceForm::collectNamespaceSymbolUses($analysis, $nsForm);
+        if ($usedSymbols === null) {
+            return [];
+        }
 
         $result = [];
         foreach ($requires as $entry) {

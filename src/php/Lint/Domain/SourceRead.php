@@ -20,11 +20,13 @@ use Phel\Lang\TypeInterface;
 final readonly class SourceRead
 {
     /**
-     * @param list<bool|float|int|string|TypeInterface|null> $forms
+     * @param list<bool|float|int|string|TypeInterface|null>      $forms
+     * @param list<bool|float|int|string|TypeInterface|null>|null $loadedForms forms `load` pulls into the namespace, null when a load cannot be followed
      */
     public function __construct(
         public string $namespace,
         public array $forms,
         public bool $failed,
+        public ?array $loadedForms = [],
     ) {}
 }
