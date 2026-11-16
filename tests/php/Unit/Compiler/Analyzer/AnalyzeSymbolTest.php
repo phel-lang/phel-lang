@@ -83,6 +83,14 @@ final class AnalyzeSymbolTest extends TestCase
         $this->analyzer->analyze(Phel::list([Symbol::createForNamespace('php', $name), 'x']), NodeEnvironment::empty());
     }
 
+    public function test_php_class_member_reference_suggests_the_slash_spelling(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Write a class member as PDO/ATTR_ERRMODE, not php/PDO::ATTR_ERRMODE.');
+
+        $this->symbolAnalyzer->analyze(Symbol::createForNamespace('php', 'PDO::ATTR_ERRMODE'), NodeEnvironment::empty());
+    }
+
     public static function invalidPhpReferences(): iterable
     {
         yield ['strlen;phpinfo'];

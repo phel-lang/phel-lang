@@ -99,6 +99,65 @@ final class PhpInteropIdentifierTest extends AbstractCompilerRuntimeTestCase
         yield ['(def x php/E_ALL|E_STRICT)', 'E_ALL|E_STRICT', 7];
     }
 
+    #[DataProvider('classMemberReferences')]
+    public function test_a_php_class_member_reference_names_the_supported_spelling(string $source, string $message): void
+    {
+        try {
+            $this->compilerFacade->compile($source, new CompileOptions()->setEmitOnly(true));
+            self::fail('A php/Class::member reference should fail during analysis');
+        } catch (CompilerException $compilerException) {
+            $error = $compilerException->getNestedException();
+            self::assertSame(ErrorCode::INVALID_SPECIAL_FORM, $error->getErrorCode());
+            self::assertStringContainsString($message, $error->getMessage());
+            self::assertStringContainsString('docs/migration/upgrade-0.49-to-1.0.md', $error->getMessage());
+        }
+    }
+
+    public static function classMemberReferences(): iterable
+    {
+        yield 'constant' => ['php/PDO::ATTR_ERRMODE', 'Write a class member as PDO/ATTR_ERRMODE, not php/PDO::ATTR_ERRMODE.'];
+        yield 'static method call' => ['(php/DateTime::createFromFormat "U" "0")', 'Write a class member as DateTime/createFromFormat,'];
+        yield 'static property' => ['php/Foo::$bar', 'Write a class member as Foo/$bar,'];
+        yield 'global class' => ['php/\\Unknown_Host::BAR', 'Write a class member as Unknown_Host/BAR,'];
+        yield 'namespaced class' => ['php/Vendor\\Foo::BAR', 'Write a class member as Vendor.Foo/BAR,'];
+        yield 'dotted class' => ['php/Vendor.Foo::BAR', 'Write a class member as Vendor.Foo/BAR,'];
+        yield 'lower-case class' => ['php/stdClass::FOO', 'Write a class member as \\stdClass/FOO,'];
+        yield 'slash-separated class' => ['php/Vendor/Foo::BAR', 'Write a class member as Vendor.Foo/BAR,'];
+    }
+
+    #[DataProvider('suggestedSpellings')]
+    public function test_the_suggested_spelling_compiles(string $source, string $expected): void
+    {
+        self::assertStringContainsString($expected, $this->compileEmitOnly($source));
+    }
+
+    public static function suggestedSpellings(): iterable
+    {
+        yield ['Unknown_Host/ATTR_ERRMODE', '\\Unknown_Host::ATTR_ERRMODE'];
+        yield ['Vendor.Foo/BAR', '\\Vendor\\Foo::BAR'];
+        yield ['Vendor.Foo/$bar', '\\Vendor\\Foo::$bar'];
+        yield ['\\unknown_host/FOO', '\\unknown_host::FOO'];
+    }
+
+    #[DataProvider('nonMemberDoubleColons')]
+    public function test_a_double_colon_that_names_no_class_member_keeps_the_identifier_message(string $source): void
+    {
+        $this->expectException(CompilerException::class);
+        $this->expectExceptionMessageMatches('/Invalid PHP identifier .*\\. Use letters/');
+        $this->compilerFacade->compile($source, new CompileOptions()->setEmitOnly(true));
+    }
+
+    public static function nonMemberDoubleColons(): iterable
+    {
+        yield ['php/::'];
+        yield ['php/Foo::'];
+        yield ['php/::BAR'];
+        yield ['php/Foo::bar-baz'];
+        yield ['php/self::BAR'];
+        yield ['php/PDO::class::ATTR_ERRMODE'];
+        yield ['php/$class::ATTR_ERRMODE'];
+    }
+
     public function test_dashed_class_tag_is_rejected(): void
     {
         $this->expectException(CompilerException::class);
