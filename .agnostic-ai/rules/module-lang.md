@@ -26,7 +26,7 @@ Generated PHP and cached artifacts call these FQNs: `Registry::readRoot` (`Globa
 - `NumericOperations` owns only the contagion ladders; lifting is in `NumericCoercion`, and `IntegerOverflow` promotes int ops to `BigInt`.
 - `Keyword::create(string)` splits on the first `/` like `Symbol::create`; `createForNamespace` is verbatim.
 - `Atom` compares by identity, never by dereferenced value.
-- `MetaInterface::withMeta()` always returns a copy and carries `#[NoDiscard]`. `CopyLocationFromTrait` leaves `setStartLocation`/`setEndLocation` abstract so each type keeps its copy-vs-mutate strategy.
+- `MetaInterface::withMeta()` always returns a copy. Every concrete implementation carries `#[NoDiscard]`: PHP does not inherit it from the interface (`tests/php/Unit/Lang/Collections/NoDiscardTest.php`). `CopyLocationFromTrait` leaves `setStartLocation`/`setEndLocation` abstract so each type keeps its copy-vs-mutate strategy.
 
 ## Vars
 

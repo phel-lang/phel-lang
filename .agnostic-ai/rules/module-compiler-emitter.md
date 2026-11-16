@@ -40,7 +40,7 @@ Core fn values also get build-mode slots holding the registry value, not a `fnSl
 Tags come from the analyzer (`.agnostic-ai/rules/module-compiler-analyzer.md`, "Type tags"). Each family has two halves:
 
 - Eligibility: a `OutputEmitter/*Specialization` class, aggregated by `CallSpecialization::isSpecialized()`.
-- Emission: a `NodeEmitter/Specialized/*CallEmitter implements SpecializedCallEmitterInterface`, listed in `CallEmitter`, which loops `tryEmit()` before the generic path.
+- Emission: a `OutputEmitter/NodeEmitter/Specialized/*CallEmitter implements SpecializedCallEmitterInterface`, listed in `CallEmitter`, which loops `tryEmit()` before the generic path.
 
 Predicates are disjoint, so order does not matter. A new family needs both halves registered.
 
@@ -59,7 +59,7 @@ Predicates are disjoint, so order does not matter. A new family needs both halve
 
 `IfChainMatchLowerer` shares literal-key eligibility and operand order between `case`/`cond` match lowering and direct `if` tests. Bindable equality targets keep runtime dispatch. Strict comparison runs first; an `EqualsInterface` subject keeps value equality (`BigInt`, noninterned keywords), and a keyword literal on the left keeps its own equality method. Match lowering captures its subject once and uses value equality only after every identity key misses. A bare `cond` rereads its local between fallback comparisons; `case` keeps its captured subject. `BodyConstantScanner` reserves consumed keyword keys by value and reserves no call slots for lowered equality tests.
 
-`NodeEmitter/PhpObjectSetEmitter` shares `PhpObjectCallDispatchResolver` with the read path, so a class-name target is static however written, and prefixes a bare static member with `$`: a class constant is not assignable.
+`OutputEmitter/NodeEmitter/PhpObjectSetEmitter` shares `PhpObjectCallDispatchResolver` with the read path, so a class-name target is static however written, and prefixes a bare static member with `$`: a class constant is not assignable.
 
 ## Generated classes
 

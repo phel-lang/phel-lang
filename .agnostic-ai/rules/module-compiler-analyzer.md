@@ -42,7 +42,7 @@ Bare `__FILE__` / `__DIR__` become `Ast/SourcePathNode`, not string literals. Ke
 
 ## Sequential destructuring
 
-`Binding/Deconstructor/VectorBindingDeconstructor` gives `[a b & r]` an indexed path: one `iv (php/instanceof v PersistentVectorInterface)` binding, then each position reads `(php/aget v i)` under `(php/=== iv true)`, else the exact `first`/`next` walk (trailing `next` included), so lazy seqs realize the same cells and scalars throw where they did.
+`TypeAnalyzer/SpecialForm/Binding/Deconstructor/VectorBindingDeconstructor` gives `[a b & r]` an indexed path: one `iv (php/instanceof v PersistentVectorInterface)` binding, then each position reads `(php/aget v i)` under `(php/=== iv true)`, else the exact `first`/`next` walk (trailing `next` included), so lazy seqs realize the same cells and scalars throw where they did.
 
 - A vector's `& r` is `(.cdr v)` after one position, `Destructure::nthNext(v, i)` after more.
 - Test `(php/=== iv true)`, not bare `iv`: the truthiness adapter costs the list walk more than the fast path saves.

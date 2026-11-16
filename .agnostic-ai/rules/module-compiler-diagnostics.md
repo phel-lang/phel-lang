@@ -8,7 +8,7 @@ globs:
 
 # Compiler Diagnostics
 
-Read `.agnostic-ai/rules/module-compiler.md` for the pipeline and constraints. Unrelated to `Phel\Lsp\Application\Diagnostics` and `Phel\Shared\Api\Diagnostic`.
+Read `.agnostic-ai/rules/module-compiler.md` for the pipeline and constraints. Paths here are relative to `src/php/Compiler/`, since the rule spans several folders. Unrelated to `Phel\Lsp\Application\Diagnostics` and `Phel\Shared\Api\Diagnostic`.
 
 ## Channels
 

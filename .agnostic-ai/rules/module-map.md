@@ -8,7 +8,7 @@ scope: src/php
 
 Each directory under `src/php/` is a module (roles: `docs/internals/architecture.md`). These conventions apply to all; a module's own rule documents only deviations and what the code cannot tell you.
 
-Paths in a module rule are relative to the module directory, except those starting with `src/`, `tests/`, `docs/`, `.agnostic-ai/` or naming a root file.
+Paths in a module rule are relative to its `scope:` directory (the module directory unless the rule is split by folder), except those starting with `src/`, `tests/`, `docs/`, `.agnostic-ai/` or naming a root file.
 
 ## Gacela Convention
 

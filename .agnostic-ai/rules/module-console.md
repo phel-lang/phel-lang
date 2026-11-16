@@ -18,7 +18,7 @@ CLI entry point: bootstraps Symfony Console and lazily registers every module's 
 
 The `Infrastructure/Command/*Commands.php` providers also import the command classes of twelve modules (Api, Balance, Build, Formatter, Interop, Lint, Lsp, Mutate, Nrepl, Profile, Run, Watch) to wrap them.
 
-Console is the graph's sink: nothing depends on it. Keep it so (`module-rules.json`). `Shared/Facade/ConsoleFacadeInterface` exists for a module that must describe console behaviour.
+Console is the graph's sink: nothing depends on it. Keep it so (`module-rules.json`). `src/php/Shared/Facade/ConsoleFacadeInterface.php` exists for a module that must describe console behaviour.
 
 ## Key Constraints
 
