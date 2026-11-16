@@ -531,10 +531,13 @@ Creates intermediate maps if they don't exist."
 (defn- seq-count
   "Clojure counts a non-int `n` down with `pos?` and `dec`, so it covers `(ceil n)` items."
   [n]
-  (if (number? n)
-    (let [f (php/ceil (NumericCoercion/toFloat n))]
-      (if (php/< f php/PHP_INT_MAX) (php/intval f) php/PHP_INT_MAX))
-    n))
+  (NumericCoercion/ensureNumeric n)
+  (let [f (php/ceil (NumericCoercion/toFloat n))]
+    (cond
+      (php/is_nan f)              0
+      (php/<= f 0)                0
+      (php/>= f php/PHP_INT_MAX)  php/PHP_INT_MAX
+      :else                       (php/intval f))))
 
 (defn drop
   "Drops the first `n` elements of `coll`. Returns a lazy sequence. When called with n only, returns a transducer."
@@ -543,21 +546,22 @@ Creates intermediate maps if they don't exist."
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
   ([n]
-   (fn [rf]
-     (let [nv (volatile! n)]
-       (xf-step rf (fn [result input]
-                     (let [n @nv]
-                       (when (php/> n 0) (vreset! nv (php/- n 1)))
-                       (if (php/> n 0) result (rf result input))))))))
+   (let [n (if (php/is_int n) n (seq-count n))]
+     (fn [rf]
+       (let [nv (volatile! n)]
+         (xf-step rf (fn [result input]
+                       (let [n @nv]
+                         (when (php/> n 0) (vreset! nv (php/- n 1)))
+                         (if (php/> n 0) result (rf result input)))))))))
   ([n coll]
-   (if (nil? coll)
-     []
-     (let [n (if (php/is_int n) n (seq-count n))
-           n (if (php/< n 0) 0 n)]
-       (if (php/=== n 0)
-         coll
-         (let [result (lazy-seq-from-generator (Seq/drop n coll))]
-           (copy-meta coll (or result []))))))))
+   (let [n (if (php/is_int n) n (seq-count n))]
+     (if (nil? coll)
+       []
+       (let [n (if (php/< n 0) 0 n)]
+         (if (php/=== n 0)
+           coll
+           (let [result (lazy-seq-from-generator (Seq/drop n coll))]
+             (copy-meta coll (or result [])))))))))
 
 (defn drop-last
   "Drops the last `n` elements of `coll`. `n` defaults to `1` when omitted, matching Clojure's `(drop-last coll)` single-arity form. Returns an empty sequence when `coll` is `nil`. Works with any seqable collection including lazy sequences and ranges."
@@ -617,13 +621,14 @@ Creates intermediate maps if they don't exist."
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
   ([n]
-   (fn [rf]
-     (let [nv (volatile! n)]
-       (xf-step rf (fn [result input]
-                     (let [n      @nv
-                           nn     (vreset! nv (php/- n 1))
-                           result (if (php/> n 0) (rf result input) result)]
-                       (if (php/<= nn 0) (ensure-reduced result) result)))))))
+   (let [n (if (php/is_int n) n (seq-count n))]
+     (fn [rf]
+       (let [nv (volatile! n)]
+         (xf-step rf (fn [result input]
+                       (let [n      @nv
+                             nn     (vreset! nv (php/- n 1))
+                             result (if (php/> n 0) (rf result input) result)]
+                         (if (php/<= nn 0) (ensure-reduced result) result))))))))
   ([n coll]
    (if (int? n)
      (let [n (if (php/< n 0) 0 n)]
@@ -682,12 +687,13 @@ Creates intermediate maps if they don't exist."
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
   ([n]
-   (fn [rf]
-     (let [iv (volatile! -1)]
-       (xf-step rf (fn [result input]
-                     (let [i (vreset! iv (php/+ @iv 1))]
-                       (if (php/=== 0 (php/% i n))
-                         (rf result input) result)))))))
+   (let [n (if (php/is_int n) n (seq-count n))]
+     (fn [rf]
+       (let [iv (volatile! -1)]
+         (xf-step rf (fn [result input]
+                       (let [i (vreset! iv (php/+ @iv 1))]
+                         (if (php/=== 0 (php/% i n))
+                           (rf result input) result))))))))
   ([n coll]
    (let [n (if (php/is_int n) n (seq-count n))
          s (seq coll)]
@@ -891,11 +897,16 @@ Creates intermediate maps if they don't exist."
   [n coll]
   (if (counted? coll)
     (count coll)
-    (loop [i 0
-           s (seq coll)]
-      (if (and s (php/< i n))
-        (recur (php/+ i 1) (next s))
-        i))))
+    (let [s (seq coll)]
+      (if s
+        (do
+          (NumericCoercion/ensureNumeric n)
+          (loop [i 0
+                 s s]
+            (if (and s (< i n))
+              (recur (php/+ i 1) (next s))
+              i)))
+        0))))
 
 (defn reverse
   "Reverses the order of the elements in the given sequence."
@@ -1352,6 +1363,7 @@ With one argument returns an infinite lazy sequence of calls to f."
         (new Equalizer)
         (fn [] (cons (f) (repeatedly f)))))
   ([n f]
+   (NumericCoercion/ensureNumeric n)
    ;; Math helpers load after this file.
    (new Phel.Lang.Collections.LazySeq.LazySeq
         (new Hasher)
