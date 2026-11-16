@@ -99,6 +99,37 @@ final class PhpInteropIdentifierTest extends AbstractCompilerRuntimeTestCase
         yield ['(def x php/E_ALL|E_STRICT)', 'E_ALL|E_STRICT', 7];
     }
 
+    #[DataProvider('classMemberReferences')]
+    public function test_a_php_class_member_reference_names_the_supported_spelling(string $source, string $message): void
+    {
+        try {
+            $this->compilerFacade->compile($source, new CompileOptions()->setEmitOnly(true));
+            self::fail('A php/Class::member reference should fail during analysis');
+        } catch (CompilerException $compilerException) {
+            $error = $compilerException->getNestedException();
+            self::assertSame(ErrorCode::INVALID_SPECIAL_FORM, $error->getErrorCode());
+            self::assertStringContainsString($message, $error->getMessage());
+            self::assertStringContainsString('docs/migration/upgrade-0.49-to-1.0.md', $error->getMessage());
+        }
+    }
+
+    public static function classMemberReferences(): iterable
+    {
+        yield 'constant' => ['php/PDO::ATTR_ERRMODE', 'Write a class member as PDO/ATTR_ERRMODE, not php/PDO::ATTR_ERRMODE.'];
+        yield 'static method call' => ['(php/DateTime::createFromFormat "U" "0")', 'Write a class member as DateTime/createFromFormat,'];
+        yield 'static property' => ['php/Foo::$bar', 'Write a class member as Foo/$bar,'];
+        yield 'global class' => ['php/\\Unknown_Host::BAR', 'Write a class member as \\Unknown_Host/BAR,'];
+        yield 'namespaced class' => ['php/Vendor\\Foo::BAR', 'Write a class member as \\Vendor\\Foo/BAR,'];
+        yield 'dotted class' => ['php/Vendor.Foo::BAR', 'Write a class member as \\Vendor.Foo/BAR,'];
+    }
+
+    public function test_a_bare_double_colon_keeps_the_identifier_message(): void
+    {
+        $this->expectException(CompilerException::class);
+        $this->expectExceptionMessageMatches('/Invalid PHP identifier ::\\. Use letters/');
+        $this->compilerFacade->compile('php/::', new CompileOptions()->setEmitOnly(true));
+    }
+
     public function test_dashed_class_tag_is_rejected(): void
     {
         $this->expectException(CompilerException::class);

@@ -69,6 +69,7 @@ Each of these used to compile. The error names the file, line and code.
 | Before | Error | Fix | Since |
 |---|---|---|---|
 | `(php/new DateTime "2024-01-01")`, `(php/-> o (m))`, `(php/:: C (m))` | `PHEL012` | `(new DateTime "2024-01-01")`, `(.m o)`, `(C/m)` ([details](deprecated-surface.md#redundant-interop-forms-phpnew-php--php)) | 0.52 |
+| `php/PDO::ATTR_ERRMODE`, `(php/DateTime::createFromFormat "U" "0")` | `PHEL007` Invalid PHP identifier | `PDO/ATTR_ERRMODE`, `(DateTime/createFromFormat "U" "0")`; start a namespaced class with `\`: `\Vendor\Foo/BAR` | after 0.54 |
 | `(set-var *x* 3)` | `PHEL012` | `(alter-var-root (var *x*) (fn [_] 3))` | 0.52 |
 | `(push [] 1)`, `put`, `unset`, `put-in`, `unset-in`, `values`, `function?`, `hash-map?`, `id`, `str-contains?` | `PHEL001` | [removed-deprecated-core-fns.md](removed-deprecated-core-fns.md) | 0.50 |
 | `{:a 1 :a 2}`, `#{1 1}` | `PHEL203` Duplicate key | drop the repeated key; `{:a 1 :a 2}` used to read as `{:a 2}` | 0.54 |
