@@ -14,14 +14,17 @@ use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Binding\IterationHead;
 use Phel\Shared\LintRuleCodes;
 
+use function array_diff;
+use function array_values;
 use function count;
 use function in_array;
 use function sprintf;
 
 /**
- * Flags new `let`/`fn`/`defn`/`for`/`foreach` bindings that shadow a
- * previously-bound local with the same name (outer scope still reachable, easy
- * foot-gun).
+ * Flags new `let`/`fn`/`defn`/`for`/`foreach` bindings that shadow a local
+ * from an enclosing form. Rebinding a name from earlier in the same `let` or
+ * `loop` vector or iteration head, as in `(let [x 1 x (inc x)] x)`, is the
+ * Clojure idiom for stepping a value and is not flagged.
  *
  * @internal
  */
@@ -110,8 +113,9 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
 
         $size = count($bindings);
         $newScope = $scope;
+        $enclosing = $scope;
         for ($i = 0; $i < $size; $i += 2) {
-            $newScope = $this->noteBinding($bindings->get($i), $newScope, $uri, $result);
+            [$newScope, $enclosing] = $this->noteRebindable($bindings->get($i), $newScope, $enclosing, $uri, $result);
         }
 
         return $newScope;
@@ -140,8 +144,9 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
         }
 
         $newScope = $scope;
+        $enclosing = $scope;
         foreach (IterationHead::entries($formName, $head) as $entry) {
-            $newScope = $this->noteBinding($entry['binding'], $newScope, $uri, $result);
+            [$newScope, $enclosing] = $this->noteRebindable($entry['binding'], $newScope, $enclosing, $uri, $result);
         }
 
         return $newScope;
@@ -259,16 +264,39 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
     }
 
     /**
-     * Adds one bound name to `$scope`, reporting it first when the same name is
-     * already in scope. `&` and `_` are ignored: the former is the variadic
-     * marker, the latter the conventional "unused" placeholder.
+     * Notes a binding of a `let`/`loop` vector or an iteration head, where a
+     * later binding may rebind an earlier one: only names from `$enclosing`
+     * are reported, and each of those at most once per vector.
      *
      * @param list<string>     $scope
+     * @param list<string>     $enclosing
      * @param list<Diagnostic> $result
+     *
+     * @return array{list<string>, list<string>}
+     */
+    private function noteRebindable(mixed $sym, array $scope, array $enclosing, string $uri, array &$result): array
+    {
+        $scope = $this->noteBinding($sym, $scope, $uri, $result, $enclosing);
+        if ($sym instanceof Symbol) {
+            $enclosing = array_values(array_diff($enclosing, [$sym->getName()]));
+        }
+
+        return [$scope, $enclosing];
+    }
+
+    /**
+     * Adds one bound name to `$scope`, reporting it first when the same name is
+     * in `$enclosing` (all of `$scope` when not given). `&` and `_` are
+     * ignored: the former is the variadic marker, the latter the conventional
+     * "unused" placeholder.
+     *
+     * @param list<string>      $scope
+     * @param list<Diagnostic>  $result
+     * @param list<string>|null $enclosing
      *
      * @return list<string>
      */
-    private function noteBinding(mixed $sym, array $scope, string $uri, array &$result): array
+    private function noteBinding(mixed $sym, array $scope, string $uri, array &$result, ?array $enclosing = null): array
     {
         if (!$sym instanceof Symbol) {
             return $scope;
@@ -279,7 +307,7 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
             return $scope;
         }
 
-        if (in_array($name, $scope, true)) {
+        if (in_array($name, $enclosing ?? $scope, true)) {
             $result[] = DiagnosticBuilder::fromForm(
                 $this->code(),
                 sprintf("Shadowed binding: '%s' shadows a local with the same name.", $name),

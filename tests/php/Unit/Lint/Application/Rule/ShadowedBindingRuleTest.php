@@ -36,6 +36,43 @@ final class ShadowedBindingRuleTest extends RuleTestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_it_does_not_flag_a_rebind_within_the_same_binding_vector(): void
+    {
+        $rule = new ShadowedBindingRule();
+        $let = $this->buildAnalysis("(let [x 1 x (inc x)] x)\n");
+        $loop = $this->buildAnalysis("(loop [x 1 x (inc x)] x)\n");
+
+        self::assertSame([], $rule->apply($let));
+        self::assertSame([], $rule->apply($loop));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_flags_an_outer_local_once_when_the_inner_let_rebinds_it(): void
+    {
+        $rule = new ShadowedBindingRule();
+        $analysis = $this->buildAnalysis("(let [x 1] (let [x 2 x (inc x)] x))\n");
+
+        $diagnostics = $rule->apply($analysis);
+
+        self::assertCount(1, $diagnostics);
+        self::assertSame(18, $diagnostics[0]->startCol);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_flag_a_rebind_within_the_same_for_head(): void
+    {
+        $rule = new ShadowedBindingRule();
+        $letModifier = $this->buildAnalysis("(for [x :in [1 2] :let [y 1 y (inc y)]] y)\n");
+        $headBinding = $this->buildAnalysis("(for [x :in [1 2] :let [x (inc x)]] x)\n");
+
+        self::assertSame([], $rule->apply($letModifier));
+        self::assertSame([], $rule->apply($headBinding));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_it_flags_fn_param_shadowing_outer_binding(): void
     {
         $rule = new ShadowedBindingRule();
