@@ -151,4 +151,18 @@ PHEL;
 
         self::assertSame([], new UnusedRequireRule()->apply($this->buildAnalysis($source)));
     }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_type_tag_does_not_count_as_a_require_alias(): void
+    {
+        $source = <<<PHEL
+(ns user
+  (:require phel.string))
+
+(defn f [^string s] s)
+PHEL;
+
+        self::assertCount(1, new UnusedRequireRule()->apply($this->buildAnalysis($source)));
+    }
 }

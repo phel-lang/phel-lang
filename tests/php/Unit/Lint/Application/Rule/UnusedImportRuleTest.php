@@ -158,6 +158,9 @@ PHEL;
         yield 'instance?' => ['(instance? DateTimeImmutable 1)'];
         yield 'catch' => ['(try 1 (catch DateTimeImmutable e 2))'];
         yield 'defstruct implements' => ['(defstruct p [x] DateTimeImmutable)'];
+        yield 'nullable tag' => ['(defn f [^?DateTimeImmutable d] d)'];
+        yield 'string tag' => ['(defn f [^"DateTimeImmutable" d] d)'];
+        yield 'union tag' => ['(defn f [^"DateTimeImmutable|int" d] d)'];
     }
 
     #[PreserveGlobalState(false)]
@@ -172,5 +175,35 @@ PHEL;
 PHEL;
 
         self::assertCount(1, new UnusedImportRule()->apply($this->buildAnalysis($source)));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_a_constructor_of_another_class_with_the_same_short_name_is_not_a_use(): void
+    {
+        $source = <<<PHEL
+(ns user
+  (:use DateTimeImmutable))
+
+(Other.DateTimeImmutable. "now")
+PHEL;
+
+        self::assertCount(1, new UnusedImportRule()->apply($this->buildAnalysis($source)));
+    }
+
+    #[DataProvider('nonClassReferences')]
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_flags_an_import_named_only_outside_class_positions(string $body): void
+    {
+        $source = "(ns user\n  (:use DateTimeImmutable))\n\n" . $body;
+
+        self::assertCount(1, new UnusedImportRule()->apply($this->buildAnalysis($source)));
+    }
+
+    public static function nonClassReferences(): iterable
+    {
+        yield 'other metadata' => ['(fn [^{:see-also [DateTimeImmutable]} x] x)'];
+        yield 'dotted local' => ['(fn [DateTimeImmutable.] DateTimeImmutable.)'];
     }
 }

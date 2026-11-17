@@ -7,4 +7,4 @@
 
 (defn zone-name [^DateTimeZone zone] (.getName zone))
 
-(defn ^DateInterval one-day [] (new DateInterval "P1D"))
+(defn ^DateInterval age [^DateTimeImmutable since] (.diff since (now)))
