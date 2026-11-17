@@ -78,7 +78,7 @@ compares them structurally.
 | Function | Behaviour |
 |---|---|
 | `compare` | vectors, lists, map entries and seqs (`range`, `map`, `lazy-seq` results included) compare element-wise, shorter prefix first, and with each other: `(compare (range 3) [0 1 2])` is `0`. Two equal sets or maps compare `0`; unequal ones throw, as in Clojure. Comparing across *kinds* still throws, and so do transients. Two infinite seqs that agree never return, as with `=` |
-| `<`, `>`, `<=`, `>=` | accept any non-`nil` values and compare them with PHP's operators. Strings compare lexicographically, `(< "a" "b")` is `true`, but two numeric strings compare as numbers, so `(< "10" "9")` is `false`. Keywords and collections get an order with no meaning, `(< :a :d)` is `false`, and values of different kinds are `false` both ways. `nil` is still rejected |
+| `<`, `>`, `<=`, `>=` | accept any non-`nil` values and compare them with PHP's operators. Strings compare lexicographically, `(< "a" "b")` is `true`, but two numeric strings compare as numbers, so `(< "10" "9")` is `false`. Keywords and collections get an order with no meaning, `(< :a :d)` is `false`, and mixing kinds follows PHP's rules. A ratio or big number against a non-number throws, and so does `nil` |
 | `min`, `max` | strings compare lexicographically; `nil` is still rejected |
 | `min-key`, `max-key` | strings, vectors, maps and sets are comparable, so a value comes back instead of a throw |
 | `sort-by` | a `nil`, `[]` or `{}` comparator yields an empty result instead of throwing. Other non-callable comparators, such as `5` or `:b`, throw |
